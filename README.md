@@ -36,8 +36,8 @@ In order not to pollute your system, install this in virtual environment.
 https://github.com/ondondil/somsiad/releases
 
 2. Unpack the downloaded package and open working directory:  
-`tar -xzvf`  
-`cd somsiad_bot`
+`tar -xzvf somsiad*.tar.gz`  
+`cd somsiad-1.0.0`
 
 3. In your working directory, create virtual environment:  
 `python3 -m venv --system-site-packages somsiad_env`
