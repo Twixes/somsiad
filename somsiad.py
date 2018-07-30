@@ -1,0 +1,82 @@
+#! /usr/bin/python3
+
+#  somsiad.py - discord bot
+#  Copyright (C) 2018  ondondil
+
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import discord
+import asyncio
+from discord.ext.commands import Bot
+from discord.ext import commands
+import platform
+import sys
+import traceback
+import logging
+from somsiad_helper import *
+from plugins import (wiki_search, g_search, urban_dict, eightball, isitup, image_search,
+    simple_text_responses, help, youtube)
+
+
+logging.basicConfig(filename='somsiad_log.txt', level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+# This is what happens everytime the bot launches. In this case, it prints information like
+# server count, user count the bot is connected to, and the bot id in the console.
+@client.event
+async def on_ready():
+	print('Logged in as ' + str(client.user.name) + ' (ID:' + str(client.user.id) + 
+        ') | Connected to ' + str(len(client.guilds)) + ' servers | Connected to ' + 
+        str(len(set(client.get_all_members()))) + ' users')
+	print('--------')
+	print('Current Discord.py Version: {} | '.format(discord.__version__) + 
+        'Current Python Version: {}'.format(platform.python_version()))
+	print('--------')
+	print('Use this link to invite {}:'.format(str(client.user.name)))
+	print('https://discordapp.com/oauth2/authorize?client_id=' + 
+        '{}&scope=bot&permissions=8'.format(str(client.user.id)))
+	print('--------')
+	print('Based on BasicBot v2.1 by Habchy#1665')
+	return await client.change_presence(activity=discord.Game(name=
+        'Kiedyś to było, teraz to nie ma'))
+
+
+@client.event
+async def on_command_error(ctx, error):
+    """Error handling"""
+    ignored = (commands.CommandNotFound, commands.UserInputError)
+    if isinstance(error, ignored):
+        return
+    elif isinstance(error, commands.DisabledCommand):
+        return await ctx.send(f'{ctx.command} została wyłączona.')
+    elif isinstance(error, commands.NoPrivateMessage):
+        try:
+            return await ctx.author.send(f'Komenda {ctx.command} nie może zostać użyta w prywatnej wiadomości.')
+        except:
+            pass
+    print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+    traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+
+# Disable 'youtube' plugin if no youtube API key is found
+if dev_keys['youtube'] == "":
+    client.remove_command('youtube')
+
+# Terminate the program if user did not provide bot token
+if dev_keys['discord'] != "":
+    client.run(dev_keys['discord'])
+else:
+    print("Error: No Bot token in " + str(conf_file))
+    print("Terminating program...")
+    sys.exit()
