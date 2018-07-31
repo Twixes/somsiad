@@ -1,6 +1,12 @@
+#!/bin/bash
+
 if command -V python3 &>/dev/null
 then
-    python3 -m venv --system-site-packages somsiad_env
+    if ! test -d somsiad_env
+    then
+        echo Tworzenie środowiska wirtualnego...
+        python3 -m venv --system-site-packages somsiad_env
+    fi
     source ./somsiad_env/bin/activate
     if ! command pip3 show wikipedia &>/dev/null
     then
@@ -14,7 +20,8 @@ then
     then
         pip3 install git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]
     fi
+        echo Budzenie Somsiada...
     python3 somsiad.py
 else
-    echo Somsiad nie może wstać, bo w systemie nie znaleziono Pythona 3!
+    echo W systemie nie znaleziono Pythona 3! Somsiad nie może wstać.
 fi
