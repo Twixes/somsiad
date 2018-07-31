@@ -46,7 +46,9 @@ In order not to pollute your system, install Somsiad in a virtual environment.
 `$ cd somsiad`
 
 3. Run the bot (you will be asked to provide tokens on the first run):  
-`$ ./run.sh`
+`$ ./run.sh`  
+or if you have `screen` installed:  
+`$ screen -S Somsiad ./run.sh`
 
 4. Invite Somsiad to your server with the link provided upon launch.
 
