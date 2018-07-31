@@ -4,7 +4,7 @@ Somsiad.py - a Discord bot written for the /r/Polska server.
 
 ## Features
 
-* 8-ball
+* 8-Ball
 * simple text replies
 * image search using Qwant
 * checking the current status of websites with isitup.org
@@ -17,10 +17,10 @@ Somsiad.py - a Discord bot written for the /r/Polska server.
 * Python 3.5.3 or newer.
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
-  https://discordapp.com/developers/applications/me
+https://discordapp.com/developers/applications/me
 
 * *optionally* A YouTube API token (if you want YouTube search):  
-  https://console.developers.google.com/apis/dashboard
+https://console.developers.google.com/apis/dashboard
 
 * In Linux environments, the following dependencies of discord.py:  
 
@@ -39,11 +39,11 @@ In order not to pollute your system, install Somsiad in a virtual environment.
   https://github.com/ondondil/somsiad/releases
 
 2. Unpack the downloaded package and enter the newly created directory:  
-  `$ tar -xvf somsiad.tar.gz`  
-  `$ cd somsiad`
+`$ tar -xvf somsiad.tar.gz`  
+`$ cd somsiad`
 
 3. Run the bot (you will be asked to provide tokens on the first run):  
-  `$ ./run.sh`
+`$ ./run.sh`
 
 4. Invite Somsiad to your server with the link provided upon launch.
 
