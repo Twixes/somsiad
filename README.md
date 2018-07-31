@@ -22,7 +22,7 @@ https://discordapp.com/developers/applications/me
 * *optionally* A YouTube API token (if you want YouTube search):  
 https://console.developers.google.com/apis/dashboard
 
-* In Linux environments, the following dependencies of discord.py:  
+* The following packages:  
 
   * libffi
   * libnacl
@@ -31,7 +31,7 @@ https://console.developers.google.com/apis/dashboard
   * python3-wheel
   * python3-venv
 
-  On Debian-based systems you can satisfy them with `apt`:  
+  On Debian-based systems you can satisfy those dependencies with `apt`:  
 `$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`
 
 ## Installation
