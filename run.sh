@@ -20,7 +20,7 @@ then
     then
         pip3 install git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]
     fi
-        echo Budzenie Somsiada...
+    echo Budzenie Somsiada...
     python3 somsiad.py
 else
     echo W systemie nie znaleziono Pythona 3! Somsiad nie może wstać.
