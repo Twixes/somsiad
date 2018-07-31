@@ -13,7 +13,7 @@ from somsiad_helper import *
 async def eightball(ctx, *args):
     """Returns 8ball answer."""
     with open(os.path.join(bot_dir, 'data', '8ball_responses.txt')) as f:
-        responses = [line.strip() for line in f.readlines()]
+        responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
     
     response = random.choice(responses)
     await ctx.send('{}, '.format(ctx.author.mention) + "\n:8ball: " + response)

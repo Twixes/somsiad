@@ -1,20 +1,23 @@
-Mój wywiad donosi: NIE
-Wygląda dobrze
+# TWIERDZĄCE
+YES, YES, YES!
+Jak najbardziej tak.
+Prawdopodobnie tak.
+Z całą pewnością tak.
+Bez wątpienia tak.
+Niestety tak.
+Wszystko wskazuje na to, że tak.
+# PRZECZĄCE
+Mój wywiad donosi: NIE.
+Niestety nie.
+Na szczęście nie.
+Nie ma mowy.
+Nie wydaje mi się.
+Daj spokój...
+Zapomnij.
+# ZAGADKOWE
+Zbyt wcześnie, aby powiedzieć.
 Kto wie?
-Zapomnij o tym
-Tak - w swoim czasie
-Prawie jak tak
-Nie teraz
-YES, YES, YES
-To musi poczekać
-Mam pewne wątpliwości
-Możesz na to liczyć
-Zbyt wcześnie aby powiedzieć
-Daj spokój
-Absolutnie
-Chyba żatrujesz?
-Na pewno nie
-Zrób to
-Prawdopodobnie
-Dla mnie rewelacja
-Na pewno tak
+Możesz na to liczyć.
+Być może.
+Trudno powiedzieć.
+To pytanie jest dla mnie zbyt głębokie.
