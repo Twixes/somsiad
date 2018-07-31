@@ -11,8 +11,8 @@ from somsiad_helper import *
 @commands.cooldown(1, 1, commands.BucketType.user)
 @commands.guild_only()
 async def eightball(ctx, *args):
-    """Returns 8ball answer."""
-    with open(os.path.join(bot_dir, 'data', '8ball_responses.txt')) as f:
+    """Returns an 8-Ball answer."""
+    with open(os.path.join(bot_dir, 'data', 'eightball_responses.txt')) as f:
         responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
     
     response = random.choice(responses)
