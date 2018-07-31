@@ -9,11 +9,11 @@ from apiclient.errors import HttpError
 
 
 @client.command(aliases=['yt'])
-@commands.cooldown(1, 1, commands.BucketType.user)
+@commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
     """Returns first matching result from YouTube."""
-    DEVELOPER_KEY = dev_keys['youtube']
+    DEVELOPER_KEY = conf['youtube']
     YOUTUBE_API_SERVICE_NAME = "youtube"
     YOUTUBE_API_VERSION = "v3"
 

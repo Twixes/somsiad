@@ -49,6 +49,7 @@ async def on_ready():
     print('')
     print('Stworzono na podstawie BasicBota 2.1 Habchy\'ego#1665.')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
+    print('')
     return await client.change_presence(activity=discord.Game(name='Kiedyś to było, teraz to nie ma.'))
 
 
@@ -69,12 +70,12 @@ async def on_command_error(ctx, error):
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 # Disable 'youtube' plugin if no youtube API key is found
-if dev_keys['youtube'] == "":
+if conf['youtube'] == "":
     client.remove_command('youtube')
 
 # Terminate the program if user did not provide bot token
-if dev_keys['discord'] != "":
-    client.run(dev_keys['discord'])
+if conf['discord'] != "":
+    client.run(conf['discord'])
 else:
     print("BŁĄD: Nie znaleziono tokenu bota w  " + str(conf_file))
     print("Zatrzymywanie programu...")

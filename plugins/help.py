@@ -6,7 +6,7 @@ from somsiad_helper import *
 
 
 @client.command(aliases=['pomoc'])
-@commands.cooldown(1, 1, commands.BucketType.user)
+@commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
 async def help(ctx):
     em = discord.Embed(title='POMOC' , colour=0x269d9c)
     em.add_field(name='Cześć!', value="Witaj na stronie pomocy Somdiada - dyskordowego bota. " +

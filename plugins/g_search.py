@@ -7,7 +7,7 @@ from somsiad_helper import *
 
 
 @client.command(aliases=['g'])
-@commands.cooldown(1, 1, commands.BucketType.user)
+@commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def g_search(ctx, *args):
     """Returns first matching result from Google. 
