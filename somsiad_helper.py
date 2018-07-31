@@ -12,11 +12,11 @@ client.remove_command('help')   # Replaced with 'help' plugin
 conf_file = os.path.join(os.path.expanduser("~"), ".config", "somsiad.conf")
 if not os.path.exists(conf_file):
     with open(conf_file, "w") as f:
-        print("Wciśnij Enter by pominąć. Jeśli pominiesz ten etap będziesz mógł dodać tokeny w pliku ~/.config/somsiad.conf.")
         f.write("discord: " + str(input("Wprowadź discordowy token bota:\n")) + "\n")
         f.write("youtube: " + str(input("Wprowadź klucz API YouTube (lub pomiń ten krok, jeśli nie chcesz funkcji YT):\n")) + "\n")
         f.write("cooldown: " + str(input("Wprowadź cooldown między wywołaniami bota przez danego użytkownika (w s):\n")) + "\n")
-    print("Ładowanie...")
+        print("Konfiguracja zapisana w " + os.path.expanduser("~") + "/.config/somsiad.conf.")
+    print("Budzenie Somsiada...")
 
 # If file exists, fetch the keys.
 conf = {}
