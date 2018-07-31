@@ -37,15 +37,18 @@ logging.basicConfig(filename='somsiad_log.txt', level=logging.INFO,
 # like the server count, user count, and the bot's ID in the console.
 @client.event
 async def on_ready():
-    print('Zalogowano jako ' + str(client.user.name) + ' (ID:' + str(client.user.id) + ').')
+    print('')
+    print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
+    print('Obudzono Somsiada (ID:' + str(client.user.id) + ').')
     print('Połączono z ' + str(len(set(client.get_all_members()))) + ' użytkownikami na ' + str(len(client.guilds)) + ' serwerach.')
-    print('—- —- —- —- —- —- —- —- —- —- —- —- —- —-')
-    print('Wersja Pythona: {}'.format(platform.python_version()) + '. Wersja discord.py: {}.'.format(discord.__version__))
-    print('—- —- —- —- —- —- —- —- —- —- —- —- —- —-')
-    print('Zaproś bota z użyciem tego linku:')
+    print('')
+    print('Link do zaproszenia bota:')
     print('https://discordapp.com/oauth2/authorize?client_id=' + '{}&scope=bot&permissions=536083543'.format(str(client.user.id)))
-    print('—- —- —- —- —- —- —- —- —- —- —- —- —- —-')
+    print('')
+    print('Wersja Pythona: {}'.format(platform.python_version()) + '. Wersja discord.py: {}.'.format(discord.__version__))
+    print('')
     print('Stworzono na podstawie BasicBota 2.1 Habchy\'ego#1665.')
+    print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
     return await client.change_presence(activity=discord.Game(name='Kiedyś to było, teraz to nie ma.'))
 
 
