@@ -27,9 +27,12 @@ https://console.developers.google.com/apis/dashboard
   * libffi
   * libnacl
   * python3-dev
+  * python3-pip
+  * python3-wheel
+  * python3-venv
 
   On Debian-based systems you can satisfy them with `apt`:  
-`$ sudo apt install libffi-dev libnacl-dev python3-dev`
+`$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`
 
 ## Installation
 
