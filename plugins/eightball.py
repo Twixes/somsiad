@@ -8,7 +8,7 @@ from somsiad_helper import *
 
 
 @client.command(aliases=['8ball', '8'])
-@commands.cooldown(1, 15, commands.BucketType.user)
+@commands.cooldown(1, 1, commands.BucketType.user)
 @commands.guild_only()
 async def eightball(ctx, *args):
     """Returns 8ball answer."""

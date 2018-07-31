@@ -9,7 +9,7 @@ from apiclient.errors import HttpError
 
 
 @client.command(aliases=['yt'])
-@commands.cooldown(1, 15, commands.BucketType.user)
+@commands.cooldown(1, 1, commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
     """Returns first matching result from YouTube."""
