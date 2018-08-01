@@ -14,10 +14,12 @@ async def help(ctx):
         "Odpowiadam na wszystkie zawołania z poniższej listy. " +
         "Pamiętaj tylko zawsze, by zacząć od \"" + conf['prefix'] + "\". " +
         "W nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.")
-    em.add_field(name=conf['prefix'] + '8ball (eightball, 8) <pytanie>',
+    em.add_field(name=conf['prefix'] + '8ball (eightball, 8, 8-ball) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
-    em.add_field(name=conf['prefix'] + 'flip', value='Wywraca stół.', inline=False)
-    em.add_field(name=conf['prefix'] + 'fix (unflip)', value='Odwraca wywrócony stół.', inline=False)
+    em.add_field(name=conf['prefix'] + 'flip', value='Wywraca stół.',
+        inline=False)
+    em.add_field(name=conf['prefix'] + 'fix (unflip)', value='Odwraca wywrócony stół.',
+        inline=False)
     em.add_field(name=conf['prefix'] + 'gugiel (g) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący wynik.', 
         inline=False)
@@ -27,11 +29,13 @@ async def help(ctx):
     em.add_field(name=conf['prefix'] + 'isitup (isup) <url>', 
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', 
         inline=False)
-    em.add_field(name=conf['prefix'] + 'pomocy', value='Wysyła użytkownikowi tę wiadomość.',
-        inline=False)
-    em.add_field(name=conf['prefix'] + 'lenny (lennyface)', value='Wstawia lenny face\'a - ( ͡° ͜ʖ ͡°).', inline=False)
+    em.add_field(name=conf['prefix'] + 'pomocy (pomoc, help)',
+        value='Wysyła użytkownikowi tę wiadomość.', inline=False)
+    em.add_field(name=conf['prefix'] + 'lenny (lennyface)', 
+        value='Wstawia lenny face\'a - ( ͡° ͜ʖ ͡°).', inline=False)
     em.add_field(name=conf['prefix'] + 'ping', value='pong', inline=False)
-    em.add_field(name=conf['prefix'] + 'r <nazwa>', value='Zwraca pełny URL subreddita <nazwa>.', inline=False)
+    em.add_field(name=conf['prefix'] + 'r <nazwa>', value='Zwraca pełny URL subreddita <nazwa>.',
+        inline=False)
     em.add_field(name=conf['prefix'] + 'shrug', value='¯\_(ツ)_/¯', inline=False)
     em.add_field(name=conf['prefix'] + 'wikipedia (wiki, w) <termin>',
         value='Sprawdza znaczenie <terminu> w polskiej wersji Wikipedii.', inline=False)
