@@ -3,8 +3,8 @@ from discord.ext.commands import Bot
 import os
 
 
-client = Bot(description="Bot dyskorda /r/Polska", command_prefix=".")
-client.remove_command('help')   # Replaced with 'help' plugin
+client = Bot(description="Bot dyskorda /r/Polska", command_prefix="!")
+client.remove_command('help') # Replaced with 'help' plugin
 
 # Check presence of config file holding user tokens
 

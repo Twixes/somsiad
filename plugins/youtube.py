@@ -8,7 +8,7 @@ from apiclient.discovery import build
 from apiclient.errors import HttpError
 
 
-@client.command(aliases=['yt'])
+@client.command(aliases=['yt', 'tuba'])
 @commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):

@@ -6,7 +6,7 @@ import aiohttp
 from somsiad_helper import *
 
 
-@client.command(aliases=['g'])
+@client.command(aliases=['g', 'gugiel'])
 @commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def g_search(ctx, *args):
