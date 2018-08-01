@@ -1,57 +1,57 @@
 # Somsiad
-somsiad.py - discord bot written specifically for r/polska discord server.
+
+Somsiad.py - a Discord bot written for the /r/Polska server.
 
 ## Features
-* 8ball
-* Simple text responses
-* Image search using Qwant
-* Checking the current status of websites with isitup.org
+
+* 8-Ball
+* simple text replies
+* image search using Qwant
+* checking the current status of websites with isitup.org
 * Wikipedia search in Polish and English
 * Urban Dictionary definitions
 * YouTube search
 
-## Installing / Getting started
-
 ## Requirements
-You'll need to create new app and get a bot token here:  
+
+* Python 3.5.3 or newer.
+
+* A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me
 
-If you want Youtube Search plugin to work then you'll need YouTube API token. Get it here:  
+* *optionally* A YouTube API token (if you want YouTube search):  
 https://console.developers.google.com/apis/dashboard
 
-Python 3.5.3 or higher is required.
+* The following packages:  
 
-On Linux environments, the following dependencies are required for discord.py:
-* libffi
-* libnacl
-* python3-dev
+  * libffi
+  * libnacl
+  * python3-dev
+  * python3-pip
+  * python3-wheel
+  * python3-venv
 
-On debian-based system, the following command will help get those dependencies:
-`$ sudo apt install libffi-dev libnacl-dev python3-dev`
+  On Debian-based systems you can satisfy those dependencies with `apt`:  
+`$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`
 
 ## Installation
-In order not to pollute your system, install this in virtual environment.
 
-1. Grab a copy of the latest release here:  
-https://github.com/ondondil/somsiad/releases
+In order not to pollute your system, install Somsiad in a virtual environment.
 
-2. Unpack the downloaded package and open working directory:  
-`tar -xzvf somsiad*.tar.gz`  
-`cd somsiad-1.0.0`
+1. Grab a copy of the latest release:  
+  https://github.com/ondondil/somsiad/releases
 
-3. In your working directory, create virtual environment:  
-`python3 -m venv --system-site-packages somsiad_env`
+2. Unpack the downloaded package and enter the newly created directory:  
+`$ tar -xvf somsiad.tar.gz`  
+`$ cd somsiad`
 
-3. Activate the virtual environment  
-`source ./somsiad_env/bin/activate`
+3. Run the bot (you will be asked to provide tokens on the first run):  
+`$ ./run.sh`  
+or if you have `screen` installed:  
+`$ screen -S Somsiad ./run.sh`
 
-4. Use pip to install required packages  
-`pip3 install wikipedia google-api-python-client git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]`
+4. Invite Somsiad to your server with the link provided upon launch.
 
-5. Run the bot and follow the instructions (the bot will ask you to provide your tokens on first run):  
-`python3 somsiad.py`
+## License
 
-7. Invite bot to your server with link printed to the console.
-
-## Licensing
-The code in this project is licensed under GPLv3 license.
+The code in this project is licensed under GPLv3.

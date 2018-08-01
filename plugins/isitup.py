@@ -7,7 +7,7 @@ from somsiad_helper import *
 
 
 @client.command(aliases=['isup'])
-@commands.cooldown(1, 15, commands.BucketType.user)
+@commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def isitup(ctx, *args):
     """Returns information about website status."""
@@ -50,4 +50,3 @@ async def isitup(ctx, *args):
                             "Spróbuj ponownie.")
                     em = discord.Embed(title='Is It Up?', description=description, colour=0x336699)
                     await ctx.send(embed=em)
-    
