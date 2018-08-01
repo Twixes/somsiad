@@ -45,12 +45,17 @@ async def on_ready():
     print('Link do zaproszenia bota:')
     print('https://discordapp.com/oauth2/authorize?client_id=' + '{}&scope=bot&permissions=536083543'.format(str(client.user.id)))
     print('')
-    print('Wersja Pythona: {}'.format(platform.python_version()) + '. Wersja discord.py: {}.'.format(discord.__version__))
+    print('Aktywny token bota: ' + conf['discord'])
+    print('Aktywny klucz API YouTube: ' + (conf['youtube'] if len(conf['youtube']) > 0 else 'dezaktywowano moduł YouTube'))
+    print('Cooldown wywołania przez użytkownika: ' + conf['cooldown'] + ' s')
+    print('Prefiks komend: ' + (conf['prefix'] if len(conf['prefix']) > 0 else 'BRAK! DODAJ WARTOŚĆ prefix W KONFIGURACJI'))
+    print('Konfiguracja zapisana w: ' + os.path.expanduser("~") + '/.config/somsiad.conf')
+    print('')
+    print('Wersja Pythona: {}'.format(platform.python_version()) + ' • Wersja discord.py: {}'.format(discord.__version__))
     print('')
     print('Stworzono na podstawie BasicBota 2.1 Habchy\'ego#1665.')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
-    print('')
-    return await client.change_presence(activity=discord.Game(name='Kiedyś to było, teraz to nie ma.'))
+    return await client.change_presence(activity=discord.Game(name='Kiedyś to było... | ' + conf['prefix'] + 'pomocy'))
 
 
 @client.event
