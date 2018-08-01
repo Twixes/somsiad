@@ -24,23 +24,26 @@ async def image_search(ctx, *args):
             async with session.get(url, headers=headers) as r:
                 if r.status == 200:
                     res = await r.json()
-                    res_short = res['data']['result']['items'][0]['data'][0]
-                    # Qwant API is unofficial and undocumented. Following code may be buggy.
-                    # This is best I came up with.
-                    try:
-                        img_url = res_short['images'][0]['media']
-                        if not img_url.startswith('http'):
-                            img_url = res_short['media']
-                    except KeyError:
+                    if res['data']['result']['items']:
+                        res_short = res['data']['result']['items'][0]['data'][0]
+                        # Qwant API is unofficial and undocumented. Following code may be buggy.
+                        # This is best I came up with.
                         try:
-                            img_url = res_short['images'][0]['url']
+                            img_url = res_short['images'][0]['media']
+                            if not img_url.startswith('http'):
+                                img_url = res_short['media']
                         except KeyError:
-                            img_url = res_short['media']
-    
-                    em = discord.Embed(title='Wynik wyszukiwania obrazu dla zapytania: ' +
-                        '{}'.format(query_1), description=img_url, colour=0x008000)
-                    em.set_image(url=img_url)
-                    await ctx.send('{}\n'.format(ctx.author.mention), embed=em)
+                            try:
+                                img_url = res_short['images'][0]['url']
+                            except KeyError:
+                                img_url = res_short['media']
+                        em = discord.Embed(title='Wynik wyszukiwania obrazu dla zapytania: ' +
+                            '{}'.format(query_1), description=img_url, colour=0x008000)
+                        em.set_image(url=img_url)
+                        await ctx.send('{}\n'.format(ctx.author.mention), embed=em)
+                    else:
+                        await ctx.send('{}, nie znaleziono pasujących wyników.'.format(
+                            ctx.author.mention))
                 else:
                     await ctx.send(":warning: " +
                         "Nie można połączyć się z serwisem Qwant, " +
