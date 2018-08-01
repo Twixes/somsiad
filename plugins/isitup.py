@@ -50,3 +50,7 @@ async def isitup(ctx, *args):
                             "Spróbuj ponownie.")
                     em = discord.Embed(title='Is It Up?', description=description, colour=0x336699)
                     await ctx.send(embed=em)
+                else:
+                    await ctx.send(":warning: " +
+                        "Nie można połączyć się z serwisem isitup.org, " +
+                        "{}".format(ctx.author.mention))
