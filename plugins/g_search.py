@@ -23,7 +23,7 @@ async def g_search(ctx, *args):
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as r:    
                 if r.status == 200:
-                    await ctx.send('{}, '.format(ctx.author.mention) +
+                    await ctx.send('{} '.format(ctx.author.mention) +
                         "\n :globe_with_meridians: " + str(r.url) +
                         "\n`Wyniki za pośrednictwem DuckDuckGo` :duck:")
                 else:

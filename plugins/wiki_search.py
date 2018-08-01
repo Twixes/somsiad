@@ -4,6 +4,7 @@ from discord.ext.commands import Bot
 from discord.ext import commands
 import aiohttp
 import wikipedia
+import logging
 from somsiad_helper import *
 
 
@@ -57,13 +58,13 @@ async def wiki_search(ctx, args, lang):
                 await ctx.send(embed=em)
             # Return possible options if no article matching user query was found
             except wikipedia.exceptions.HTTPTimeoutError as e:
-                await ctx.send('{}, '.format(ctx.author.mention) +
+                await ctx.send('{} '.format(ctx.author.mention) +
                     ':warning: Wikipedia: Przekroczono limit czasu połączenia.')
             except wikipedia.exceptions.DisambiguationError as e:
                 option_str = ""
                 for option in e.options:
                     option_str += "- " + option + "\n"
-                await ctx.send('{}, '.format(ctx.author.mention) + 
+                await ctx.send('{} '.format(ctx.author.mention) + 
                     "\nTermin *{}* może dotyczyć:\n".format(query) + option_str)
             except Exception as e:
                 logging.error(e)

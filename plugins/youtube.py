@@ -3,6 +3,7 @@ import asyncio
 from discord.ext.commands import Bot
 from discord.ext import commands
 import aiohttp
+import logging
 from somsiad_helper import *
 from apiclient.discovery import build
 from apiclient.errors import HttpError
