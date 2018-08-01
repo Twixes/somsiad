@@ -12,33 +12,33 @@ async def help(ctx):
     em.add_field(name='Dobry!', value="Somsiad jestem. " +
         "Pomagam w różnych kwestiach, wystarczy mnie zawołać. " +
         "Odpowiadam na wszystkie zawołania z poniższej listy. " +
-        "Pamiętaj tylko zawsze, by zacząć od wykrzyknika. " +
+        "Pamiętaj tylko zawsze, by zacząć od \"" + conf['prefix'] + "\". " +
         "W nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.")
-    em.add_field(name='!8-ball (eightball, 8) <pytanie>',
+    em.add_field(name=conf['prefix'] + '8ball (eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
-    em.add_field(name='!flip', value='Wywraca stół.', inline=False)
-    em.add_field(name='!fix (unflip)', value='Odwraca wywrócony stół.', inline=False)
-    em.add_field(name='!gugiel (g) <zapytanie>',
+    em.add_field(name=conf['prefix'] + 'flip', value='Wywraca stół.', inline=False)
+    em.add_field(name=conf['prefix'] + 'fix (unflip)', value='Odwraca wywrócony stół.', inline=False)
+    em.add_field(name=conf['prefix'] + 'gugiel (g) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący wynik.', 
         inline=False)
-    em.add_field(name='!img (i) <zapytanie>',
+    em.add_field(name=conf['prefix'] + 'img (i) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Qwant i zwraca najlepiej pasujący do niego ' +
         'obrazek.', inline=False)
-    em.add_field(name='!isitup (isup) <url>', 
+    em.add_field(name=conf['prefix'] + 'isitup (isup) <url>', 
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', 
         inline=False)
-    em.add_field(name='!pomocy', value='Wysyła użytkownikowi tę wiadomość.',
+    em.add_field(name=conf['prefix'] + 'pomocy', value='Wysyła użytkownikowi tę wiadomość.',
         inline=False)
-    em.add_field(name='!lenny (lennyface)', value='Wstawia lenny face\'a - ( ͡° ͜ʖ ͡°).', inline=False)
-    em.add_field(name='!ping', value='pong', inline=False)
-    em.add_field(name='!r <nazwa>', value='Zwraca pełny URL subreddita <nazwa>.', inline=False)
-    em.add_field(name='!shrug', value='¯\_(ツ)_/¯', inline=False)
-    em.add_field(name='!wikipedia (wiki, w) <termin>',
+    em.add_field(name=conf['prefix'] + 'lenny (lennyface)', value='Wstawia lenny face\'a - ( ͡° ͜ʖ ͡°).', inline=False)
+    em.add_field(name=conf['prefix'] + 'ping', value='pong', inline=False)
+    em.add_field(name=conf['prefix'] + 'r <nazwa>', value='Zwraca pełny URL subreddita <nazwa>.', inline=False)
+    em.add_field(name=conf['prefix'] + 'shrug', value='¯\_(ツ)_/¯', inline=False)
+    em.add_field(name=conf['prefix'] + 'wikipedia (wiki, w) <termin>',
         value='Sprawdza znaczenie <terminu> w polskiej wersji Wikipedii.', inline=False)
-    em.add_field(name='!wikipediaen (wikien, wen) <termin>',
+    em.add_field(name=conf['prefix'] + 'wikipediaen (wikien, wen) <termin>',
         value='Sprawdza znaczenie <terminu> w anglojęzycznej wersji Wikipedii.', inline=False)
-    em.add_field(name='!urban (u) <słowo>',
+    em.add_field(name=conf['prefix'] + 'urban (u) <słowo>',
         value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
-    em.add_field(name='!youtube (yt, tuba) <zapytanie>',
+    em.add_field(name=conf['prefix'] + 'youtube (yt, tuba) <zapytanie>',
         value='Wysyła <zapytanie> do YouTube i zwraca najlepiej pasujący wynik.', inline=False)
     await ctx.author.send(embed=em)
