@@ -18,7 +18,7 @@ import wikipedia
 import logging
 from somsiad_helper import *
 
-async def wiki_search(ctx, args, lang):
+async def wikipedia_search(ctx, args, lang):
     '''Returns the closest matching article from Wikipedia'''
     if len(args) == 0:
         await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(ctx.author.mention))
@@ -77,18 +77,18 @@ async def wiki_search(ctx, args, lang):
             except Exception as e:
                 logging.error(e)
 
-@client.command(aliases=['wikipediapl', 'wpl'])
+@client.command(aliases=['wikipl', 'wpl'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
-async def wikipl(ctx, *args):
-    '''Polish version of wiki_search'''
+async def wikipediapl(ctx, *args):
+    '''Polish version of wikipedia_search'''
     lang = 'pl'
-    await wiki_search(ctx, args, lang)
+    await wikipedia_search(ctx, args, lang)
 
-@client.command(aliases=['wikipediaen', 'wen'])
+@client.command(aliases=['wikien', 'wen'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
-async def wikien(ctx, *args):
-    '''English version of wiki_search'''
+async def wikipediaen(ctx, *args):
+    '''English version of wikipedia_search'''
     lang = 'en'
-    await wiki_search(ctx, args, lang)
+    await wikipedia_search(ctx, args, lang)
