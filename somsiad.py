@@ -20,7 +20,7 @@ import sys
 import traceback
 import logging
 from somsiad_helper import *
-from plugins import (wiki_search, g_search, urban_dict, eightball, isitup, image_search, simple_text_responses, help_direct,
+from plugins import (wiki_search, g_search, urban_dictionary, eightball, isitup, image_search, autoreply, help_direct,
     youtube)
 
 logging.basicConfig(filename='somsiad_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -46,7 +46,8 @@ async def on_ready():
         discord.__version__) + '\n')
     print('Copyright 2018 Habchy, ondondil & Twixes')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
-    return await client.change_presence(activity=discord.Game(name='Kiedyś to było | ' + conf['command_prefix'] + 'pomocy'))
+    return await client.change_presence(activity=discord.Game(name='Kiedyś to było | ' + conf['command_prefix'] +
+        'pomocy'))
 
 @client.event
 async def on_command_error(ctx, error):

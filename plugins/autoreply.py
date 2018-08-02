@@ -50,6 +50,21 @@ async def shrug(ctx):
     '''Shrug.'''
     await ctx.send('¯\_(ツ)_/¯')
 
+@client.command()
+@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.guild_only()
+async def fccchk(ctx):
+    ''':japanese_goblin:'''
+    await ctx.send(':japanese_goblin:')
+
+@client.command()
+@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.guild_only()
+async def xfccchk(ctx):
+    ''':japanese_goblin:'''
+    for _ in range(50):
+        await ctx.send(':japanese_goblin:')
+
 @client.command(aliases=['r'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()

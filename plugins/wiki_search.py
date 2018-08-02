@@ -77,15 +77,15 @@ async def wiki_search(ctx, args, lang):
             except Exception as e:
                 logging.error(e)
 
-@client.command(aliases=['w', 'wikipedia'])
+@client.command(aliases=['wikipediapl', 'wpl'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
-async def wiki(ctx, *args):
+async def wikipl(ctx, *args):
     '''Polish version of wiki_search'''
     lang = 'pl'
     await wiki_search(ctx, args, lang)
 
-@client.command(aliases=['wen', 'wikipediaen'])
+@client.command(aliases=['wikipediaen', 'wen'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def wikien(ctx, *args):

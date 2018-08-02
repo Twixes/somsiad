@@ -20,9 +20,9 @@ from somsiad_helper import *
 async def help_direct(ctx):
     em = discord.Embed(title='Lecem na ratunek!' , colour=0x269d9c)
     em.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać.'
-        ' Odpowiadam na wszystkie zawołania z poniższej listy. Pamiętaj tylko zawsze, by zacząć od "' + conf['command_prefix'] +
-        '". W nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
-    em.add_field(name=conf['command_prefix'] + '8ball (8-ball, eightball, 8) <pytanie>',
+        ' Odpowiadam na wszystkie zawołania z poniższej listy. Pamiętaj tylko zawsze, by zacząć od "' +
+        conf['command_prefix'] + '".\nW nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
+    em.add_field(name=conf['command_prefix'] + '8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'flip', value='Wywraca stół.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'fix (unflip)', value='Odwraca wywrócony stół.', inline=False)
@@ -32,17 +32,18 @@ async def help_direct(ctx):
         value='Wysyła <zapytanie> do wyszukiwarki Qwant i zwraca najlepiej pasujący do niego obrazek.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'isitup (isup) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'pomocy (pomoc, help)', value='Wysyła użytkownikowi tę wiadomość.', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'lenny (lennyface)', value='Wstawia lenny face\'a - ( ͡° ͜ʖ ͡°).', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'ping', value='pong', inline=False)
+    em.add_field(name=conf['command_prefix'] + 'pomocy (pomoc, help)', value='Wysyła użytkownikowi tę wiadomość.',
+        inline=False)
+    em.add_field(name=conf['command_prefix'] + 'lenny (lennyface)', value=' ( ͡° ͜ʖ ͡°)', inline=False)
+    em.add_field(name=conf['command_prefix'] + 'ping', value=':ping_pong: Pong!', inline=False)
     em.add_field(name=conf['command_prefix'] + 'r <nazwa>', value='Zwraca pełny URL subreddita <nazwa>.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'shrug', value='¯\_(ツ)_/¯', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'wikipedia (w) <termin>',
+    em.add_field(name=conf['command_prefix'] + 'wikipediapl (wikipl, wpl) <temat>',
         value='Sprawdza znaczenie <terminu> w polskiej wersji Wikipedii.', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'wikipediaen (wen) <termin>',
+    em.add_field(name=conf['command_prefix'] + 'wikipediaen (wikien, wen) <temat>',
         value='Sprawdza znaczenie <terminu> w anglojęzycznej wersji Wikipedii.', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'urban (u) <słowo>', value='Sprawdza znaczenie <słowa> w Urban Dictionary.',
-        inline=False)
+    em.add_field(name=conf['command_prefix'] + 'urban (u) <słowo>',
+        value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'youtube (yt, tuba) <zapytanie>',
         value='Wysyła <zapytanie> do YouTube i zwraca najlepiej pasujący wynik.', inline=False)
     await ctx.author.send(embed=em)
