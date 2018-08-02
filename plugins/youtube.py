@@ -8,7 +8,6 @@ from somsiad_helper import *
 from apiclient.discovery import build
 from apiclient.errors import HttpError
 
-
 @client.command(aliases=['yt', 'tuba'])
 @commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
 @commands.guild_only()
@@ -17,15 +16,11 @@ async def youtube(ctx, *args):
     DEVELOPER_KEY = conf['youtube']
     YOUTUBE_API_SERVICE_NAME = "youtube"
     YOUTUBE_API_VERSION = "v3"
-
     if len(args) == 0:
-        await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(
-            ctx.author.mention))
+        await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(ctx.author.mention))
     else:
         try:
-            youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-                developerKey=DEVELOPER_KEY)
-        
+            youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
             # Call the search.list method to retrieve results matching the specified query term.
             search_response = youtube.search().list(
                 q=" ".join(args),
@@ -33,7 +28,7 @@ async def youtube(ctx, *args):
                 maxResults=1,
                 type='video'
             ).execute()
-            
+            # Output results
             if len(search_response.get('items')) == 0:
                 await ctx.send('{}, nie znaleziono pasujących wyników.'.format(ctx.author.mention))
             else:
