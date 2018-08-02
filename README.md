@@ -1,57 +1,57 @@
-# Somsiad
+# Somsiad  
 
-Somsiad.py - a Discord bot written for the /r/Polska server.
+The Polish Discord bot. Written in Python.  
 
-## Features
+## Features  
 
-* 8-Ball
-* simple text replies
-* image search using Qwant
-* checking the current status of websites with isitup.org
-* Wikipedia search in Polish and English
-* Urban Dictionary definitions
-* YouTube search
+* 8-Ball  
+* simple text replies  
+* image search using Qwant  
+* checking the current status of websites with isitup.org  
+* Wikipedia search in Polish and English  
+* Urban Dictionary definitions  
+* YouTube search  
 
-## Requirements
+## Requirements  
 
-* Python 3.5.3 or newer.
+* Python 3.5.3 or newer.  
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
-https://discordapp.com/developers/applications/me
+https://discordapp.com/developers/applications/me  
 
 * *optionally* A YouTube API token (if you want YouTube search):  
-https://console.developers.google.com/apis/dashboard
+https://console.developers.google.com/apis/dashboard  
 
 * The following packages:  
 
-  * libffi
-  * libnacl
-  * python3-dev
-  * python3-pip
-  * python3-wheel
-  * python3-venv
+  * libffi  
+  * libnacl  
+  * python3-dev  
+  * python3-pip  
+  * python3-wheel  
+  * python3-venv  
 
   On Debian-based systems you can satisfy those dependencies with `apt`:  
-`$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`
+`$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`  
 
-## Installation
+## Installation  
 
-In order not to pollute your system, install Somsiad in a virtual environment.
+In order not to pollute your system, install Somsiad in a virtual environment.  
 
 1. Grab a copy of the latest release:  
-  https://github.com/ondondil/somsiad/releases
+  https://github.com/ondondil/somsiad/releases  
 
 2. Unpack the downloaded package and enter the newly created directory:  
 `$ tar -xvf somsiad.tar.gz`  
-`$ cd somsiad`
+`$ cd somsiad`  
 
 3. Run the bot (you will be asked to provide tokens on the first run):  
 `$ ./run.sh`  
 or if you have `screen` installed:  
-`$ screen -S Somsiad ./run.sh`
+`$ screen -S Somsiad ./run.sh`  
 
-4. Invite Somsiad to your server with the link provided upon launch.
+4. Invite Somsiad to your server with the link provided upon launch.  
 
-## License
+## License  
 
-The code in this project is licensed under GPLv3.
+The code in this project is licensed under GPLv3.  
