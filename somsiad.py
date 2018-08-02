@@ -20,7 +20,7 @@ import sys
 import traceback
 import logging
 from somsiad_helper import *
-from plugins import (wiki_search, g_search, urban_dict, eightball, isitup, image_search, simple_text_responses, help,
+from plugins import (wiki_search, g_search, urban_dict, eightball, isitup, image_search, simple_text_responses, help_direct,
     youtube)
 
 logging.basicConfig(filename='somsiad_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
