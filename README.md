@@ -1,4 +1,4 @@
-# Somsiad - polski  
+# Somsiad - po polsku  
 
 Polski bot discordowy. Napisany w Pythonie.  
 
@@ -19,7 +19,7 @@ Polski bot discordowy. Napisany w Pythonie.
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
 
-* *opcjonalnie* Klucz API Google z obsługą YouTube Data API (jeśli chcesz korzystać z wyszukiwarki wideo):  
+* *opcjonalnie* Klucz API Google z obsługą YouTube Data API (jeśli chcesz korzystać z wyszukiwania wideo na YouTube):  
 https://console.developers.google.com/apis/dashboard  
 
 * Następujące paczki:  
@@ -31,7 +31,7 @@ https://console.developers.google.com/apis/dashboard
   * python3-wheel  
   * python3-venv  
 
-  Na systemach opartych o Debiana możesz spełnić te zależności za pomocą `apt`:  
+  Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `apt`:  
 `$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`  
 
 ## Instalacja  
@@ -58,7 +58,7 @@ Kod tego projektu udostępniony jest na licencji GPLv3.
 
 ---
 
-# Somsiad - English  
+# Somsiad - in English  
 
 The Polish Discord bot. Written in Python.  
 
@@ -103,8 +103,9 @@ https://github.com/Twixes/Somsiad/releases/latest
 
 2. Unpack the downloaded archive and enter the newly created directory:  
 `$ tar -xvf Somsiad-<version>.tar.gz`  
+`$ cd Somsiad-<version>`  
 
-3. Run the bot (on the first run you will be guided through a quick configuration process):  
+3. Run the bot (you will be guided through a quick configuration process on the first run):  
 `$ ./run.sh`  
 or if you have `screen` installed:  
 `$ screen -S Somsiad ./run.sh`  
