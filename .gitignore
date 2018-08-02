@@ -1,5 +1,5 @@
 .DS_Store
+/.vscode
 __pycache__
-.vscode
 /somsiad_env
 /somsiad_log.txt
