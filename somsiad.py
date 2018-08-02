@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 
-#  somsiad.py - a Discord bot
-#  Copyright (c) 2018 ondondil.
+# Copyright 2018 Habchy, ondondil & Twixes
 
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
+# This file is part of Somsiad - the Polish Discord bot.
 
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#  GNU General Public License for more details.
+# Somsiad is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-#  You should have received a copy of the GNU General Public License
-#  along with this program. If not, see <https://www.gnu.org/licenses/>.
+# Somsiad is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License along with Somsiad.
+# If not, see <https://www.gnu.org/licenses/>.
 
 import discord
 import asyncio
@@ -54,7 +51,7 @@ async def on_ready():
     print('Wersja Pythona: {}'.format(platform.python_version()) +' • Wersja discord.py: {}'.format(
         discord.__version__))
     print('')
-    print('Stworzono na podstawie BasicBota 2.1 Habchy\'ego#1665.')
+    print('Copyright 2018 Habchy, ondondil & Twixes')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
     return await client.change_presence(activity=discord.Game(name='Kiedyś to było... | ' + conf['prefix'] + 'pomocy'))
 
