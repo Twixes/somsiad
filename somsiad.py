@@ -53,7 +53,7 @@ async def on_ready():
     print('')
     print('Copyright 2018 Habchy, ondondil & Twixes')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
-    return await client.change_presence(activity=discord.Game(name='Kiedyś to było... | ' + conf['command_prefix'] + 'pomocy'))
+    return await client.change_presence(activity=discord.Game(name='Kiedyś to było | ' + conf['command_prefix'] + 'pomocy'))
 
 @client.event
 async def on_command_error(ctx, error):
