@@ -14,8 +14,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-import asyncio
-from discord.ext.commands import Bot
 from discord.ext import commands
 import platform
 import sys
