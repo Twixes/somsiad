@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/env python3
 
 #  somsiad.py - a Discord bot
 #  Copyright (c) 2018 ondondil.
