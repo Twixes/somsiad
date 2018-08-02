@@ -41,11 +41,11 @@ async def on_ready():
     print('https://discordapp.com/oauth2/authorize?client_id=' + '{}&scope=bot&permissions=536083543'.format(
         str(client.user.id)))
     print('')
-    print('Aktywny token bota: ' + conf['discord'])
-    print('Aktywny klucz API YouTube: ' + (conf['youtube'] if len(conf['youtube']) > 0 else
-        'dezaktywowano moduł YouTube'))
-    print('Cooldown wywołania przez użytkownika: ' + conf['cooldown'] + ' s')
-    print('Prefiks komend: ' + conf['prefix'])
+    print('Aktywny token bota: ' + conf['discord_token'])
+    print('Aktywny klucz API Google: ' + (conf['google_key'] if len(conf['google_key']) > 0 else
+        'dezaktywowano moduł Google'))
+    print('Cooldown wywołania przez użytkownika: ' + conf['user_command_cooldown'] + ' s')
+    print('Prefiks komend: ' + conf['command_prefix'])
     print('Plik konfiguracyjny: ' + conf_file_path)
     print('')
     print('Wersja Pythona: {}'.format(platform.python_version()) +' • Wersja discord.py: {}'.format(
@@ -53,7 +53,7 @@ async def on_ready():
     print('')
     print('Copyright 2018 Habchy, ondondil & Twixes')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
-    return await client.change_presence(activity=discord.Game(name='Kiedyś to było... | ' + conf['prefix'] + 'pomocy'))
+    return await client.change_presence(activity=discord.Game(name='Kiedyś to było... | ' + conf['command_prefix'] + 'pomocy'))
 
 @client.event
 async def on_command_error(ctx, error):
@@ -71,13 +71,13 @@ async def on_command_error(ctx, error):
     print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-# Disable 'youtube' plugin if no youtube API key is found
-if conf['youtube'] == '':
+# Disable 'youtube' plugin if no Google API key is found
+if conf['google_key'] == '':
     client.remove_command('youtube')
 
 # Terminate the program if user did not provide bot token
-if conf['discord'] != '':
-    client.run(conf['discord'])
+if conf['discord_token'] != '':
+    client.run(conf['discord_token'])
 else:
     print('BŁĄD: Nie znaleziono tokenu bota w ' + str(conf_file_path))
     print('Zatrzymywanie programu...')

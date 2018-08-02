@@ -21,12 +21,12 @@ import os
 conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
 if not os.path.exists(conf_file_path):
     with open(conf_file_path, 'w') as f:
-        f.write('discord: ' + str(input('Wprowadź discordowy token bota:\n')) + '\n')
-        f.write('youtube: ' +
-            str(input('Wprowadź klucz API YouTube (lub pomiń, jeśli nie chcesz funkcji YT):\n')) + '\n')
-        f.write('cooldown: ' +
+        f.write('discord_token: ' + str(input('Wprowadź discordowy token bota:\n')) + '\n')
+        f.write('google_key: ' +
+            str(input('Wprowadź klucz API Google (lub pomiń, jeśli nie chcesz usług Google):\n')) + '\n')
+        f.write('user_command_cooldown: ' +
             str(input('Wprowadź cooldown między wywołaniami bota przez danego użytkownika (w s):\n')) + '\n')
-        f.write('prefix: ' + str(input('Wprowadź prefiks komend:\n')) + '\n')
+        f.write('command_prefix: ' + str(input('Wprowadź prefiks komend:\n')) + '\n')
         print('Zapisano konfigurację do ' + conf_file_path)
     print('Budzenie Somsiada...')
 
@@ -40,5 +40,5 @@ with open(conf_file_path) as f:
 
 bot_dir = os.getcwd()
 
-client = Bot(description='Zawsze pomocny Somsiad', command_prefix=conf['prefix'])
+client = Bot(description='Zawsze pomocny Somsiad', command_prefix=conf['command_prefix'])
 client.remove_command('help') # Replaced with 'help' plugin

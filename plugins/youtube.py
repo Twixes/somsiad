@@ -22,11 +22,11 @@ from apiclient.discovery import build
 from apiclient.errors import HttpError
 
 @client.command(aliases=['yt', 'tuba'])
-@commands.cooldown(1, conf['cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
     '''Returns first matching result from YouTube.'''
-    DEVELOPER_KEY = conf['youtube']
+    DEVELOPER_KEY = conf['google_key']
     YOUTUBE_API_SERVICE_NAME = 'youtube'
     YOUTUBE_API_VERSION = 'v3'
     if len(args) == 0:
