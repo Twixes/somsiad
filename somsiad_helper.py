@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes.
+# Copyright 2018 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot
 
