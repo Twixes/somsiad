@@ -29,26 +29,21 @@ logging.basicConfig(filename='somsiad_log.txt', level=logging.INFO, format='%(as
 # like the server count, user count, and the bot's ID in the console.
 @client.event
 async def on_ready():
-    print('')
-    print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
+    print('\n== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
     print('Obudzono Somsiada (ID:' + str(client.user.id) + ').')
     print('Połączono z ' + str(len(set(client.get_all_members()))) + ' użytkownikami na ' + str(len(client.guilds)) +
-        ' serwerach.')
-    print('')
+        ' serwerach.\n')
     print('Link do zaproszenia bota:')
-    print('https://discordapp.com/oauth2/authorize?client_id=' + '{}&scope=bot&permissions=536083543'.format(
-        str(client.user.id)))
-    print('')
+    print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=536083543'.format(
+        str(client.user.id)) + '\n')
     print('Aktywny token bota: ' + conf['discord_token'])
     print('Aktywny klucz API Google: ' + (conf['google_key'] if len(conf['google_key']) > 0 else
         'dezaktywowano moduł Google'))
     print('Cooldown wywołania przez użytkownika: ' + conf['user_command_cooldown'] + ' s')
     print('Prefiks komend: ' + conf['command_prefix'])
-    print('Plik konfiguracyjny: ' + conf_file_path)
-    print('')
-    print('Wersja Pythona: {}'.format(platform.python_version()) +' • Wersja discord.py: {}'.format(
-        discord.__version__))
-    print('')
+    print('Plik konfiguracyjny: ' + conf_file_path + '\n')
+    print('Wersja Pythona: {}'.format(platform.python_version()) + ' • Wersja discord.py: {}'.format(
+        discord.__version__) + '\n')
     print('Copyright 2018 Habchy, ondondil & Twixes')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
     return await client.change_presence(activity=discord.Game(name='Kiedyś to było | ' + conf['command_prefix'] + 'pomocy'))
