@@ -46,7 +46,7 @@ async def on_ready():
         'dezaktywowano moduł YouTube'))
     print('Cooldown wywołania przez użytkownika: ' + conf['cooldown'] + ' s')
     print('Prefiks komend: ' + conf['prefix'])
-    print('Konfiguracja zapisana w: ' + conf_file_path)
+    print('Plik konfiguracyjny: ' + conf_file_path)
     print('')
     print('Wersja Pythona: {}'.format(platform.python_version()) +' • Wersja discord.py: {}'.format(
         discord.__version__))
@@ -57,7 +57,7 @@ async def on_ready():
 
 @client.event
 async def on_command_error(ctx, error):
-    """Error handling"""
+    '''Error handling'''
     ignored = (commands.CommandNotFound, commands.UserInputError)
     if isinstance(error, ignored):
         return
@@ -72,13 +72,13 @@ async def on_command_error(ctx, error):
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 # Disable 'youtube' plugin if no youtube API key is found
-if conf['youtube'] == "":
+if conf['youtube'] == '':
     client.remove_command('youtube')
 
 # Terminate the program if user did not provide bot token
-if conf['discord'] != "":
+if conf['discord'] != '':
     client.run(conf['discord'])
 else:
-    print("BŁĄD: Nie znaleziono tokenu bota w " + str(conf_file_path))
-    print("Zatrzymywanie programu...")
+    print('BŁĄD: Nie znaleziono tokenu bota w ' + str(conf_file_path))
+    print('Zatrzymywanie programu...')
     sys.exit()
