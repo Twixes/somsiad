@@ -14,7 +14,7 @@ The Polish Discord bot. Written in Python.
 
 ## Requirements  
 
-* Python 3.5.3 or newer.  
+* Python 3.6 or later.  
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
