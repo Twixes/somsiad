@@ -36,13 +36,14 @@ async def help_direct(ctx):
         inline=False)
     em.add_field(name=conf['command_prefix'] + 'lenny (lennyface)', value=' ( ͡° ͜ʖ ͡°)', inline=False)
     em.add_field(name=conf['command_prefix'] + 'ping', value=':ping_pong: Pong!', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'r <nazwa>', value='Zwraca pełny URL subreddita <nazwa>.', inline=False)
+    em.add_field(name=conf['command_prefix'] + 'subreddit (sub, r) <subreddit>', value='Zwraca URL subreddita <subreddit>.',
+        inline=False)
     em.add_field(name=conf['command_prefix'] + 'shrug', value='¯\_(ツ)_/¯', inline=False)
     em.add_field(name=conf['command_prefix'] + 'wikipediapl (wikipl, wpl) <temat>',
         value='Sprawdza znaczenie <terminu> w polskiej wersji Wikipedii.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'wikipediaen (wikien, wen) <temat>',
         value='Sprawdza znaczenie <terminu> w anglojęzycznej wersji Wikipedii.', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'urban (u) <słowo>',
+    em.add_field(name=conf['command_prefix'] + 'urbandictionary (urban) <słowo>',
         value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'youtube (yt, tuba) <zapytanie>',
         value='Wysyła <zapytanie> do YouTube i zwraca najlepiej pasujący wynik.', inline=False)

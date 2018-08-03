@@ -17,10 +17,10 @@ import aiohttp
 import re
 from somsiad_helper import *
 
-@client.command(aliases=['u', 'urban'])
+@client.command(aliases=['urban'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
-async def urban_dictionary(ctx, *args):
+async def urbandictionary(ctx, *args):
     '''Returns word definitions from Urban Dictionary'''
     if len(args) == 0:
         await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(ctx.author.mention))
