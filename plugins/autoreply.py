@@ -29,19 +29,19 @@ async def lenny(ctx):
     '''Lenny face.'''
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
-@client.command(aliases=['fix'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
-@commands.guild_only()
-async def unflip(ctx):
-    '''Unflip tables.'''
-    await ctx.send('┬─┬ノ(ಠ_ಠノ)')
-
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def flip(ctx):
     '''Flip tables.'''
     await ctx.send('(╯°□°）╯︵ ┻━┻')
+
+@client.command(aliases=['fix'])
+@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.guild_only()
+async def unflip(ctx):
+    '''Unflip tables.'''
+    await ctx.send('┬─┬ノ(ಠ_ಠノ)')
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
@@ -57,18 +57,10 @@ async def fccchk(ctx):
     ''':japanese_goblin:'''
     await ctx.send(':japanese_goblin:')
 
-@client.command()
+@client.command(aliases=['r', 'sub'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
-async def xfccchk(ctx):
-    ''':japanese_goblin:'''
-    for _ in range(50):
-        await ctx.send(':japanese_goblin:')
-
-@client.command(aliases=['r'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
-@commands.guild_only()
-async def subreddit_name(ctx, arg):
+async def subreddit(ctx, arg):
     '''Returns full URL for given subreddit name.'''
     url = 'https://reddit.com/r/{}'.format(arg)
     await ctx.send(url)
