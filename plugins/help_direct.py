@@ -36,8 +36,10 @@ async def help_direct(ctx):
         inline=False)
     em.add_field(name=conf['command_prefix'] + 'lenny (lennyface)', value=' ( ͡° ͜ʖ ͡°)', inline=False)
     em.add_field(name=conf['command_prefix'] + 'ping', value=':ping_pong: Pong!', inline=False)
-    em.add_field(name=conf['command_prefix'] + 'subreddit (sub, r) <subreddit>', value='Zwraca URL subreddita <subreddit>.',
-        inline=False)
+    em.add_field(name=conf['command_prefix'] + 'subreddit (sub, r) <subreddit>',
+        value='Zwraca URL subreddita <subreddit>.', inline=False)
+    em.add_field(name=conf['command_prefix'] + 'user (u) <użytkownik>',
+        value='Zwraca URL profilu użytkownika Reddita <użytkownik>.', inline=False)
     em.add_field(name=conf['command_prefix'] + 'shrug', value='¯\_(ツ)_/¯', inline=False)
     em.add_field(name=conf['command_prefix'] + 'wikipediapl (wikipl, wpl) <temat>',
         value='Sprawdza znaczenie <terminu> w polskiej wersji Wikipedii.', inline=False)

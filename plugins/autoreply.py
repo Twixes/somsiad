@@ -64,3 +64,11 @@ async def subreddit(ctx, arg):
     '''Returns full URL for given subreddit name.'''
     url = 'https://reddit.com/r/{}'.format(arg)
     await ctx.send(url)
+
+@client.command(aliases=['u'])
+@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.guild_only()
+async def user(ctx, arg):
+    '''Returns full URL for given subreddit name.'''
+    url = 'https://reddit.com/user/{}'.format(arg)
+    await ctx.send(url)
