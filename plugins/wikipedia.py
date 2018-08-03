@@ -21,21 +21,21 @@ from somsiad_helper import *
 async def wikipedia_search(ctx, args, lang):
     '''Returns the closest matching article from Wikipedia'''
     if len(args) == 0:
-        await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(ctx.author.mention))
+        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:
         wikipedia.set_lang(lang)
         query = ' '.join(args)
         search_results = wikipedia.search(query)
         if len(search_results) < 1:
-            await ctx.send(':warning: Nie znalazłem żadnego wyniku pasującego do twojego zapytania, {}.'.format(
-                ctx.author.mention))
+            await ctx.send(':warning: Nie znalazłem żadnego wyniku pasującego do twojego zapytania,'
+                f'{ctx.author.mention}.')
         else:
             try:
                 page = wikipedia.page(search_results[0], auto_suggest = True, redirect = True)
                 em = discord.Embed(title='Wikipedia', colour=0xffffff)
                 # Fetch image from Wikipedia's infobox for thumbnail
-                thumb_api_url = ('http://en.wikipedia.org/w/api.php?action=query&titles={}'.format(page.title) +
-                    '&prop=pageimages&format=json&pithumbsize=500')
+                thumb_api_url = (f'http://en.wikipedia.org/w/api.php?action=query&titles={page.title}&prop=pageimages'
+                    '&format=json&pithumbsize=500')
                 async with aiohttp.ClientSession() as session:
                     async with session.get(thumb_api_url) as r:
                         if r.status == 200:
@@ -66,14 +66,12 @@ async def wikipedia_search(ctx, args, lang):
                 await ctx.send(embed=em)
             # Return possible options if no article matching user query was found
             except wikipedia.exceptions.HTTPTimeoutError as e:
-                await ctx.send('{} '.format(ctx.author.mention) +
-                    ':warning: Wikipedia: Przekroczono limit czasu połączenia.')
+                await ctx.send(f'{ctx.author.mention}\n:warning: Wikipedia: Przekroczono limit czasu połączenia.')
             except wikipedia.exceptions.DisambiguationError as e:
                 option_str = ''
                 for option in e.options:
-                    option_str += '- ' + option + '\n'
-                await ctx.send('{} '.format(ctx.author.mention) + '\nTermin *{}* może dotyczyć:\n'.format(query) +
-                    option_str)
+                    option_str += f'-{option}\n'
+                await ctx.send(f'{ctx.author.mention}\nTermin *{query}* może dotyczyć:\n{option_str}')
             except Exception as e:
                 logging.error(e)
 

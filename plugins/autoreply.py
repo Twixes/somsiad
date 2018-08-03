@@ -62,7 +62,7 @@ async def fccchk(ctx):
 @commands.guild_only()
 async def subreddit(ctx, arg):
     '''Returns full URL for given subreddit name.'''
-    url = 'https://reddit.com/r/{}'.format(arg)
+    url = f'https://reddit.com/r/{arg}'
     await ctx.send(url)
 
 @client.command(aliases=['u'])
@@ -70,5 +70,5 @@ async def subreddit(ctx, arg):
 @commands.guild_only()
 async def user(ctx, arg):
     '''Returns full URL for given Reddit username.'''
-    url = 'https://reddit.com/u/{}'.format(arg)
+    url = f'https://reddit.com/u/{arg}'
     await ctx.send(url)

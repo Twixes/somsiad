@@ -22,11 +22,11 @@ from somsiad_helper import *
 async def image_search(ctx, *args):
     '''Returns first matching image result from Qwant.'''
     if len(args) == 0:
-        await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(ctx.author.mention))
+        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:
         query_1 = ' '.join(args)
         query = '+'.join(args)
-        url = 'https://api.qwant.com/api/search/ia?q={}&t=all'.format(query)
+        url = f'https://api.qwant.com/api/search/ia?q={query}&t=all'
         usr_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0'
         headers = {'User-Agent': usr_agent}
         async with aiohttp.ClientSession() as session:
@@ -46,11 +46,11 @@ async def image_search(ctx, *args):
                                 img_url = res_short['images'][0]['url']
                             except KeyError:
                                 img_url = res_short['media']
-                        em = discord.Embed(title='Wynik wyszukiwania obrazu dla zapytania: ' + '{}'.format(query_1),
+                        em = discord.Embed(title=f'Wynik wyszukiwania obrazu dla zapytania: {query_1}',
                             description=img_url, colour=0x008000)
                         em.set_image(url=img_url)
-                        await ctx.send('{}\n'.format(ctx.author.mention), embed=em)
+                        await ctx.send(f'{ctx.author.mention}\n', embed=em)
                     else:
-                        await ctx.send('{}, nie znaleziono pasujących wyników.'.format(ctx.author.mention))
+                        await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
                 else:
-                    await ctx.send(':warning: Nie można połączyć się z serwisem Qwant, {}'.format(ctx.author.mention))
+                    await ctx.send(f':warning: Nie można połączyć się z serwisem Qwant, {ctx.author.mention}')

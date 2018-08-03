@@ -26,7 +26,7 @@ async def youtube(ctx, *args):
     YOUTUBE_API_SERVICE_NAME = 'youtube'
     YOUTUBE_API_VERSION = 'v3'
     if len(args) == 0:
-        await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(ctx.author.mention))
+        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:
         try:
             youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
@@ -39,10 +39,10 @@ async def youtube(ctx, *args):
             ).execute()
             # Output results
             if len(search_response.get('items')) == 0:
-                await ctx.send('{}, nie znaleziono pasujących wyników.'.format(ctx.author.mention))
+                await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
             else:
                 video_id = search_response.get('items')[0]['id']['videoId']
-                video_url = 'https://www.youtube.com/watch?v={}'.format(video_id)
-                await ctx.send('{}\n'.format(ctx.author.mention) + video_url)
+                video_url = f'https://www.youtube.com/watch?v={video_id}'
+                await ctx.send(f'{ctx.author.mention}\n{video_url}')
         except HttpError as e:
             logging.error(e)

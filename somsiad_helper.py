@@ -20,13 +20,13 @@ import os
 conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
 if not os.path.exists(conf_file_path):
     with open(conf_file_path, 'w') as f:
-        f.write('discord_token: ' + str(input('Wprowadź discordowy token bota:\n')) + '\n')
+        f.write('discord_token: ' + str(input('Wprowadź discordowy token bota:\n')))
         f.write('google_key: ' +
-            str(input('Wprowadź klucz API Google (lub pomiń, jeśli nie chcesz usług Google):\n')) + '\n')
+            str(input('\nWprowadź klucz API Google (lub pomiń, jeśli nie chcesz usług Google):\n')))
         f.write('user_command_cooldown: ' +
-            str(input('Wprowadź cooldown między wywołaniami bota przez danego użytkownika (w s):\n')) + '\n')
-        f.write('command_prefix: ' + str(input('Wprowadź prefiks komend:\n')) + '\n')
-        print('Zapisano konfigurację do ' + conf_file_path)
+            str(input('\nWprowadź cooldown między wywołaniami bota przez danego użytkownika (w s):\n')))
+        f.write('command_prefix: ' + str(input('\nWprowadź prefiks komend:\n')))
+        print('\nZapisano konfigurację do ' + conf_file_path)
     print('Budzenie Somsiada...')
 
 # If file exists, fetch the keys.

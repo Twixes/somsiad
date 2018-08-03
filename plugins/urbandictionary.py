@@ -23,10 +23,10 @@ from somsiad_helper import *
 async def urbandictionary(ctx, *args):
     '''Returns word definitions from Urban Dictionary'''
     if len(args) == 0:
-        await ctx.send(':warning: Musisz podać parametr wyszukiwania, {}.'.format(ctx.author.mention))
+        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:
         query = '+'.join(args)
-        url = 'https://api.urbandictionary.com/v0/define?term={}'.format(query)
+        url = f'https://api.urbandictionary.com/v0/define?term={query}'
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as r:
                 if r.status == 200:
@@ -51,11 +51,11 @@ async def urbandictionary(ctx, *args):
                         em.add_field(name='Słowo:', value=word, inline=False)
                         em.add_field(name='Definicja:', value=definition, inline=False)
                         em.add_field(name='Przykład(y):', value=example, inline=False)
-                        em.add_field(name='Głosy:', value=':thumbsup: ' + str(t_up) + ' | :thumbsdown: ' + str(t_down))
+                        em.add_field(name='Głosy:', value=f':thumbsup: {str(t_up)} | :thumbsdown: {str(t_down)}')
                         em.add_field(name='Link:', value=link, inline=False)
                         await ctx.send(embed=em)
                     else:
-                        await ctx.send('{}, nie znaleziono pasujących wyników.'.format(ctx.author.mention))
+                        await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
                 else:
-                    await ctx.send(':warning: Nie można połączyć się z serwisem Urban Dictionary, ' + '{}'.format(
-                        ctx.author.mention))
+                    await ctx.send(':warning: Nie można połączyć się z serwisem Urban Dictionary,'
+                        f' {ctx.author.mention}')

@@ -24,4 +24,4 @@ async def eightball(ctx, *args):
     with open(os.path.join(bot_dir, 'data', 'eightball_answers.txt')) as f:
         responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
     response = random.choice(responses)
-    await ctx.send('{} '.format(ctx.author.mention) + '\n:8ball: ' + response)
+    await ctx.send(f'{ctx.author.mention}\n:8ball: {response}')
