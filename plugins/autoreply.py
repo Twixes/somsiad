@@ -70,5 +70,5 @@ async def subreddit(ctx, arg):
 @commands.guild_only()
 async def user(ctx, arg):
     '''Returns full URL for given Reddit username.'''
-    url = 'https://reddit.com/user/{}'.format(arg)
+    url = 'https://reddit.com/u/{}'.format(arg)
     await ctx.send(url)
