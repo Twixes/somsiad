@@ -21,17 +21,22 @@ then
         python3 -m venv --system-site-packages somsiad_env
     fi
     source ./somsiad_env/bin/activate
-    if ! command pip3 show wikipedia &>/dev/null
+    pip install --upgrade --quiet pip
+    if ! command pip3 show discord.py &>/dev/null
     then
-        pip3 install wikipedia
+        pip3 install git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]
     fi
     if ! command pip3 show google-api-python-client &>/dev/null
     then
         pip3 install google-api-python-client
     fi
-    if ! command pip3 show discord.py &>/dev/null
+    if ! command pip3 show praw &>/dev/null
     then
-        pip3 install git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py[voice]
+        pip3 install praw
+    fi
+    if ! command pip3 show wikipedia &>/dev/null
+    then
+        pip3 install wikipedia
     fi
     echo Budzenie Somsiada...
     python3 somsiad.py
