@@ -24,8 +24,8 @@ from plugins import *
 
 logging.basicConfig(filename='somsiad_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# This is what happens every time the bot launches. In this case, it prints information
-# like the server count, user count, and the bot's ID in the console.
+# This is what happens every time the bot launches. In this case, it prints information like the user count,
+# server count, and the bot's ID in the console.
 @client.event
 async def on_ready():
     print('\n== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
@@ -61,7 +61,7 @@ async def on_command_error(ctx, error):
             return await ctx.author.send(f'Komenda {ctx.command} nie może zostać użyta w prywatnej wiadomości.')
         except:
             pass
-    print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+    print('Ignorowanie wyjątku w komendzie {}:'.format(ctx.command), file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 # Disable 'youtube' plugin if no Google API key is found
