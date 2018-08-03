@@ -16,7 +16,7 @@ from discord.ext import commands
 import aiohttp
 from somsiad_helper import *
 
-@client.command(aliases=['isup'])
+@client.command(aliases=['isup', 'up'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def isitup(ctx, *args):
@@ -50,7 +50,7 @@ async def isitup(ctx, *args):
                     # Wrong URL
                     elif res['status_code'] == 3:
                         description = ('Do wykonania testu potrzebny jest poprawny adres URL. Spróbuj ponownie.')
-                    em = discord.Embed(title='Is It Up?', description=description, colour=0x336699)
+                    em = discord.Embed(title='Is it up?', description=description, colour=0x336699)
                     await ctx.send(embed=em)
                 else:
                     await ctx.send(f':warning: Nie można połączyć się z serwisem isitup.org, {ctx.author.mention}')

@@ -30,7 +30,7 @@ async def help_direct(ctx):
         value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący wynik.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}img (i) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Qwant i zwraca najlepiej pasujący do niego obrazek.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}isitup (isup) <url>',
+    em.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}pomocy (pomoc, help)', value='Wysyła użytkownikowi tę wiadomość.',
         inline=False)
