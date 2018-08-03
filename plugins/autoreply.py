@@ -69,6 +69,6 @@ async def subreddit(ctx, arg):
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def user(ctx, arg):
-    '''Returns full URL for given subreddit name.'''
+    '''Returns full URL for given Reddit username.'''
     url = 'https://reddit.com/user/{}'.format(arg)
     await ctx.send(url)
