@@ -45,7 +45,7 @@ async def on_ready():
     print(f'\nSomsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}')
     print('\nCopyright 2018 Habchy, ondondil & Twixes')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
-    return await client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {conf["command_prefix"]} pomocy'))
+    return await client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {conf["command_prefix"]}pomocy'))
 
 @client.event
 async def on_command_error(ctx, error):
