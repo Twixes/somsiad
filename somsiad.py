@@ -26,8 +26,8 @@ __version__ = '1.2.0-dev' # Current Somsiad version
 
 logging.basicConfig(filename='somsiad_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# This is what happens every time the bot launches. In this case, it prints information like the user count,
-# server count, and the bot's ID in the console.
+# This is what happens every time the bot launches
+# In this case, it prints information like the user count server count, and the bot's ID in the console
 @client.event
 async def on_ready():
     print('\n== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
@@ -36,12 +36,13 @@ async def on_ready():
         ' serwerach.')
     print('\nLink do zaproszenia bota:')
     print(f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543')
-    print(f'\nAktywny token bota: {conf["discord_token"]}')
-    print('Aktywny klucz API Google: '
+    print(f'\nToken bota: {conf["discord_token"]}')
+    print('Klucz API Google: '
         f'{conf["google_key"] if len(conf["google_key"]) > 0 else "dezaktywowano moduł Google"}')
     print(f'Cooldown wywołania przez użytkownika: {conf["user_command_cooldown"]} s')
+    print(f'Prefiks komend: {conf["command_prefix"]}')
     print(f'Plik konfiguracyjny: {conf_file_path}')
-    print(f'\nSomsiad {__version__} • discord.py {platform.python_version()} • Python {discord.__version__}')
+    print(f'\nSomsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}')
     print('\nCopyright 2018 Habchy, ondondil & Twixes')
     print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
     return await client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {conf["command_prefix"]} pomocy'))
@@ -62,11 +63,11 @@ async def on_command_error(ctx, error):
     print(f'Ignorowanie wyjątku w komendzie {ctx.command}:', file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-# Disable 'youtube' plugin if no Google API key is found
+# Disable 'youtube' command if no Google API key is found
 if conf['google_key'] == '':
     client.remove_command('youtube')
 
-# Terminate the program if user did not provide bot token
+# Terminate the program if admin did not provide bot token
 if conf['discord_token'] != '':
     client.run(conf['discord_token'])
 else:
