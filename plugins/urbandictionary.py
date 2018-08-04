@@ -47,7 +47,7 @@ async def urbandictionary(ctx, *args):
                         t_up = top_def['thumbs_up']
                         t_down = top_def['thumbs_down']
                         # Output results
-                        em = discord.Embed(title='Urban Dictionary', colour=0xefff00)
+                        em = discord.Embed(title='Urban Dictionary', color=brand_color)
                         em.add_field(name='Słowo:', value=word, inline=False)
                         em.add_field(name='Definicja:', value=definition, inline=False)
                         em.add_field(name='Przykład(y):', value=example, inline=False)

@@ -14,8 +14,9 @@
 from discord.ext.commands import Bot
 import os
 
-# Check presence of config file holding user tokens
+brand_color = 0x5370e6
 
+# Check presence of config file holding user tokens
 # If file doesn't exist, create one and ask for tokens on first run
 conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
 if not os.path.exists(conf_file_path):

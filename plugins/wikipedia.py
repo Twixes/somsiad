@@ -32,7 +32,7 @@ async def wikipedia_search(ctx, args, lang):
         else:
             try:
                 page = wikipedia.page(search_results[0], auto_suggest = True, redirect = True)
-                em = discord.Embed(title='Wikipedia', colour=0xffffff)
+                em = discord.Embed(title='Wikipedia', color=brand_color)
                 # Fetch image from Wikipedia's infobox for thumbnail
                 thumb_api_url = (f'http://en.wikipedia.org/w/api.php?action=query&titles={page.title}&prop=pageimages'
                     '&format=json&pithumbsize=500')
