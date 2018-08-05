@@ -19,6 +19,7 @@ import platform
 import sys
 import traceback
 import logging
+from version import __version__
 from somsiad_helper import *
 from plugins import *
 
@@ -39,6 +40,10 @@ async def on_ready():
     print(f'\nToken bota: {conf["discord_token"]}')
     print('Klucz API Google: '
         f'{conf["google_key"] if len(conf["google_key"]) > 0 else "dezaktywowano moduł Google"}')
+    print(f'ID aplikacji redditowej: {conf["reddit_id"]}')
+    print(f'Szyfr aplikacji redditowej: {conf["reddit_secret"]}')
+    print(f'Redditowa nazwa użytkownika: {conf["reddit_username"]}')
+    print(f'Hasło do konta na Reddicie: {"*" * len(conf["reddit_password"])}')
     print(f'Cooldown wywołania przez użytkownika: {conf["user_command_cooldown"]} s')
     print(f'Prefiks komend: {conf["command_prefix"]}')
     print(f'Plik konfiguracyjny: {conf_file_path}')

@@ -24,6 +24,14 @@ if not os.path.exists(conf_file_path):
         f.write('discord_token: ' + str(input('Wprowadź discordowy token bota:\n')))
         f.write('google_key: ' +
             str(input('\nWprowadź klucz API Google (lub pomiń, jeśli nie chcesz usług Google):\n')))
+        f.write('reddit_id: ' +
+            str(input('\nWprowadź ID aplikacji redditowej (lub pomiń, jeśli nie chcesz weryfikacji):\n')))
+        f.write('reddit_secret: ' +
+            str(input('\nWprowadź szyfr aplikacji redditowej (lub pomiń, jeśli nie chcesz weryfikacji):\n')))
+        f.write('reddit_username: ' +
+            str(input('\nWprowadź redditową nazwę użytkownika (lub pomiń, jeśli nie chcesz weryfikacji):\n')))
+        f.write('reddit_password: ' +
+            str(input('\nWprowadź hasło do konta na Reddicie (lub pomiń, jeśli nie chcesz weryfikacji):\n')))
         f.write('user_command_cooldown: ' +
             str(input('\nWprowadź cooldown między wywołaniami bota przez danego użytkownika (w s):\n')))
         f.write('command_prefix: ' + str(input('\nWprowadź prefiks komend:\n')))

@@ -11,5 +11,4 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ['help_direct', 'autoreply', 'eightball', 'google', 'wikipedia', 'urbandictionary', 'isitup', 'image_search',
-    'youtube', 'reddit_verification']
+__version__ = '1.2.0-dev' # Current Somsiad version
