@@ -50,4 +50,9 @@ async def help_direct(ctx):
         value='Zwraca URL subreddita <subreddit>.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}user (u) <użytkownik Reddita>',
         value='Zwraca URL profilu użytkownika Reddita <użytkownik Reddita>.', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
+        value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}prześwietl <użytkownik Discorda>',
+        value='Sprawdza status weryfikacji konta na Reddicie dla <użytkownika Discorda> należącego do tego samego'
+            'serwera.', inline=False)
     await ctx.author.send(embed=em)
