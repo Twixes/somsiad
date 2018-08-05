@@ -24,9 +24,9 @@ with open(parts_file_path, 'r') as parts_file:
     parts = json.load(parts_file)
 
 # Connect to the database, create a table if it doesn't exist yet
-users_db = sqlite3.connect('data/reddit_auth_users.db')
+users_db = sqlite3.connect('data/reddit_verification_users.db')
 users_cursor = users_db.cursor()
-users_cursor.execute('''CREATE TABLE IF NOT EXISTS reddit_auth_users(discord_username TEXT PRIMARY KEY,
+users_cursor.execute('''CREATE TABLE IF NOT EXISTS reddit_verification_users(discord_username TEXT PRIMARY KEY,
     phrase TEXT UNIQUE, phrase_gen_date DATE DEFAULT (date('now', 'localtime')),
     reddit_username TEXT UNIQUE)''')
 users_db.commit()
@@ -44,11 +44,11 @@ async def reddit_verification(ctx, *args):
     '''Verifies user's Reddit account'''
     discord_username = str(ctx.author)
     # Check if (and when) user has already been verified
-    users_cursor.execute('SELECT reddit_username FROM reddit_auth_users WHERE discord_username = ?',
+    users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
         (discord_username,))
     reddit_username = users_cursor.fetchone()
 
-    users_cursor.execute('SELECT phrase_gen_date FROM reddit_auth_users WHERE discord_username = ?',
+    users_cursor.execute('SELECT phrase_gen_date FROM reddit_verification_users WHERE discord_username = ?',
         (discord_username,))
     phrase_gen_date = users_cursor.fetchone()
 
@@ -60,7 +60,7 @@ async def reddit_verification(ctx, *args):
             # If user has never requested verification, add him to the database and assign a phrase to him
             phrase = phrase_gen()
 
-            users_cursor.execute('INSERT INTO reddit_auth_users(discord_username, phrase) VALUES(?, ?)',
+            users_cursor.execute('INSERT INTO reddit_verification_users(discord_username, phrase) VALUES(?, ?)',
                 (discord_username, phrase,))
             users_db.commit()
 
@@ -84,7 +84,7 @@ async def reddit_verification(ctx, *args):
             # If user has requested verification but not today, assign him a new phrase
             phrase = phrase_gen()
 
-            users_cursor.execute('''UPDATE reddit_auth_users SET phrase = ?, phrase_gen_date = ?
+            users_cursor.execute('''UPDATE reddit_verification_users SET phrase = ?, phrase_gen_date = ?
                 WHERE discord_username = ?''', (phrase, today_date, discord_username,))
             users_db.commit()
 
@@ -125,11 +125,11 @@ async def reddit_status(ctx, *args):
     if discord_username is not None:
         discord_username = str(discord_username)
         # Check if (and when) user has already been verified
-        users_cursor.execute('SELECT reddit_username FROM reddit_auth_users WHERE discord_username = ?',
+        users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
             (discord_username,))
         reddit_username = users_cursor.fetchone()
 
-        users_cursor.execute('SELECT phrase_gen_date FROM reddit_auth_users WHERE discord_username = ?',
+        users_cursor.execute('SELECT phrase_gen_date FROM reddit_verification_users WHERE discord_username = ?',
             (discord_username,))
         phrase_gen_date = users_cursor.fetchone()
 
@@ -161,7 +161,7 @@ class reddit_message_watch(object):
         '''Checks new messages from inbox stream in the background (in the background is what the new thread is for)'''
 
         # Connect to the database (this must be done a second time because this is a new thread)
-        users_db_watch = sqlite3.connect('data/reddit_auth_users.db')
+        users_db_watch = sqlite3.connect('data/reddit_verification_users.db')
         users_cursor_watch = users_db_watch.cursor()
 
         # Handle new message
@@ -171,14 +171,14 @@ class reddit_message_watch(object):
 
                 # Check if (and when) Reddit account was verified
                 phrase = message.body.strip(whitespace + '"\'')
-                users_cursor_watch.execute('''SELECT phrase_gen_date FROM reddit_auth_users
+                users_cursor_watch.execute('''SELECT phrase_gen_date FROM reddit_verification_users
                     WHERE reddit_username = ?''', (str(message.author),))
                 phrase_gen_date = users_cursor_watch.fetchone()
 
                 if phrase_gen_date is None:
 
                     # Check if phrase is in the database
-                    users_cursor_watch.execute('''SELECT phrase_gen_date FROM reddit_auth_users
+                    users_cursor_watch.execute('''SELECT phrase_gen_date FROM reddit_verification_users
                         WHERE phrase = ?''', (phrase,))
                     phrase_gen_date = users_cursor_watch.fetchone()
 
@@ -193,11 +193,11 @@ class reddit_message_watch(object):
                         if message_sent_day == phrase_gen_date[0]:
                             # If phrase was indeed sent the same day it was generated,
                             # assign Reddit username to the Discord user whose secret phrase this was
-                            users_cursor_watch.execute('''SELECT discord_username FROM reddit_auth_users
+                            users_cursor_watch.execute('''SELECT discord_username FROM reddit_verification_users
                                 WHERE phrase = ?''', (phrase,))
                             discord_username = users_cursor_watch.fetchone()[0]
 
-                            users_cursor_watch.execute('''UPDATE reddit_auth_users SET reddit_username = ?,
+                            users_cursor_watch.execute('''UPDATE reddit_verification_users SET reddit_username = ?,
                                 phrase = NULL WHERE phrase = ?''', (str(message.author), phrase,))
                             users_db_watch.commit()
 
