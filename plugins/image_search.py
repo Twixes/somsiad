@@ -15,6 +15,7 @@ import discord
 from discord.ext import commands
 import aiohttp
 from somsiad_helper import *
+from version import __version__
 
 @client.command(aliases=['i', 'img'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
@@ -27,16 +28,16 @@ async def image_search(ctx, *args):
         query_1 = ' '.join(args)
         query = '+'.join(args)
         url = f'https://api.qwant.com/api/search/ia?q={query}&t=all'
-        usr_agent = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0'
-        headers = {'User-Agent': usr_agent}
+        user_agent = f'SomsiadBot/{__version__}'
+        headers = {'User-Agent': user_agent}
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as r:
                 if r.status == 200:
                     res = await r.json()
                     if res['data']['result']['items']:
                         res_short = res['data']['result']['items'][0]['data'][0]
-                        # Qwant API is unofficial and undocumented. Following code may be buggy.
-                        # This is best I came up with.
+                        # Qwant API is unofficial and undocumented
+                        # The following code may be buggy
                         try:
                             img_url = res_short['images'][0]['media']
                             if not img_url.startswith('http'):
