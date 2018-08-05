@@ -11,6 +11,7 @@ Polski bot discordowy. Napisany w Pythonie.
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) po polsku i po angielsku  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
 * sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
+* weryfikacja konta redditowego  
 
 ## Wymagania  
 
@@ -74,6 +75,7 @@ The Polish Discord bot. Written in Python.
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
 * website status check powered by [isitup.org](https://isitup.org)  
+* Reddit account verification
 
 ## Prerequisites  
 
