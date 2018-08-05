@@ -103,7 +103,7 @@ async def reddit_verification(ctx, *args):
 
         await ctx.author.send(embed=em)
 
-@client.command(aliases=['zweryfikowany'])
+@client.command(aliases=['prześwietl'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def reddit_status(ctx, *args):
