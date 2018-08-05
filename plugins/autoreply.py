@@ -13,11 +13,16 @@
 
 from discord.ext import commands
 from somsiad_helper import *
+from version import __version__
 
+@client.command()
+@commands.cooldown(1, conf['wersja'], commands.BucketType.user)
+async def version(ctx):
+    '''Returns version of the bot'''
+    await ctx.send(f'Somsiad {__version__}')
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
-@commands.guild_only()
 async def ping(ctx):
     '''Check if bot is working.'''
     await ctx.send(':ping_pong: Pong!')

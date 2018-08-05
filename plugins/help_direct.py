@@ -55,4 +55,6 @@ async def help_direct(ctx):
     em.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value=' ( ͡° ͜ʖ ͡°)', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}shrug', value='¯\_(ツ)_/¯', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}wersja', value='Zwraca wersję bota z którą masz do czynienia.',
+        inline=False)
     await ctx.author.send(embed=em)
