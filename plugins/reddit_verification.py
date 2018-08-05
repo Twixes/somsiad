@@ -18,7 +18,7 @@ reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_sec
 
 parts_file_path = os.path.join(bot_dir, 'data', 'reddit_verification_parts.json')
 
-# Load phrase potential parts
+# Load phrase parts
 with open(parts_file_path, 'r') as parts_file:
     parts = json.load(parts_file)
 
