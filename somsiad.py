@@ -38,8 +38,7 @@ async def on_ready():
     print('\nLink do zaproszenia bota:')
     print(f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543')
     print(f'\nToken bota: {conf["discord_token"]}')
-    print('Klucz API Google: '
-        f'{conf["google_key"] if len(conf["google_key"]) > 0 else "dezaktywowano moduł Google"}')
+    print(f'Klucz API Google: {conf["google_key"]}')
     print(f'ID aplikacji redditowej: {conf["reddit_id"]}')
     print(f'Szyfr aplikacji redditowej: {conf["reddit_secret"]}')
     print(f'Redditowa nazwa użytkownika: {conf["reddit_username"]}')
@@ -67,10 +66,6 @@ async def on_command_error(ctx, error):
             pass
     print(f'Ignorowanie wyjątku w komendzie {ctx.command}:', file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-
-# Disable 'youtube' command if no Google API key is found
-if conf['google_key'] == '':
-    client.remove_command('youtube')
 
 # Terminate the program if admin did not provide bot token
 if conf['discord_token'] != '':

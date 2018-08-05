@@ -79,7 +79,7 @@ The Polish Discord bot. Written in Python.
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
 
-* *optionally* A Google API key with YouTube Data API support (if you want YouTube video search):  
+* A Google API key with YouTube Data API support:  
 https://console.developers.google.com/apis/dashboard  
 
 * The following packages:  
