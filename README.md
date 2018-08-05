@@ -19,7 +19,7 @@ Polski bot discordowy. Napisany w Pythonie.
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
 
-* *opcjonalnie* Klucz API Google z obsługą YouTube Data API (jeśli chcesz korzystać z wyszukiwania wideo na YouTube):  
+* Klucz API Google z obsługą YouTube Data API:  
 https://console.developers.google.com/apis/dashboard  
 
 * Następujące paczki:  
