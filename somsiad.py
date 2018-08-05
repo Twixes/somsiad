@@ -23,8 +23,6 @@ from version import __version__
 from somsiad_helper import *
 from plugins import *
 
-__version__ = '1.2.0-dev' # Current Somsiad version
-
 logging.basicConfig(filename='somsiad.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # This is what happens every time the bot launches
