@@ -66,7 +66,7 @@ async def reddit_verification(ctx, *args):
 
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
-            em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=0x5370e6)
+            em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=brand_color)
             em.add_field(name=f'Wygenerowano tajną frazę', value=f'By zweryfikować się'
                 ' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
                 ' Fraza jest ważna do końca dnia.')
@@ -76,7 +76,7 @@ async def reddit_verification(ctx, *args):
 
         elif phrase_gen_date[0] == today_date:
             # If user already has requested verification today, fend him off
-            em = discord.Embed(title='Już rozpocząłeś proces weryfikacji.', color=0x5370e6)
+            em = discord.Embed(title='Już rozpocząłeś proces weryfikacji.', color=brand_color)
             em.add_field(name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.')
             await ctx.author.send(embed=em)
 
@@ -90,7 +90,7 @@ async def reddit_verification(ctx, *args):
 
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
-            em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=0x5370e6)
+            em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=brand_color)
             em.add_field(name=f'Wygenerowano tajną frazę', value=f'By zweryfikować się'
                 ' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
                 ' Fraza jest ważna do końca dnia.')
@@ -98,7 +98,7 @@ async def reddit_verification(ctx, *args):
 
             await ctx.author.send(embed=em)
     else:
-        em = discord.Embed(title='Już jesteś zweryfikowany', color=0x5370e6)
+        em = discord.Embed(title='Już jesteś zweryfikowany', color=brand_color)
         em.add_field(name=f'Twoje konto na Reddicie to /u/{reddit_username[0]}.',
             value=f'Zweryfikowano {phrase_gen_date[0]}.')
 
