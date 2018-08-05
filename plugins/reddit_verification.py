@@ -1,16 +1,15 @@
-import discord
-from discord.ext import commands
-import aiohttp
+import logging
 import os.path
-import json
-import secrets
-import praw
-import threading
-from string import whitespace
-import sqlite3
 import time
 import datetime
-import logging
+import secrets
+import threading
+import json
+import sqlite3
+from string import whitespace
+import discord
+from discord.ext import commands
+import praw
 from somsiad_helper import *
 from version import __version__
 
