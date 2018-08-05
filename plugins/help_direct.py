@@ -24,12 +24,6 @@ async def help_direct(ctx):
         f'{conf["command_prefix"]}".\nW nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
     em.add_field(name=f'{conf["command_prefix"]}pomocy (pomoc, help)', value='Wysyła użytkownikowi tę wiadomość.',
         inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
-        inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value=' ( ͡° ͜ʖ ͡°)', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}shrug', value='¯\_(ツ)_/¯', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}gugiel (g) <zapytanie>',
@@ -55,4 +49,10 @@ async def help_direct(ctx):
     em.add_field(name=f'{conf["command_prefix"]}prześwietl <użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <użytkownika Discorda> należącego do tego samego'
             'serwera.', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
+        inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value=' ( ͡° ͜ʖ ͡°)', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}shrug', value='¯\_(ツ)_/¯', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
     await ctx.author.send(embed=em)
