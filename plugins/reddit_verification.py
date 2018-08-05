@@ -17,7 +17,7 @@ from version import __version__
 reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
     username=conf['reddit_username'], password=conf['reddit_password'], user_agent=f'SomsiadBot/{__version__}')
 
-parts_file_path = os.path.join(bot_dir, 'data', 'reddit_auth_parts.json')
+parts_file_path = os.path.join(bot_dir, 'data', 'reddit_verification_parts.json')
 
 # Load phrase potential parts
 with open(parts_file_path, 'r') as parts_file:
