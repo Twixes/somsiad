@@ -22,6 +22,9 @@ https://discordapp.com/developers/applications/me
 * Klucz API Google z obsługą YouTube Data API:  
 https://console.developers.google.com/apis/dashboard  
 
+* Nazwa użytkownika i hasło konta na Reddicie, a także ID i szyfr aplikacji redditowej typu skrypt:  
+https://www.reddit.com/prefs/apps  
+
 * Następujące paczki:  
 
   * libffi  
@@ -81,6 +84,9 @@ https://discordapp.com/developers/applications/me
 
 * A Google API key with YouTube Data API support:  
 https://console.developers.google.com/apis/dashboard  
+
+* Reddit username and password, and also Reddit script application ID and secret:  
+https://www.reddit.com/prefs/apps  
 
 * The following packages:  
 
