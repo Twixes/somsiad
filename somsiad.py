@@ -25,6 +25,11 @@ from plugins import *
 
 logging.basicConfig(filename='somsiad.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def separator(block_major, block_minor, width):
+    block = block_major + block_minor
+    pattern = block * int((width - len(block_major)) / len(block)) + block_major
+    return pattern
+
 # This is what happens every time the bot launches
 # In this case, it prints information like the user count server count, and the bot's ID in the console
 @client.event
@@ -35,7 +40,8 @@ async def on_ready():
     user_noun_variant = 'użytkownikiem' if number_of_users == 1 else 'użytkownikami'
     server_noun_variant = 'serwerze' if number_of_servers == 1 else 'serwerach'
     day_noun_variant = 'dzień' if conf['reddit_account_minimum_age_days'] == 1 else 'dni'
-    print('\n== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
+    # Print a separator that fills the entire width of the console
+    print(separator('==', ' ', os.get_terminal_size()[0]))
     print(f'Obudzono Somsiada (ID {str(client.user.id)}).')
     print(f'Połączono {with_preposition_variant} {str(number_of_users)} {user_noun_variant} na {str(number_of_servers)}'
         f' {server_noun_variant}.')
@@ -55,7 +61,7 @@ async def on_ready():
     print(f'Ścieżka pliku konfiguracyjnego: {conf_file_path}')
     print(f'\nSomsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}')
     print('\nCopyright 2018 Habchy, ondondil & Twixes')
-    print('== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
+    print(separator('==', ' ', os.get_terminal_size()[0]))
     return await client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {conf["command_prefix"]}pomocy'))
 
 @client.event
