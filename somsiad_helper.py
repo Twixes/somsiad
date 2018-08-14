@@ -35,7 +35,6 @@ if not os.path.exists(conf_file_path):
 
 # If conf file exists, fetch the configuration
 conf = {}
-print(conf_file_path)
 with open(conf_file_path) as f:
     for line in f.readlines():
         line = line.strip().replace(':', '=').split('=')
