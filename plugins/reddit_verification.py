@@ -51,7 +51,7 @@ async def reddit_verification(ctx, *args):
         (discord_username,))
     phrase_gen_date = users_cursor.fetchone()
 
-    if reddit_username is None:
+    if reddit_username is None or reddit_username[0] is None:
         # If user is not verified, check if he has ever requested verification
         today_date = str(datetime.date.today())
 
@@ -65,18 +65,18 @@ async def reddit_verification(ctx, *args):
 
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
-            em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
+            em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
+            em.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się'
                 f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
-                ' Fraza jest ważna do końca dnia.')
+                ' Fraza ważna jest do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
             await ctx.author.send(embed=em)
 
         elif phrase_gen_date[0] == today_date:
             # If user already has requested verification today, fend him off
-            em = discord.Embed(title='Już rozpocząłeś proces weryfikacji.', color=brand_color)
-            em.add_field(name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.')
+            em = discord.Embed(title='Już rozpocząłeś proces weryfikacji', color=brand_color)
+            em.add_field(name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.')
             await ctx.author.send(embed=em)
 
         else:
@@ -89,8 +89,8 @@ async def reddit_verification(ctx, *args):
 
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
-            em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
+            em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
+            em.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się'
                 f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
                 ' Fraza jest ważna do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
@@ -117,17 +117,17 @@ async def reddit_status(ctx, *args):
             # If user was mentioned convert his ID to username and then check if he is a member of the server
             discord_username = ctx.message.guild.get_member_named(str(await client.get_user_info(
                 args[0].strip('<@!>'))))
+
         else:
             # Otherwise autofill user's tag (number) and check if he is a member of the server
             discord_username = ctx.message.guild.get_member_named(args[0])
 
-    if discord_username is not None:
+    if discord_username is None:
+        await ctx.send(f'{ctx.author.mention}\n:warning: Użytkownik {args[0]} nie znajduje się na tym serwerze.')
+
+    else:
         discord_username = str(discord_username)
         # Check if (and when) user has already been verified
-        users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
-            (discord_username,))
-        reddit_username = users_cursor.fetchone()
-
         users_cursor.execute('SELECT phrase_gen_date FROM reddit_verification_users WHERE discord_username = ?',
             (discord_username,))
         phrase_gen_date = users_cursor.fetchone()
@@ -137,17 +137,17 @@ async def reddit_status(ctx, *args):
                 ' procesu weryfikacji.')
 
         else:
-            if reddit_username is None:
+            users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
+                (discord_username,))
+            reddit_username = users_cursor.fetchone()
+
+            if reddit_username[0] is None:
                 await ctx.send(f'{ctx.author.mention}\n:red_circle: Użytkownik {discord_username} rozpoczął'
-                    f' proces weryfikacji {phrase_gen_date[0]}, ale nigdy go nie dokończył.')
+                    f' proces weryfikacji {phrase_gen_date[0]}, ale go nie dokończył.')
 
             else:
                 await ctx.send(f'{ctx.author.mention}\n:white_check_mark: Użytkownik {discord_username}'
                     f' został zweryfikowany {phrase_gen_date[0]} jako /u/{reddit_username[0]}.')
-    else:
-        await ctx.send(f'{ctx.author.mention}\n:warning: Użytkownik {args[0]} nie znajduje się na tym serwerze.')
-
-
 
 class reddit_message_watch(object):
 
