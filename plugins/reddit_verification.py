@@ -17,13 +17,14 @@ reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_sec
     username=conf['reddit_username'], password=conf['reddit_password'], user_agent=f'SomsiadBot/{__version__}')
 
 parts_file_path = os.path.join(bot_dir, 'data', 'reddit_verification_parts.json')
+database_path = os.path.join(bot_dir, 'data', 'reddit_verification.db')
 
 # Load phrase parts
 with open(parts_file_path, 'r') as parts_file:
     parts = json.load(parts_file)
 
 # Connect to the database, create a table if it doesn't exist yet
-users_db = sqlite3.connect('data/reddit_verification.db')
+users_db = sqlite3.connect(database_path)
 users_cursor = users_db.cursor()
 users_cursor.execute('''CREATE TABLE IF NOT EXISTS reddit_verification_users(discord_username TEXT PRIMARY KEY,
     phrase TEXT UNIQUE, phrase_gen_date DATE DEFAULT (date('now', 'localtime')),
@@ -171,7 +172,7 @@ class reddit_message_watch(object):
         '''Checks new messages from inbox stream in the background (in the background is what the new thread is for)'''
 
         # Connect to the database (this must be done a second time because this is a new thread)
-        users_db_watch = sqlite3.connect('data/reddit_verification.db')
+        users_db_watch = sqlite3.connect(database_path)
         users_cursor_watch = users_db_watch.cursor()
 
         # Handle new message
