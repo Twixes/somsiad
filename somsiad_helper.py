@@ -14,7 +14,7 @@
 from discord.ext.commands import Bot
 import os
 
-brand_color = 0x5370e6
+brand_color = 0x7289da
 
 # Check presence of config file holding user tokens
 # If file doesn't exist, create one and ask for tokens on first run
@@ -38,7 +38,7 @@ conf = {}
 print(conf_file_path)
 with open(conf_file_path) as f:
     for line in f.readlines():
-        line = line.strip().replace(': ', '=').split('=')
+        line = line.strip().replace(':', '=').split('=')
         conf[line[0].strip()] = line[1].strip()
 
 bot_dir = os.getcwd()
