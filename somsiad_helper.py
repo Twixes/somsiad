@@ -57,7 +57,7 @@ class Configurator:
     def read(self):
         for line in self.configuration_file.readlines():
             line = line.strip().split('=')
-            self.configuration[line[0].strip()] = line[1].strip()
+            self.configuration[line[0].strip()] = line[1].strip() if len(line) >= 2 else None
         return self.configuration
 
 brand_color = 0x7289da
@@ -87,9 +87,7 @@ if not os.path.exists(conf_file_path):
     with open(conf_file_path, 'w') as f:
         configurator = Configurator(f)
         configurator.assure_completeness(conf_required)
-
         print(f'Gotowe! Konfigurację zapisano w {conf_file_path}.')
-    print('Budzenie Somsiada...')
 
 # Load the configuration
 conf = {}
@@ -97,6 +95,7 @@ with open(conf_file_path, 'r+') as f:
     configurator = Configurator(f)
     conf = configurator.read()
     conf = configurator.assure_completeness(conf_required, conf)
+    print(f'Gotowe! Konfigurację zapisano w {conf_file_path}.')
 
 client = Bot(description='Zawsze pomocny Somsiad', command_prefix=conf['command_prefix'])
 client.remove_command('help') # Replaced with the 'help' plugin
