@@ -169,7 +169,7 @@ class reddit_message_watch(object):
 
     @staticmethod
     def run():
-        '''Checks new messages from inbox stream in the background (in the background is what the new thread is for)'''
+        '''Processes new messages from the inbox stream in the background'''
 
         # Connect to the database (this must be done a second time because this is a new thread)
         users_db_watch = sqlite3.connect(database_path)
