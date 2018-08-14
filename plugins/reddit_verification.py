@@ -63,7 +63,8 @@ async def redditverify(ctx, *args):
                 (discord_username, phrase,))
             users_db.commit()
 
-            message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
+            message_url = ('https://www.reddit.com/message/compose/'
+                f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
             em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
@@ -87,7 +88,8 @@ async def redditverify(ctx, *args):
                 WHERE discord_username = ?''', (phrase, today_date, discord_username,))
             users_db.commit()
 
-            message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
+            message_url = ('https://www.reddit.com/message/compose/'
+                f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
             em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
