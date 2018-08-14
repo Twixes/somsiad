@@ -38,6 +38,16 @@ def phrase_gen():
         phrase += secrets.choice(category).capitalize()
     return phrase
 
+def is_Reddit_user_trustworthy(reddit_user):
+    '''Checks if given Reddit user seems trustworthy'''
+    account_karma = reddit_user.link_karma + reddit_user.comment_karma
+    account_age_days = (time.time() - reddit_user.created_utc) / 86400
+    if (account_age_days >= float(conf['reddit_account_minimum_age_days']) and
+        account_karma >= int(conf['reddit_account_minimum_karma'])):
+        return True
+    else:
+        return False
+
 @client.command(aliases=['zweryfikuj'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 async def redditverify(ctx, *args):
@@ -177,9 +187,7 @@ class reddit_message_watch(object):
 
         # Handle each new message
         for message in praw.models.util.stream_generator(reddit.inbox.unread):
-
             if message.subject == 'Weryfikacja':
-
                 # Check if (and when) Reddit account was verified
                 phrase = message.body.strip(whitespace + '"\'')
                 users_cursor_watch.execute('''SELECT phrase_gen_date FROM reddit_verification_users
@@ -187,7 +195,6 @@ class reddit_message_watch(object):
                 phrase_gen_date = users_cursor_watch.fetchone()
 
                 if phrase_gen_date is None:
-
                     # Check if the phrase is in the database
                     users_cursor_watch.execute('''SELECT phrase_gen_date FROM reddit_verification_users
                         WHERE phrase = ?''', (phrase,))
@@ -202,18 +209,26 @@ class reddit_message_watch(object):
                         message_sent_day = time.strftime('%Y-%m-%d', time.localtime(message.created_utc))
 
                         if message_sent_day == phrase_gen_date[0]:
-                            # If the phrase was indeed sent the same day it was generated,
-                            # assign the Reddit username to the Discord user whose secret phrase this was
-                            users_cursor_watch.execute('''SELECT discord_username FROM reddit_verification_users
-                                WHERE phrase = ?''', (phrase,))
-                            discord_username = users_cursor_watch.fetchone()[0]
+                            if is_Reddit_user_trustworthy(message.author):
+                                # If the phrase was indeed sent the same day it was generated,
+                                # assign the Reddit username to the Discord user whose secret phrase this was
+                                users_cursor_watch.execute('''SELECT discord_username FROM reddit_verification_users
+                                    WHERE phrase = ?''', (phrase,))
+                                discord_username = users_cursor_watch.fetchone()[0]
 
-                            users_cursor_watch.execute('''UPDATE reddit_verification_users SET reddit_username = ?,
-                                phrase = NULL WHERE phrase = ?''', (str(message.author), phrase,))
-                            users_db_watch.commit()
+                                users_cursor_watch.execute('''UPDATE reddit_verification_users SET reddit_username = ?,
+                                    phrase = NULL WHERE phrase = ?''', (str(message.author), phrase,))
+                                users_db_watch.commit()
 
-                            message.reply(f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda'
-                                f' {discord_username}.')
+                                message.reply(f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda'
+                                    f' {discord_username}.')
+
+                            else:
+                                day_noun_variant = 'dzień' if conf['reddit_account_minimum_age_days'] == 1 else 'dni'
+                                message.reply('Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia'
+                                    ' wymagań. Do weryfikacji potrzebne jest konto założone co najmniej'
+                                    f' {conf["reddit_account_minimum_age_days"]} {day_noun_variant} temu i o karmie'
+                                    f' nie niższej niż {conf["reddit_account_minimum_karma"]}.')
 
                         else:
                             message.reply('Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę na'

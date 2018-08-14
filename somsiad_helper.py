@@ -27,9 +27,14 @@ if not os.path.exists(conf_file_path):
         f.write('reddit_secret=' + str(input('4. Wprowadź szyfr aplikacji redditowej:\n') + '\n'))
         f.write('reddit_username=' + str(input('5. Wprowadź redditową nazwę użytkownika:\n') + '\n'))
         f.write('reddit_password=' + str(input('6. Wprowadź hasło do konta na Reddicie:\n') + '\n'))
+        f.write('reddit_account_minimum_age_days=' +
+            str(input('7. Wprowadź minimalny wiek weryfikowanego konta na Reddicie (w dniach):\n') + '\n'))
+        f.write('reddit_account_minimum_karma=' +
+            str(input('8. Wprowadź minimalną karmę weryfikowanego konta na Reddicie:\n') + '\n'))
         f.write('user_command_cooldown=' +
-            str(input('7. Wprowadź cooldown między wywołaniami komend przez danego użytkownika (w s):\n') + '\n'))
-        f.write('command_prefix=' + str(input('8. Wprowadź prefiks komend:\n') + '\n'))
+            str(input('9. Wprowadź cooldown między wywołaniami komend przez danego użytkownika (w s):\n') +
+            '\n'))
+        f.write('command_prefix=' + str(input('10. Wprowadź prefiks komend:\n') + '\n'))
         print(f'Gotowe! Konfigurację zapisano w {conf_file_path}.')
     print('Budzenie Somsiada...')
 
