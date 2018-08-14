@@ -19,8 +19,8 @@ from somsiad_helper import *
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def help(ctx):
     em = discord.Embed(title='Lecem na ratunek!' , color=brand_color)
-    em.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać.'
-        ' Odpowiadam na wszystkie zawołania z poniższej listy. Pamiętaj tylko zawsze, by zacząć od "'
+    em.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać. '
+        'Odpowiadam na wszystkie zawołania z poniższej listy. Pamiętaj tylko zawsze, by zacząć od "'
         f'{conf["command_prefix"]}".\nW nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
     em.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła użytkownikowi tę wiadomość.',
         inline=False)
@@ -40,8 +40,8 @@ async def help(ctx):
         value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <liczba> <trzyliterowy kod waluty początkowej>'
-        ' <trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
+    em.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <liczba> <trzyliterowy kod waluty początkowej> '
+        '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
         inline=False)
     em.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <subreddit>',
         value='Zwraca URL subreddita <subreddit>.', inline=False)
@@ -50,8 +50,8 @@ async def help(ctx):
     em.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
         value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}prześwietl <użytkownik Discorda>',
-        value='Sprawdza status weryfikacji konta na Reddicie dla <użytkownika Discorda> należącego do tego samego'
-            ' serwera.', inline=False)
+        value='Sprawdza status weryfikacji konta na Reddicie dla <użytkownika Discorda> należącego do tego samego '
+            'serwera.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
         inline=False)

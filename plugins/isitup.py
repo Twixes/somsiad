@@ -40,13 +40,13 @@ async def isitup(ctx, *args):
                     if res['status_code'] == 1:
                         res_code = response_code_urls[int(str(res['response_code'])[0])]
                         res_time = res['response_time'] * 1000
-                        description = (f'Strona [{res["domain"]}](http://{res["domain"]}) jest dostępna.'
-                            f' Z IP [{res["response_ip"]}](http://{res["response_ip"]}) otrzymano kod odpowiedzi'
-                            f' [{res["response_code"]}]({res_code}) w czasie {int(res_time)} ms.')
+                        description = (f'Strona [{res["domain"]}](http://{res["domain"]}) jest dostępna. '
+                            f'Z IP [{res["response_ip"]}](http://{res["response_ip"]}) otrzymano kod odpowiedzi '
+                            f'[{res["response_code"]}]({res_code}) w czasie {int(res_time)} ms.')
                     # Website offline
                     elif res['status_code'] == 2:
-                        description = (f'Wygląda na to, że strona [{res["domain"]}](http://{res["domain"]})'
-                            ' jest niedostępna!')
+                        description = (f'Wygląda na to, że strona [{res["domain"]}](http://{res["domain"]}) '
+                            'jest niedostępna!')
                     # Wrong URL
                     elif res['status_code'] == 3:
                         description = ('Do wykonania testu potrzebny jest poprawny adres URL. Spróbuj ponownie.')

@@ -43,8 +43,8 @@ async def on_ready():
     # Print a separator that fills the entire width of the console
     print(separator('==', ' ', os.get_terminal_size()[0]))
     print(f'Obudzono Somsiada (ID {str(client.user.id)}).')
-    print(f'Połączono {with_preposition_variant} {str(number_of_users)} {user_noun_variant} na {str(number_of_servers)}'
-        f' {server_noun_variant}.')
+    print(f'Połączono {with_preposition_variant} {str(number_of_users)} {user_noun_variant} na '
+        f'{str(number_of_servers)} {server_noun_variant}.')
     print('\nLink do zaproszenia bota:')
     print(f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543')
     print(f'\nToken bota: {conf["discord_token"]}')
@@ -53,8 +53,8 @@ async def on_ready():
     print(f'Szyfr aplikacji redditowej: {conf["reddit_secret"]}')
     print(f'Redditowa nazwa użytkownika: {conf["reddit_username"]}')
     print(f'Hasło do konta na Reddicie: {"*" * len(conf["reddit_password"])}')
-    print(f'Minimalny wiek weryfikowanego konta na Reddicie: {conf["reddit_account_minimum_age_days"]}'
-        f' {day_noun_variant}')
+    print(f'Minimalny wiek weryfikowanego konta na Reddicie: {conf["reddit_account_minimum_age_days"]} '
+        f'{day_noun_variant}')
     print(f'Minimalna karma weryfikowanego konta na Reddicie: {conf["reddit_account_minimum_karma"]}')
     print(f'Cooldown wywołania komendy przez użytkownika: {conf["user_command_cooldown_seconds"]} s')
     print(f'Prefiks komend: {conf["command_prefix"]}')

@@ -71,11 +71,11 @@ conf_required = (
     ('reddit_secret', None, 'Wprowadź szyfr aplikacji redditowej',),
     ('reddit_username', None, 'Wprowadź redditową nazwę użytkownika',),
     ('reddit_password', None, 'Wprowadź hasło do konta na Reddicie',),
-    ('reddit_account_minimum_age_days', 14, 'Wprowadź minimalny wiek weryfikowanego konta na Reddicie'
-        ' (w dniach, domyślnie 14)',),
+    ('reddit_account_minimum_age_days', 14, 'Wprowadź minimalny wiek weryfikowanego konta na Reddicie '
+        '(w dniach, domyślnie 14)',),
     ('reddit_account_minimum_karma', 0, 'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)',),
-    ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown między wywołaniami komendy przez danego użytkownika'
-        ' (w sekundach, domyślnie 1)',),
+    ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown między wywołaniami komendy przez danego użytkownika '
+        '(w sekundach, domyślnie 1)',),
     ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)',),
 )
 

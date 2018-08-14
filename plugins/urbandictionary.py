@@ -57,5 +57,5 @@ async def urbandictionary(ctx, *args):
                     else:
                         await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
                 else:
-                    await ctx.send(':warning: Nie można połączyć się z serwisem Urban Dictionary,'
-                        f' {ctx.author.mention}')
+                    await ctx.send(':warning: Nie można połączyć się z serwisem Urban Dictionary, '
+                        f'{ctx.author.mention}')
