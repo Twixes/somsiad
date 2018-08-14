@@ -21,20 +21,30 @@ brand_color = 0x7289da
 conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
 if not os.path.exists(conf_file_path):
     with open(conf_file_path, 'w') as f:
-        f.write('discord_token=' + str(input('1. Wprowadź discordowy token bota:\n') + '\n'))
-        f.write('google_key=' + str(input('2. Wprowadź klucz API Google:\n') + '\n'))
-        f.write('reddit_id=' + str(input('3. Wprowadź ID aplikacji redditowej:\n') + '\n'))
-        f.write('reddit_secret=' + str(input('4. Wprowadź szyfr aplikacji redditowej:\n') + '\n'))
-        f.write('reddit_username=' + str(input('5. Wprowadź redditową nazwę użytkownika:\n') + '\n'))
-        f.write('reddit_password=' + str(input('6. Wprowadź hasło do konta na Reddicie:\n') + '\n'))
+        step_number = 1
+        f.write('discord_token=' + str(input(f'{step_number}. Wprowadź discordowy token bota:\n') + '\n'))
+        step_number += 1
+        f.write('google_key=' + str(input(f'{step_number}. Wprowadź klucz API Google:\n') + '\n'))
+        step_number += 1
+        f.write('reddit_id=' + str(input(f'{step_number}. Wprowadź ID aplikacji redditowej:\n') + '\n'))
+        step_number += 1
+        f.write('reddit_secret=' + str(input(f'{step_number}. Wprowadź szyfr aplikacji redditowej:\n') + '\n'))
+        step_number += 1
+        f.write('reddit_username=' + str(input(f'{step_number}. Wprowadź redditową nazwę użytkownika:\n') + '\n'))
+        step_number += 1
+        f.write('reddit_password=' + str(input(f'{step_number}. Wprowadź hasło do konta na Reddicie:\n') + '\n'))
+        step_number += 1
         f.write('reddit_account_minimum_age_days=' +
-            str(input('7. Wprowadź minimalny wiek weryfikowanego konta na Reddicie (w dniach):\n') + '\n'))
+            str(input(f'{step_number}. Wprowadź minimalny wiek weryfikowanego konta na Reddicie (w dniach):\n') + '\n'))
+        step_number += 1
         f.write('reddit_account_minimum_karma=' +
-            str(input('8. Wprowadź minimalną karmę weryfikowanego konta na Reddicie:\n') + '\n'))
+            str(input(f'{step_number}. Wprowadź minimalną karmę weryfikowanego konta na Reddicie:\n') + '\n'))
+        step_number += 1
         f.write('user_command_cooldown=' +
-            str(input('9. Wprowadź cooldown między wywołaniami komend przez danego użytkownika (w s):\n') +
+            str(input(f'{step_number}. Wprowadź cooldown między wywołaniami komend przez danego użytkownika (w s):\n') +
             '\n'))
-        f.write('command_prefix=' + str(input('10. Wprowadź prefiks komend:\n') + '\n'))
+        step_number += 1
+        f.write('command_prefix=' + str(input(f'{step_number}. Wprowadź prefiks komend:\n') + '\n'))
         print(f'Gotowe! Konfigurację zapisano w {conf_file_path}.')
     print('Budzenie Somsiada...')
 
