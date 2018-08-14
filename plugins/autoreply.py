@@ -15,44 +15,44 @@ from discord.ext import commands
 from somsiad_helper import *
 from version import __version__
 
-@client.command()
+@client.command(aliases=['wersja'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 async def version(ctx):
-    '''Returns version of the bot'''
-    await ctx.send(f'Somsiad {__version__}')
+    '''Responds with current version of the bot'''
+    await ctx.send(__version__)
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 async def ping(ctx):
-    '''Check if bot is working.'''
+    '''Pong'''
     await ctx.send(':ping_pong: Pong!')
 
 @client.command(aliases=['lennyface'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def lenny(ctx):
-    '''Lenny face.'''
+    '''Responds with a lenny face'''
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def flip(ctx):
-    '''Flip tables.'''
+    '''Responds with the table flip emoticon'''
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
 @client.command(aliases=['fix'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def unflip(ctx):
-    '''Unflip tables.'''
-    await ctx.send('┬─┬ノ(ಠ_ಠノ)')
+    '''Responds with the table unflip emoticon'''
+    await ctx.send('┬─┬ ノ( ゜-゜ノ)')
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def shrug(ctx):
-    '''Shrug.'''
+    '''Responds with the shrug emoticon'''
     await ctx.send('¯\_(ツ)_/¯')
 
 @client.command()
@@ -66,7 +66,7 @@ async def fccchk(ctx):
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def subreddit(ctx, arg):
-    '''Returns full URL for given subreddit name.'''
+    '''Responds with the URL of the given subreddit'''
     url = f'https://reddit.com/r/{arg}'
     await ctx.send(url)
 
@@ -74,6 +74,6 @@ async def subreddit(ctx, arg):
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
 async def user(ctx, arg):
-    '''Returns full URL for given Reddit username.'''
+    '''Responds with the URL of the given Reddit user'''
     url = f'https://reddit.com/u/{arg}'
     await ctx.send(url)
