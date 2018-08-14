@@ -39,9 +39,9 @@ class Configurator:
         self.configuration_file.write(f'{key}={self.configuration[key]}\n')
         self.step_number += 1
 
-    def assure_completeness(self, configuration_required, configuration = {}):
+    def assure_completeness(self, configuration_required, configuration = None):
         self.step_number = 1
-        if configuration is {}:
+        if configuration is {} or configuration is None:
             for item_required in configuration_required:
                 self.write_key_value_pair(item_required[0], item_required[1], item_required[2])
                 self.step_number += 1
