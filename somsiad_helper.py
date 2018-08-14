@@ -14,9 +14,6 @@
 from discord.ext.commands import Bot
 import os
 
-brand_color = 0x7289da
-bot_dir = os.getcwd()
-
 class Configurator:
     step_number = None
     configuration_file = None
@@ -37,7 +34,6 @@ class Configurator:
             else:
                 break
         self.configuration_file.write(f'{key}={self.configuration[key]}\n')
-        self.step_number += 1
 
     def assure_completeness(self, configuration_required, configuration = None):
         self.step_number = 1
@@ -64,6 +60,8 @@ class Configurator:
             self.configuration[line[0].strip()] = line[1].strip()
         return self.configuration
 
+brand_color = 0x7289da
+
 conf_required = (
     ('discord_token', None, 'Wprowadź discordowy token bota',),
     ('google_key', None, 'Wprowadź klucz API Google',),
@@ -79,9 +77,12 @@ conf_required = (
     ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)',),
 )
 
+bot_dir = os.getcwd()
+
 # Check whether the configuration file exists
 # If it doesn't, create it and configure on first run
 conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
+
 if not os.path.exists(conf_file_path):
     with open(conf_file_path, 'w') as f:
         configurator = Configurator(f)
