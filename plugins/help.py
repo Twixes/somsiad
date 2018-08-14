@@ -15,9 +15,9 @@ import discord
 from discord.ext import commands
 from somsiad_helper import *
 
-@client.command(aliases=['pomocy', 'pomoc'])
+@client.command(aliases=['pomocy'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
-async def help_direct(ctx):
+async def help(ctx):
     em = discord.Embed(title='Lecem na ratunek!' , color=brand_color)
     em.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać.'
         ' Odpowiadam na wszystkie zawołania z poniższej listy. Pamiętaj tylko zawsze, by zacząć od "'
