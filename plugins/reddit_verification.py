@@ -170,7 +170,7 @@ async def redditcheck(ctx, *args):
                     f' /u/{reddit_username[0]}.')
                 await ctx.send(embed=em)
 
-class reddit_message_watch(object):
+class RedditMessageWatch(object):
 
     def __init__(self):
         thread = threading.Thread(target=self.run, args=())
@@ -239,4 +239,4 @@ class reddit_message_watch(object):
 
             message.mark_read()
 
-reddit_message_watch_thread = reddit_message_watch()
+reddit_message_watch = RedditMessageWatch()
