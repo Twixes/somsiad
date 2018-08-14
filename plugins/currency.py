@@ -4,28 +4,28 @@ import aiohttp
 import re
 from somsiad_helper import *
 
-@client.command(aliases=['exchange', 'kurs'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@client.command(aliases=['exchange', 'kantor', 'kurs'])
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def currency(ctx, *args):
-    '''Provides currency exchange rates.'''    
-    em = discord.Embed(title='Przelicznik walutowy', colour=brand_color)
+    '''Provides currency exchange rates'''
+    em = discord.Embed(title='Kantor', color=brand_color)
     if len(args) == 0:
         em.add_field(name=':warning: Błąd', value=f'Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
         await ctx.send(embed=em)
     else:
         query = ' '.join(args)
-        
+
         queryRegex = re.compile(r'''
-                                (([0-9]*[.,])?[0-9]+)?  # optional number
-                                (\s)?                   # optional whitespace
-                                ([a-zA-Z]{3}){1}        # 'fr' 3 char value
-                                (\s)?                   # optional whitespace
-                                (to|in|na|do|w)?        # optional conjuction
-                                (\s)?                   # optional whitespace
-                                ([a-zA-Z]{3}){1}        # 'to' 3 char value
-                                ''', re.VERBOSE)
-        
+            (([0-9]*[.,])?[0-9]+)?  # optional number
+            (\s)?                   # optional whitespace
+            ([a-zA-Z]{3}){1}        # 'fr' 3 char value
+            (\s)?                   # optional whitespace
+            (to|in|na|do|w)?        # optional conjuction
+            (\s)?                   # optional whitespace
+            ([a-zA-Z]{3}){1}        # 'to' 3 char value
+            ''', re.VERBOSE)
+
         mo = queryRegex.search(query)
         if mo != None:
             if mo.group(1) != None:
@@ -50,28 +50,26 @@ async def currency(ctx, *args):
                             else:
                                 num = 1
                             currency_value = f'{currency_value:.2f}'
-                            
-                            em.add_field(name=f'Wartość {num:.2f} {fr} wynosi:', 
-                                value=currency_value + ' ' + to,
+
+                            em.add_field(name=f'{num:.2f} {fr}', value=f'{currency_value} {to}',
                                 inline=False)
                             await ctx.send(embed=em)
                         else:
-                            em.add_field(name=':warning: Błąd', 
-                                value='Nie można połączyć się z serwisem.', inline=False)
+                            em.add_field(name=':warning: Błąd', value='Nie można połączyć się z serwisem.',
+                                inline=False)
                             await ctx.send(embed=em)
             else:
-                em.add_field(name=':warning: Błąd', 
-                    value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę `X WALUTA1 w WALUTA2`, ' +
-                        'gdzie `WALUTA1` i `WALUTA2` to trzyliterowe kody, zgodne z ' +
+                em.add_field(name=':warning: Błąd',
+                    value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę "X WALUTA1 w WALUTA2", ' +
+                        'gdzie "WALUTA1" i "WALUTA2" to trzyliterowe kody, zgodne z ' +
                         '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217Active_codes), ' +
-                        'a `X` to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
+                        'a "X" to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
                 await ctx.send(embed=em)
-    
+
         else:
-            em.add_field(name=':warning: Błąd', 
-                value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę `X WALUTA1 w WALUTA2`, ' +
-                    'gdzie `WALUTA1` i `WALUTA2` to trzyliterowe kody, zgodne z ' +
+            em.add_field(name=':warning: Błąd',
+                value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć format "X WALUTA1 w WALUTA2", ' +
+                    'gdzie "WALUTA1" i "WALUTA2" to trzyliterowe kody, zgodne z ' +
                     '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217Active_codes), ' +
-                    'a `X` to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
+                    'a "X" to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
             await ctx.send(embed=em)
-    
