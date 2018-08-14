@@ -15,47 +15,87 @@ from discord.ext.commands import Bot
 import os
 
 brand_color = 0x7289da
+bot_dir = os.getcwd()
 
-# Check presence of config file holding user tokens
-# If file doesn't exist, create one and ask for tokens on first run
+class Configurator:
+    step_number = None
+    configuration_file = None
+    configuration = {}
+
+    def __init__(self, configuration_file):
+        self.configuration_file = configuration_file
+
+    def write_key_value_pair(self, key, default_value, instruction):
+        while True:
+            self.configuration[key] = input(f'{self.step_number}. {instruction}:\n')
+            if self.configuration[key].strip() == '':
+                if default_value == None:
+                    continue
+                else:
+                    self.configuration[key] = default_value
+                    break
+            else:
+                break
+        self.configuration_file.write(f'{key}={self.configuration[key]}\n')
+        self.step_number += 1
+
+    def assure_completeness(self, configuration_required, configuration = {}):
+        self.step_number = 1
+        if configuration is {}:
+            for item_required in configuration_required:
+                self.write_key_value_pair(item_required[0], item_required[1], item_required[2])
+                self.step_number += 1
+        else:
+            self.configuration = configuration
+            for item_required in configuration_required:
+                is_required_item_present = False
+                for item in conf:
+                    if item == item_required[0]:
+                        is_required_item_present = True
+                        break
+                if not is_required_item_present:
+                    self.write_key_value_pair(item_required[0], item_required[1], item_required[2])
+                self.step_number += 1
+        return self.configuration
+
+    def read(self):
+        for line in self.configuration_file.readlines():
+            line = line.strip().split('=')
+            self.configuration[line[0].strip()] = line[1].strip()
+        return self.configuration
+
+conf_required = (
+    ('discord_token', None, 'Wprowadź discordowy token bota',),
+    ('google_key', None, 'Wprowadź klucz API Google',),
+    ('reddit_id', None, 'Wprowadź ID aplikacji redditowej',),
+    ('reddit_secret', None, 'Wprowadź szyfr aplikacji redditowej',),
+    ('reddit_username', None, 'Wprowadź redditową nazwę użytkownika',),
+    ('reddit_password', None, 'Wprowadź hasło do konta na Reddicie',),
+    ('reddit_account_minimum_age_days', 14, 'Wprowadź minimalny wiek weryfikowanego konta na Reddicie'
+        ' (w dniach, domyślnie 14)',),
+    ('reddit_account_minimum_karma', 0, 'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)',),
+    ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown między wywołaniami komendy przez danego użytkownika'
+        ' (w sekundach, domyślnie 1)',),
+    ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)',),
+)
+
+# Check whether the configuration file exists
+# If it doesn't, create it and configure on first run
 conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
 if not os.path.exists(conf_file_path):
     with open(conf_file_path, 'w') as f:
-        step_number = 1
-        f.write('discord_token=' + str(input(f'{step_number}. Wprowadź discordowy token bota:\n') + '\n'))
-        step_number += 1
-        f.write('google_key=' + str(input(f'{step_number}. Wprowadź klucz API Google:\n') + '\n'))
-        step_number += 1
-        f.write('reddit_id=' + str(input(f'{step_number}. Wprowadź ID aplikacji redditowej:\n') + '\n'))
-        step_number += 1
-        f.write('reddit_secret=' + str(input(f'{step_number}. Wprowadź szyfr aplikacji redditowej:\n') + '\n'))
-        step_number += 1
-        f.write('reddit_username=' + str(input(f'{step_number}. Wprowadź redditową nazwę użytkownika:\n') + '\n'))
-        step_number += 1
-        f.write('reddit_password=' + str(input(f'{step_number}. Wprowadź hasło do konta na Reddicie:\n') + '\n'))
-        step_number += 1
-        f.write('reddit_account_minimum_age_days=' +
-            str(input(f'{step_number}. Wprowadź minimalny wiek weryfikowanego konta na Reddicie (w dniach):\n') + '\n'))
-        step_number += 1
-        f.write('reddit_account_minimum_karma=' +
-            str(input(f'{step_number}. Wprowadź minimalną karmę weryfikowanego konta na Reddicie:\n') + '\n'))
-        step_number += 1
-        f.write('user_command_cooldown_seconds=' +
-            str(input(f'{step_number}. Wprowadź cooldown między wywołaniami komend przez danego użytkownika (w s):\n') +
-            '\n'))
-        step_number += 1
-        f.write('command_prefix=' + str(input(f'{step_number}. Wprowadź prefiks komend:\n') + '\n'))
+        configurator = Configurator(f)
+        configurator.assure_completeness(conf_required)
+
         print(f'Gotowe! Konfigurację zapisano w {conf_file_path}.')
     print('Budzenie Somsiada...')
 
-# If conf file exists, fetch the configuration
+# Load the configuration
 conf = {}
-with open(conf_file_path) as f:
-    for line in f.readlines():
-        line = line.strip().replace(':', '=').split('=')
-        conf[line[0].strip()] = line[1].strip()
-
-bot_dir = os.getcwd()
+with open(conf_file_path, 'r+') as f:
+    configurator = Configurator(f)
+    conf = configurator.read()
+    conf = configurator.assure_completeness(conf_required, conf)
 
 client = Bot(description='Zawsze pomocny Somsiad', command_prefix=conf['command_prefix'])
-client.remove_command('help') # Replaced with 'help' plugin
+client.remove_command('help') # Replaced with the 'help' plugin
