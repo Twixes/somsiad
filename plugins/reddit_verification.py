@@ -66,8 +66,8 @@ async def reddit_verification(ctx, *args):
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=brand_color)
-            em.add_field(name=f'Wygenerowano tajną frazę', value=f'By zweryfikować się'
-                ' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
+            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
+                f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
                 ' Fraza jest ważna do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
@@ -90,8 +90,8 @@ async def reddit_verification(ctx, *args):
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie.', color=brand_color)
-            em.add_field(name=f'Wygenerowano tajną frazę', value=f'By zweryfikować się'
-                ' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
+            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
+                f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
                 ' Fraza jest ważna do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
