@@ -40,7 +40,7 @@ if not os.path.exists(conf_file_path):
         f.write('reddit_account_minimum_karma=' +
             str(input(f'{step_number}. Wprowadź minimalną karmę weryfikowanego konta na Reddicie:\n') + '\n'))
         step_number += 1
-        f.write('user_command_cooldown=' +
+        f.write('user_command_cooldown_seconds=' +
             str(input(f'{step_number}. Wprowadź cooldown między wywołaniami komend przez danego użytkownika (w s):\n') +
             '\n'))
         step_number += 1

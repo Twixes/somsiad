@@ -18,7 +18,7 @@ import re
 from somsiad_helper import *
 
 @client.command(aliases=['urban'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def urbandictionary(ctx, *args):
     '''Returns word definitions from Urban Dictionary'''

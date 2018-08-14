@@ -18,7 +18,7 @@ from apiclient.discovery import build
 from apiclient.errors import HttpError
 
 @client.command(aliases=['yt', 'tuba'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
     '''Returns first matching result from YouTube.'''

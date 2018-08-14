@@ -18,7 +18,7 @@ from somsiad_helper import *
 from version import __version__
 
 @client.command(aliases=['i', 'img'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def image_search(ctx, *args):
     '''Returns first matching image result from Qwant.'''

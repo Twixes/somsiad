@@ -49,7 +49,7 @@ def is_Reddit_user_trustworthy(reddit_user):
         return False
 
 @client.command(aliases=['zweryfikuj'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def redditverify(ctx, *args):
     '''Verifies user's Reddit account'''
     discord_username = str(ctx.author)
@@ -117,7 +117,7 @@ async def redditverify(ctx, *args):
         await ctx.author.send(embed=em)
 
 @client.command(aliases=['prześwietl'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def redditcheck(ctx, *args):
     '''Checks given user's verification status'''

@@ -46,7 +46,7 @@ async def on_ready():
     print(f'Szyfr aplikacji redditowej: {conf["reddit_secret"]}')
     print(f'Redditowa nazwa użytkownika: {conf["reddit_username"]}')
     print(f'Hasło do konta na Reddicie: {"*" * len(conf["reddit_password"])}')
-    print(f'Cooldown wywołania komendy przez użytkownika: {conf["user_command_cooldown"]} s')
+    print(f'Cooldown wywołania komendy przez użytkownika: {conf["user_command_cooldown_seconds"]} s')
     print(f'Prefiks komend: {conf["command_prefix"]}')
     print(f'Ścieżka pliku konfiguracyjnego: {conf_file_path}')
     print(f'\nSomsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}')

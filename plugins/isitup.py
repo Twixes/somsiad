@@ -17,7 +17,7 @@ import aiohttp
 from somsiad_helper import *
 
 @client.command(aliases=['isup', 'up'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def isitup(ctx, *args):
     '''Returns information about website status.'''

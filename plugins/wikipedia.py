@@ -85,7 +85,7 @@ async def wikipedia_search(ctx, args, lang):
 
 
 @client.command(aliases=['wikipl', 'wpl'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def wikipediapl(ctx, *args):
     '''Polish version of wikipedia_search'''
@@ -93,7 +93,7 @@ async def wikipediapl(ctx, *args):
     await wikipedia_search(ctx, args, lang)
 
 @client.command(aliases=['wikien', 'wen'])
-@commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def wikipediaen(ctx, *args):
     '''English version of wikipedia_search'''
