@@ -55,7 +55,7 @@ async def help(ctx):
     em.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
         inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value=' ( ͡° ͜ʖ ͡°)', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value='( ͡° ͜ʖ ͡°)', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}shrug', value='¯\_(ツ)_/¯', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}wersja', value='Zwraca wersję bota z którą masz do czynienia.',
