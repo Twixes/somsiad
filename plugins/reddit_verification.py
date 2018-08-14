@@ -75,7 +75,7 @@ async def reddit_verification(ctx, *args):
 
         elif phrase_gen_date[0] == today_date:
             # If user already has requested verification today, fend him off
-            em = discord.Embed(title='Już rozpocząłeś proces weryfikacji', color=brand_color)
+            em = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=brand_color)
             em.add_field(name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.')
             await ctx.author.send(embed=em)
 
@@ -147,8 +147,8 @@ async def reddit_status(ctx, *args):
 
             if reddit_username[0] is None:
                 em.add_field(name=':red_circle: Niezweryfikowany',
-                    value=f'Użytkownik {discord_username} rozpoczął proces weryfikacji {phrase_gen_date[0]},'
-                    ' ale go nie dokończył.')
+                    value=f'Użytkownik {discord_username} zażądał weryfikacji {phrase_gen_date[0]},'
+                    ' ale nie dokończył jej na Reddicie.')
                 await ctx.send(embed=em)
 
             else:
