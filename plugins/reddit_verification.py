@@ -117,7 +117,7 @@ async def redditcheck(ctx, *args):
 
     else:
         if args[0].startswith('<@') and args[0].endswith('>'):
-            # If user was mentioned convert his ID to username and then check if he is a member of the server
+            # If user was mentioned convert his ID to a username and then check if he is a member of the server
             discord_username = ctx.message.guild.get_member_named(str(await client.get_user_info(
                 args[0].strip('<@!>'))))
 
@@ -175,7 +175,7 @@ class reddit_message_watch(object):
         users_db_watch = sqlite3.connect(database_path)
         users_cursor_watch = users_db_watch.cursor()
 
-        # Handle new message
+        # Handle each new message
         for message in praw.models.util.stream_generator(reddit.inbox.unread):
 
             if message.subject == 'Weryfikacja':
@@ -188,7 +188,7 @@ class reddit_message_watch(object):
 
                 if phrase_gen_date is None:
 
-                    # Check if phrase is in the database
+                    # Check if the phrase is in the database
                     users_cursor_watch.execute('''SELECT phrase_gen_date FROM reddit_verification_users
                         WHERE phrase = ?''', (phrase,))
                     phrase_gen_date = users_cursor_watch.fetchone()
@@ -198,12 +198,12 @@ class reddit_message_watch(object):
                             ' użytkownikowi.')
 
                     else:
-                        # Check if phrase was sent the same day it was generated
+                        # Check if the phrase was sent the same day it was generated
                         message_sent_day = time.strftime('%Y-%m-%d', time.localtime(message.created_utc))
 
                         if message_sent_day == phrase_gen_date[0]:
-                            # If phrase was indeed sent the same day it was generated,
-                            # assign Reddit username to the Discord user whose secret phrase this was
+                            # If the phrase was indeed sent the same day it was generated,
+                            # assign the Reddit username to the Discord user whose secret phrase this was
                             users_cursor_watch.execute('''SELECT discord_username FROM reddit_verification_users
                                 WHERE phrase = ?''', (phrase,))
                             discord_username = users_cursor_watch.fetchone()[0]
