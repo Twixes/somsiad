@@ -29,10 +29,15 @@ logging.basicConfig(filename='somsiad.log', level=logging.INFO, format='%(asctim
 # In this case, it prints information like the user count server count, and the bot's ID in the console
 @client.event
 async def on_ready():
+    number_of_users = len(set(client.get_all_members()))
+    number_of_servers = len(client.guilds)
+    with_preposition_variant = 'ze' if number_of_users >= 100 and number_of_users < 200 else 'z'
+    user_noun_variant = 'użytkownikiem' if number_of_users == 1 else 'użytkownikami'
+    server_noun_variant = 'serwerze' if number_of_servers == 1 else 'serwerach'
     print('\n== == == == == == == == == == == == == == == == == == == == == == == == == == ==')
-    print(f'Obudzono Somsiada (ID: {str(client.user.id)}).')
-    print(f'Połączono z {str(len(set(client.get_all_members())))} użytkownikami na {str(len(client.guilds))}'
-        ' serwerach.')
+    print(f'Obudzono Somsiada (ID {str(client.user.id)}).')
+    print(f'Połączono {with_preposition_variant} {str(number_of_users)} {user_noun_variant} na {str(number_of_servers)}'
+        f' {server_noun_variant}.')
     print('\nLink do zaproszenia bota:')
     print(f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543')
     print(f'\nToken bota: {conf["discord_token"]}')
