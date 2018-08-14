@@ -78,9 +78,9 @@ async def redditverify(ctx, *args):
                 f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
-                f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
-                ' Fraza ważna jest do końca dnia.')
+            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
+                f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
+                'Fraza ważna jest do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
             await ctx.author.send(embed=em)
@@ -103,9 +103,9 @@ async def redditverify(ctx, *args):
                 f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
-                f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
-                ' Fraza ważna jest do końca dnia.')
+            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
+                f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
+                'Fraza ważna jest do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
             await ctx.author.send(embed=em)
@@ -139,8 +139,8 @@ async def redditcheck(ctx, *args):
     em = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
 
     if discord_username is None:
-        em.add_field(name=':warning: Błąd', value=f'Użytkownik {raw_discord_username} nie znajduje się na tym'
-            ' serwerze.')
+        em.add_field(name=':warning: Błąd', value=f'Użytkownik {raw_discord_username} nie znajduje się na tym '
+            'serwerze.')
         await ctx.send(embed=em)
 
     else:
@@ -162,14 +162,14 @@ async def redditcheck(ctx, *args):
 
             if reddit_username[0] is None:
                 em.add_field(name=':red_circle: Niezweryfikowany',
-                    value=f'Użytkownik {discord_username} zażądał weryfikacji {phrase_gen_date[0]},'
-                    ' ale nie dokończył jej na Reddicie.')
+                    value=f'Użytkownik {discord_username} zażądał weryfikacji {phrase_gen_date[0]}, '
+                    'ale nie dokończył jej na Reddicie.')
                 await ctx.send(embed=em)
 
             else:
                 em.add_field(name=':white_check_mark: Zweryfikowany',
-                    value=f'Użytkownik {discord_username} został zweryfikowany {phrase_gen_date[0]} jako'
-                    f' /u/{reddit_username[0]}.')
+                    value=f'Użytkownik {discord_username} został zweryfikowany {phrase_gen_date[0]} jako '
+                    f'/u/{reddit_username[0]}.')
                 await ctx.send(embed=em)
 
 class RedditMessageWatch:
@@ -203,8 +203,8 @@ class RedditMessageWatch:
                     phrase_gen_date = users_cursor_watch.fetchone()
 
                     if phrase_gen_date is None:
-                        message.reply('Weryfikacja nie powiodła się. Wysłana fraza nie odpowiada żadnemu'
-                            ' użytkownikowi.')
+                        message.reply('Weryfikacja nie powiodła się. Wysłana fraza nie odpowiada żadnemu '
+                            'użytkownikowi.')
 
                     else:
                         # Check if the phrase was sent the same day it was generated
@@ -222,19 +222,19 @@ class RedditMessageWatch:
                                     phrase = NULL WHERE phrase = ?''', (str(message.author), phrase,))
                                 users_db_watch.commit()
 
-                                message.reply(f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda'
-                                    f' {discord_username}.')
+                                message.reply(f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda '
+                                    f'{discord_username}.')
 
                             else:
                                 day_noun_variant = 'dzień' if conf['reddit_account_min_age_days'] == 1 else 'dni'
-                                message.reply('Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia'
-                                    ' wymagań. Do weryfikacji potrzebne jest konto założone co najmniej'
-                                    f' {conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie'
-                                    f' nie niższej niż {conf["reddit_account_min_karma"]}.')
+                                message.reply('Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia '
+                                    'wymagań. Do weryfikacji potrzebne jest konto założone co najmniej '
+                                    f'{conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie '
+                                    f'nie niższej niż {conf["reddit_account_min_karma"]}.')
 
                         else:
-                            message.reply('Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę na'
-                            ' Discordzie.')
+                            message.reply('Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę '
+                                'na Discordzie.')
 
                 else:
                     message.reply(f'To konto zostało zweryfikowane {phrase_gen_date[0]}.')
