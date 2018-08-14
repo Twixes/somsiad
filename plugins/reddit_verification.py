@@ -42,8 +42,8 @@ def is_Reddit_user_trustworthy(reddit_user):
     '''Checks if given Reddit user seems trustworthy'''
     account_karma = reddit_user.link_karma + reddit_user.comment_karma
     account_age_days = (time.time() - reddit_user.created_utc) / 86400
-    if (account_age_days >= float(conf['reddit_account_minimum_age_days']) and
-        account_karma >= int(conf['reddit_account_minimum_karma'])):
+    if (account_age_days >= float(conf['reddit_account_min_age_days']) and
+        account_karma >= int(conf['reddit_account_min_karma'])):
         return True
     else:
         return False
@@ -226,11 +226,11 @@ class RedditMessageWatch:
                                     f' {discord_username}.')
 
                             else:
-                                day_noun_variant = 'dzień' if conf['reddit_account_minimum_age_days'] == 1 else 'dni'
+                                day_noun_variant = 'dzień' if conf['reddit_account_min_age_days'] == 1 else 'dni'
                                 message.reply('Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia'
                                     ' wymagań. Do weryfikacji potrzebne jest konto założone co najmniej'
-                                    f' {conf["reddit_account_minimum_age_days"]} {day_noun_variant} temu i o karmie'
-                                    f' nie niższej niż {conf["reddit_account_minimum_karma"]}.')
+                                    f' {conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie'
+                                    f' nie niższej niż {conf["reddit_account_min_karma"]}.')
 
                         else:
                             message.reply('Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę na'

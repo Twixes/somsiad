@@ -39,7 +39,7 @@ async def on_ready():
     with_preposition_variant = 'ze' if number_of_users >= 100 and number_of_users < 200 else 'z'
     user_noun_variant = 'użytkownikiem' if number_of_users == 1 else 'użytkownikami'
     server_noun_variant = 'serwerze' if number_of_servers == 1 else 'serwerach'
-    day_noun_variant = 'dzień' if conf['reddit_account_minimum_age_days'] == 1 else 'dni'
+    day_noun_variant = 'dzień' if conf['reddit_account_min_age_days'] == 1 else 'dni'
     # Print a separator that fills the entire width of the console
     print(separator('==', ' ', os.get_terminal_size()[0]))
     print(f'Obudzono Somsiada (ID {str(client.user.id)}).')
@@ -53,9 +53,9 @@ async def on_ready():
     print(f'Szyfr aplikacji redditowej: {conf["reddit_secret"]}')
     print(f'Redditowa nazwa użytkownika: {conf["reddit_username"]}')
     print(f'Hasło do konta na Reddicie: {"*" * len(conf["reddit_password"])}')
-    print(f'Minimalny wiek weryfikowanego konta na Reddicie: {conf["reddit_account_minimum_age_days"]} '
+    print(f'Minimalny wiek weryfikowanego konta na Reddicie: {conf["reddit_account_min_age_days"]} '
         f'{day_noun_variant}')
-    print(f'Minimalna karma weryfikowanego konta na Reddicie: {conf["reddit_account_minimum_karma"]}')
+    print(f'Minimalna karma weryfikowanego konta na Reddicie: {conf["reddit_account_min_karma"]}')
     print(f'Cooldown wywołania komendy przez użytkownika: {conf["user_command_cooldown_seconds"]} s')
     print(f'Prefiks komend: {conf["command_prefix"]}')
     print(f'Ścieżka pliku konfiguracyjnego: {conf_file_path}')
