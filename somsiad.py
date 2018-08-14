@@ -61,7 +61,7 @@ async def on_command_error(ctx, error):
     if isinstance(error, ignored):
         return
     elif isinstance(error, commands.DisabledCommand):
-        return await ctx.send(f'{ctx.command} została wyłączona.')
+        return await ctx.send(f'Komenda {ctx.command} została wyłączona.')
     elif isinstance(error, commands.NoPrivateMessage):
         try:
             return await ctx.author.send(f'Komenda {ctx.command} nie może zostać użyta w prywatnej wiadomości.')
