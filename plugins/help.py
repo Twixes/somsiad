@@ -22,7 +22,7 @@ async def help(ctx):
     em.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać.'
         ' Odpowiadam na wszystkie zawołania z poniższej listy. Pamiętaj tylko zawsze, by zacząć od "'
         f'{conf["command_prefix"]}".\nW nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
-    em.add_field(name=f'{conf["command_prefix"]}pomocy (pomoc, help)', value='Wysyła użytkownikowi tę wiadomość.',
+    em.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła użytkownikowi tę wiadomość.',
         inline=False)
     em.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
@@ -40,6 +40,9 @@ async def help(ctx):
         value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <liczba> <trzyliterowy kod waluty początkowej>'
+        ' <trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
+        inline=False)
     em.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <subreddit>',
         value='Zwraca URL subreddita <subreddit>.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}user (u) <użytkownik Reddita>',
