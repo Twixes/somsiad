@@ -48,7 +48,7 @@ async def help_direct(ctx):
         value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}prześwietl <użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <użytkownika Discorda> należącego do tego samego'
-            'serwera.', inline=False)
+            ' serwera.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
         inline=False)
