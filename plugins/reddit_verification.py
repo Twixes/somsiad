@@ -39,7 +39,7 @@ def phrase_gen():
 
 @client.command(aliases=['zweryfikuj'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
-async def reddit_verification(ctx, *args):
+async def redditverify(ctx, *args):
     '''Verifies user's Reddit account'''
     discord_username = str(ctx.author)
     # Check if (and when) user has already been verified
@@ -106,7 +106,7 @@ async def reddit_verification(ctx, *args):
 @client.command(aliases=['prześwietl'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
 @commands.guild_only()
-async def reddit_status(ctx, *args):
+async def redditcheck(ctx, *args):
     '''Checks given user's verification status'''
     # If no user was given assume message author
     if len(args) == 0:
