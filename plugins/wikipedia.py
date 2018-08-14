@@ -14,66 +14,75 @@
 import discord
 from discord.ext import commands
 import aiohttp
-import wikipedia
 import logging
 from somsiad_helper import *
+from version import __version__
 
 async def wikipedia_search(ctx, args, lang):
     '''Returns the closest matching article from Wikipedia'''
+    em = discord.Embed(title="Wikipedia", color=brand_color)
     if len(args) == 0:
-        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
+        em.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
+        await ctx.send(embed=em)
     else:
-        wikipedia.set_lang(lang)
-        query = ' '.join(args)
-        search_results = wikipedia.search(query)
-        if len(search_results) < 1:
-            await ctx.send(':warning: Nie znalazłem żadnego wyniku pasującego do twojego zapytania,'
-                f'{ctx.author.mention}.')
-        else:
-            try:
-                page = wikipedia.page(search_results[0], auto_suggest = True, redirect = True)
-                em = discord.Embed(title='Wikipedia', color=brand_color)
-                # Fetch image from Wikipedia's infobox for thumbnail
-                thumb_api_url = (f'http://en.wikipedia.org/w/api.php?action=query&titles={page.title}&prop=pageimages'
-                    '&format=json&pithumbsize=500')
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(thumb_api_url) as r:
-                        if r.status == 200:
-                            res = await r.json()
-                            try:
-                                thumb_url = list(res['query']['pages'].values())
-                                thumb_url = thumb_url[0]['thumbnail']['source']
-                                em.set_thumbnail(url=thumb_url)
-                            except:
-                                pass    # If error occurs, don't include the thumbnail
-                em.add_field(name='Pojęcie: ', value=page.title, inline=False)
-                # wikipedia.py summary function detects sentences using dots
-                # Allow abbreviations so that sentences are not unnecessarily cut in half
-                i = 1   # Initial value for sentence counter
-                with open(os.path.join(bot_dir, 'data', 'wiki_abbrevations.txt')) as f:
-                    abbreviations = tuple([line.strip() for line in f.readlines()])
-                while True:
-                    summary = wikipedia.summary(page.title, sentences=i)
-                    if summary.endswith(abbreviations):
-                        i += 1  # Sentence counter
+        query = " ".join(args)
+
+        open_url = f'https://{lang}.wikipedia.org/w/api.php?action=opensearch&search={query}&limit=10&format=json'
+        user_agent = f'SomsiadBot/{__version__}'
+        headers = {'User-Agent': user_agent}
+        async with aiohttp.ClientSession() as session:
+            # Use OpenSearch API first to get accurate page title of the result
+            async with session.get(open_url, headers=headers) as r_open:
+                if r_open.status == 200:
+                    res_open = await r_open.json()
+                    if len(res_open[1]) < 1:
+                        em.add_field(name=':slight_frown: Niepowodzenie',
+                            value=f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".')
+                        await ctx.send(embed=em)
                     else:
-                        break
-                # limit to 800 chars to prevent hitting discord message length limit of 2000 chars
-                if len(summary) > 800:
-                    summary = summary[:800] + '...' # Reduce lenght of output
-                em.add_field(name='Definicja: ', value=summary, inline=False)
-                em.add_field(name='Link: ', value=page.url, inline=False)
-                await ctx.send(embed=em)
-            # Return possible options if no article matching user query was found
-            except wikipedia.exceptions.HTTPTimeoutError as e:
-                await ctx.send(f'{ctx.author.mention}\n:warning: Wikipedia: Przekroczono limit czasu połączenia.')
-            except wikipedia.exceptions.DisambiguationError as e:
-                option_str = ''
-                for option in e.options:
-                    option_str += f'-{option}\n'
-                await ctx.send(f'{ctx.author.mention}\nTermin *{query}* może dotyczyć:\n{option_str}')
-            except Exception as e:
-                logging.error(e)
+                        # Use title retrieved from OpenSearch response
+                        # as a search term in REST request
+                        query = res_open[1][0]
+                        search_url = f'https://{lang}.wikipedia.org/api/rest_v1/page/summary/{query}'
+                        async with session.get(search_url, headers=headers) as r:
+                            if r.status == 200:
+                                res = await r.json()
+
+                                if res['type'] == 'disambiguation':
+                                    # Use results from OpenSearch to create a list of links from disambiguation page
+                                    title = 'Hasło \"' + res['title'] + '\" może odnosić się do:'
+                                    options_str_full = ''
+                                    for i, option in enumerate(res_open[1][1:]):
+                                        option_url = res_open[3][i+1]
+                                        option_url = option_url.replace('(', '%28')
+                                        option_url = option_url.replace(')', '%29')
+                                        options_str = ('• [' + option + '](' + option_url + ')\n')
+                                        options_str_full += options_str
+                                    em.add_field(name=title, value=options_str_full, inline=False)
+                                    await ctx.send(embed=em)
+
+                                elif res['type'] == 'standard':
+                                    title = res['title']
+                                    # Reduce the length of summary to 400 chars
+                                    if len(res['extract']) < 400:
+                                        summary = res['extract']
+                                    else:
+                                        summary = res['extract'][:400].rstrip() + '...'
+                                    url = res['content_urls']['desktop']['page']
+                                    if 'thumbnail' in res:
+                                        thumbnail = res['thumbnail']['source']
+                                        em.set_thumbnail(url=thumbnail)
+
+                                    em.add_field(name=title, value=summary, inline=False)
+                                    em.add_field(name='Pełny artykuł: ', value=url, inline=True)
+                                    await ctx.send(embed=em)
+                            else:
+                                em.add_field(name=':warning: Błąd', value='Nie udało się połączyć z serwisem!')
+                                await ctx.send(embed=em)
+                else:
+                    em.add_field(name=':warning: Błąd', value='Nie udało się połączyć z serwisem!')
+                    await ctx.send(embed=em)
+
 
 @client.command(aliases=['wikipl', 'wpl'])
 @commands.cooldown(1, conf['user_command_cooldown'], commands.BucketType.user)
