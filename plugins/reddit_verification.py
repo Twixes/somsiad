@@ -66,7 +66,7 @@ async def reddit_verification(ctx, *args):
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się'
+            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
                 f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
                 ' Fraza ważna jest do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
@@ -76,7 +76,7 @@ async def reddit_verification(ctx, *args):
         elif phrase_gen_date[0] == today_date:
             # If user already has requested verification today, fend him off
             em = discord.Embed(title='Już rozpocząłeś proces weryfikacji', color=brand_color)
-            em.add_field(name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.')
+            em.add_field(name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.')
             await ctx.author.send(embed=em)
 
         else:
@@ -90,15 +90,15 @@ async def reddit_verification(ctx, *args):
             message_url = f'https://www.reddit.com/message/compose/?to=SomsiadBot&subject=Weryfikacja&message={phrase}'
 
             em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się'
+            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się'
                 f' wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}".'
-                ' Fraza jest ważna do końca dnia.')
+                ' Fraza ważna jest do końca dnia.')
             em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
             await ctx.author.send(embed=em)
     else:
         em = discord.Embed(title='Już jesteś zweryfikowany', color=brand_color)
-        em.add_field(name=f'Twoje konto na Reddicie to /u/{reddit_username[0]}.',
+        em.add_field(name=f'Twoje konto na Reddicie to /u/{reddit_username[0]}',
             value=f'Zweryfikowano {phrase_gen_date[0]}.')
 
         await ctx.author.send(embed=em)
@@ -122,8 +122,11 @@ async def reddit_status(ctx, *args):
             # Otherwise autofill user's tag (number) and check if he is a member of the server
             discord_username = ctx.message.guild.get_member_named(args[0])
 
+    em = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
+
     if discord_username is None:
-        await ctx.send(f'{ctx.author.mention}\n:warning: Użytkownik {args[0]} nie znajduje się na tym serwerze.')
+        em.add_field(name=':warning: Błąd', value=f'Użytkownik {args[0]} nie znajduje się na tym serwerze.')
+        await ctx.send(embed=em)
 
     else:
         discord_username = str(discord_username)
@@ -133,8 +136,9 @@ async def reddit_status(ctx, *args):
         phrase_gen_date = users_cursor.fetchone()
 
         if phrase_gen_date is None:
-            await ctx.send(f'{ctx.author.mention}\n:red_circle: Użytkownik {discord_username} nigdy nie rozpoczął'
-                ' procesu weryfikacji.')
+            em.add_field(name=':red_circle: Niezweryfikowany',
+                value=f'Użytkownik {discord_username} nigdy nie zażądał weryfikacji.')
+            await ctx.send(embed=em)
 
         else:
             users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
@@ -142,12 +146,16 @@ async def reddit_status(ctx, *args):
             reddit_username = users_cursor.fetchone()
 
             if reddit_username[0] is None:
-                await ctx.send(f'{ctx.author.mention}\n:red_circle: Użytkownik {discord_username} rozpoczął'
-                    f' proces weryfikacji {phrase_gen_date[0]}, ale go nie dokończył.')
+                em.add_field(name=':red_circle: Niezweryfikowany',
+                    value=f'Użytkownik {discord_username} rozpoczął proces weryfikacji {phrase_gen_date[0]},'
+                    ' ale go nie dokończył.')
+                await ctx.send(embed=em)
 
             else:
-                await ctx.send(f'{ctx.author.mention}\n:white_check_mark: Użytkownik {discord_username}'
-                    f' został zweryfikowany {phrase_gen_date[0]} jako /u/{reddit_username[0]}.')
+                em.add_field(name=':white_check_mark: Zweryfikowany',
+                    value=f'Użytkownik {discord_username} został zweryfikowany {phrase_gen_date[0]} jako'
+                    f' /u/{reddit_username[0]}.')
+                await ctx.send(embed=em)
 
 class reddit_message_watch(object):
 
