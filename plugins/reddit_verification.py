@@ -164,7 +164,8 @@ class reddit_message_watch(object):
         thread.daemon = True
         thread.start()
 
-    def run(self):
+    @staticmethod
+    def run():
         '''Checks new messages from inbox stream in the background (in the background is what the new thread is for)'''
 
         # Connect to the database (this must be done a second time because this is a new thread)
