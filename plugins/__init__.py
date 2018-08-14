@@ -12,4 +12,4 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = ['help', 'autoreply', 'eightball', 'google', 'wikipedia', 'urbandictionary', 'isitup', 'image_search',
-    'youtube', 'reddit_verification']
+    'youtube', 'reddit_verification', 'currency']
