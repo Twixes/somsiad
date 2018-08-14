@@ -128,17 +128,19 @@ async def redditcheck(ctx, *args):
     else:
         if args[0].startswith('<@') and args[0].endswith('>'):
             # If user was mentioned convert his ID to a username and then check if he is a member of the server
-            discord_username = ctx.message.guild.get_member_named(str(await client.get_user_info(
-                args[0].strip('<@!>'))))
+            raw_discord_username = str(await client.get_user_info(args[0].strip('<@!>')))
+            discord_username = ctx.message.guild.get_member_named(raw_discord_username)
 
         else:
             # Otherwise autofill user's tag (number) and check if he is a member of the server
-            discord_username = ctx.message.guild.get_member_named(args[0])
+            raw_discord_username = args[0]
+            discord_username = ctx.message.guild.get_member_named(raw_discord_username)
 
     em = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
 
     if discord_username is None:
-        em.add_field(name=':warning: Błąd', value=f'Użytkownik {args[0]} nie znajduje się na tym serwerze.')
+        em.add_field(name=':warning: Błąd', value=f'Użytkownik {raw_discord_username} nie znajduje się na tym'
+            ' serwerze.')
         await ctx.send(embed=em)
 
     else:
@@ -170,7 +172,7 @@ async def redditcheck(ctx, *args):
                     f' /u/{reddit_username[0]}.')
                 await ctx.send(embed=em)
 
-class RedditMessageWatch(object):
+class RedditMessageWatch:
 
     def __init__(self):
         thread = threading.Thread(target=self.run, args=())
