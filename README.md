@@ -6,6 +6,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 * automatyczne odpowiedzi  
 * Magic 8-Ball  
+* kantor  
 * wyszukiwanie obrazków za pomocą [Qwant](https://www.qwant.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) po polsku i po angielsku  
@@ -70,6 +71,7 @@ The Polish Discord bot. Written in Python.
 
 * automatic replies  
 * Magic 8-Ball  
+* currency exchange  
 * image search powered by [Qwant](https://www.qwant.com)  
 * [YouTube](https://www.youtube.com) video search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
