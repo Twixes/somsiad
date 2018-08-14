@@ -40,7 +40,7 @@ async def help_direct(ctx):
         value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <liczba> <trzyliterowy kod waluty początkowej> '
+    em.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
         '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
         inline=False)
     em.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <subreddit>',
@@ -49,9 +49,9 @@ async def help_direct(ctx):
         value='Zwraca URL profilu użytkownika Reddita <użytkownik Reddita>.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
         value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}prześwietl <użytkownik Discorda>',
-        value='Sprawdza status weryfikacji konta na Reddicie dla <użytkownika Discorda> należącego do tego samego '
-            'serwera.', inline=False)
+    em.add_field(name=f'{conf["command_prefix"]}prześwietl <?użytkownik Discorda>',
+        value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> (jeśli należy on do serwera '
+        'na którym użyto komendy) lub, jeśli nie podano argumentu, dla użytkownika, który użył komendy.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
     em.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
         inline=False)
