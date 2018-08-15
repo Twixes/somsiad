@@ -35,7 +35,7 @@ class Configurator:
                 break
         self.configuration_file.write(f'{key}={self.configuration[key]}\n')
 
-    def assure_completeness(self, configuration_required, configuration = None):
+    def ensure_completeness(self, configuration_required, configuration = None):
         self.step_number = 1
         if configuration is {} or configuration is None:
             for item_required in configuration_required:
@@ -86,7 +86,7 @@ conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf'
 if not os.path.exists(conf_file_path):
     with open(conf_file_path, 'w') as f:
         configurator = Configurator(f)
-        configurator.assure_completeness(conf_required)
+        configurator.ensure_completeness(conf_required)
         print(f'Gotowe! Konfigurację zapisano w {conf_file_path}.')
 
 # Load the configuration
@@ -94,7 +94,7 @@ conf = {}
 with open(conf_file_path, 'r+') as f:
     configurator = Configurator(f)
     conf = configurator.read()
-    conf = configurator.assure_completeness(conf_required, conf)
+    conf = configurator.ensure_completeness(conf_required, conf)
     print(f'Gotowe! Konfigurację zapisano w {conf_file_path}.')
 
 client = Bot(description='Zawsze pomocny Somsiad', command_prefix=conf['command_prefix'])
