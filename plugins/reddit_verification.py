@@ -226,7 +226,7 @@ class RedditMessageWatch:
                                     f'{discord_username}.')
 
                             else:
-                                day_noun_variant = 'dzień' if conf['reddit_account_min_age_days'] == 1 else 'dni'
+                                day_noun_variant = 'dzień' if int(conf['reddit_account_min_age_days']) == 1 else 'dni'
                                 message.reply('Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia '
                                     'wymagań. Do weryfikacji potrzebne jest konto założone co najmniej '
                                     f'{conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie '
