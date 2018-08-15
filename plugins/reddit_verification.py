@@ -128,12 +128,11 @@ async def redditcheck(ctx, *args):
         if args[0].startswith('<@') and args[0].endswith('>'):
             # If user was mentioned convert his ID to a username and then check if he is a member of the server
             raw_discord_username = str(await client.get_user_info(args[0].strip('<@!>')))
-            discord_username = ctx.message.guild.get_member_named(raw_discord_username)
-
         else:
             # Otherwise autofill user's tag (number) and check if he is a member of the server
             raw_discord_username = args[0]
-            discord_username = ctx.message.guild.get_member_named(raw_discord_username)
+
+        discord_username = ctx.message.guild.get_member_named(raw_discord_username)
 
     embed = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
 
@@ -158,13 +157,11 @@ async def redditcheck(ctx, *args):
             users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
                 (discord_username,))
             reddit_username = users_cursor.fetchone()
-
             if reddit_username[0] is None:
                 embed.add_field(name=':red_circle: Niezweryfikowany',
                     value=f'Użytkownik {discord_username} zażądał weryfikacji {phrase_gen_date[0]}, '
                     'ale nie dokończył jej na Reddicie.')
                 await ctx.send(embed=embed)
-
             else:
                 embed.add_field(name=':white_check_mark: Zweryfikowany',
                     value=f'Użytkownik {discord_username} został zweryfikowany {phrase_gen_date[0]} jako '
