@@ -67,11 +67,3 @@ async def on_command_error(ctx, error):
             pass
     print(f'Ignorowanie wyjątku w komendzie {ctx.command}:', file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-
-# Terminate the program if admin did not provide bot token
-if conf['discord_token'] != '':
-    client.run(conf['discord_token'])
-else:
-    print(f'BŁĄD: Nie znaleziono tokenu bota w {str(conf_file_path)}')
-    print('Zatrzymywanie programu...')
-    sys.exit()
