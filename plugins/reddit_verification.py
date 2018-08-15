@@ -31,14 +31,14 @@ users_cursor.execute("""CREATE TABLE IF NOT EXISTS reddit_verification_users(dis
 users_db.commit()
 
 def phrase_gen():
-    """Assembles a random phrase from given parts"""
+    """Assembles a random phrase from given parts."""
     phrase = ''
     for _, category in parts.items():
         phrase += secrets.choice(category).capitalize()
     return phrase
 
 def is_Reddit_user_trustworthy(reddit_user):
-    """Checks if given Reddit user seems trustworthy"""
+    """Checks if given Reddit user seems trustworthy."""
     account_karma = reddit_user.link_karma + reddit_user.comment_karma
     account_age_days = (time.time() - reddit_user.created_utc) / 86400
     if (account_age_days >= float(conf['reddit_account_min_age_days']) and
@@ -50,7 +50,7 @@ def is_Reddit_user_trustworthy(reddit_user):
 @client.command(aliases=['zweryfikuj'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def redditverify(ctx, *args):
-    """Verifies user's Reddit account"""
+    """Verifies Discord user via Reddit."""
     discord_username = str(ctx.author)
     # Check if (and when) user has already been verified
     users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
@@ -119,7 +119,7 @@ async def redditverify(ctx, *args):
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def redditcheck(ctx, *args):
-    """Checks given user's verification status"""
+    """Checks given user's verification status."""
     # If no user was given assume message author
     if len(args) == 0:
         discord_username = str(ctx.author)
@@ -180,7 +180,7 @@ class RedditMessageWatch:
 
     @staticmethod
     def run():
-        """Processes new messages from the inbox stream in the background"""
+        """Processes new messages from the inbox stream and uses them for verification."""
 
         # Connect to the database (this must be done a second time because this is a new thread)
         users_db_watch = sqlite3.connect(database_path)
