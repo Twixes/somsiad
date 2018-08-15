@@ -67,3 +67,5 @@ async def on_command_error(ctx, error):
             pass
     print(f'Ignorowanie wyjątku w komendzie {ctx.command}:', file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+
+client.run(conf['discord_token'])
