@@ -18,46 +18,46 @@ from somsiad_helper import *
 @client.command(aliases=['help', 'pomocy'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def help_direct(ctx):
-    em = discord.Embed(title='Lecem na ratunek!' , color=brand_color)
-    em.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać. '
+    embed = discord.Embed(title='Lecem na ratunek!' , color=brand_color)
+    embed.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać. '
         'Odpowiadam na wszystkie zawołania z poniższej listy.\n'
         'W nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
-    em.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła użytkownikowi tę wiadomość.',
+    embed.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła użytkownikowi tę wiadomość.',
         inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
+    embed.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}gugiel (g) <zapytanie>',
+    embed.add_field(name=f'{conf["command_prefix"]}gugiel (g) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący wynik.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}img (i) <zapytanie>',
+    embed.add_field(name=f'{conf["command_prefix"]}img (i) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Qwant i zwraca najlepiej pasujący do niego obrazek.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
+    embed.add_field(name=f'{conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
         value='Wysyła <zapytanie> do YouTube i zwraca najlepiej pasujący wynik.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}wikipediapl (wikipl, wpl) <temat>',
+    embed.add_field(name=f'{conf["command_prefix"]}wikipediapl (wikipl, wpl) <temat>',
         value='Sprawdza znaczenie <terminu> w polskiej wersji Wikipedii.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}wikipediaen (wikien, wen) <temat>',
+    embed.add_field(name=f'{conf["command_prefix"]}wikipediaen (wikien, wen) <temat>',
         value='Sprawdza znaczenie <terminu> w anglojęzycznej wersji Wikipedii.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}urbandictionary (urban) <słowo>',
+    embed.add_field(name=f'{conf["command_prefix"]}urbandictionary (urban) <słowo>',
         value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
+    embed.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
+    embed.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
         '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
         inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <subreddit>',
+    embed.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <subreddit>',
         value='Zwraca URL subreddita <subreddit>.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}user (u) <użytkownik Reddita>',
+    embed.add_field(name=f'{conf["command_prefix"]}user (u) <użytkownik Reddita>',
         value='Zwraca URL profilu użytkownika Reddita <użytkownik Reddita>.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
+    embed.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
         value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}prześwietl <?użytkownik Discorda>',
+    embed.add_field(name=f'{conf["command_prefix"]}prześwietl <?użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> (jeśli należy on do serwera '
         'na którym użyto komendy) lub, jeśli nie podano argumentu, dla użytkownika, który użył komendy.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
+    embed.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
         inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value='( ͡° ͜ʖ ͡°)', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}shrug', value='¯\_(ツ)_/¯', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
-    em.add_field(name=f'{conf["command_prefix"]}wersja', value='Zwraca wersję bota z którą masz do czynienia.',
+    embed.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value='( ͡° ͜ʖ ͡°)', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}shrug', value='¯\_(ツ)_/¯', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}wersja', value='Zwraca wersję bota z którą masz do czynienia.',
         inline=False)
-    await ctx.author.send(embed=em)
+    await ctx.author.send(embed=embed)

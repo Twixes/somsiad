@@ -47,13 +47,13 @@ async def urbandictionary(ctx, *args):
                         t_up = top_def['thumbs_up']
                         t_down = top_def['thumbs_down']
                         # Output results
-                        em = discord.Embed(title='Urban Dictionary', color=brand_color)
-                        em.add_field(name='Słowo:', value=word, inline=False)
-                        em.add_field(name='Definicja:', value=definition, inline=False)
-                        em.add_field(name='Przykład(y):', value=example, inline=False)
-                        em.add_field(name='Głosy:', value=f':thumbsup: {str(t_up)} | :thumbsdown: {str(t_down)}')
-                        em.add_field(name='Link:', value=link, inline=False)
-                        await ctx.send(embed=em)
+                        embed = discord.Embed(title='Urban Dictionary', color=brand_color)
+                        embed.add_field(name='Słowo:', value=word, inline=False)
+                        embed.add_field(name='Definicja:', value=definition, inline=False)
+                        embed.add_field(name='Przykład(y):', value=example, inline=False)
+                        embed.add_field(name='Głosy:', value=f':thumbsup: {str(t_up)} | :thumbsdown: {str(t_down)}')
+                        embed.add_field(name='Link:', value=link, inline=False)
+                        await ctx.send(embed=embed)
                     else:
                         await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
                 else:

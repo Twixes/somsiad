@@ -20,10 +20,10 @@ from version import __version__
 
 async def wikipedia_search(ctx, args, lang):
     '''Returns the closest matching article from Wikipedia'''
-    em = discord.Embed(title="Wikipedia", color=brand_color)
+    embed = discord.Embed(title="Wikipedia", color=brand_color)
     if len(args) == 0:
-        em.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
-        await ctx.send(embed=em)
+        embed.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
+        await ctx.send(embed=embed)
     else:
         query = " ".join(args)
 
@@ -36,9 +36,9 @@ async def wikipedia_search(ctx, args, lang):
                 if r_open.status == 200:
                     res_open = await r_open.json()
                     if len(res_open[1]) < 1:
-                        em.add_field(name=':slight_frown: Niepowodzenie',
+                        embed.add_field(name=':slight_frown: Niepowodzenie',
                             value=f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".')
-                        await ctx.send(embed=em)
+                        await ctx.send(embed=embed)
                     else:
                         # Use title retrieved from OpenSearch response
                         # as a search term in REST request
@@ -58,8 +58,8 @@ async def wikipedia_search(ctx, args, lang):
                                         option_url = option_url.replace(')', '%29')
                                         options_str = ('• [' + option + '](' + option_url + ')\n')
                                         options_str_full += options_str
-                                    em.add_field(name=title, value=options_str_full, inline=False)
-                                    await ctx.send(embed=em)
+                                    embed.add_field(name=title, value=options_str_full, inline=False)
+                                    await ctx.send(embed=embed)
 
                                 elif res['type'] == 'standard':
                                     title = res['title']
@@ -71,17 +71,17 @@ async def wikipedia_search(ctx, args, lang):
                                     url = res['content_urls']['desktop']['page']
                                     if 'thumbnail' in res:
                                         thumbnail = res['thumbnail']['source']
-                                        em.set_thumbnail(url=thumbnail)
+                                        embed.set_thumbnail(url=thumbnail)
 
-                                    em.add_field(name=title, value=summary, inline=False)
-                                    em.add_field(name='Pełny artykuł: ', value=url, inline=True)
-                                    await ctx.send(embed=em)
+                                    embed.add_field(name=title, value=summary, inline=False)
+                                    embed.add_field(name='Pełny artykuł: ', value=url, inline=True)
+                                    await ctx.send(embed=embed)
                             else:
-                                em.add_field(name=':warning: Błąd', value='Nie udało się połączyć z serwisem!')
-                                await ctx.send(embed=em)
+                                embed.add_field(name=':warning: Błąd', value='Nie udało się połączyć z serwisem!')
+                                await ctx.send(embed=embed)
                 else:
-                    em.add_field(name=':warning: Błąd', value='Nie udało się połączyć z serwisem!')
-                    await ctx.send(embed=em)
+                    embed.add_field(name=':warning: Błąd', value='Nie udało się połączyć z serwisem!')
+                    await ctx.send(embed=embed)
 
 
 @client.command(aliases=['wikipl', 'wpl'])

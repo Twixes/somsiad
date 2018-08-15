@@ -50,7 +50,7 @@ async def isitup(ctx, *args):
                     # Wrong URL
                     elif res['status_code'] == 3:
                         description = ('Do wykonania testu potrzebny jest poprawny adres URL. Spróbuj ponownie.')
-                    em = discord.Embed(title='Is it up?', description=description, color=brand_color)
-                    await ctx.send(embed=em)
+                    embed = discord.Embed(title='Is it up?', description=description, color=brand_color)
+                    await ctx.send(embed=embed)
                 else:
                     await ctx.send(f':warning: Nie można połączyć się z serwisem isitup.org, {ctx.author.mention}')

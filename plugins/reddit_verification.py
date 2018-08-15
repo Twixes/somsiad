@@ -77,19 +77,19 @@ async def redditverify(ctx, *args):
             message_url = ('https://www.reddit.com/message/compose/'
                 f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
-            em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
+            embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
+            embed.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
                 f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
                 'Fraza ważna jest do końca dnia.')
-            em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
+            embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-            await ctx.author.send(embed=em)
+            await ctx.author.send(embed=embed)
 
         elif phrase_gen_date[0] == today_date:
             # If user already has requested verification today, fend him off
-            em = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=brand_color)
-            em.add_field(name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.')
-            await ctx.author.send(embed=em)
+            embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=brand_color)
+            embed.add_field(name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.')
+            await ctx.author.send(embed=embed)
 
         else:
             # If user has requested verification but not today, assign him a new phrase
@@ -102,19 +102,19 @@ async def redditverify(ctx, *args):
             message_url = ('https://www.reddit.com/message/compose/'
                 f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
-            em = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            em.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
+            embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
+            embed.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
                 f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
                 'Fraza ważna jest do końca dnia.')
-            em.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
+            embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-            await ctx.author.send(embed=em)
+            await ctx.author.send(embed=embed)
     else:
-        em = discord.Embed(title='Już jesteś zweryfikowany', color=brand_color)
-        em.add_field(name=f'Twoje konto na Reddicie to /u/{reddit_username[0]}',
+        embed = discord.Embed(title='Już jesteś zweryfikowany', color=brand_color)
+        embed.add_field(name=f'Twoje konto na Reddicie to /u/{reddit_username[0]}',
             value=f'Zweryfikowano {phrase_gen_date[0]}.')
 
-        await ctx.author.send(embed=em)
+        await ctx.author.send(embed=embed)
 
 @client.command(aliases=['prześwietl'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -136,12 +136,12 @@ async def redditcheck(ctx, *args):
             raw_discord_username = args[0]
             discord_username = ctx.message.guild.get_member_named(raw_discord_username)
 
-    em = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
+    embed = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
 
     if discord_username is None:
-        em.add_field(name=':warning: Błąd', value=f'Użytkownik {raw_discord_username} nie znajduje się na tym '
+        embed.add_field(name=':warning: Błąd', value=f'Użytkownik {raw_discord_username} nie znajduje się na tym '
             'serwerze.')
-        await ctx.send(embed=em)
+        await ctx.send(embed=embed)
 
     else:
         discord_username = str(discord_username)
@@ -151,9 +151,9 @@ async def redditcheck(ctx, *args):
         phrase_gen_date = users_cursor.fetchone()
 
         if phrase_gen_date is None:
-            em.add_field(name=':red_circle: Niezweryfikowany',
+            embed.add_field(name=':red_circle: Niezweryfikowany',
                 value=f'Użytkownik {discord_username} nigdy nie zażądał weryfikacji.')
-            await ctx.send(embed=em)
+            await ctx.send(embed=embed)
 
         else:
             users_cursor.execute('SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
@@ -161,16 +161,16 @@ async def redditcheck(ctx, *args):
             reddit_username = users_cursor.fetchone()
 
             if reddit_username[0] is None:
-                em.add_field(name=':red_circle: Niezweryfikowany',
+                embed.add_field(name=':red_circle: Niezweryfikowany',
                     value=f'Użytkownik {discord_username} zażądał weryfikacji {phrase_gen_date[0]}, '
                     'ale nie dokończył jej na Reddicie.')
-                await ctx.send(embed=em)
+                await ctx.send(embed=embed)
 
             else:
-                em.add_field(name=':white_check_mark: Zweryfikowany',
+                embed.add_field(name=':white_check_mark: Zweryfikowany',
                     value=f'Użytkownik {discord_username} został zweryfikowany {phrase_gen_date[0]} jako '
                     f'/u/{reddit_username[0]}.')
-                await ctx.send(embed=em)
+                await ctx.send(embed=embed)
 
 class RedditMessageWatch:
 

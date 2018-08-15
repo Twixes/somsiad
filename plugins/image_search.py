@@ -47,10 +47,10 @@ async def image_search(ctx, *args):
                                 img_url = res_short['images'][0]['url']
                             except KeyError:
                                 img_url = res_short['media']
-                        em = discord.Embed(title=f'Wynik wyszukiwania obrazu dla zapytania: {query_1}',
+                        embed = discord.Embed(title=f'Wynik wyszukiwania obrazu dla zapytania: {query_1}',
                             description=img_url, color=brand_color)
-                        em.set_image(url=img_url)
-                        await ctx.send(f'{ctx.author.mention}\n', embed=em)
+                        embed.set_image(url=img_url)
+                        await ctx.send(f'{ctx.author.mention}\n', embed=embed)
                     else:
                         await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
                 else:

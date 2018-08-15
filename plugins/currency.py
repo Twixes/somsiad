@@ -22,10 +22,10 @@ from somsiad_helper import *
 @commands.guild_only()
 async def currency(ctx, *args):
     '''Provides currency exchange rates'''
-    em = discord.Embed(title='Kantor', color=brand_color)
+    embed = discord.Embed(title='Kantor', color=brand_color)
     if len(args) == 0:
-        em.add_field(name=':warning: Błąd', value=f'Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
-        await ctx.send(embed=em)
+        embed.add_field(name=':warning: Błąd', value=f'Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
+        await ctx.send(embed=embed)
     else:
         query = ' '.join(args)
 
@@ -64,25 +64,25 @@ async def currency(ctx, *args):
                                 num = 1
                             currency_value = f'{currency_value:.2f}'
 
-                            em.add_field(name=f'{num:.2f} {fr}', value=f'{currency_value} {to}',
+                            embed.add_field(name=f'{num:.2f} {fr}', value=f'{currency_value} {to}',
                                 inline=False)
-                            await ctx.send(embed=em)
+                            await ctx.send(embed=embed)
                         else:
-                            em.add_field(name=':warning: Błąd', value='Nie można połączyć się z serwisem.',
+                            embed.add_field(name=':warning: Błąd', value='Nie można połączyć się z serwisem.',
                                 inline=False)
-                            await ctx.send(embed=em)
+                            await ctx.send(embed=embed)
             else:
-                em.add_field(name=':warning: Błąd',
+                embed.add_field(name=':warning: Błąd',
                     value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę "X WALUTA1 WALUTA2", ' +
                         'gdzie "WALUTA1" i "WALUTA2" to trzyliterowe kody, zgodne z ' +
                         '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), ' +
                         'a "X" to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
-                await ctx.send(embed=em)
+                await ctx.send(embed=embed)
 
         else:
-            em.add_field(name=':warning: Błąd',
+            embed.add_field(name=':warning: Błąd',
                 value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć format "X WALUTA1 WALUTA2", ' +
                     'gdzie "WALUTA1" i "WALUTA2" to trzyliterowe kody, zgodne z ' +
                     '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), ' +
                     'a "X" to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
-            await ctx.send(embed=em)
+            await ctx.send(embed=embed)
