@@ -31,7 +31,7 @@ def separator(block_major, block_minor, width):
     return pattern
 
 # This is what happens every time the bot launches
-# In this case, it prints information like the user count server count, and the bot's ID in the console
+# In this case, it prints information like the user count, server count, and the bot's ID in the console
 @client.event
 async def on_ready():
     number_of_users = len(set(client.get_all_members()))
