@@ -39,28 +39,16 @@ async def on_ready():
     with_preposition_variant = 'ze' if number_of_users >= 100 and number_of_users < 200 else 'z'
     user_noun_variant = 'użytkownikiem' if number_of_users == 1 else 'użytkownikami'
     server_noun_variant = 'serwerze' if number_of_servers == 1 else 'serwerach'
-    day_noun_variant = 'dzień' if conf['reddit_account_min_age_days'] == 1 else 'dni'
     # Print a separator that fills the entire width of the console
     print(separator('==', ' ', os.get_terminal_size()[0]))
     print(f'Obudzono Somsiada (ID {str(client.user.id)}).')
     print(f'Połączono {with_preposition_variant} {str(number_of_users)} {user_noun_variant} na '
         f'{str(number_of_servers)} {server_noun_variant}.')
-    print('\nLink do zaproszenia bota:')
-    print(f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543')
-    print(f'\nToken bota: {conf["discord_token"]}')
-    print(f'Klucz API Google: {conf["google_key"]}')
-    print(f'ID aplikacji redditowej: {conf["reddit_id"]}')
-    print(f'Szyfr aplikacji redditowej: {conf["reddit_secret"]}')
-    print(f'Redditowa nazwa użytkownika: {conf["reddit_username"]}')
-    print(f'Hasło do konta na Reddicie: {"*" * len(conf["reddit_password"])}')
-    print(f'Minimalny wiek weryfikowanego konta na Reddicie: {conf["reddit_account_min_age_days"]} '
-        f'{day_noun_variant}')
-    print(f'Minimalna karma weryfikowanego konta na Reddicie: {conf["reddit_account_min_karma"]}')
-    print(f'Cooldown wywołania komendy przez użytkownika: {conf["user_command_cooldown_seconds"]} s')
-    print(f'Prefiks komend: {conf["command_prefix"]}')
-    print(f'Ścieżka pliku konfiguracyjnego: {conf_file_path}')
-    print(f'\nSomsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}')
-    print('\nCopyright 2018 Habchy, ondondil & Twixes')
+    print('Link do zaproszenia bota:\n')
+    print(f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543\n')
+    configurator.info()
+    print(f'\nSomsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}\n')
+    print('Copyright 2018 Habchy, ondondil & Twixes')
     print(separator('==', ' ', os.get_terminal_size()[0]))
     return await client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {conf["command_prefix"]}pomocy'))
 
