@@ -6,12 +6,11 @@ import secrets
 import threading
 import json
 import sqlite3
-from string import whitespace
 import discord
 from discord.ext import commands
 import praw
-from somsiad_helper import *
 from version import __version__
+from somsiad_helper import *
 
 reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
     username=conf['reddit_username'], password=conf['reddit_password'], user_agent=f'SomsiadBot/{__version__}')
@@ -191,7 +190,7 @@ class RedditMessageWatch:
         for message in praw.models.util.stream_generator(reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
                 # Check if (and when) Reddit account was verified
-                phrase = message.body.strip(whitespace + '"\'')
+                phrase = message.body.strip().strip('"\'')
                 users_cursor_watch.execute("""SELECT phrase_gen_date FROM reddit_verification_users
                     WHERE reddit_username = ?""", (str(message.author),))
                 phrase_gen_date = users_cursor_watch.fetchone()
