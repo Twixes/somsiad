@@ -19,7 +19,7 @@ from somsiad_helper import *
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def google(ctx, *args):
-    '''Returns first matching result from Google. Uses DuckDuckGo Instant Answer API - https://duckduckgo.com/api'''
+    """Returns first matching result from Google using DuckDuckGo's Instant Answer API - https://duckduckgo.com/api."""
     if len(args) == 0:
         await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:

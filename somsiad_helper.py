@@ -30,11 +30,11 @@ class Configurator:
             self.ensure_completeness()
 
     def write_key_value(self, key, value):
-        '''Writes a key-value pair to the configuration file.'''
+        """Writes a key-value pair to the configuration file."""
         self.configuration_file.write(f'{key}={self.configuration[key]}\n')
 
     def obtain_key_value(self, key, default_value, instruction, step_number=None):
-        '''Asks the CLI user to set input a setting.'''
+        """Asks the CLI user to set input a setting."""
         while True:
             if step_number is None:
                 self.configuration[key] = input(f'{instruction}:\n')
@@ -53,9 +53,9 @@ class Configurator:
         self.write_key_value(key, self.configuration[key])
 
     def ensure_completeness(self):
-        '''Loads the configuration from the file specified during class initialization and ensures
+        """Loads the configuration from the file specified during class initialization and ensures
             that all required keys are present. If not, the CLI user is asked to input missing settings.
-            If the file doesn't exist yet, configuration is started from scratch.'''
+            If the file doesn't exist yet, configuration is started from scratch."""
         was_configuration_changed = False
         step_number = 1
 
@@ -87,7 +87,7 @@ class Configurator:
         return self.configuration
 
     def read(self):
-        '''Loads the configuration from the file specified during class initialization.'''
+        """Loads the configuration from the file specified during class initialization."""
         with open(self.configuration_file_path, 'r') as self.configuration_file:
             for line in self.configuration_file.readlines():
                 line = line.strip().split('=')
@@ -96,8 +96,8 @@ class Configurator:
         return self.configuration
 
     def info(self, verbose=True):
-        '''Returns a string presenting the current configuration in human-readable form.
-            By default prints to the console.'''
+        """Returns a string presenting the current configuration in human-readable form.
+            By default prints to the console."""
         if self.configuration_required is not None:
             info = ''
             for key_required in self.configuration_required:

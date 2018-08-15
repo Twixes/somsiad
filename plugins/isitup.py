@@ -20,7 +20,7 @@ from somsiad_helper import *
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def isitup(ctx, *args):
-    '''Returns information about website status.'''
+    """Returns information about website status."""
     if len(args) == 0:
         await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:

@@ -19,7 +19,7 @@ from somsiad_helper import *
 from version import __version__
 
 async def wikipedia_search(ctx, args, lang):
-    '''Returns the closest matching article from Wikipedia'''
+    """Returns the closest matching article from Wikipedia"""
     embed = discord.Embed(title="Wikipedia", color=brand_color)
     if len(args) == 0:
         embed.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
@@ -88,7 +88,7 @@ async def wikipedia_search(ctx, args, lang):
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def wikipediapl(ctx, *args):
-    '''Polish version of wikipedia_search'''
+    """Polish version of wikipedia_search"""
     lang = 'pl'
     await wikipedia_search(ctx, args, lang)
 
@@ -96,6 +96,6 @@ async def wikipediapl(ctx, *args):
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def wikipediaen(ctx, *args):
-    '''English version of wikipedia_search'''
+    """English version of wikipedia_search"""
     lang = 'en'
     await wikipedia_search(ctx, args, lang)

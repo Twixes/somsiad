@@ -21,7 +21,7 @@ from somsiad_helper import *
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def urbandictionary(ctx, *args):
-    '''Returns word definitions from Urban Dictionary'''
+    """Returns Urban Dictionary word definition."""
     if len(args) == 0:
         await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:

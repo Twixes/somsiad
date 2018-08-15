@@ -20,7 +20,7 @@ from somsiad_helper import *
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def eightball(ctx, *args):
-    '''Returns an 8-Ball answer.'''
+    """Returns an 8-Ball answer."""
     with open(os.path.join(bot_dir, 'data', 'eightball_answers.txt')) as f:
         responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
     response = secrets.choice(responses)

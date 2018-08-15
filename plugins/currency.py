@@ -21,7 +21,7 @@ from somsiad_helper import *
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def currency(ctx, *args):
-    '''Provides currency exchange rates'''
+    """Provides currency exchange rates."""
     embed = discord.Embed(title='Kantor', color=brand_color)
     if len(args) == 0:
         embed.add_field(name=':warning: Błąd', value=f'Musisz podać parametr wyszukiwania, {ctx.author.mention}.')

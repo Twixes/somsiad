@@ -21,7 +21,7 @@ from apiclient.errors import HttpError
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
-    '''Returns first matching result from YouTube.'''
+    """Returns first matching result from YouTube."""
     DEVELOPER_KEY = conf['google_key']
     YOUTUBE_API_SERVICE_NAME = 'youtube'
     YOUTUBE_API_VERSION = 'v3'

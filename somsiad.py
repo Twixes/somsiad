@@ -54,7 +54,7 @@ async def on_ready():
 
 @client.event
 async def on_command_error(ctx, error):
-    '''Error handling'''
+    """Handles command errors."""
     ignored = (commands.CommandNotFound, commands.UserInputError)
     if isinstance(error, ignored):
         return
