@@ -31,7 +31,8 @@ class Configurator:
 
     def write_key_value(self, key, value):
         """Writes a key-value pair to the configuration file."""
-        self.configuration_file.write(f'{key}={self.configuration[key]}\n')
+        with open(self.configuration_file_path, 'a') as self.configuration_file:
+            self.configuration_file.write(f'{key}={self.configuration[key]}\n')
 
     def obtain_key_value(self, key, default_value, instruction, step_number=None):
         """Asks the CLI user to input a setting."""
@@ -62,14 +63,13 @@ class Configurator:
         if os.path.exists(self.configuration_file_path):
             self.read()
 
-        if (self.configuration is {} or self.configuration is None) and self.configuration_required is not None:
-            with open(self.configuration_file_path, 'w') as self.configuration_file:
+        if self.configuration_required is not None:
+            if self.configuration is {} or self.configuration is None:
                 for key_required in self.configuration_required:
                     self.obtain_key_value(key_required[0], key_required[1], key_required[2], step_number)
                     step_number += 1
                 was_configuration_changed = True
-        else:
-            with open(self.configuration_file_path, 'a+') as self.configuration_file:
+            else:
                 for key_required in self.configuration_required:
                     is_key_required_present = False
                     for key in self.configuration:
@@ -97,7 +97,7 @@ class Configurator:
         return self.configuration
 
     def info(self, verbose=True):
-        """Returns a string presenting the current configuration in human-readable form.
+        """Returns a string presenting the current configuration in a human-readable form.
             By default prints to the console."""
         if self.configuration_required is not None:
             info = ''
@@ -122,11 +122,9 @@ class Configurator:
 
             return info
 
-brand_color = 0x7289da
-
 # Initialize configuration
 conf_required = [
-    #(key, default_value, instruction, description, unit)
+    # (key, default_value, instruction, description, unit)
     ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
     ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None,),
     ('reddit_id', None, 'Wprowadź ID aplikacji redditowej', 'ID aplikacji redditowej', None,),
@@ -148,6 +146,8 @@ conf = configurator.configuration
 
 bot_dir = os.getcwd()
 
+brand_color = 0x7289da
+
 client = Bot(description='Zawsze pomocny Somsiad', command_prefix=conf['command_prefix'])
 
-client.remove_command('help') # Replaced with the 'help' plugin
+client.remove_command('help') # Replaced with the 'help_direct' plugin
