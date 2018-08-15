@@ -90,8 +90,9 @@ class Configurator:
         """Loads the configuration from the file specified during class initialization."""
         with open(self.configuration_file_path, 'r') as self.configuration_file:
             for line in self.configuration_file.readlines():
-                line = line.strip().split('=')
-                self.configuration[line[0].strip()] = line[1].strip() if len(line) >= 2 else None
+                if not line.strip().startswith('#'):
+                    line = line.strip().split('=')
+                    self.configuration[line[0].strip()] = line[1].strip() if len(line) >= 2 else None
 
         return self.configuration
 
