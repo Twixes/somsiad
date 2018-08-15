@@ -11,8 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from discord.ext.commands import Bot
 import os
+from discord.ext.commands import Bot
 
 class Configurator:
     configuration_file_path = None
@@ -124,8 +124,8 @@ class Configurator:
 
 brand_color = 0x7289da
 
-# Required keys
-conf_required = (
+# Initialize configuration
+conf_required = [
     #(key, default_value, instruction, description, unit)
     ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
     ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None,),
@@ -140,9 +140,8 @@ conf_required = (
     ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
         '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund',),),
     ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None),
-)
+]
 
-# Initialize configuration
 conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
 configurator = Configurator(conf_file_path, conf_required)
 conf = configurator.configuration
