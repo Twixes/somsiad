@@ -34,7 +34,7 @@ class Configurator:
         self.configuration_file.write(f'{key}={self.configuration[key]}\n')
 
     def obtain_key_value(self, key, default_value, instruction, step_number=None):
-        """Asks the CLI user to set input a setting."""
+        """Asks the CLI user to input a setting."""
         while True:
             if step_number is None:
                 self.configuration[key] = input(f'{instruction}:\n')
