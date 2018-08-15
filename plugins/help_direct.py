@@ -20,8 +20,8 @@ from somsiad_helper import *
 async def help_direct(ctx):
     em = discord.Embed(title='Lecem na ratunek!' , color=brand_color)
     em.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać. '
-        'Odpowiadam na wszystkie zawołania z poniższej listy. Pamiętaj tylko zawsze, by zacząć od "'
-        f'{conf["command_prefix"]}".\nW nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
+        'Odpowiadam na wszystkie zawołania z poniższej listy.\n'
+        'W nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
     em.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła użytkownikowi tę wiadomość.',
         inline=False)
     em.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
