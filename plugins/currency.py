@@ -73,16 +73,16 @@ async def currency(ctx, *args):
                             await ctx.send(embed=em)
             else:
                 em.add_field(name=':warning: Błąd',
-                    value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę "X WALUTA1 w WALUTA2", ' +
+                    value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę "X WALUTA1 WALUTA2", ' +
                         'gdzie "WALUTA1" i "WALUTA2" to trzyliterowe kody, zgodne z ' +
-                        '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217Active_codes), ' +
+                        '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), ' +
                         'a "X" to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
                 await ctx.send(embed=em)
 
         else:
             em.add_field(name=':warning: Błąd',
-                value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć format "X WALUTA1 w WALUTA2", ' +
+                value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć format "X WALUTA1 WALUTA2", ' +
                     'gdzie "WALUTA1" i "WALUTA2" to trzyliterowe kody, zgodne z ' +
-                    '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217Active_codes), ' +
+                    '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), ' +
                     'a "X" to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
             await ctx.send(embed=em)
