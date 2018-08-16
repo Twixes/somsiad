@@ -43,6 +43,8 @@ async def help_direct(ctx):
     embed.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
         '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
         inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}pomógł (pomogl) <?użytkownik Discorda>',
+        value='Oznacza pomocną wiadomość za pomocą reakcji.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <subreddit>',
         value='Zwraca URL subreddita <subreddit>.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}user (u) <użytkownik Reddita>',
