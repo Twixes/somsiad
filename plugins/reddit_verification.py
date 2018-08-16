@@ -127,7 +127,7 @@ class RedditVerificator:
             discord_username = discord_username[0]
         return discord_username
 
-class RedditVerificationMessageWatch:
+class RedditVerificatorMessageWatch:
     reddit = None
     watch_verificator = None
 
@@ -322,4 +322,4 @@ async def redditcheck(ctx, *args):
                 'serwerze.')
             await ctx.send(embed=embed)
 
-reddit_verification_message_watch = RedditVerificationMessageWatch(reddit)
+reddit_verification_message_watch = RedditVerificatorMessageWatch(reddit)
