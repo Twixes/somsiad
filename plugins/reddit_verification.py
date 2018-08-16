@@ -254,7 +254,7 @@ async def redditverify(ctx, *args):
 @client.command(aliases=['prześwietl'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def redditcheck(ctx, *args):
+async def redditxray(ctx, *args):
     """Checks given user's verification status."""
     # If no user was given assume message author
     embed = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
