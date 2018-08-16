@@ -31,7 +31,6 @@ async def helped(ctx, *args):
             commended_user = ctx.guild.get_member_named(commended_user_username)
 
         async for message in ctx.channel.history(limit=10):
-            message.content
             if (not was_message_found and message.author == commended_user and
                 not message.content.startswith(conf['command_prefix'])):
                 for reaction in reactions:
