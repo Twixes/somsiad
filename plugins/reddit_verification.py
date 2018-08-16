@@ -259,6 +259,22 @@ async def redditcheck(ctx, *args):
     # If no user was given assume message author
     embed = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
 
+    if len(args) == 1 and args[0] == '@everyone':
+        for member in ctx.guild.members:
+            user_verification_status = verificator.discord_user_verification_status(member)
+            if user_verification_status['reddit_username'] is not None:
+                embed.add_field(name=str(member), value=f'/u/{user_verification_status["reddit_username"]}',
+                    inline=False)
+        await ctx.send(embed=embed)
+
+    elif len(args) == 1 and args[0] == '@here':
+        for member in ctx.channel.members:
+            user_verification_status = verificator.discord_user_verification_status(member)
+            if user_verification_status['reddit_username'] is not None:
+                embed.add_field(name=str(member), value=f'/u/{user_verification_status["reddit_username"]}',
+                    inline=False)
+        await ctx.send(embed=embed)
+
     else:
         if len(args) == 0:
             discord_user = ctx.author
