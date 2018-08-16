@@ -127,7 +127,7 @@ async def redditcheck(ctx, *args):
     else:
         if args[0].startswith('<@') and args[0].endswith('>'):
             # If user was mentioned convert his ID to a username and then check if he is a member of the server
-            raw_discord_username = str(await client.get_user_info(args[0].strip('<@!>')))
+            raw_discord_username = str(await client.get_user_info(int(args[0].strip('<@!>'))))
         else:
             # Otherwise autofill user's tag (number) and check if he is a member of the server
             raw_discord_username = args[0]
