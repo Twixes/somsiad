@@ -27,8 +27,6 @@ from plugins import *
 
 logging.basicConfig(filename='somsiad.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-
 class Informator:
     with_preposition_variant = staticmethod(lambda number : 'ze' if number >= 100 and number < 200 else 'z')
     noun_variant = staticmethod(lambda number, singular, plural : singular if number == 1 else plural)
