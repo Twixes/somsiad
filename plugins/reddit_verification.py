@@ -297,7 +297,7 @@ async def redditxray(ctx, *args):
 
         user_verification_status = verificator.discord_user_verification_status(discord_user)
 
-        if user_verification_status['is_user_accessible']:
+        if discord_user is not None:
             discord_username = str(discord_user)
             # Check if (and when) user has already been verified
             if user_verification_status['phrase_gen_date'] is None:
