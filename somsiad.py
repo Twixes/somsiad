@@ -60,9 +60,7 @@ def print_info():
     servers = sorted(client.guilds, key=lambda server: len(server.members), reverse=True)
     number_of_servers = len(client.guilds)
     longest_server_name_length = 0
-    longest_days_since_joining_length = 0
-    longest_number_of_members_length = 0
-    longest_day_noun_variant_length = 0
+    longest_days_since_joining_info_length = 0
     list_of_servers = ''
 
     for server in servers:
@@ -71,22 +69,20 @@ def print_info():
                 longest_server_name_length = len(server.name)
             date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
             days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
-            if len(str(days_since_joining)) > longest_days_since_joining_length:
-                longest_days_since_joining_length = len(str(days_since_joining))
-            if len(str(informator.noun_variant(days_since_joining, "dnia", "dni"))) > longest_day_noun_variant_length:
-                longest_day_noun_variant_length = len(str(informator.noun_variant(days_since_joining, "dnia", "dni")))
-            if len(str(len(server.members))) > longest_number_of_members_length:
-                longest_number_of_members_length = len(str(len(server.members)))
-                informator.noun_variant(days_since_joining, "dnia", "dni")
+            days_since_joining_info = (f'{days_since_joining} '
+                f'{informator.noun_variant(days_since_joining, "dnia", "dni")}')
+            if len(days_since_joining_info) > longest_days_since_joining_info_length:
+                longest_days_since_joining_info_length = len(days_since_joining_info)
 
     for server in servers:
         if server.me is not None:
             date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
             days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
+            days_since_joining_info = (f'{days_since_joining} '
+                f'{informator.noun_variant(days_since_joining, "dnia", "dni")}')
             list_of_servers += (f'{server.name.ljust(longest_server_name_length)} - '
-                f'od {str(days_since_joining).ljust(longest_days_since_joining_length)} '
-                f'{informator.noun_variant(days_since_joining, "dnia", "dni").ljust(longest_day_noun_variant_length)} - '
-                f'{str(len(server.members)).ljust(longest_number_of_members_length)} '
+                f'od {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
+                f'{str(len(server.members))} '
                 f'{informator.noun_variant(number_of_users, "użytkownik", "użytkowników")}\n')
     list_of_servers = list_of_servers.strip('\n')
 
