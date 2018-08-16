@@ -17,40 +17,109 @@ import discord
 from discord.ext import commands
 import platform
 import sys
+import os
 import traceback
 import logging
+import datetime
 from version import __version__
 from somsiad_helper import *
 from plugins import *
 
 logging.basicConfig(filename='somsiad.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def separator(block_major, block_minor, width):
-    block = block_major + block_minor
-    pattern = block * int((width - len(block_major)) / len(block)) + block_major
-    return pattern
+
+
+class Informator:
+    with_preposition_variant = staticmethod(lambda number : 'ze' if number >= 100 and number < 200 else 'z')
+    noun_variant = staticmethod(lambda number, singular, plural : singular if number == 1 else plural)
+
+    @staticmethod
+    def separator(block_major, block_minor, width):
+        block = block_major + block_minor
+        pattern = block * int((width - len(block_major)) / len(block)) + block_major
+        return pattern
+
+    def info(self, lines, verbose=False):
+        info = ''
+        separator = self.separator('==', ' ', os.get_terminal_size()[0])
+        if verbose: print(separator)
+        for line in lines:
+            info += line + '\n'
+            if verbose: print(line)
+        if verbose: print(separator)
+        return info.strip('\n')
 
 # This is what happens every time the bot launches
 # In this case, it prints information like the user count, server count, and the bot's ID in the console
+
+def print_info():
+
+    informator = Informator()
+
+    number_of_users = len(set(client.get_all_members()))
+    servers = sorted(client.guilds, key=lambda server: len(server.members), reverse=True)
+    number_of_servers = len(client.guilds)
+    longest_server_name_length = 0
+    longest_days_since_joining_length = 0
+    longest_number_of_members_length = 0
+    longest_day_noun_variant_length = 0
+    list_of_servers = ''
+
+    for server in servers:
+        if server.me is not None:
+            if len(server.name) > longest_server_name_length:
+                longest_server_name_length = len(server.name)
+            date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
+            days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
+            if len(str(days_since_joining)) > longest_days_since_joining_length:
+                longest_days_since_joining_length = len(str(days_since_joining))
+            if len(str(informator.noun_variant(days_since_joining, "dnia", "dni"))) > longest_day_noun_variant_length:
+                longest_day_noun_variant_length = len(str(informator.noun_variant(days_since_joining, "dnia", "dni")))
+            if len(str(len(server.members))) > longest_number_of_members_length:
+                longest_number_of_members_length = len(str(len(server.members)))
+                informator.noun_variant(days_since_joining, "dnia", "dni")
+
+    for server in servers:
+        if server.me is not None:
+            date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
+            days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
+            list_of_servers += (f'{server.name.ljust(longest_server_name_length)} - '
+                f'od {str(days_since_joining).ljust(longest_days_since_joining_length)} '
+                f'{informator.noun_variant(days_since_joining, "dnia", "dni").ljust(longest_day_noun_variant_length)} - '
+                f'{str(len(server.members)).ljust(longest_number_of_members_length)} '
+                f'{informator.noun_variant(number_of_users, "użytkownik", "użytkowników")}\n')
+    list_of_servers = list_of_servers.strip('\n')
+
+    info_lines = (
+        f'Obudzono Somsiada (ID {str(client.user.id)}).',
+        '',
+        f'Połączono {informator.with_preposition_variant(number_of_users)} {number_of_users} '
+        f'{informator.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} na {number_of_servers} '
+        f'{informator.noun_variant(number_of_servers, "serwerze", "serwerach")}:',
+        list_of_servers,
+        '',
+        'Link do zaproszenia bota:',
+        f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543',
+        '',
+        configurator.info(),
+        '',
+        f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
+        '',
+        'Copyright 2018 Habchy, ondondil & Twixes',
+    )
+
+    informator.info(info_lines, verbose=True)
+
 @client.event
 async def on_ready():
-    number_of_users = len(set(client.get_all_members()))
-    number_of_servers = len(client.guilds)
-    with_preposition_variant = 'ze' if number_of_users >= 100 and number_of_users < 200 else 'z'
-    user_noun_variant = 'użytkownikiem' if number_of_users == 1 else 'użytkownikami'
-    server_noun_variant = 'serwerze' if number_of_servers == 1 else 'serwerach'
-    # Print a separator that fills the entire width of the console
-    print(separator('==', ' ', os.get_terminal_size()[0]))
-    print(f'Obudzono Somsiada (ID {str(client.user.id)}).')
-    print(f'Połączono {with_preposition_variant} {str(number_of_users)} {user_noun_variant} na '
-        f'{str(number_of_servers)} {server_noun_variant}.')
-    print('Link do zaproszenia bota:\n')
-    print(f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543\n')
-    configurator.info()
-    print(f'\nSomsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}\n')
-    print('Copyright 2018 Habchy, ondondil & Twixes')
-    print(separator('==', ' ', os.get_terminal_size()[0]))
+    """Does things once the bot comes online."""
+    print_info()
     return await client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {conf["command_prefix"]}pomocy'))
+
+@client.event
+async def on_server_join(server):
+    """Does things whenever the bot joins a server."""
+    print_info()
 
 @client.event
 async def on_command_error(ctx, error):

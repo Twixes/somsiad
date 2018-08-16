@@ -96,7 +96,7 @@ class Configurator:
 
         return self.configuration
 
-    def info(self, verbose=True):
+    def info(self, verbose=False):
         """Returns a string presenting the current configuration in a human-readable form.
             By default prints to the console."""
         if self.configuration_required is not None:
@@ -112,15 +112,13 @@ class Configurator:
                 else:
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {key_required[4]}'
                 info += line + '\n'
-                if verbose:
-                    print(line)
+                if verbose: print(line)
 
             line = f'Ścieżka pliku konfiguracyjnego: {self.configuration_file_path}'
             info += line + '\n'
-            if verbose:
-                print(line)
+            if verbose: print(line)
 
-            return info
+            return info.strip('\n')
 
 # Initialize configuration
 conf_required = [
