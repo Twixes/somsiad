@@ -11,4 +11,4 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-__version__ = '1.3.1' # Current Somsiad version
+__version__ = '1.3.2' # Current Somsiad version
