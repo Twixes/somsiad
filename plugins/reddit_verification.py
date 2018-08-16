@@ -58,7 +58,7 @@ class RedditVerificator:
     def discord_user_verification_status(self, discord_user):
         """Returns given user's verification status."""
         if discord_user is None:
-            return {'is_user_accessible': False, 'phrase_gen_date': None, 'reddit_username': None}
+            return {'phrase_gen_date': None, 'reddit_username': None}
 
         else:
             discord_username = str(discord_user)
@@ -68,13 +68,13 @@ class RedditVerificator:
             phrase_gen_date = self.users_db_cursor.fetchone()
 
             if phrase_gen_date is None:
-                return {'is_user_accessible': True, 'phrase_gen_date': None, 'reddit_username': None}
+                return {'phrase_gen_date': None, 'reddit_username': None}
 
             else:
                 self.users_db_cursor.execute('''SELECT reddit_username FROM reddit_verification_users
                     WHERE discord_username = ?''', (discord_username,))
                 reddit_username = self.users_db_cursor.fetchone()
-                return {'is_user_accessible': True, 'phrase_gen_date': phrase_gen_date[0],
+                return {'phrase_gen_date': phrase_gen_date[0],
                     'reddit_username': reddit_username[0]}
 
     def reddit_user_verification_status(self, reddit_username):
@@ -181,7 +181,9 @@ class RedditVerificatorMessageWatch:
                                 'na Discordzie.')
 
                 else:
-                    message.reply(f'To konto zostało zweryfikowane {user_verification_status["phrase_gen_date"][0]}.')
+                    message.reply('To konto zostało przypisane do użytkownika Discorda '
+                        f'{user_verification_status["discord_username"][0]} '
+                        f'{user_verification_status["phrase_gen_date"][0]}.')
 
             message.mark_read()
 
