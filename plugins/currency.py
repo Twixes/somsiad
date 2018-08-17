@@ -52,7 +52,7 @@ async def currency(ctx, *args):
                     to = to.replace(' ', ',')
                 else:
                     to = 'USD,EUR,PLN'
-                crypto_url = (f'https://min-api.cryptocompare.com/data/price?fsym={fr}&tsyms={to}' + 
+                crypto_url = (f'https://min-api.cryptocompare.com/data/price?fsym={fr}&tsyms={to}' +
                     f'&extraParams=Somsiad{__version__}')
                 headers = {'User-Agent': f'Somsiad {__version__}'}
                 async with aiohttp.ClientSession() as session:
@@ -68,7 +68,8 @@ async def currency(ctx, *args):
                                             'fragment "w COIN2 COIN3 ..." są opcjonalne.',
                                         inline=False)
                                 else:
-                                    embed.add_field(name=':warning: Błąd', value='Niewłaściwie skonstruowane zapytanie.',
+                                    embed.add_field(name=':warning: Błąd', 
+                                        value='Niewłaściwie skonstruowane zapytanie.',
                                         inline=False)
                             else:
                                 if not 'num' in locals():
@@ -78,15 +79,14 @@ async def currency(ctx, *args):
                                 currency_values = '\n'.join(currency_values)
                                 
                                 embed.add_field(name=f'{num:.2f} {fr}', value=currency_values, inline=False)
-                                embed.set_footer(
-                                    text='Dane z CryptoCompare.com (CC BY-NC 3.0)')
+                                embed.set_footer(text='Dane z CryptoCompare.com (CC BY-NC 3.0)')
                             await ctx.send(embed=embed)
                         else:
-                            embed.add_field(name=':warning: Błąd', value='Nie można połączyć się z serwisem.', 
+                            embed.add_field(name=':warning: Błąd', value='Nie można połączyć się z serwisem.',
                                 inline=False)
                             await ctx.send(embed=embed)
             else:
-                embed.add_field(name=':warning: Błąd', 
+                embed.add_field(name=':warning: Błąd',
                     value='Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę ' +
                         '"krypto X COIN1 w COIN2 COIN3 ...", gdzie "X" to wartość wyrażona ' +
                         'w liczbach, a "COIN1" itd. to kody kryptowalut. Wartość "X" oraz ' +
@@ -152,4 +152,3 @@ async def currency(ctx, *args):
                         '[ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes), ' +
                         'a "X" to wartość wyrażona w liczbach, którą można pominąć.', inline=False)
                 await ctx.send(embed=embed)
-    
