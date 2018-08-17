@@ -324,4 +324,4 @@ async def redditxray(ctx, *args):
                 'serwerze.')
             await ctx.send(embed=embed)
 
-reddit_verification_message_watch = RedditVerificatorMessageWatch(reddit)
+reddit_verificator_message_watch = RedditVerificatorMessageWatch(reddit)
