@@ -20,9 +20,10 @@ from version import __version__
 async def version(ctx):
     """Responds with current version of the bot."""
     if does_member_have_elevated_permissions(ctx.author):
-        await ctx.send(f'{__version__}!')
+        version_string = f'{__version__}!'
     else:
-        await ctx.send(__version__)
+        version_string = __version__
+    await ctx.send(version)
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -30,21 +31,21 @@ async def ping(ctx):
     """Pong!"""
     await ctx.send(':ping_pong: Pong!')
 
-@client.command(aliases=['lennyface'])
+@client.command(aliases=['lenny'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def lenny(ctx):
+async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def flip(ctx):
+async def tableflip(ctx):
     """(╯°□°）╯︵ ┻━┻"""
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
-@client.command(aliases=['fix'])
+@client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def unflip(ctx):

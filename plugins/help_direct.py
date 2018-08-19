@@ -14,6 +14,7 @@
 import discord
 from discord.ext import commands
 from somsiad_helper import *
+from version import __version__
 
 @client.command(aliases=['help', 'pomocy'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -22,7 +23,7 @@ async def help_direct(ctx):
     embed.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać. '
         'Odpowiadam na wszystkie zawołania z poniższej listy.\n'
         'W nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
-    embed.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła użytkownikowi tę wiadomość.',
+    embed.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła ci tę wiadomość.',
         inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
@@ -32,34 +33,34 @@ async def help_direct(ctx):
         value='Wysyła <zapytanie> do wyszukiwarki Qwant i zwraca najlepiej pasujący do niego obrazek.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
         value='Wysyła <zapytanie> do YouTube i zwraca najlepiej pasujący wynik.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}wikipediapl (wikipl, wpl) <temat>',
-        value='Sprawdza znaczenie <terminu> w polskiej wersji Wikipedii.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}wikipediaen (wikien, wen) <temat>',
-        value='Sprawdza znaczenie <terminu> w anglojęzycznej wersji Wikipedii.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}urbandictionary (urban) <słowo>',
-        value='Sprawdza znaczenie <słowa> w Urban Dictionary.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
+        value='Sprawdza znaczenie <hasła> w polskiej wersji Wikipedii.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}wikipediaen (wikien, wen) <hasło>',
+        value='Sprawdza znaczenie <hasła> w anglojęzycznej wersji Wikipedii.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}urbandictionary (urban) <wyrażenie>',
+        value='Sprawdza znaczenie <wyrażenia> w Urban Dictionary.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
-        '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
-        inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}pomógł (pomogl) <?użytkownik Discorda>',
-        value='Oznacza pomocną wiadomość za pomocą reakcji.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <subreddit>',
-        value='Zwraca URL subreddita <subreddit>.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}user (u) <użytkownik Reddita>',
-        value='Zwraca URL profilu użytkownika Reddita <użytkownik Reddita>.', inline=False)
+        '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <?subreddit>',
+        value='Zwraca URL subreddita <?subreddit>.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}user (u) <?użytkownik Reddita>',
+        value='Zwraca URL profilu użytkownika Reddita <?użytkownik Reddita>.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
-        value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.', inline=False)
+        value=f'Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie ({ctx.author}).', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}prześwietl <?użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> (jeśli należy on do serwera '
         'na którym użyto komendy) lub, jeśli nie podano argumentu, dla użytkownika, który użył komendy.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}flip', value='Wywraca stół.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}fix (unflip)', value='Odstawia wywrócony stół na miejsce.',
-        inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}pomógł (pomogl) <?użytkownik Discorda>',
+        value='Oznacza pomocną wiadomość za pomocą reakcji.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}niepomógł (niepomogl) <?użytkownik Discorda>',
+        value='Oznacza niepomocną wiadomość za pomocą reakcji.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}tableflip', value='(╯°□°）╯︵ ┻━┻', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}unflip', value='┬─┬ ノ( ゜-゜ノ)', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}shrug', value=r'¯\_(ツ)_/¯', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value='( ͡° ͜ʖ ͡°)', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}shrug', value='¯\_(ツ)_/¯', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}dej (gib) <?rzecz>', value='༼ つ ◕_◕ ༽つ <?rzecz>', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}wersja', value='Zwraca wersję bota z którą masz do czynienia.',
-        inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}wersja', value=__version__, inline=False)
     await ctx.author.send(embed=embed)
