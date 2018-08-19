@@ -26,7 +26,7 @@ async def currency(ctx, *args):
     '''Provides currency exchange rates.'''
     embed = discord.Embed(title='Kantor', color=brand_color)
     if len(args) == 0:
-        embed.add_field(name=':warning: Błąd', value=f'Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
+        embed.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
         await ctx.send(embed=embed)
     else:
         query = ' '.join(args)
