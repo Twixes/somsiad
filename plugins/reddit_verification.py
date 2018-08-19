@@ -43,8 +43,8 @@ class RedditVerificator:
     def phrase_gen(self):
         """Assembles a random phrase from given parts."""
         phrase = ''
-        for _, category_parts in self.parts.items():
-            phrase += secrets.choice(category_parts).capitalize()
+        for _, category_entry in self.parts.items():
+            phrase += secrets.choice(category_entry).capitalize()
         return phrase
 
     def phrase_gen_date_by_phrase(self, phrase):
