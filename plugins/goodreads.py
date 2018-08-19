@@ -24,11 +24,11 @@ import xml.etree.ElementTree as ET
 @commands.guild_only()
 async def goodreads(ctx, *args):
     '''Goodreads search. Search for the most popular books for the given query.'''
-    em = discord.Embed(colour=brand_color)
+    embed = discord.Embed(colour=brand_color)
     if len(args) == 0:
-        em.add_field(name='goodreads',
+        embed.add_field(name='goodreads',
                      value=f':warning: **Błąd**\nNie podano szukanego hasła!')
-        await ctx.send(embed=em)
+        await ctx.send(embed=embed)
     else:
         query = ' '.join(args)
         url = 'https://www.goodreads.com/search/index.xml'
@@ -40,10 +40,10 @@ async def goodreads(ctx, *args):
                     tree = ET.fromstring(await r.text())
                     node = tree.find('.//total-results')
                     if node.text == '0':
-                        em.add_field(name='goodreads', value=':slight_frown: **Niepowodzenie**\n' +
+                        embed.add_field(name='goodreads', value=':slight_frown: **Niepowodzenie**\n' +
                                      f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".',
                                      inline=False)
-                        await ctx.send(embed=em)
+                        await ctx.send(embed=embed)
                     else:
                         books = []
                         counter = 0
@@ -73,13 +73,13 @@ async def goodreads(ctx, *args):
                         main_url = main_url.replace(' ', '%20')
                         main_url = main_url.replace('(', '%28')
                         main_url = main_url.replace(')', '%29')
-                        em.add_field(name='goodreads',
+                        embed.add_field(name='goodreads',
                                      value=f"**[{books[0]['title']}]({main_url})**\n" +
                                      f"**Autor:** {books[0]['author']}\n" +
                                      f"**Ocena:** {books[0]['average_rating']}/5\n" +
                                      f"**Liczba głosów:** {books[0]['ratings_count']}",
                                      inline=False)
-                        em.set_thumbnail(url=books[0]['image_url'])
+                        embed.set_thumbnail(url=books[0]['image_url'])
                         if len(books) > 1:
                             sec_results = []
                             for i in books[1:5]:
@@ -90,9 +90,9 @@ async def goodreads(ctx, *args):
                                 sec_results.append(f"• [{i['title']}]({sec_url}) - {i['author']} " +
                                                    f"({i['average_rating']}/5)")
                                 sec_results_str = '\n'.join(sec_results)
-                            em.add_field(name='Pozostałe trafienia:', value=sec_results_str, inline=False)
-                        await ctx.send(embed=em)
+                            embed.add_field(name='Pozostałe trafienia:', value=sec_results_str, inline=False)
+                        await ctx.send(embed=embed)
                 else:
-                    em.add_field(name='goodreads', value=':warning: **Błąd**\nNie można połączyć się z serwisem!',
+                    embed.add_field(name='goodreads', value=':warning: **Błąd**\nNie można połączyć się z serwisem!',
                                  inline=False)
-                    await ctx.send(embed=em)
+                    await ctx.send(embed=embed)
