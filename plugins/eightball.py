@@ -16,12 +16,30 @@ import secrets
 import os
 from somsiad_helper import *
 
+with open(os.path.join(bot_dir, 'data', 'eightball_answers.txt')) as f:
+    eightball_responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
+
 @client.command(aliases=['8ball', '8-ball', '8'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def eightball(ctx, *args):
     """Returns an 8-Ball answer."""
-    with open(os.path.join(bot_dir, 'data', 'eightball_answers.txt')) as f:
-        responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
-    response = secrets.choice(responses)
-    await ctx.send(f'{ctx.author.mention}\n:8ball: {response}')
+    question = ''.join(args)
+    if question != '':
+        if question.strip('/').endswith('?'):
+            if question == 'fccchk?':
+                response = secrets.choice(eightball_responses)
+                ReSPoNse = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in response)
+                await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {ReSPoNse}')
+            elif question != '?':
+                response = secrets.choice(eightball_responses)
+                await ctx.send(f'{ctx.author.mention}\n:8ball: {response}')
+            else:
+                await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
+                    'Sam pytajnik to nie pytanie.')
+        else:
+            await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
+                'A te kończą się pytajnikiem.')
+    else:
+        await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
+            'Aby zadać pytanie musisz użyć *słów*.')
