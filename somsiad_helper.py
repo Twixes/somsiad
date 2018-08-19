@@ -121,7 +121,7 @@ class Configurator:
 
 # Initialize configuration
 conf_required = [
-    # (key, default_value, instruction, description, unit)
+    # (key, default_value, instruction, description, unit,)
     ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
     ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None,),
     ('reddit_id', None, 'Wprowadź ID aplikacji redditowej', 'ID aplikacji redditowej', None,),
