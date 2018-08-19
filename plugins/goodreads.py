@@ -24,10 +24,11 @@ import xml.etree.ElementTree as ET
 @commands.guild_only()
 async def goodreads(ctx, *args):
     '''Goodreads search. Search for the most popular books for the given query.'''
-    embed = discord.Embed(colour=brand_color)
     if len(args) == 0:
-        embed.add_field(name='goodreads',
-                     value=f':warning: **Błąd**\nNie podano szukanego hasła!')
+        embed = discord.Embed(title=':warning: **Błąd**', description='Nie podano szukanego hasła!',
+                              colour=brand_color)
+        embed.set_footer(text="goodreads.com", icon_url="https://s.gr-assets.com/assets/icons/" +
+                         "goodreads_icon_32x32-6c9373254f526f7fdf2980162991a2b3.png")
         await ctx.send(embed=embed)
     else:
         query = ' '.join(args)
@@ -40,9 +41,11 @@ async def goodreads(ctx, *args):
                     tree = ET.fromstring(await r.text())
                     node = tree.find('.//total-results')
                     if node.text == '0':
-                        embed.add_field(name='goodreads', value=':slight_frown: **Niepowodzenie**\n' +
-                                     f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".',
-                                     inline=False)
+                        embed = discord.Embed(title=':slight_frown: **Niepowodzenie**', description='Nie znaleziono ' +
+                                              f'żadnego wyniku pasującego do hasła "{query}".',
+                                              colour=brand_color)
+                        embed.set_footer(text="goodreads.com", icon_url="https://s.gr-assets.com/assets/icons/" +
+                                         "goodreads_icon_32x32-6c9373254f526f7fdf2980162991a2b3.png")
                         await ctx.send(embed=embed)
                     else:
                         books = []
@@ -73,12 +76,13 @@ async def goodreads(ctx, *args):
                         main_url = main_url.replace(' ', '%20')
                         main_url = main_url.replace('(', '%28')
                         main_url = main_url.replace(')', '%29')
-                        embed.add_field(name='goodreads',
-                                     value=f"**[{books[0]['title']}]({main_url})**\n" +
-                                     f"**Autor:** {books[0]['author']}\n" +
-                                     f"**Ocena:** {books[0]['average_rating']}/5\n" +
-                                     f"**Liczba głosów:** {books[0]['ratings_count']}",
-                                     inline=False)
+                        embed = discord.Embed(title=f"**{books[0]['title']}**", url=main_url,
+                                              description=f"**Autor:** {books[0]['author']}\n" +
+                                              f"**Ocena:** {books[0]['average_rating']}/5\n" +
+                                              f"**Liczba głosów:** {books[0]['ratings_count']}",
+                                              colour=brand_color)
+                        embed.set_footer(text="goodreads.com", icon_url="https://s.gr-assets.com/assets/icons/" +
+                                         "goodreads_icon_32x32-6c9373254f526f7fdf2980162991a2b3.png")
                         embed.set_thumbnail(url=books[0]['image_url'])
                         if len(books) > 1:
                             sec_results = []
@@ -93,6 +97,8 @@ async def goodreads(ctx, *args):
                             embed.add_field(name='Pozostałe trafienia:', value=sec_results_str, inline=False)
                         await ctx.send(embed=embed)
                 else:
-                    embed.add_field(name='goodreads', value=':warning: **Błąd**\nNie można połączyć się z serwisem!',
-                                 inline=False)
+                    embed = discord.Embed(title=":warning: **Błąd**", description="Nie można połączyć się z serwisem!",
+                                          colour=brand_color)
+                    embed.set_footer(text="goodreads.com", icon_url="https://s.gr-assets.com/assets/icons/" +
+                                     "goodreads_icon_32x32-6c9373254f526f7fdf2980162991a2b3.png")
                     await ctx.send(embed=embed)
