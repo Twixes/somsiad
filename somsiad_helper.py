@@ -119,6 +119,18 @@ class Configurator:
 
             return info.strip('\n')
 
+def get_fellow_server_member(server, args):
+    if len(args) == 1 and args[0].startswith('<@') and args[0].endswith('>'):
+        user = server.get_member(int(args[0].strip('<@!>')))
+    else:
+        username = ''
+        for arg in args:
+            username += arg + ' '
+        username = username.strip()
+        user = server.get_member_named(username)
+
+    return user
+
 # Initialize configuration
 conf_required = [
     # (key, default_value, instruction, description, unit,)
