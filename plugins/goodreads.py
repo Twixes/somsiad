@@ -76,8 +76,8 @@ async def goodreads(ctx, *args):
                         em.add_field(name='goodreads',
                                      value=f"**[{books[0]['title']}]({main_url})**\n" +
                                      f"**Autor:** {books[0]['author']}\n" +
-                                     f"**Ocena:** {books[0]['average_rating']}/5\n**" +
-                                     f"Liczba głosów:** {books[0]['ratings_count']}",
+                                     f"**Ocena:** {books[0]['average_rating']}/5\n" +
+                                     f"**Liczba głosów:** {books[0]['ratings_count']}",
                                      inline=False)
                         em.set_thumbnail(url=books[0]['image_url'])
                         if len(books) > 1:
