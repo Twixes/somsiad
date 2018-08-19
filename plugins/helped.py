@@ -32,4 +32,12 @@ async def smart_add_reactions(server, channel, args, reactions):
 async def helped(ctx, *args):
     """Adds "POMOGL" with smart_add_reactions()."""
     reactions = ('🇵', '🇴', '🇲', '🅾', '🇬', '🇱')
-    smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
+    await smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
+
+@client.command(aliases=['niepomógł', 'niepomogl'])
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@commands.guild_only()
+async def didnothelp(ctx, *args):
+    """Adds "NIEPOMOGL" with smart_add_reactions()."""
+    reactions = ('🇳', '🇮', '🇪', '🇵', '🇴', '🇲', '🅾', '🇬', '🇱')
+    await smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
