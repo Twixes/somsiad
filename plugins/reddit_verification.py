@@ -188,7 +188,7 @@ class RedditVerificatorMessageWatch:
             message.mark_read()
 
 reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
-    username=conf['reddit_username'], password=conf['reddit_password'], user_agent=f'SomsiadBot/{__version__}')
+    username=conf['reddit_username'], password=conf['reddit_password'], user_agent=user_agent)
 
 parts_file_path = os.path.join(bot_dir, 'data', 'reddit_verification_parts.json')
 users_db_path = os.path.join(bot_dir, 'data', 'reddit_verification.db')
@@ -288,10 +288,7 @@ async def redditxray(ctx, *args):
                 discord_username = str(await client.get_user_info(int(args[0].strip('<@!>'))))
             else:
                 # Otherwise autofill user's tag (number) and check if he is a member of the server
-                discord_username = ''
-                for arg in args:
-                    discord_username += arg + ' '
-                discord_username = discord_username.strip()
+                discord_username = ''.join(args)
 
             discord_user = ctx.message.guild.get_member_named(discord_username)
 

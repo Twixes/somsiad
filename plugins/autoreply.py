@@ -66,11 +66,7 @@ async def gib(ctx, *args):
     if len(args) == 0:
         await ctx.send('༼ つ ◕_◕ ༽つ')
     else:
-        thing_to_gib = ''
-        for arg in args:
-            thing_to_gib += arg + ' '
-        thing_to_gib = thing_to_gib.strip()
-        await ctx.send(f'༼ つ ◕_◕ ༽つ {thing_to_gib}')
+        await ctx.send(f'༼ つ ◕_◕ ༽つ {" ".join(args)}')
 
 
 @client.command()

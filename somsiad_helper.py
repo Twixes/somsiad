@@ -13,6 +13,7 @@
 
 import os
 from discord.ext.commands import Bot
+from version import __version__
 
 class Configurator:
     configuration_file_path = None
@@ -111,23 +112,21 @@ class Configurator:
                 else:
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {key_required[4]}'
                 info += line + '\n'
-                if verbose: print(line)
+                if verbose:
+                    print(line)
 
             line = f'Ścieżka pliku konfiguracyjnego: {self.configuration_file_path}'
-            info += line + '\n'
-            if verbose: print(line)
+            info += line
+            if verbose:
+                print(line)
 
-            return info.strip('\n')
+            return info
 
 def get_fellow_server_member(server, args):
     if len(args) == 1 and args[0].startswith('<@') and args[0].endswith('>'):
         user = server.get_member(int(args[0].strip('<@!>')))
     else:
-        username = ''
-        for arg in args:
-            username += arg + ' '
-        username = username.strip()
-        user = server.get_member_named(username)
+        user = server.get_member_named(' '.join(args))
 
     return user
 
@@ -157,6 +156,8 @@ configurator = Configurator(conf_file_path, conf_required)
 conf = configurator.configuration
 
 bot_dir = os.getcwd()
+
+user_agent = f'SomsiadBot/{__version__}'
 
 brand_color = 0x7289da
 

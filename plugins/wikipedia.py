@@ -25,10 +25,9 @@ async def wikipedia_search(ctx, args, lang):
         embed.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
         await ctx.send(embed=embed)
     else:
-        query = " ".join(args)
+        query = '_'.join(args)
 
         open_url = f'https://{lang}.wikipedia.org/w/api.php?action=opensearch&search={query}&limit=10&format=json'
-        user_agent = f'SomsiadBot/{__version__}'
         headers = {'User-Agent': user_agent}
         async with aiohttp.ClientSession() as session:
             # Use OpenSearch API first to get accurate page title of the result

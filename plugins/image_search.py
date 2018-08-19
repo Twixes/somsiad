@@ -28,7 +28,6 @@ async def image_search(ctx, *args):
         query_1 = ' '.join(args)
         query = '+'.join(args)
         url = f'https://api.qwant.com/api/search/ia?q={query}&t=all'
-        user_agent = f'SomsiadBot/{__version__}'
         headers = {'User-Agent': user_agent}
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers) as r:

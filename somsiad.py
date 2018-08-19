@@ -88,7 +88,8 @@ class Informator:
                 print(line)
         if separator_block is not None and verbose:
             print(separator)
-        return info.strip('\n')
+        info = info.strip('\n')
+        return info
 
 # This is what happens every time the bot launches
 # In this case, it prints information like the user count, server count, and the bot's ID in the console
