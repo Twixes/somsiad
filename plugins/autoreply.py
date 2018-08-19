@@ -55,29 +55,6 @@ async def shrug(ctx):
     """¯\_(ツ)_/¯"""
     await ctx.send('¯\_(ツ)_/¯')
 
-@client.command()
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
-async def fccchk(ctx):
-    """:japanese_goblin:"""
-    await ctx.send(':japanese_goblin:')
-
-@client.command(aliases=['r', 'sub'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
-async def subreddit(ctx, arg):
-    """Responds with the URL of the given subreddit."""
-    url = f'https://reddit.com/r/{arg}'
-    await ctx.send(url)
-
-@client.command(aliases=['u'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
-async def user(ctx, arg):
-    """Responds with the URL of the given Reddit user."""
-    url = f'https://reddit.com/u/{arg}'
-    await ctx.send(url)
-
 @client.command(aliases=['dej'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
@@ -91,3 +68,33 @@ async def gib(ctx, *args):
             thing_to_gib += arg + ' '
         thing_to_gib = thing_to_gib.strip()
         await ctx.send(f'༼ つ ◕_◕ ༽つ {thing_to_gib}')
+
+
+@client.command()
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@commands.guild_only()
+async def fccchk(ctx):
+    """:japanese_goblin:"""
+    await ctx.send(':japanese_goblin:')
+
+@client.command(aliases=['r', 'sub'])
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@commands.guild_only()
+async def subreddit(ctx, *args):
+    """Responds with the URL of the given subreddit."""
+    if len(args) == 0:
+        url = 'https://reddit.com/r/all'
+    else:
+        url = f'https://reddit.com/r/{"".join(args)}'
+    await ctx.send(url)
+
+@client.command(aliases=['u'])
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@commands.guild_only()
+async def user(ctx, *args):
+    """Responds with the URL of the given Reddit user."""
+    if len(args) == 0:
+        url = f'https://reddit.com/u/{conf["reddit_username"]}'
+    else:
+        url = f'https://reddit.com/u/{"".join(args)}'
+    await ctx.send(url)
