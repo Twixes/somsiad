@@ -261,7 +261,7 @@ async def redditxray(ctx, *args):
     # If no user was given assume message author
     embed = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
 
-    if len(args) == 1 and args[0] == '@everyone':
+    if len(args) == 1 and args[0] == '@everyone' and does_member_have_elevated_permissions(ctx.author):
         for member in ctx.guild.members:
             user_verification_status = verificator.discord_user_verification_status(member)
             if user_verification_status['reddit_username'] is not None:
@@ -269,7 +269,7 @@ async def redditxray(ctx, *args):
                     inline=False)
         await ctx.send(embed=embed)
 
-    elif len(args) == 1 and args[0] == '@here':
+    elif len(args) == 1 and args[0] == '@here' and does_member_have_elevated_permissions(ctx.author):
         for member in ctx.channel.members:
             user_verification_status = verificator.discord_user_verification_status(member)
             if user_verification_status['reddit_username'] is not None:
@@ -313,10 +313,12 @@ async def redditxray(ctx, *args):
                         'ale nie dokończył jej na Reddicie.')
                     await ctx.send(embed=embed)
                 else:
+                    reddit_username_info = ''
+                    if does_member_have_elevated_permissions(ctx.author):
+                        reddit_username_info = f' jako /u/{user_verification_status["reddit_username"]}'
                     embed.add_field(name=':white_check_mark: Zweryfikowany',
                         value=f'Użytkownik {discord_username} został zweryfikowany '
-                        f'{user_verification_status["phrase_gen_date"]} jako '
-                        f'/u/{user_verification_status["reddit_username"]}.')
+                        f'{user_verification_status["phrase_gen_date"]}{reddit_username_info}.')
                     await ctx.send(embed=embed)
 
         else:
