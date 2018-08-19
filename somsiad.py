@@ -33,11 +33,14 @@ class Informator:
 
     @staticmethod
     def separator(block_major, block_minor, width):
+        """Generates a separator string to the specified length out of given blocks."""
         block = block_major + block_minor
         pattern = block * int((width - len(block_major)) / len(block)) + block_major
         return pattern
 
     def info(self, lines, verbose=False):
+        """Takes a list of lines containing bot information and returns a string ready for printing.
+            Can print to the console."""
         info = ''
         separator = self.separator('==', ' ', os.get_terminal_size()[0])
         if verbose: print(separator)

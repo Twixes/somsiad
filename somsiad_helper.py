@@ -97,8 +97,7 @@ class Configurator:
         return self.configuration
 
     def info(self, verbose=False):
-        """Returns a string presenting the current configuration in a human-readable form.
-            By default prints to the console."""
+        """Returns a string presenting the current configuration in a human-readable form. Can print to the console."""
         if self.configuration_required is not None:
             info = ''
             for key_required in self.configuration_required:
