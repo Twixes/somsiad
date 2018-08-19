@@ -18,41 +18,41 @@ from version import __version__
 @client.command(aliases=['wersja'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def version(ctx):
-    """Responds with current version of the bot"""
+    """Responds with current version of the bot."""
     await ctx.send(__version__)
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def ping(ctx):
-    """Pong"""
+    """Pong!"""
     await ctx.send(':ping_pong: Pong!')
 
 @client.command(aliases=['lennyface'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def lenny(ctx):
-    """Responds with a lenny face"""
+    """( ͡° ͜ʖ ͡°)"""
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def flip(ctx):
-    """Responds with the table flip emoticon"""
+    """(╯°□°）╯︵ ┻━┻"""
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
 @client.command(aliases=['fix'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def unflip(ctx):
-    """Responds with the table unflip emoticon"""
+    """┬─┬ ノ( ゜-゜ノ)"""
     await ctx.send('┬─┬ ノ( ゜-゜ノ)')
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def shrug(ctx):
-    """Responds with the shrug emoticon"""
+    """¯\_(ツ)_/¯"""
     await ctx.send('¯\_(ツ)_/¯')
 
 @client.command()
@@ -66,7 +66,7 @@ async def fccchk(ctx):
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def subreddit(ctx, arg):
-    """Responds with the URL of the given subreddit"""
+    """Responds with the URL of the given subreddit."""
     url = f'https://reddit.com/r/{arg}'
     await ctx.send(url)
 
@@ -74,6 +74,20 @@ async def subreddit(ctx, arg):
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def user(ctx, arg):
-    """Responds with the URL of the given Reddit user"""
+    """Responds with the URL of the given Reddit user."""
     url = f'https://reddit.com/u/{arg}'
     await ctx.send(url)
+
+@client.command(aliases=['dej'])
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@commands.guild_only()
+async def gib(ctx, *args):
+    """༼ つ ◕_◕ ༽つ"""
+    if len(args) == 0:
+        await ctx.send('༼ つ ◕_◕ ༽つ')
+    else:
+        thing_to_gib = ''
+        for arg in args:
+            thing_to_gib += arg + ' '
+        thing_to_gib = thing_to_gib.strip()
+        await ctx.send(f'༼ つ ◕_◕ ༽つ {thing_to_gib}')
