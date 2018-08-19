@@ -18,6 +18,7 @@ import logging
 from somsiad_helper import *
 from version import __version__
 
+
 async def wikipedia_search(ctx, args, lang):
     """Returns the closest matching article from Wikipedia."""
     embed = discord.Embed(title="Wikipedia", color=brand_color)
@@ -37,7 +38,7 @@ async def wikipedia_search(ctx, args, lang):
                     res_open = await r_open.json()
                     if len(res_open[1]) < 1:
                         embed.add_field(name=':slight_frown: Niepowodzenie',
-                            value=f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".')
+                                        value=f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".')
                         await ctx.send(embed=embed)
                     else:
                         # Use title retrieved from OpenSearch response
@@ -51,14 +52,15 @@ async def wikipedia_search(ctx, args, lang):
                                 if res['type'] == 'disambiguation':
                                     # Use results from OpenSearch to create a list of links from disambiguation page
                                     title = 'Hasło \"' + res['title'] + '\" może odnosić się do:'
-                                    options_str_full = ''
+                                    options = []
                                     for i, option in enumerate(res_open[1][1:]):
                                         option_url = res_open[3][i+1]
                                         option_url = option_url.replace('(', '%28')
                                         option_url = option_url.replace(')', '%29')
-                                        options_str = ('• [' + option + '](' + option_url + ')\n')
-                                        options_str_full += options_str
-                                    embed.add_field(name=title, value=options_str_full, inline=False)
+                                        options_str = ('• [' + option + '](' + option_url + ')')
+                                        options.append(options_str)
+                                        options_full = '\n'.join(i for i in options)
+                                    embed.add_field(name=title, value=options_full, inline=False)
                                     await ctx.send(embed=embed)
 
                                 elif res['type'] == 'standard':
@@ -91,6 +93,7 @@ async def wikipediapl(ctx, *args):
     """Polish version of wikipedia_search."""
     lang = 'pl'
     await wikipedia_search(ctx, args, lang)
+
 
 @client.command(aliases=['wikien', 'wen'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
