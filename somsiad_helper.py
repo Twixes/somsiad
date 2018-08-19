@@ -131,6 +131,9 @@ def get_fellow_server_member(server, args):
 
     return user
 
+def does_member_have_elevated_permissions(member):
+    return member.guild_permissions.administrator
+
 # Initialize configuration
 conf_required = [
     # (key, default_value, instruction, description, unit,)

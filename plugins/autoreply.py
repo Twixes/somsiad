@@ -19,7 +19,10 @@ from version import __version__
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def version(ctx):
     """Responds with current version of the bot."""
-    await ctx.send(__version__)
+    if does_member_have_elevated_permissions(ctx.author):
+        await ctx.send(f'{__version__}!')
+    else:
+        await ctx.send(__version__)
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
