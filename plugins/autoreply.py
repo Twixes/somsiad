@@ -56,8 +56,8 @@ async def unflip(ctx):
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def shrug(ctx):
-    """¯\_(ツ)_/¯"""
-    await ctx.send('¯\_(ツ)_/¯')
+    r"""¯\_(ツ)_/¯"""
+    await ctx.send(r'¯\_(ツ)_/¯')
 
 @client.command(aliases=['dej'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -68,7 +68,6 @@ async def gib(ctx, *args):
         await ctx.send('༼ つ ◕_◕ ༽つ')
     else:
         await ctx.send(f'༼ つ ◕_◕ ༽つ {" ".join(args)}')
-
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
