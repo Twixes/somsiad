@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 async def goodreads(ctx, *args):
     '''Goodreads search. Search for the most popular books for the given query.'''
     if len(args) == 0:
-        embed = discord.Embed(title=':warning: **Błąd**', description='Nie podano szukanego hasła!',
+        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!',
                               colour=brand_color)
         embed.set_footer(text="goodreads.com", icon_url="https://s.gr-assets.com/assets/icons/" +
                          "goodreads_icon_32x32-6c9373254f526f7fdf2980162991a2b3.png")
@@ -41,7 +41,7 @@ async def goodreads(ctx, *args):
                     tree = ET.fromstring(await r.text())
                     node = tree.find('.//total-results')
                     if node.text == '0':
-                        embed = discord.Embed(title=':slight_frown: **Niepowodzenie**', description='Nie znaleziono ' +
+                        embed = discord.Embed(title=':slight_frown: Niepowodzenie', description='Nie znaleziono ' +
                                               f'żadnego wyniku pasującego do hasła "{query}".',
                                               colour=brand_color)
                         embed.set_footer(text="goodreads.com", icon_url="https://s.gr-assets.com/assets/icons/" +
@@ -97,7 +97,7 @@ async def goodreads(ctx, *args):
                             embed.add_field(name='Pozostałe trafienia:', value=sec_results_str, inline=False)
                         await ctx.send(embed=embed)
                 else:
-                    embed = discord.Embed(title=":warning: **Błąd**", description="Nie można połączyć się z serwisem!",
+                    embed = discord.Embed(title=":warning: Błąd", description="Nie można połączyć się z serwisem!",
                                           colour=brand_color)
                     embed.set_footer(text="goodreads.com", icon_url="https://s.gr-assets.com/assets/icons/" +
                                      "goodreads_icon_32x32-6c9373254f526f7fdf2980162991a2b3.png")
