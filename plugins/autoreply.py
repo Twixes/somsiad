@@ -23,7 +23,7 @@ async def version(ctx):
         version_string = f'{__version__}!'
     else:
         version_string = __version__
-    await ctx.send(version)
+    await ctx.send(version_string)
 
 @client.command()
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
