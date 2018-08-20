@@ -4,7 +4,8 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Funkcje  
 
-* automatyczne odpowiedzi  
+* wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
+* oznaczanie na żądanie pomocnych wiadomości za pomocą reakcji  
 * Magic 8-Ball  
 * kantor  
 * wyszukiwanie obrazków za pomocą [Qwant](https://www.qwant.com)  
@@ -69,7 +70,8 @@ The Polish Discord bot. Written in Python.
 
 ## Features  
 
-* automatic replies  
+* emoticon sending (tableflip, shrug, lenny face, etc.)  
+* reacting to helpful messages on demand  
 * Magic 8-Ball  
 * currency exchange  
 * image search powered by [Qwant](https://www.qwant.com)  
