@@ -24,14 +24,16 @@ with open(os.path.join(bot_dir, 'data', 'eightball_answers.txt')) as f:
 @commands.guild_only()
 async def eightball(ctx, *args):
     """Returns an 8-Ball answer."""
-    question = ''.join(args)
+    question = ' '.join(args)
+    question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/')
     if question != '':
-        if question.strip('/').endswith('?'):
-            if question == 'fccchk?':
+        if question.endswith('?'):
+            question = question.strip('?')
+            if 'fccchk' in question:
                 response = secrets.choice(eightball_responses)
                 ReSPoNse = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in response)
                 await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {ReSPoNse}')
-            elif question != '?':
+            elif question != '':
                 response = secrets.choice(eightball_responses)
                 await ctx.send(f'{ctx.author.mention}\n:8ball: {response}')
             else:
