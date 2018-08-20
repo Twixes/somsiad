@@ -93,15 +93,13 @@ class Informator:
 
 # This is what happens every time the bot launches
 # In this case, it prints information like the user count, server count, and the bot's ID in the console
-
 def print_info():
-
     informator = Informator()
 
     number_of_users = len(set(client.get_all_members()))
     number_of_servers = len(client.guilds)
     info_lines = (
-        f'Obudzono Somsiada (ID {str(client.user.id)}).',
+        f'Obudzono Somsiada (ID {client.user.id}).',
         '',
         f'Połączono {informator.with_preposition_variant(number_of_users)} {number_of_users} '
         f'{informator.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} na {number_of_servers} '
@@ -109,7 +107,7 @@ def print_info():
         informator.list_of_servers(client),
         '',
         'Link do zaproszenia bota:',
-        f'https://discordapp.com/oauth2/authorize?client_id={str(client.user.id)}&scope=bot&permissions=536083543',
+        f'https://discordapp.com/oauth2/authorize?client_id={client.user.id}&scope=bot&permissions=536083543',
         '',
         configurator.info(),
         '',
@@ -147,4 +145,5 @@ async def on_command_error(ctx, error):
     print(f'Ignorowanie wyjątku w komendzie {ctx.command}:', file=sys.stderr)
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-client.run(conf['discord_token'])
+if __name__ == '__main__':
+    client.run(conf['discord_token'])
