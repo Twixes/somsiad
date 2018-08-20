@@ -1,4 +1,16 @@
-import logging
+# Copyright 2018 Twixes
+
+# This file is part of Somsiad - the Polish Discord bot.
+
+# Somsiad is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+# Somsiad is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License along with Somsiad.
+# If not, see <https://www.gnu.org/licenses/>.
+
 import os.path
 import time
 import datetime
@@ -188,7 +200,7 @@ class RedditVerificatorMessageWatch:
 reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
     username=conf['reddit_username'], password=conf['reddit_password'], user_agent=user_agent)
 
-parts_file_path = os.path.join(conf_dir_path, 'data', 'reddit_verification_parts.json')
+parts_file_path = os.path.join(bot_dir_path, 'data', 'reddit_verification_parts.json')
 users_db_path = os.path.join(conf_dir_path, 'reddit_verification.db')
 
 # Load phrase parts
