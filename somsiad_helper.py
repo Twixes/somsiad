@@ -123,8 +123,8 @@ class Configurator:
             return info
 
 def get_fellow_server_member(server, args):
-    if len(args) == 1 and args[0].startswith('<@') and args[0].endswith('>'):
-        user = server.get_member(int(args[0].strip('<@!>')))
+    if len(args) == 1 and args[0].strip('\\').startswith('<@') and args[0].endswith('>'):
+        user = server.get_member(int(args[0].strip('\\<@!>')))
     else:
         user = server.get_member_named(' '.join(args))
 
