@@ -21,8 +21,8 @@ import sqlite3
 import discord
 from discord.ext import commands
 import praw
-from version import __version__
 from somsiad_helper import *
+from version import __version__
 
 class RedditVerificator:
     reddit = None

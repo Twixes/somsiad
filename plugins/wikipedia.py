@@ -11,10 +11,10 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import logging
+import aiohttp
 import discord
 from discord.ext import commands
-import aiohttp
-import logging
 from somsiad_helper import *
 from version import __version__
 

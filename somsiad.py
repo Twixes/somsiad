@@ -13,16 +13,16 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import discord
-from discord.ext import commands
-import platform
 import sys
 import os
+import platform
 import traceback
 import logging
 import datetime
-from version import __version__
+import discord
+from discord.ext import commands
 from somsiad_helper import *
+from version import __version__
 from plugins import *
 
 logging.basicConfig(filename='somsiad.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

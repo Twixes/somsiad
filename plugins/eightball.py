@@ -11,9 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from discord.ext import commands
-import secrets
 import os
+import secrets
+from discord.ext import commands
 from somsiad_helper import *
 
 with open(os.path.join(bot_dir_path, 'data', 'eightball_answers.txt')) as f:

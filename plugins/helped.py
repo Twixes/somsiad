@@ -13,8 +13,8 @@
 
 import discord
 from discord.ext import commands
-from version import __version__
 from somsiad_helper import *
+from version import __version__
 
 async def smart_add_reactions(server, channel, args, reactions):
     """Adds provided emojis to the specified user's last non-command message in the form of reactions.

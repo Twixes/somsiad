@@ -11,8 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from discord.ext import commands
 import aiohttp
+from discord.ext import commands
 from somsiad_helper import *
 
 @client.command(aliases=['g', 'gugiel'])
