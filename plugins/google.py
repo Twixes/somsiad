@@ -33,7 +33,7 @@ async def google(ctx, *args):
         else:
             await ctx.send(f'{ctx.author.mention}\n{result["items"][0]["link"]}')
 
-@client.command(aliases=['gi', 'obrazek'])
+@client.command(aliases=['gi'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def googleimage(ctx, *args):
