@@ -25,14 +25,12 @@ from somsiad_helper import *
 from version import __version__
 
 class RedditVerificator:
-    reddit = None
     users_db = None
     user_db_cursor = None
     parts = None
 
-    def __init__(self, reddit, users_db_path, parts=None):
+    def __init__(self, users_db_path, parts=None):
         """Connects to the database. Creates it if it doesn't yet. Sets up parts."""
-        self.reddit = reddit
         self.users_db = sqlite3.connect(users_db_path)
         self.users_db_cursor = self.users_db.cursor()
         self.users_db_cursor.execute("""CREATE TABLE IF NOT EXISTS reddit_verification_users(
@@ -138,11 +136,10 @@ class RedditVerificator:
             return None
 
 class RedditVerificatorMessageWatch:
-    reddit = None
+    watch_reddit = None
     watch_verificator = None
 
-    def __init__(self, reddit):
-        self.reddit = reddit
+    def __init__(self):
         thread = threading.Thread(target=self.run, args=())
         thread.daemon = True
         thread.start()
@@ -150,8 +147,10 @@ class RedditVerificatorMessageWatch:
     def run(self):
         """Processes new messages from the inbox stream and uses them for verification."""
         # Handle each new message
-        self.watch_verificator = RedditVerificator(self.reddit, users_db_path)
-        for message in praw.models.util.stream_generator(self.reddit.inbox.unread):
+        self.watch_reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
+            username=conf['reddit_username'], password=conf['reddit_password'], user_agent=user_agent)
+        self.watch_verificator = RedditVerificator(users_db_path)
+        for message in praw.models.util.stream_generator(self.watch_reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
                 # Check if (and when) Reddit account was verified
                 phrase = message.body.strip().strip('"\'')
@@ -197,9 +196,6 @@ class RedditVerificatorMessageWatch:
 
             message.mark_read()
 
-reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
-    username=conf['reddit_username'], password=conf['reddit_password'], user_agent=user_agent)
-
 parts_file_path = os.path.join(bot_dir_path, 'data', 'reddit_verification_parts.json')
 users_db_path = os.path.join(storage_dir_path, 'reddit_verification.db')
 
@@ -207,7 +203,7 @@ users_db_path = os.path.join(storage_dir_path, 'reddit_verification.db')
 with open(parts_file_path, 'r') as parts_file:
     parts = json.load(parts_file)
 
-verificator = RedditVerificator(reddit, users_db_path, parts)
+verificator = RedditVerificator(users_db_path, parts)
 
 @client.command(aliases=['zweryfikuj'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -332,4 +328,4 @@ async def redditxray(ctx, *args):
                 'serwerze.')
             await ctx.send(embed=embed)
 
-reddit_verificator_message_watch = RedditVerificatorMessageWatch(reddit)
+reddit_verificator_message_watch = RedditVerificatorMessageWatch()
