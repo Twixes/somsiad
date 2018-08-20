@@ -27,17 +27,17 @@ from version import __version__
 class RedditVerificator:
     users_db = None
     user_db_cursor = None
-    parts = None
+    phrase_parts = None
 
-    def __init__(self, users_db_path, parts=None):
-        """Connects to the database. Creates it if it doesn't yet. Sets up parts."""
+    def __init__(self, users_db_path, phrase_parts=None):
+        """Connects to the database. Creates it if it doesn't yet. Sets up phrase parts."""
         self.users_db = sqlite3.connect(users_db_path)
         self.users_db_cursor = self.users_db.cursor()
         self.users_db_cursor.execute("""CREATE TABLE IF NOT EXISTS reddit_verification_users(
             discord_username TEXT PRIMARY KEY, phrase TEXT UNIQUE, phrase_gen_date DATE DEFAULT (date('now',
             'localtime')), reddit_username TEXT UNIQUE)""")
         self.users_db.commit()
-        self.parts = parts
+        self.phrase_parts = phrase_parts
 
     @staticmethod
     def is_reddit_user_trustworthy(reddit_user):
@@ -51,11 +51,11 @@ class RedditVerificator:
             return False
 
     def phrase_gen(self):
-        """Assembles a unique random phrase from given parts."""
+        """Assembles a unique random phrase from given phrase parts."""
         is_phrase_unique = False
         while not is_phrase_unique:
             phrase = ''
-            for _, category_entry in self.parts.items():
+            for _, category_entry in self.phrase_parts.items():
                 phrase += secrets.choice(category_entry).capitalize()
             if self.phrase_status(phrase)['discord_username'] is None:
                 is_phrase_unique = True
@@ -138,8 +138,10 @@ class RedditVerificator:
 class RedditVerificatorMessageWatch:
     watch_reddit = None
     watch_verificator = None
+    users_db_path = None
 
-    def __init__(self):
+    def __init__(self, users_db_path):
+        self.users_db_path = users_db_path
         thread = threading.Thread(target=self.run, args=())
         thread.daemon = True
         thread.start()
@@ -149,7 +151,7 @@ class RedditVerificatorMessageWatch:
         # Handle each new message
         self.watch_reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
             username=conf['reddit_username'], password=conf['reddit_password'], user_agent=user_agent)
-        self.watch_verificator = RedditVerificator(users_db_path)
+        self.watch_verificator = RedditVerificator(self.users_db_path)
         for message in praw.models.util.stream_generator(self.watch_reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
                 # Check if (and when) Reddit account was verified
@@ -196,14 +198,14 @@ class RedditVerificatorMessageWatch:
 
             message.mark_read()
 
-parts_file_path = os.path.join(bot_dir_path, 'data', 'reddit_verification_parts.json')
+phrase_parts_file_path = os.path.join(bot_dir_path, 'data', 'reddit_verification_phrase_parts.json')
 users_db_path = os.path.join(storage_dir_path, 'reddit_verification.db')
 
 # Load phrase parts
-with open(parts_file_path, 'r') as parts_file:
-    parts = json.load(parts_file)
+with open(phrase_parts_file_path, 'r') as f:
+    phrase_parts = json.load(f)
 
-verificator = RedditVerificator(users_db_path, parts)
+verificator = RedditVerificator(users_db_path, phrase_parts)
 
 @client.command(aliases=['zweryfikuj'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -328,4 +330,4 @@ async def redditxray(ctx, *args):
                 'serwerze.')
             await ctx.send(embed=embed)
 
-reddit_verificator_message_watch = RedditVerificatorMessageWatch()
+reddit_verificator_message_watch = RedditVerificatorMessageWatch(users_db_path)
