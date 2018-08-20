@@ -27,7 +27,23 @@ async def google(ctx, *args):
     else:
         query = ' '.join(args)
         result = google_client.cse().list(q=query, cx=conf['google_custom_search_engine_id'], hl='pl',
-            num=1).execute()
+            num=1, fields='items/link,searchInformation/totalResults').execute()
+        if int(result['searchInformation']['totalResults']) == 0:
+            await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
+        else:
+            await ctx.send(f'{ctx.author.mention}\n{result["items"][0]["link"]}')
+
+@client.command(aliases=['gi', 'obrazek'])
+@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@commands.guild_only()
+async def googleimage(ctx, *args):
+    """Returns first matching result from Google using the provided Custom Search Engine."""
+    if len(args) == 0:
+        await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
+    else:
+        query = ' '.join(args)
+        result = google_client.cse().list(q=query, cx=conf['google_custom_search_engine_id'], hl='pl',
+            num=1, searchType='image', fields='items/link,searchInformation/totalResults').execute()
         if int(result['searchInformation']['totalResults']) == 0:
             await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
         else:
