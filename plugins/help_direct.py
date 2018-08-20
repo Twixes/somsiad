@@ -27,10 +27,10 @@ async def help_direct(ctx):
         inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}gugiel (g) <zapytanie>',
-        value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący wynik.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}img (i) <zapytanie>',
-        value='Wysyła <zapytanie> do wyszukiwarki Qwant i zwraca najlepiej pasujący do niego obrazek.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}google (gugiel, g) <zapytanie>',
+        value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasującą stronę.', inline=False)
+    embed.add_field(name=f'{conf["command_prefix"]}googleimage (gi) <zapytanie>',
+        value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący obrazek.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
         value='Wysyła <zapytanie> do YouTube i zwraca najlepiej pasujący wynik.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
