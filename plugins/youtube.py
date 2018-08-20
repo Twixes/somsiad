@@ -17,21 +17,19 @@ from somsiad_helper import *
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+youtube_client = build('youtube', 'v3', developerKey=conf['google_key'])
+
 @client.command(aliases=['yt', 'tuba'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
     """Returns first matching result from YouTube."""
-    DEVELOPER_KEY = conf['google_key']
-    YOUTUBE_API_SERVICE_NAME = 'youtube'
-    YOUTUBE_API_VERSION = 'v3'
     if len(args) == 0:
         await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:
         try:
-            youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION, developerKey=DEVELOPER_KEY)
             # Call the search.list method to retrieve results matching the specified query term.
-            search_response = youtube.search().list(
+            search_response = youtube_client.search().list(
                 q=' '.join(args),
                 part='id',
                 maxResults=1,
