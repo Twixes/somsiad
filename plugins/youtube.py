@@ -25,19 +25,20 @@ youtube_client = build('youtube', 'v3', developerKey=conf['google_key'])
 async def youtube(ctx, *args):
     """Returns first matching result from YouTube."""
     if len(args) == 0:
-        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
+        await ctx.send(f'{ctx.author.mention}\nhttps://www.youtube.com/')
     else:
         try:
             # Call the search.list method to retrieve results matching the specified query term.
+            query = ' '.join(args)
             search_response = youtube_client.search().list(
-                q=' '.join(args),
+                q=query,
                 part='id',
                 maxResults=1,
                 type='video'
             ).execute()
             # Output results
             if len(search_response.get('items')) == 0:
-                await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
+                await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
             else:
                 video_id = search_response.get('items')[0]['id']['videoId']
                 video_url = f'https://www.youtube.com/watch?v={video_id}'
