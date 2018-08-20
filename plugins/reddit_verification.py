@@ -188,8 +188,8 @@ class RedditVerificatorMessageWatch:
 reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
     username=conf['reddit_username'], password=conf['reddit_password'], user_agent=user_agent)
 
-parts_file_path = os.path.join(bot_dir, 'data', 'reddit_verification_parts.json')
-users_db_path = os.path.join(bot_dir, 'data', 'reddit_verification.db')
+parts_file_path = os.path.join(conf_dir_path, 'data', 'reddit_verification_parts.json')
+users_db_path = os.path.join(conf_dir_path, 'reddit_verification.db')
 
 # Load phrase parts
 with open(parts_file_path, 'r') as parts_file:

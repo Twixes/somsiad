@@ -16,7 +16,7 @@ import secrets
 import os
 from somsiad_helper import *
 
-with open(os.path.join(bot_dir, 'data', 'eightball_answers.txt')) as f:
+with open(os.path.join(bot_dir_path, 'data', 'eightball_answers.txt')) as f:
     eightball_responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
 
 @client.command(aliases=['8ball', '8-ball', '8'])

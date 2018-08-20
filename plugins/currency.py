@@ -49,7 +49,7 @@ async def currency(ctx, *args):
             to = mo.group(8).upper()
             # Check locally if provided values are correct currency codes
             # to reduce the amount of API calls
-            with open(os.path.join(bot_dir, 'data', 'currency_codes.txt')) as f:
+            with open(os.path.join(bot_dir_path, 'data', 'currency_codes.txt')) as f:
                 ccod = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
             if all(value in ccod for value in (fr, to)):
                 url = f'https://free.currencyconverterapi.com/api/v6/convert?q={fr}_{to}&compact=y'

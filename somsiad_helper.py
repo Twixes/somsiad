@@ -151,11 +151,12 @@ conf_required = [
     ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None),
 ]
 
-conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
+bot_dir_path = os.getcwd()
+conf_dir_path = os.path.join(os.path.expanduser('~'), '.somsiad')
+
+conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
 configurator = Configurator(conf_file_path, conf_required)
 conf = configurator.configuration
-
-bot_dir = os.getcwd()
 
 user_agent = f'SomsiadBot/{__version__}'
 
