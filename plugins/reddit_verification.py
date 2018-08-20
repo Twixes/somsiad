@@ -101,18 +101,14 @@ class RedditVerificator:
     def assign_phrase(self, discord_username):
         """Assigns a phrase to a Discord user."""
         phrase = self.phrase_gen()
-        self.users_db_cursor.execute('INSERT INTO reddit_verification_users(discord_username, phrase) VALUES(?, ?)',
-            (discord_username, phrase,))
-        self.users_db.commit()
-        return phrase
 
-    def reassign_phrase(self, discord_username):
-        """Reassigns a phrase to a Discord user. This is used in cases where the Discord user has already been
-            assigned a phrase in the past."""
-        phrase = self.phrase_gen()
-        today_date = str(datetime.date.today())
-        self.users_db_cursor.execute('''UPDATE reddit_verification_users SET phrase = ?, phrase_gen_date = ?
-            WHERE discord_username = ?''', (phrase, today_date, discord_username,))
+        if self.discord_user_status(discord_username)['phrase_gen_date'] is None:
+            self.users_db_cursor.execute('INSERT INTO reddit_verification_users(discord_username, phrase) VALUES(?, ?)',
+                (discord_username, phrase,))
+        else:
+            today_date = str(datetime.date.today())
+            self.users_db_cursor.execute('''UPDATE reddit_verification_users SET phrase = ?, phrase_gen_date = ?
+                WHERE discord_username = ?''', (phrase, today_date, discord_username,))
         self.users_db.commit()
         return phrase
 
@@ -236,7 +232,7 @@ async def redditverify(ctx, *args):
 
         else:
             # If user has requested verification but not today, assign him a new phrase
-            phrase = verificator.reassign_phrase(discord_username)
+            phrase = verificator.assign_phrase(discord_username)
 
             message_url = ('https://www.reddit.com/message/compose/'
                 f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
