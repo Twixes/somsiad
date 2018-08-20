@@ -25,11 +25,22 @@ class GoogleCSE:
 
     def get_first_google_result_link(self, query, language, search_type=None):
         if search_type == 'image':
-            result = self.google_cse.cse().list(q=query, cx=self.google_cse_id, hl=language,
-                num=1, searchType='image', fields='items/link,searchInformation/totalResults').execute()
+            result = self.google_cse.cse().list(
+                q=query,
+                cx=self.google_cse_id,
+                hl=language,
+                num=1,
+                searchType='image',
+                fields='items/link,searchInformation/totalResults'
+            ).execute()
         else:
-            result = self.google_cse.cse().list(q=query, cx=self.google_cse_id, hl=language,
-                num=1, fields='items/link,searchInformation/totalResults').execute()
+            result = self.google_cse.cse().list(
+                q=query,
+                cx=self.google_cse_id,
+                hl=language,
+                num=1,
+                fields='items/link,searchInformation/totalResults'
+            ).execute()
 
         if int(result['searchInformation']['totalResults']) == 0:
             return None
