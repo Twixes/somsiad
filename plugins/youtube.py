@@ -13,9 +13,9 @@
 
 import logging
 from discord.ext import commands
-from somsiad_helper import *
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from somsiad_helper import *
 
 youtube_client = build('youtube', 'v3', developerKey=conf['google_key'])
 

@@ -12,8 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
-from somsiad_helper import *
 from googleapiclient.discovery import build
+from somsiad_helper import *
 
 google_client = build('customsearch', 'v1', developerKey=conf['google_key'])
 
