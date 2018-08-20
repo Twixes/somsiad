@@ -49,7 +49,7 @@ async def help_direct(ctx):
         value='Zwraca URL profilu użytkownika Reddita <?użytkownik Reddita>.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
         value=f'Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie ({ctx.author}).', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}prześwietl <?użytkownik Discorda>',
+    embed.add_field(name=f'{conf["command_prefix"]}prześwietl (przeswietl) <?użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> (jeśli należy on do serwera '
         'na którym użyto komendy) lub, jeśli nie podano argumentu, dla użytkownika, który użył komendy.', inline=False)
     embed.add_field(name=f'{conf["command_prefix"]}pomógł (pomogl) <?użytkownik Discorda>',

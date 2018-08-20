@@ -251,7 +251,7 @@ async def redditverify(ctx, *args):
 
         await ctx.author.send(embed=embed)
 
-@client.command(aliases=['prześwietl'])
+@client.command(aliases=['prześwietl', 'przeswietl'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def redditxray(ctx, *args):
