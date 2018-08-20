@@ -271,7 +271,7 @@ async def redditxray(ctx, *args):
     # If no user was given assume message author
     embed = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
 
-    if len(args) == 1 and args[0] == '@everyone' and does_member_have_elevated_permissions(ctx.author):
+    if len(args) == 1 and args[0].strip('\\') == '@everyone' and does_member_have_elevated_permissions(ctx.author):
         for member in ctx.guild.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
@@ -279,7 +279,7 @@ async def redditxray(ctx, *args):
                     inline=False)
         await ctx.send(embed=embed)
 
-    elif len(args) == 1 and args[0] == '@here' and does_member_have_elevated_permissions(ctx.author):
+    elif len(args) == 1 and args[0].strip('\\') == '@here' and does_member_have_elevated_permissions(ctx.author):
         for member in ctx.channel.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
@@ -293,29 +293,28 @@ async def redditxray(ctx, *args):
             discord_username = str(discord_user)
 
         else:
-            if len(args) == 1 and args[0].startswith('<@') and args[0].endswith('>'):
+            if len(args) == 1 and args[0].strip('\\').startswith('<@') and args[0].endswith('>'):
                 # If user was mentioned convert his ID to a username and then check if he is a member of the server
-                discord_username = str(await client.get_user_info(int(args[0].strip('<@!>'))))
+                discord_username = str(await client.get_user_info(int(args[0].strip('\\<@!>'))))
             else:
                 # Otherwise autofill user's tag (number) and check if he is a member of the server
-                discord_username = ''.join(args)
+                discord_username = ''.join(args).strip('\\@')
 
             discord_user = ctx.message.guild.get_member_named(discord_username)
 
         user_status = verificator.discord_user_status(discord_user)
 
         if discord_user is not None:
-            discord_username = str(discord_user)
             # Check if (and when) user has already been verified
             if user_status['phrase_gen_date'] is None:
                 embed.add_field(name=':red_circle: Niezweryfikowany',
-                    value=f'Użytkownik {discord_username} nigdy nie zażądał weryfikacji.')
+                    value=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.')
                 await ctx.send(embed=embed)
 
             else:
                 if user_status['reddit_username'] is None:
                     embed.add_field(name=':red_circle: Niezweryfikowany',
-                        value=f'Użytkownik {discord_username} zażądał weryfikacji '
+                        value=f'Użytkownik {discord_user} zażądał weryfikacji '
                         f'{user_status["phrase_gen_date"]}, '
                         'ale nie dokończył jej na Reddicie.')
                     await ctx.send(embed=embed)
@@ -324,7 +323,7 @@ async def redditxray(ctx, *args):
                     if does_member_have_elevated_permissions(ctx.author):
                         reddit_username_info = f' jako /u/{user_status["reddit_username"]}'
                     embed.add_field(name=':white_check_mark: Zweryfikowany',
-                        value=f'Użytkownik {discord_username} został zweryfikowany '
+                        value=f'Użytkownik {discord_user} został zweryfikowany '
                         f'{user_status["phrase_gen_date"]}{reddit_username_info}.')
                     await ctx.send(embed=embed)
 
