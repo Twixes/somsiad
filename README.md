@@ -8,7 +8,7 @@ Polski bot discordowy. Napisany w Pythonie.
 * oznaczanie na żądanie pomocnych wiadomości za pomocą reakcji  
 * Magic 8-Ball  
 * kantor  
-* wyszukiwanie obrazków za pomocą [Qwant](https://www.qwant.com)  
+* wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) po polsku i po angielsku  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
@@ -24,6 +24,14 @@ https://discordapp.com/developers/applications/me
 
 * Klucz API Google z obsługą YouTube Data API:  
 https://console.developers.google.com/apis/dashboard  
+
+* Klucz API Google z obsługą API YouTube Data i Google Custom Search Engine, a także identyfikator wyszukiwarki Google 
+Custom Search Engine:  
+https://console.developers.google.com/apis/dashboard  
+https://cse.google.com/cse/all  
+By twoja wyszukiwarka Google Custom Search Engine działała prawidłowo, musisz podczas jej tworzenia przypisać do niej 
+dowolną stronę (może być to https://example.com). Następnie musisz udać się do zakładki Konfiguracja / Podstawy 
+wyszukiwarki, usunąć dodaną stronę i zaznaczyć pola: "Wyszukiwarka grafiki" oraz "Wyszukiwanie w całej sieci".
 
 * Nazwa użytkownika i hasło konta na Reddicie, a także ID i szyfr aplikacji redditowej typu skrypt:  
 https://www.reddit.com/prefs/apps  
@@ -74,7 +82,7 @@ The Polish Discord bot. Written in Python.
 * reacting to helpful messages on demand  
 * Magic 8-Ball  
 * currency exchange  
-* image search powered by [Qwant](https://www.qwant.com)  
+* website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
@@ -88,8 +96,13 @@ The Polish Discord bot. Written in Python.
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
 
-* A Google API key with YouTube Data API support:  
+* A Google API key with YouTube Data and Google Custom Search Engine APIs support, and also a Google Custom Search 
+Engine's identifier:  
 https://console.developers.google.com/apis/dashboard  
+https://cse.google.com/cse/all  
+In order to make your Google Custom Search Engine work correctly, you must assign any website to it during creation 
+(it might as well be https://example.com). Then you must go into the CSE's Setup / Basics, remove the website and 
+check boxes: "Image search" and "Search the entire web".  
 
 * Reddit username and password, and also Reddit script application ID and secret:  
 https://www.reddit.com/prefs/apps  
