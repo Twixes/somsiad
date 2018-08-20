@@ -14,8 +14,8 @@
 import logging
 from discord.ext import commands
 from somsiad_helper import *
-from apiclient.discovery import build
-from apiclient.errors import HttpError
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 @client.command(aliases=['yt', 'tuba'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
