@@ -26,7 +26,7 @@ async def isitup(ctx, *args):
     else:
         query = ' '.join(args)
         url = f'https://isitup.org/{query}.json'
-        response_code_urls = {
+        RESPONSE_CODE_URLS = {
             1:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_informacyjne',
             2:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_powodzenia',
             3:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_przekierowania',
@@ -38,7 +38,7 @@ async def isitup(ctx, *args):
                     res = await r.json()
                     # Website online
                     if res['status_code'] == 1:
-                        res_code = response_code_urls[int(str(res['response_code'])[0])]
+                        res_code = RESPONSE_CODE_URLS[int(str(res['response_code'])[0])]
                         res_time = res['response_time'] * 1000
                         description = (f'Strona [{res["domain"]}](http://{res["domain"]}) jest dostępna. '
                             f'Z IP [{res["response_ip"]}](http://{res["response_ip"]}) otrzymano kod odpowiedzi '
