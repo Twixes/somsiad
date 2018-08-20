@@ -11,25 +11,24 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import aiohttp
 from discord.ext import commands
 from somsiad_helper import *
+from googleapiclient.discovery import build
+
+google_client = build('customsearch', 'v1', developerKey=conf['google_key'])
 
 @client.command(aliases=['g', 'gugiel'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def google(ctx, *args):
-    """Returns first matching result from Google using DuckDuckGo's Instant Answer API - https://duckduckgo.com/api."""
+    """Returns first matching result from Google using the provided Custom Search Engine."""
     if len(args) == 0:
-        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
+        await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
     else:
-        query = '+'.join(args)
-        url = f'https://api.duckduckgo.com/?q=!fl {query}&t=somsiad_discord_bot&format=json'
-        headers = {'User-Agent': 'python-duckduckgo'} # pass headers to allow redirection
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as r:
-                if r.status == 200:
-                    await ctx.send(f'{ctx.author.mention}\n:globe_with_meridians: {str(r.url)}'
-                        '\n`Wyniki za pośrednictwem DuckDuckGo` :duck:')
-                else:
-                    await ctx.send(f':warning: Nie można połączyć się z DuckDuckGo, {ctx.author.mention}')
+        query = ' '.join(args)
+        result = google_client.cse().list(q=query, cx=conf['google_custom_search_engine_id'], hl='pl',
+            num=1).execute()
+        if int(result['searchInformation']['totalResults']) == 0:
+            await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
+        else:
+            await ctx.send(f'{ctx.author.mention}\n{result["items"][0]["link"]}')

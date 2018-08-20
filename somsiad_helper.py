@@ -138,6 +138,7 @@ conf_required = [
     # (key, default_value, instruction, description, unit,)
     ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
     ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None,),
+    ('google_custom_search_engine_id', None, 'Wprowadź identyfikator CSE Google', 'Identyfikator CSE Google', None,),
     ('reddit_id', None, 'Wprowadź ID aplikacji redditowej', 'ID aplikacji redditowej', None,),
     ('reddit_secret', None, 'Wprowadź szyfr aplikacji redditowej', 'Szyfr aplikacji redditowej', None,),
     ('reddit_username', None, 'Wprowadź redditową nazwę użytkownika', 'Redditowa nazwa użytkownika', None,),
