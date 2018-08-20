@@ -15,36 +15,55 @@ from discord.ext import commands
 from googleapiclient.discovery import build
 from somsiad_helper import *
 
-google_client = build('customsearch', 'v1', developerKey=conf['google_key'])
+class GoogleCSE:
+    google_cse = None
+    google_cse_id = None
+
+    def __init__(self, developer_key, google_cse_id):
+        self.google_cse = build('customsearch', 'v1', developerKey=developer_key)
+        self.google_cse_id = google_cse_id
+
+    def get_first_google_result_link(self, query, language, search_type=None):
+        if search_type == 'image':
+            result = self.google_cse.cse().list(q=query, cx=self.google_cse_id, hl=language,
+                num=1, searchType='image', fields='items/link,searchInformation/totalResults').execute()
+        else:
+            result = self.google_cse.cse().list(q=query, cx=self.google_cse_id, hl=language,
+                num=1, fields='items/link,searchInformation/totalResults').execute()
+
+        if int(result['searchInformation']['totalResults']) == 0:
+            return None
+        else:
+           return result['items'][0]['link']
+
+google_cse = GoogleCSE(conf['google_key'], conf['google_custom_search_engine_id'])
 
 @client.command(aliases=['g', 'gugiel'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def google(ctx, *args):
-    """Returns first matching result from Google using the provided Custom Search Engine."""
+    """Returns first matching website from Google using the provided Custom Search Engine."""
     if len(args) == 0:
         await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
     else:
         query = ' '.join(args)
-        result = google_client.cse().list(q=query, cx=conf['google_custom_search_engine_id'], hl='pl',
-            num=1, fields='items/link,searchInformation/totalResults').execute()
-        if int(result['searchInformation']['totalResults']) == 0:
+        link = google_cse.get_first_google_result_link(query, 'pl')
+        if link is None:
             await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
         else:
-            await ctx.send(f'{ctx.author.mention}\n{result["items"][0]["link"]}')
+            await ctx.send(f'{ctx.author.mention}\n{link}')
 
 @client.command(aliases=['gi'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def googleimage(ctx, *args):
-    """Returns first matching result from Google using the provided Custom Search Engine."""
+    """Returns first matching image from Google using the provided Custom Search Engine."""
     if len(args) == 0:
         await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
     else:
         query = ' '.join(args)
-        result = google_client.cse().list(q=query, cx=conf['google_custom_search_engine_id'], hl='pl',
-            num=1, searchType='image', fields='items/link,searchInformation/totalResults').execute()
-        if int(result['searchInformation']['totalResults']) == 0:
+        link = google_cse.get_first_google_result_link(query, 'pl', search_type='image')
+        if link is None:
             await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
         else:
-            await ctx.send(f'{ctx.author.mention}\n{result["items"][0]["link"]}')
+            await ctx.send(f'{ctx.author.mention}\n{link}')
