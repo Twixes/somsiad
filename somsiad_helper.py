@@ -152,9 +152,9 @@ conf_required = [
 ]
 
 bot_dir_path = os.getcwd()
-conf_dir_path = os.path.join(os.path.expanduser('~'), '.somsiad')
+storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
 
-conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
+conf_file_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')
 configurator = Configurator(conf_file_path, conf_required)
 conf = configurator.configuration
 
