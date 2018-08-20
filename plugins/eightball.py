@@ -29,7 +29,7 @@ async def eightball(ctx, *args):
     if question != '':
         if question.endswith('?'):
             question = question.strip('?')
-            if 'fccchk' in question:
+            if 'fccchk' in question.lower():
                 response = secrets.choice(eightball_responses)
                 ReSPoNse = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in response)
                 await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {ReSPoNse}')
