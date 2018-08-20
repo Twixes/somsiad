@@ -229,7 +229,7 @@ async def redditverify(ctx, *args):
                 f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            embed.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
+            embed.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się '
                 f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
                 'Fraza ważna jest do końca dnia.')
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
@@ -239,7 +239,7 @@ async def redditverify(ctx, *args):
         elif user_status['phrase_gen_date'] == today_date:
             # If user already has requested verification today, fend him off
             embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=brand_color)
-            embed.add_field(name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.')
+            embed.add_field(name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.')
             await ctx.author.send(embed=embed)
 
         else:
@@ -250,7 +250,7 @@ async def redditverify(ctx, *args):
                 f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
-            embed.add_field(name='Wygenerowano tajną frazę', value='By zweryfikować się '
+            embed.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się '
                 f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
                 'Fraza ważna jest do końca dnia.')
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
@@ -258,7 +258,7 @@ async def redditverify(ctx, *args):
             await ctx.author.send(embed=embed)
     else:
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=brand_color)
-        embed.add_field(name=f'Twoje konto na Reddicie to /u/{user_status["reddit_username"]}',
+        embed.add_field(name=f'Twoje konto na Reddicie to /u/{user_status["reddit_username"]}.',
             value=f'Zweryfikowano {user_status["phrase_gen_date"]}.')
 
         await ctx.author.send(embed=embed)
