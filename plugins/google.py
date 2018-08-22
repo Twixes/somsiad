@@ -64,7 +64,7 @@ async def google(ctx, *args):
         else:
             await ctx.send(f'{ctx.author.mention}\n{link}')
 
-@somsiad.client.command(aliases=['gi'])
+@somsiad.client.command(aliases=['i', 'gi'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def googleimage(ctx, *args):
