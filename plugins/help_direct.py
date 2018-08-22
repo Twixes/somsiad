@@ -16,51 +16,51 @@ from discord.ext import commands
 from somsiad_helper import *
 from version import __version__
 
-@client.command(aliases=['help', 'pomocy'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['help', 'pomocy'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def help_direct(ctx):
-    embed = discord.Embed(title='Lecem na ratunek!' , color=brand_color)
+    embed = discord.Embed(title='Lecem na ratunek!' , color=somsiad.color)
     embed.add_field(name='Dobry!', value='Somsiad jestem. Pomagam w różnych kwestiach, wystarczy mnie zawołać. '
         'Odpowiadam na wszystkie zawołania z poniższej listy.\n'
         'W nawiasach podane są alternatywne nazwy zawołań - tak dla różnorodności.')
-    embed.add_field(name=f'{conf["command_prefix"]}pomocy (help)', value='Wysyła ci tę wiadomość.',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}pomocy (help)', value='Wysyła ci tę wiadomość.',
         inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}google (gugiel, g) <zapytanie>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}google (gugiel, g) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasującą stronę.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}googleimage (gi) <zapytanie>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}googleimage (gi) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący obrazek.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
         value='Wysyła <zapytanie> do YouTube i zwraca najlepiej pasujący wynik.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
         value='Sprawdza znaczenie <hasła> w polskiej wersji Wikipedii.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}wikipediaen (wikien, wen) <hasło>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}wikipediaen (wikien, wen) <hasło>',
         value='Sprawdza znaczenie <hasła> w anglojęzycznej wersji Wikipedii.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}urbandictionary (urban) <wyrażenie>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}urbandictionary (urban) <wyrażenie>',
         value='Sprawdza znaczenie <wyrażenia> w Urban Dictionary.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}isitup (isup, up) <url>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
         '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}subreddit (sub, r) <?subreddit>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}subreddit (sub, r) <?subreddit>',
         value='Zwraca URL subreddita <?subreddit>.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}user (u) <?użytkownik Reddita>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}user (u) <?użytkownik Reddita>',
         value='Zwraca URL profilu użytkownika Reddita <?użytkownik Reddita>.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}zweryfikuj',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}zweryfikuj',
         value=f'Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie ({ctx.author}).', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}prześwietl (przeswietl) <?użytkownik Discorda>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}prześwietl (przeswietl) <?użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> (jeśli należy on do serwera '
         'na którym użyto komendy) lub, jeśli nie podano argumentu, dla użytkownika, który użył komendy.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}pomógł (pomogl) <?użytkownik Discorda>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}pomógł (pomogl) <?użytkownik Discorda>',
         value='Oznacza pomocną wiadomość za pomocą reakcji.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}niepomógł (niepomogl) <?użytkownik Discorda>',
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}niepomógł (niepomogl) <?użytkownik Discorda>',
         value='Oznacza niepomocną wiadomość za pomocą reakcji.', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}tableflip', value='(╯°□°）╯︵ ┻━┻', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}unflip', value='┬─┬ ノ( ゜-゜ノ)', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}shrug', value=r'¯\_(ツ)_/¯', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}lenny (lennyface)', value='( ͡° ͜ʖ ͡°)', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}dej (gib) <?rzecz>', value='༼ つ ◕_◕ ༽つ <?rzecz>', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
-    embed.add_field(name=f'{conf["command_prefix"]}wersja', value=__version__, inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}tableflip', value='(╯°□°）╯︵ ┻━┻', inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}unflip', value='┬─┬ ノ( ゜-゜ノ)', inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}shrug', value=r'¯\_(ツ)_/¯', inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}lenny (lennyface)', value='( ͡° ͜ʖ ͡°)', inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}dej (gib) <?rzecz>', value='༼ つ ◕_◕ ༽つ <?rzecz>', inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}ping', value=':ping_pong: Pong!', inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}wersja', value=__version__, inline=False)
     await ctx.author.send(embed=embed)

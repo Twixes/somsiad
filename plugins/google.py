@@ -47,10 +47,10 @@ class GoogleCSE:
         else:
            return result['items'][0]['link']
 
-google_cse = GoogleCSE(conf['google_key'], conf['google_custom_search_engine_id'])
+google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_search_engine_id'])
 
-@client.command(aliases=['g', 'gugiel'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['g', 'gugiel'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def google(ctx, *args):
     """Returns first matching website from Google using the provided Custom Search Engine."""
@@ -64,8 +64,8 @@ async def google(ctx, *args):
         else:
             await ctx.send(f'{ctx.author.mention}\n{link}')
 
-@client.command(aliases=['gi'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['gi'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def googleimage(ctx, *args):
     """Returns first matching image from Google using the provided Custom Search Engine."""

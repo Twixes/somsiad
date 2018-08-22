@@ -19,8 +19,8 @@ from somsiad_helper import *
 from version import __version__
 
 
-@client.command(aliases=['exchange', 'kantor', 'kurs'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['exchange', 'kantor', 'kurs'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def currency(ctx, *args):
     """Provides currency exchange rates."""
@@ -28,7 +28,7 @@ async def currency(ctx, *args):
     footer_text2 = 'CryptoCompare.com'
     footer_icon = 'https://www.cryptocompare.com/media/20562/favicon.png'
     if len(args) == 0:
-        embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', colour=brand_color)
+        embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', colour=somsiad.color)
         embed.set_footer(text=footer_text2, icon_url=footer_icon)
         await ctx.send(embed=embed)
     else:
@@ -58,7 +58,7 @@ async def currency(ctx, *args):
                 to = to.replace(' ', ',')
             else:
                 to = 'USD,EUR,PLN'
-            headers = {'User-Agent': user_agent}
+            headers = {'User-Agent': somsiad.user_agent}
             crypto_url = ('https://min-api.cryptocompare.com/data/price' +
                           f'?fsym={fr}&tsyms={to}&extraParams=Somsiad{__version__}')
             async with aiohttp.ClientSession() as session:
@@ -69,12 +69,12 @@ async def currency(ctx, *args):
                             if res['Response'] == 'Error' and res['Type'] == 1:
                                 embed = discord.Embed(title=':warning: Błąd',
                                                       description=error_description,
-                                                      colour=brand_color)
+                                                      colour=somsiad.color)
                                 embed.set_footer(text=footer_text2, icon_url=footer_icon)
                             else:
                                 embed = discord.Embed(title=':warning: Błąd',
                                                       description='Niewłaściwie skonstruowane zapytanie.',
-                                                      colour=brand_color)
+                                                      colour=somsiad.color)
                                 embed.set_footer(text=footer_text2, icon_url=footer_icon)
                         else:
                             if 'num' not in locals():
@@ -83,15 +83,15 @@ async def currency(ctx, *args):
                                                for k, v in res.items()]
                             currency_values = '\n'.join(currency_values)
                             embed = discord.Embed(title=f'{num:.2f} {fr}', description=currency_values,
-                                                  colour=brand_color)
+                                                  colour=somsiad.color)
                             embed.set_footer(text=footer_text1, icon_url=footer_icon)
                         await ctx.send(embed=embed)
                     else:
                         embed = discord.Embed(title=':warning: Błąd', description='Nie można połączyć się z serwisem.',
-                                              colour=brand_color)
+                                              colour=somsiad.color)
                         embed.set_footer(text=footer_text2, icon_url=footer_icon)
                         await ctx.send(embed=embed)
         else:
-            embed = discord.Embed(title=':warning: Błąd', description=error_description, colour=brand_color)
+            embed = discord.Embed(title=':warning: Błąd', description=error_description, colour=somsiad.color)
             embed.set_footer(text=footer_text2, icon_url=footer_icon)
             await ctx.send(embed=embed)

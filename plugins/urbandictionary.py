@@ -17,8 +17,8 @@ import discord
 from discord.ext import commands
 from somsiad_helper import *
 
-@client.command(aliases=['urban'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['urban'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def urbandictionary(ctx, *args):
     """Returns Urban Dictionary word definition."""
@@ -47,7 +47,7 @@ async def urbandictionary(ctx, *args):
                         t_up = top_def['thumbs_up']
                         t_down = top_def['thumbs_down']
                         # Output results
-                        embed = discord.Embed(title='Urban Dictionary', color=brand_color)
+                        embed = discord.Embed(title='Urban Dictionary', color=somsiad.color)
                         embed.add_field(name='Słowo:', value=word, inline=False)
                         embed.add_field(name='Definicja:', value=definition, inline=False)
                         embed.add_field(name='Przykład(y):', value=example, inline=False)

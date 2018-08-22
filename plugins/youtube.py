@@ -17,10 +17,10 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from somsiad_helper import *
 
-youtube_client = build('youtube', 'v3', developerKey=conf['google_key'])
+youtube_client = build('youtube', 'v3', developerKey=somsiad.conf['google_key'])
 
-@client.command(aliases=['yt', 'tuba'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['yt', 'tuba'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
     """Returns first matching result from YouTube."""

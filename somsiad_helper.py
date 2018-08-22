@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import logging
 from discord.ext.commands import Bot
 from version import __version__
 
@@ -26,7 +27,7 @@ class Configurator:
         self.configuration_required = configuration_required
 
         if configuration_required is None:
-            self.read()
+            self.load()
         else:
             self.ensure_completeness()
 
@@ -62,7 +63,7 @@ class Configurator:
         step_number = 1
 
         if os.path.exists(self.configuration_file_path):
-            self.read()
+            self.load()
 
         if self.configuration_required is not None:
             if self.configuration is {} or self.configuration is None:
@@ -87,7 +88,7 @@ class Configurator:
 
         return self.configuration
 
-    def read(self):
+    def load(self):
         """Loads the configuration from the file specified during class initialization."""
         with open(self.configuration_file_path, 'r') as self.configuration_file:
             for line in self.configuration_file.readlines():
@@ -107,7 +108,7 @@ class Configurator:
                 elif key_required[4] == 'password':
                     line = f'{key_required[3]}: {"*" * len(self.configuration[key_required[0]])}'
                 elif isinstance(key_required[4], tuple) and len(key_required[4]) == 2:
-                    unit_noun_variant = key_required[4][0] if int(conf[key_required[0]]) == 1 else key_required[4][1]
+                    unit_noun_variant = key_required[4][0] if int(somsiad.conf[key_required[0]]) == 1 else key_required[4][1]
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {unit_noun_variant}'
                 else:
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {key_required[4]}'
@@ -122,18 +123,47 @@ class Configurator:
 
             return info
 
-def get_fellow_server_member(server, args):
-    if len(args) == 1 and args[0].strip('\\').startswith('<@') and args[0].endswith('>'):
-        user = server.get_member(int(args[0].strip('\\<@!>')))
-    else:
-        user = server.get_member_named(' '.join(args))
+class Somsiad:
+    color = 0x7289da
+    user_agent = f'SomsiadBot/{__version__}'
+    bot_dir_path = os.getcwd()
+    storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
+    conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
+    conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
+    logger = None
+    configurator = None
+    conf = None
+    client = None
 
-    return user
+    def __init__(self, conf_required):
+        logging.basicConfig(filename='somsiad.log', level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s')
+        self.logger = logging.getLogger()
+        if not os.path.exists(self.storage_dir_path):
+            os.makedirs(self.storage_dir_path)
+        if not os.path.exists(self.conf_dir_path):
+            os.makedirs(self.conf_dir_path)
+        self.configurator = Configurator(self.conf_file_path, conf_required)
+        self.conf = self.configurator.configuration
+        self.client = Bot(description='Zawsze pomocny Somsiad', command_prefix=self.conf['command_prefix'])
 
-def does_member_have_elevated_permissions(member):
-    return member.guild_permissions.administrator
+    def run(self):
+        self.client.run(self.conf['discord_token'])
 
-# Initialize configuration
+    @staticmethod
+    def get_fellow_server_member(server, args):
+        if len(args) == 1 and args[0].strip('\\').startswith('<@') and args[0].endswith('>'):
+            user = server.get_member(int(args[0].strip('\\<@!>')))
+        else:
+            user = server.get_member_named(' '.join(args))
+
+        return user
+
+    @staticmethod
+    def does_member_have_elevated_permissions(member):
+        return member.guild_permissions.administrator
+
+# Required configuration
 conf_required = [
     # (key, default_value, instruction, description, unit,)
     ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
@@ -153,25 +183,7 @@ conf_required = [
     ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None,),
 ]
 
-bot_dir_path = os.getcwd()
+somsiad = Somsiad(conf_required)
 
-storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
-if not os.path.exists(storage_dir_path):
-    os.makedirs(storage_dir_path)
-
-conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
-if not os.path.exists(conf_dir_path):
-    os.makedirs(conf_dir_path)
-
-conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
-
-configurator = Configurator(conf_file_path, conf_required)
-conf = configurator.configuration
-
-user_agent = f'SomsiadBot/{__version__}'
-
-brand_color = 0x7289da
-
-client = Bot(description='Zawsze pomocny Somsiad', command_prefix=conf['command_prefix'])
-
-client.remove_command('help') # Replaced with the 'help_direct' plugin
+somsiad.logger.info('Bot online')
+somsiad.client.remove_command('help') # Replaced with the 'help_direct' plugin

@@ -15,52 +15,52 @@ from discord.ext import commands
 from somsiad_helper import *
 from version import __version__
 
-@client.command(aliases=['wersja'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['wersja'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def version(ctx):
     """Responds with current version of the bot."""
-    if does_member_have_elevated_permissions(ctx.author):
+    if somsiad.does_member_have_elevated_permissions(ctx.author):
         version_string = f'{__version__}!'
     else:
         version_string = __version__
     await ctx.send(version_string)
 
-@client.command()
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command()
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def ping(ctx):
     """Pong!"""
     await ctx.send(':ping_pong: Pong!')
 
-@client.command(aliases=['lenny'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['lenny'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
-@client.command()
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command()
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def tableflip(ctx):
     """(╯°□°）╯︵ ┻━┻"""
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
-@client.command()
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command()
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def unflip(ctx):
     """┬─┬ ノ( ゜-゜ノ)"""
     await ctx.send('┬─┬ ノ( ゜-゜ノ)')
 
-@client.command()
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command()
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def shrug(ctx):
     r"""¯\_(ツ)_/¯"""
     await ctx.send(r'¯\_(ツ)_/¯')
 
-@client.command(aliases=['dej'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['dej'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def gib(ctx, *args):
     """༼ つ ◕_◕ ༽つ"""
@@ -69,15 +69,15 @@ async def gib(ctx, *args):
     else:
         await ctx.send(f'༼ つ ◕_◕ ༽つ {" ".join(args)}')
 
-@client.command()
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command()
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def fccchk(ctx):
     """:japanese_goblin:"""
     await ctx.send(':japanese_goblin:')
 
-@client.command(aliases=['r', 'sub'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['r', 'sub'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def subreddit(ctx, *args):
     """Responds with the URL of the given subreddit."""
@@ -87,13 +87,13 @@ async def subreddit(ctx, *args):
         url = f'https://reddit.com/r/{"".join(args)}'
     await ctx.send(url)
 
-@client.command(aliases=['u'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['u'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def user(ctx, *args):
     """Responds with the URL of the given Reddit user."""
     if len(args) == 0:
-        url = f'https://reddit.com/u/{conf["reddit_username"]}'
+        url = f'https://reddit.com/u/{somsiad.conf["reddit_username"]}'
     else:
         url = f'https://reddit.com/u/{"".join(args)}'
     await ctx.send(url)

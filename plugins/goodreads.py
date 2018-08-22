@@ -17,22 +17,22 @@ import discord
 from discord.ext import commands
 from somsiad_helper import *
 
-@client.command(aliases=['gr'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['gr'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def goodreads(ctx, *args):
     """Goodreads search. Responds with for the most popular books matching the query."""
     FOOTER_TEXT = 'goodreads'
     FOOTER_ICON_URL = 'http://www.goodreads.com/favicon.ico'
     if len(args) == 0:
-        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!', colur=brand_color)
+        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!', colur=somsiad.color)
         embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
         await ctx.send(embed=embed)
     else:
         query = ' '.join(args)
         url = 'https://www.goodreads.com/search/index.xml'
-        params = {'q': query, 'key': conf['goodreads_key']}
-        headers = {'User-Agent': user_agent}
+        params = {'q': query, 'key': somsiad.conf['goodreads_key']}
+        headers = {'User-Agent': somsiad.user_agent}
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, params=params) as r:
                 if r.status == 200:
@@ -40,7 +40,7 @@ async def goodreads(ctx, *args):
                     node = tree.find('.//total-results')
                     if node.text == '0':
                         embed = discord.Embed(title=':slight_frown: Niepowodzenie', description='Nie znaleziono ' +
-                                              f'żadnego wyniku pasującego do hasła "{query}".', color=brand_color)
+                                              f'żadnego wyniku pasującego do hasła "{query}".', color=somsiad.color)
                         embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                         await ctx.send(embed=embed)
                     else:
@@ -76,7 +76,7 @@ async def goodreads(ctx, *args):
                                               description=f'**Autor:** {books[0]["author"]}\n' +
                                               f'**Ocena:** {books[0]["average_rating"]}/5\n' +
                                               f'**Liczba głosów:** {books[0]["ratings_count"]}',
-                                              colour=brand_color)
+                                              colour=somsiad.color)
                         embed.set_thumbnail(url=books[0]['image_url'])
                         embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                         if len(books) > 1:
@@ -93,6 +93,6 @@ async def goodreads(ctx, *args):
                         await ctx.send(embed=embed)
                 else:
                     embed = discord.Embed(title=":warning: Błąd", description="Nie można połączyć się z serwisem!",
-                                          colour=brand_color)
+                                          colour=somsiad.color)
                     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                     await ctx.send(embed=embed)

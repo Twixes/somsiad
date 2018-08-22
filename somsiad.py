@@ -96,20 +96,20 @@ class Informator:
 def print_info():
     informator = Informator()
 
-    number_of_users = len(set(client.get_all_members()))
-    number_of_servers = len(client.guilds)
+    number_of_users = len(set(somsiad.client.get_all_members()))
+    number_of_servers = len(somsiad.client.guilds)
     info_lines = (
-        f'Obudzono Somsiada (ID {client.user.id}).',
+        f'Obudzono Somsiada (ID {somsiad.client.user.id}).',
         '',
         f'Połączono {informator.with_preposition_variant(number_of_users)} {number_of_users} '
         f'{informator.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} na {number_of_servers} '
         f'{informator.noun_variant(number_of_servers, "serwerze", "serwerach")}:',
-        informator.list_of_servers(client),
+        informator.list_of_servers(somsiad.client),
         '',
         'Link do zaproszenia bota:',
-        f'https://discordapp.com/oauth2/authorize?client_id={client.user.id}&scope=bot&permissions=536083543',
+        f'https://discordapp.com/oauth2/authorize?somsiad.client_id={somsiad.client.user.id}&scope=bot&permissions=536083543',
         '',
-        configurator.info(),
+        somsiad.configurator.info(),
         '',
         f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
         '',
@@ -118,18 +118,18 @@ def print_info():
 
     informator.info(info_lines, '== ', verbose=True)
 
-@client.event
+@somsiad.client.event
 async def on_ready():
     """Does things once the bot comes online."""
     print_info()
-    return await client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {conf["command_prefix"]}pomocy'))
+    return await somsiad.client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy'))
 
-@client.event
+@somsiad.client.event
 async def on_server_join(server):
     """Does things whenever the bot joins a server."""
     print_info()
 
-@client.event
+@somsiad.client.event
 async def on_command_error(ctx, error):
     """Handles command errors."""
     ignored = (commands.CommandNotFound, commands.UserInputError)
@@ -146,4 +146,4 @@ async def on_command_error(ctx, error):
     traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
 if __name__ == '__main__':
-    client.run(conf['discord_token'])
+    somsiad.run()

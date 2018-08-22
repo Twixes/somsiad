@@ -16,8 +16,8 @@ import discord
 from discord.ext import commands
 from somsiad_helper import *
 
-@client.command(aliases=['isup', 'up'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['isup', 'up'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def isitup(ctx, *args):
     """Returns information about website status."""
@@ -50,7 +50,7 @@ async def isitup(ctx, *args):
                     # Wrong URL
                     elif res['status_code'] == 3:
                         description = ('Do wykonania testu potrzebny jest poprawny adres URL. Spróbuj ponownie.')
-                    embed = discord.Embed(title='Is it up?', description=description, color=brand_color)
+                    embed = discord.Embed(title='Is it up?', description=description, color=somsiad.color)
                     await ctx.send(embed=embed)
                 else:
                     await ctx.send(f':warning: Nie można połączyć się z serwisem isitup.org, {ctx.author.mention}')

@@ -44,8 +44,8 @@ class RedditVerificator:
         """Checks if given Reddit user seems trustworthy."""
         account_karma = reddit_user.link_karma + reddit_user.comment_karma
         account_age_days = (time.time() - reddit_user.created_utc) / 86400
-        if (account_age_days >= float(conf['reddit_account_min_age_days']) and
-            account_karma >= int(conf['reddit_account_min_karma'])):
+        if (account_age_days >= float(somsiad.conf['reddit_account_min_age_days']) and
+            account_karma >= int(somsiad.conf['reddit_account_min_karma'])):
             return True
         else:
             return False
@@ -149,8 +149,9 @@ class RedditVerificatorMessageWatch:
     def run(self):
         """Processes new messages from the inbox stream and uses them for verification."""
         # Handle each new message
-        self.watch_reddit = praw.Reddit(client_id=conf['reddit_id'], client_secret=conf['reddit_secret'],
-            username=conf['reddit_username'], password=conf['reddit_password'], user_agent=user_agent)
+        self.watch_reddit = praw.Reddit(client_id=somsiad.conf['reddit_id'],
+            client_secret=somsiad.conf['reddit_secret'], username=somsiad.conf['reddit_username'],
+            password=somsiad.conf['reddit_password'], user_agent=somsiad.user_agent)
         self.watch_verificator = RedditVerificator(self.users_db_path)
         for message in praw.models.util.stream_generator(self.watch_reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
@@ -181,11 +182,12 @@ class RedditVerificatorMessageWatch:
                                     f'{discord_username}.')
 
                             else:
-                                day_noun_variant = 'dzień' if int(conf['reddit_account_min_age_days']) == 1 else 'dni'
+                                day_noun_variant = ('dzień' if int(somsiad.conf['reddit_account_min_age_days']) == 1
+                                    else 'dni')
                                 message.reply('Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia '
                                     'wymagań. Do weryfikacji potrzebne jest konto założone co najmniej '
-                                    f'{conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie '
-                                    f'nie niższej niż {conf["reddit_account_min_karma"]}.')
+                                    f'{somsiad.conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie '
+                                    f'nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.')
 
                         else:
                             message.reply('Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę '
@@ -198,8 +200,8 @@ class RedditVerificatorMessageWatch:
 
             message.mark_read()
 
-phrase_parts_file_path = os.path.join(bot_dir_path, 'data', 'reddit_verification_phrase_parts.json')
-users_db_path = os.path.join(storage_dir_path, 'reddit_verification.db')
+phrase_parts_file_path = os.path.join(somsiad.bot_dir_path, 'data', 'reddit_verification_phrase_parts.json')
+users_db_path = os.path.join(somsiad.storage_dir_path, 'reddit_verification.db')
 
 # Load phrase parts
 with open(phrase_parts_file_path, 'r') as f:
@@ -207,8 +209,8 @@ with open(phrase_parts_file_path, 'r') as f:
 
 verificator = RedditVerificator(users_db_path, phrase_parts)
 
-@client.command(aliases=['zweryfikuj'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['zweryfikuj'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def redditverify(ctx, *args):
     """Verifies Discord user via Reddit."""
     discord_username = str(ctx.author)
@@ -224,11 +226,11 @@ async def redditverify(ctx, *args):
             phrase = verificator.assign_phrase(discord_username)
 
             message_url = ('https://www.reddit.com/message/compose/'
-                f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
+                f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
-            embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
+            embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
             embed.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się '
-                f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
+                f'wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
                 'Fraza ważna jest do końca dnia.')
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
@@ -236,7 +238,7 @@ async def redditverify(ctx, *args):
 
         elif user_status['phrase_gen_date'] == today_date:
             # If user already has requested verification today, fend him off
-            embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=brand_color)
+            embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
             embed.add_field(name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.')
             await ctx.author.send(embed=embed)
 
@@ -245,31 +247,32 @@ async def redditverify(ctx, *args):
             phrase = verificator.assign_phrase(discord_username)
 
             message_url = ('https://www.reddit.com/message/compose/'
-                f'?to={conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
+                f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
-            embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=brand_color)
+            embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
             embed.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się '
-                f'wyślij /u/{conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
+                f'wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
                 'Fraza ważna jest do końca dnia.')
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
             await ctx.author.send(embed=embed)
     else:
-        embed = discord.Embed(title='Już jesteś zweryfikowany', color=brand_color)
+        embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
         embed.add_field(name=f'Twoje konto na Reddicie to /u/{user_status["reddit_username"]}.',
             value=f'Zweryfikowano {user_status["phrase_gen_date"]}.')
 
         await ctx.author.send(embed=embed)
 
-@client.command(aliases=['prześwietl', 'przeswietl'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def redditxray(ctx, *args):
     """Checks given user's verification status."""
     # If no user was given assume message author
-    embed = discord.Embed(title='Wynik prześwietlenia', color=brand_color)
+    embed = discord.Embed(title='Wynik prześwietlenia', color=somsiad.color)
 
-    if len(args) == 1 and args[0].strip('\\') == '@everyone' and does_member_have_elevated_permissions(ctx.author):
+    if (len(args) == 1 and args[0].strip('\\') == '@everyone' and
+        somsiad.does_member_have_elevated_permissions(ctx.author)):
         for member in ctx.guild.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
@@ -277,7 +280,8 @@ async def redditxray(ctx, *args):
                     inline=False)
         await ctx.send(embed=embed)
 
-    elif len(args) == 1 and args[0].strip('\\') == '@here' and does_member_have_elevated_permissions(ctx.author):
+    elif (len(args) == 1 and args[0].strip('\\') == '@here' and
+        somsiad.does_member_have_elevated_permissions(ctx.author)):
         for member in ctx.channel.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
@@ -293,7 +297,7 @@ async def redditxray(ctx, *args):
         else:
             if len(args) == 1 and args[0].strip('\\').startswith('<@') and args[0].endswith('>'):
                 # If user was mentioned convert his ID to a username and then check if he is a member of the server
-                discord_username = str(await client.get_user_info(int(args[0].strip('\\<@!>'))))
+                discord_username = str(await somsiad.client.get_user_info(int(args[0].strip('\\<@!>'))))
             else:
                 # Otherwise autofill user's tag (number) and check if he is a member of the server
                 discord_username = ''.join(args).strip('\\@')
@@ -318,7 +322,7 @@ async def redditxray(ctx, *args):
                     await ctx.send(embed=embed)
                 else:
                     reddit_username_info = ''
-                    if does_member_have_elevated_permissions(ctx.author):
+                    if somsiad.does_member_have_elevated_permissions(ctx.author):
                         reddit_username_info = f' jako /u/{user_status["reddit_username"]}'
                     embed.add_field(name=':white_check_mark: Zweryfikowany',
                         value=f'Użytkownik {discord_user} został zweryfikowany '

@@ -20,7 +20,7 @@ from version import __version__
 
 async def wikipedia_search(ctx, args, lang):
     """Returns the closest matching article from Wikipedia."""
-    embed = discord.Embed(title="Wikipedia", color=brand_color)
+    embed = discord.Embed(title="Wikipedia", color=somsiad.color)
     if len(args) == 0:
         embed.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
         await ctx.send(embed=embed)
@@ -28,7 +28,7 @@ async def wikipedia_search(ctx, args, lang):
         query = '_'.join(args)
 
         open_url = f'https://{lang}.wikipedia.org/w/api.php?action=opensearch&search={query}&limit=10&format=json'
-        headers = {'User-Agent': user_agent}
+        headers = {'User-Agent': somsiad.user_agent}
         async with aiohttp.ClientSession() as session:
             # Use OpenSearch API first to get accurate page title of the result
             async with session.get(open_url, headers=headers) as r_open:
@@ -83,16 +83,16 @@ async def wikipedia_search(ctx, args, lang):
                     await ctx.send(embed=embed)
 
 
-@client.command(aliases=['wikipl', 'wpl'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['wikipl', 'wpl'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def wikipediapl(ctx, *args):
     """Polish version of wikipedia_search."""
     lang = 'pl'
     await wikipedia_search(ctx, args, lang)
 
-@client.command(aliases=['wikien', 'wen'])
-@commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@somsiad.client.command(aliases=['wikien', 'wen'])
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def wikipediaen(ctx, *args):
     """English version of wikipedia_search."""
