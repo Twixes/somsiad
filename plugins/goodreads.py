@@ -11,23 +11,22 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import xml.etree.ElementTree as ET
+import aiohttp
 import discord
 from discord.ext import commands
-import aiohttp
 from somsiad_helper import *
-import xml.etree.ElementTree as ET
-
 
 @client.command(aliases=['gr'])
 @commands.cooldown(1, conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def goodreads(ctx, *args):
-    """Goodreads search. Search for the most popular books for the given query."""
-    footer_text = 'goodreads.com'
-    footer_icon = 'https://s.gr-assets.com/assets/icons/goodreads_icon_32x32-6c9373254f526f7fdf2980162991a2b3.png'
+    """Goodreads search. Responds with for the most popular books matching the query."""
+    FOOTER_TEXT = 'goodreads'
+    FOOTER_ICON_URL = 'http://www.goodreads.com/favicon.ico'
     if len(args) == 0:
-        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!', colour=brand_color)
-        embed.set_footer(text=footer_text, icon_url=footer_icon)
+        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!', colur=brand_color)
+        embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
         await ctx.send(embed=embed)
     else:
         query = ' '.join(args)
@@ -41,8 +40,8 @@ async def goodreads(ctx, *args):
                     node = tree.find('.//total-results')
                     if node.text == '0':
                         embed = discord.Embed(title=':slight_frown: Niepowodzenie', description='Nie znaleziono ' +
-                                              f'żadnego wyniku pasującego do hasła "{query}".', colour=brand_color)
-                        embed.set_footer(text=footer_text, icon_url=footer_icon)
+                                              f'żadnego wyniku pasującego do hasła "{query}".', color=brand_color)
+                        embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                         await ctx.send(embed=embed)
                     else:
                         books = []
@@ -79,7 +78,7 @@ async def goodreads(ctx, *args):
                                               f'**Liczba głosów:** {books[0]["ratings_count"]}',
                                               colour=brand_color)
                         embed.set_thumbnail(url=books[0]['image_url'])
-                        embed.set_footer(text=footer_text, icon_url=footer_icon)
+                        embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                         if len(books) > 1:
                             sec_results = []
                             for i in books[1:5]:
@@ -95,5 +94,5 @@ async def goodreads(ctx, *args):
                 else:
                     embed = discord.Embed(title=":warning: Błąd", description="Nie można połączyć się z serwisem!",
                                           colour=brand_color)
-                    embed.set_footer(text=footer_text, icon_url=footer_icon)
+                    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                     await ctx.send(embed=embed)
