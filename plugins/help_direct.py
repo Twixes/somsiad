@@ -41,8 +41,9 @@ async def help_direct(ctx):
         value='Sprawdza znaczenie <wyrażenia> w Urban Dictionary.', inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}isitup (isup, up) <url>',
         value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
-    embed.add_field(name=f'{somsiad.conf["command_prefix"]}kantor (kurs) <?liczba> <trzyliterowy kod waluty początkowej> '
-        '<trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.', inline=False)
+    embed.add_field(name=f'{somsiad.conf["command_prefix"]}kantor (kurs) <?liczba> '
+        '<trzyliterowy kod waluty początkowej> <trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
+        inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}subreddit (sub, r) <?subreddit>',
         value='Zwraca URL subreddita <?subreddit>.', inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}user (u) <?użytkownik Reddita>',

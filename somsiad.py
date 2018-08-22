@@ -122,7 +122,8 @@ def print_info():
 async def on_ready():
     """Does things once the bot comes online."""
     print_info()
-    return await somsiad.client.change_presence(activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy'))
+    return await somsiad.client.change_presence(activity=discord.Game(
+        name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy'))
 
 @somsiad.client.event
 async def on_server_join(server):

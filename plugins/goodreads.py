@@ -76,7 +76,7 @@ async def goodreads(ctx, *args):
                                               description=f'**Autor:** {books[0]["author"]}\n' +
                                               f'**Ocena:** {books[0]["average_rating"]}/5\n' +
                                               f'**Liczba głosów:** {books[0]["ratings_count"]}',
-                                              colour=somsiad.color)
+                                              color=somsiad.color)
                         embed.set_thumbnail(url=books[0]['image_url'])
                         embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                         if len(books) > 1:
@@ -92,7 +92,7 @@ async def goodreads(ctx, *args):
                             embed.add_field(name='Pozostałe trafienia:', value=sec_results_str, inline=False)
                         await ctx.send(embed=embed)
                 else:
-                    embed = discord.Embed(title=":warning: Błąd", description="Nie można połączyć się z serwisem!",
-                                          colour=somsiad.color)
+                    embed = discord.Embed(title=':warning: Błąd', description='Nie można połączyć się z serwisem!',
+                                          color=somsiad.color)
                     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                     await ctx.send(embed=embed)

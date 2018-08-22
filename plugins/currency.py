@@ -28,7 +28,7 @@ async def currency(ctx, *args):
     footer_text2 = 'CryptoCompare.com'
     footer_icon = 'https://www.cryptocompare.com/media/20562/favicon.png'
     if len(args) == 0:
-        embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', colour=somsiad.color)
+        embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', color=somsiad.color)
         embed.set_footer(text=footer_text2, icon_url=footer_icon)
         await ctx.send(embed=embed)
     else:
@@ -53,7 +53,7 @@ async def currency(ctx, *args):
                 num = num.replace(',', '.')
                 num = float(num)
             fr = mo.group(4).upper()
-            if mo.group(7) != "":
+            if mo.group(7) != '':
                 to = mo.group(7).upper().lstrip()
                 to = to.replace(' ', ',')
             else:
@@ -69,12 +69,12 @@ async def currency(ctx, *args):
                             if res['Response'] == 'Error' and res['Type'] == 1:
                                 embed = discord.Embed(title=':warning: Błąd',
                                                       description=error_description,
-                                                      colour=somsiad.color)
+                                                      color=somsiad.color)
                                 embed.set_footer(text=footer_text2, icon_url=footer_icon)
                             else:
                                 embed = discord.Embed(title=':warning: Błąd',
                                                       description='Niewłaściwie skonstruowane zapytanie.',
-                                                      colour=somsiad.color)
+                                                      color=somsiad.color)
                                 embed.set_footer(text=footer_text2, icon_url=footer_icon)
                         else:
                             if 'num' not in locals():
@@ -83,15 +83,15 @@ async def currency(ctx, *args):
                                                for k, v in res.items()]
                             currency_values = '\n'.join(currency_values)
                             embed = discord.Embed(title=f'{num:.2f} {fr}', description=currency_values,
-                                                  colour=somsiad.color)
+                                                  color=somsiad.color)
                             embed.set_footer(text=footer_text1, icon_url=footer_icon)
                         await ctx.send(embed=embed)
                     else:
                         embed = discord.Embed(title=':warning: Błąd', description='Nie można połączyć się z serwisem.',
-                                              colour=somsiad.color)
+                                              color=somsiad.color)
                         embed.set_footer(text=footer_text2, icon_url=footer_icon)
                         await ctx.send(embed=embed)
         else:
-            embed = discord.Embed(title=':warning: Błąd', description=error_description, colour=somsiad.color)
+            embed = discord.Embed(title=':warning: Błąd', description=error_description, color=somsiad.color)
             embed.set_footer(text=footer_text2, icon_url=footer_icon)
             await ctx.send(embed=embed)
