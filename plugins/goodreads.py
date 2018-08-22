@@ -25,30 +25,26 @@ async def goodreads(ctx, *args):
     FOOTER_TEXT = 'goodreads'
     FOOTER_ICON_URL = 'http://www.goodreads.com/favicon.ico'
     if len(args) == 0:
-        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!', colur=somsiad.color)
-        embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-        await ctx.send(embed=embed)
+        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!', color=somsiad.color)
     else:
         query = ' '.join(args)
         url = 'https://www.goodreads.com/search/index.xml'
         params = {'q': query, 'key': somsiad.conf['goodreads_key']}
         headers = {'User-Agent': somsiad.user_agent}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, params=params) as r:
-                if r.status == 200:
-                    tree = ET.fromstring(await r.text())
+            async with session.get(url, headers=headers, params=params) as response:
+                if response.status == 200:
+                    tree = ET.fromstring(await response.text())
                     node = tree.find('.//total-results')
                     if node.text == '0':
-                        embed = discord.Embed(title=':slight_frown: Niepowodzenie', description='Nie znaleziono ' +
-                                              f'żadnego wyniku pasującego do hasła "{query}".', color=somsiad.color)
-                        embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-                        await ctx.send(embed=embed)
+                        embed = discord.Embed(title=':slight_frown: Niepowodzenie', description='Nie znaleziono '
+                            'żadnego wyniku pasującego do hasła "{query}".', color=somsiad.color)
                     else:
                         books = []
                         counter = 0
-                        for elem in tree.findall('.//work'):
+                        for element in tree.findall('.//work'):
                             books.append({})
-                            for work in elem.findall('*'):
+                            for work in element.findall('*'):
                                 if work.tag == 'id':
                                     books[counter]['book_id'] = work.text
                                 if work.tag == 'ratings_count':
@@ -69,30 +65,25 @@ async def goodreads(ctx, *args):
 
                         template_url = 'https://www.goodreads.com/book/title?id='
                         main_url = template_url + books[0]['title']
-                        main_url = main_url.replace(' ', '%20')
-                        main_url = main_url.replace('(', '%28')
-                        main_url = main_url.replace(')', '%29')
-                        embed = discord.Embed(title=f'**{books[0]["title"]}**', url=main_url,
-                                              description=f'**Autor:** {books[0]["author"]}\n' +
-                                              f'**Ocena:** {books[0]["average_rating"]}/5\n' +
-                                              f'**Liczba głosów:** {books[0]["ratings_count"]}',
-                                              color=somsiad.color)
+                        main_url = main_url.replace(' ', '%20').replace('(', '%28').replace(')', '%29')
+                        embed = discord.Embed(title=f'{books[0]["title"]}', url=main_url, color=somsiad.color)
+                        embed.set_author(name=books[0]["author"])
+                        embed.add_field(name='Ocena', value=f'{books[0]["average_rating"]}/5')
+                        embed.add_field(name='Liczba głosów', value=books[0]["ratings_count"])
                         embed.set_thumbnail(url=books[0]['image_url'])
-                        embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
                         if len(books) > 1:
                             sec_results = []
-                            for i in books[1:5]:
+                            for i in books[1:4]:
                                 sec_url = template_url + i['title']
                                 sec_url = sec_url.replace(' ', '%20')
                                 sec_url = sec_url.replace('(', '%28')
                                 sec_url = sec_url.replace(')', '%29')
-                                sec_results.append(f'• [{i["title"]}]({sec_url}) - {i["author"]} ' +
-                                                   f'({i["average_rating"]}/5)')
+                                sec_results.append(f'• [{i["title"]}]({sec_url}) - {i["author"]} - ' +
+                                                   f'{i["average_rating"]}/5')
                                 sec_results_str = '\n'.join(sec_results)
-                            embed.add_field(name='Pozostałe trafienia:', value=sec_results_str, inline=False)
-                        await ctx.send(embed=embed)
+                            embed.add_field(name='Pozostałe trafienia', value=sec_results_str, inline=False)
                 else:
                     embed = discord.Embed(title=':warning: Błąd', description='Nie można połączyć się z serwisem!',
-                                          color=somsiad.color)
-                    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-                    await ctx.send(embed=embed)
+                        color=somsiad.color)
+    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
+    await ctx.send(ctx.author.mention, embed=embed)
