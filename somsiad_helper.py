@@ -13,6 +13,7 @@
 
 import os
 import logging
+import datetime
 from discord import errors
 from discord.ext.commands import Bot
 from version import __version__
@@ -126,6 +127,78 @@ class Configurator:
                 print(line)
 
             return info
+
+
+class Informator:
+    @staticmethod
+    def with_preposition_variant(number):
+        return 'ze' if number >= 100 and number < 200 else 'z'
+
+    @staticmethod
+    def noun_variant(number, singular_form, plural_form):
+        return singular_form if number == 1 else plural_form
+
+    @staticmethod
+    def separator(block, width, verbose=False):
+        """Generates a separator string to the specified length out of given blocks. Can print to the console."""
+        pattern = (block * int(width / len(block)) + block)[:width].strip()
+        if verbose:
+            print(pattern)
+        return pattern
+
+    def list_of_servers(self, client, verbose=False):
+        """Generates a list of servers the bot is connected to, including the number of days since joining and
+        the number of users. Can print to the console.
+        """
+        servers = sorted(client.guilds, key=lambda server: len(server.members), reverse=True)
+        longest_server_name_length = 0
+        longest_days_since_joining_info_length = 0
+        list_of_servers = ''
+
+        for server in servers:
+            if server.me is not None:
+                if len(server.name) > longest_server_name_length:
+                    longest_server_name_length = len(server.name)
+                date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
+                days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
+                days_since_joining_info = (f'{days_since_joining} '
+                    f'{self.noun_variant(days_since_joining, "dnia", "dni")}')
+                if len(days_since_joining_info) > longest_days_since_joining_info_length:
+                    longest_days_since_joining_info_length = len(days_since_joining_info)
+
+        for server in servers:
+            if server.me is not None:
+                date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
+                days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
+                days_since_joining_info = (f'{days_since_joining} '
+                    f'{self.noun_variant(days_since_joining, "dnia", "dni")}')
+                list_of_servers += (f'{server.name.ljust(longest_server_name_length)} - '
+                    f'od {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
+                    f'{str(len(server.members))} '
+                    f'{self.noun_variant(len(server.members), "użytkownik", "użytkowników")}\n')
+        list_of_servers = list_of_servers.strip('\n')
+
+        if verbose:
+            print(list_of_servers)
+
+        return list_of_servers
+
+    def info(self, lines, separator_block=None, verbose=False):
+        """Takes a list of lines containing bot information and returns a string ready for printing.
+        Can print to the console.
+        """
+        info = ''
+        if separator_block is not None:
+            separator = self.separator(separator_block, os.get_terminal_size()[0])
+            if verbose: print(separator)
+        for line in lines:
+            info += line + '\n'
+            if verbose:
+                print(line)
+        if separator_block is not None and verbose:
+            print(separator)
+        info = info.strip('\n')
+        return info
 
 
 class Somsiad:
