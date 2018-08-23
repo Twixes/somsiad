@@ -141,7 +141,8 @@ async def on_command_error(ctx, error):
         return await ctx.send(f'Komenda {ctx.command} została wyłączona.')
     elif isinstance(error, commands.NoPrivateMessage):
         try:
-            return await ctx.author.send(f'Komenda {ctx.command} nie może zostać użyta w prywatnej wiadomości.')
+            return await ctx.author.send(f'Komenda {somsiad.conf["command_prefix"]}{ctx.command} '
+                'nie może zostać użyta w prywatnej wiadomości.')
         except:
             pass
     somsiad.logger.info(f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.command}: "{error}".')

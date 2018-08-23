@@ -35,7 +35,7 @@ async def help_direct(ctx):
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}googleimage (gi, i) <zapytanie>',
         value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący obrazek.', inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
-        value='Zwraca z YouTube najlepiej pasujące do <zapytanie> wideo.', inline=False)
+        value='Zwraca z YouTube najlepiej pasujące do <zapytania> wideo.', inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
         value='Sprawdza znaczenie <hasła> w polskiej wersji Wikipedii.', inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}wikipediaen (wikien, wen) <hasło>',
@@ -45,7 +45,7 @@ async def help_direct(ctx):
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}urbandictionary (urban) <wyrażenie>',
         value='Sprawdza znaczenie <wyrażenia> w Urban Dictionary.', inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}isitup (isup, up) <url>',
-        value='Za pomocą serwisu isitup.org wykrywa status danej strony.', inline=False)
+        value='Za pomocą serwisu isitup.org sprawdza status danej strony.', inline=False)
     embed.add_field(name=f'{somsiad.conf["command_prefix"]}kantor (kurs) <?liczba> '
         '<trzyliterowy kod waluty początkowej> <?trzyliterowy kod waluty docelowej>', value='Konwertuje waluty.',
         inline=False)
