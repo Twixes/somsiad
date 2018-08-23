@@ -24,7 +24,7 @@ from somsiad_helper import *
 async def goodreads(ctx, *args):
     """Goodreads search. Responds with for the most popular books matching the query."""
     FOOTER_TEXT = 'goodreads'
-    FOOTER_ICON_URL = 'http://www.goodreads.com/favicon.ico'
+    FOOTER_ICON_URL = 'https://www.goodreads.com/favicon.ico'
     if not args:
         embed = discord.Embed(
             title=':warning: Błąd',
