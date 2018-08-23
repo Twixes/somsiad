@@ -74,15 +74,21 @@ async def currency(ctx, *args):
                         else:
                             if 'num' not in locals():
                                 num = 1
-                            currency_values = [(str(num * value) + ' ' + currency) for currency, value in
-                                response_data.items()]
+                            currency_values = [
+                                f'{str(num * value)} {currency}' for currency, value in response_data.items()
+                            ]
                             currency_values = '\n'.join(currency_values)
                             embed = discord.Embed(
-                                title=f'{num} {initial}', description=currency_values, color=somsiad.color)
+                                title=f'{num} {initial}',
+                                description=currency_values,
+                                color=somsiad.color
+                            )
                     else:
                         embed = discord.Embed(
-                            title=':warning: Błąd', description='Nie udało się połączyć z serwisem, CryptoCompare.com!',
-                            color=somsiad.color)
+                            title=':warning: Błąd',
+                            description='Nie udało się połączyć z serwerem przelicznika walut!',
+                            color=somsiad.color
+                        )
         else:
             embed = discord.Embed(title=':warning: Błąd', description=ERROR_NOTICE, color=somsiad.color)
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
