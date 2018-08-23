@@ -17,6 +17,7 @@ from discord import errors
 from discord.ext.commands import Bot
 from version import __version__
 
+
 class Configurator:
     configuration_file_path = None
     configuration_file = None
@@ -58,8 +59,9 @@ class Configurator:
 
     def ensure_completeness(self):
         """Loads the configuration from the file specified during class initialization and ensures
-            that all required keys are present. If not, the CLI user is asked to input missing settings.
-            If the file doesn't exist yet, configuration is started from scratch."""
+        that all required keys are present. If not, the CLI user is asked to input missing settings.
+        If the file doesn't exist yet, configuration is started from scratch.
+        """
         was_configuration_changed = False
         step_number = 1
 
@@ -125,6 +127,7 @@ class Configurator:
 
             return info
 
+
 class Somsiad:
     color = 0x7289da
     user_agent = f'SomsiadBot/{__version__}'
@@ -138,8 +141,11 @@ class Somsiad:
     client = None
 
     def __init__(self, conf_required_extension):
-        logging.basicConfig(filename='somsiad.log', level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(
+            filename='somsiad.log',
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
         self.logger = logging.getLogger()
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
@@ -178,6 +184,7 @@ class Somsiad:
     def does_member_have_elevated_permissions(member):
         return member.guild_permissions.administrator
 
+
 # Required configuration
 conf_required_extension = [
     # (key, default_value, instruction, description, unit,)
@@ -194,6 +201,8 @@ conf_required_extension = [
         'Minimalna karma weryfikowanego konta na Reddicie', None,),
 ]
 
+
 somsiad = Somsiad(conf_required_extension)
+
 
 somsiad.client.remove_command('help') # Replaced with the 'help_direct' plugin

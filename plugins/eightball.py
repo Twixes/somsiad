@@ -16,8 +16,10 @@ import secrets
 from discord.ext import commands
 from somsiad_helper import *
 
+
 with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.txt')) as f:
     eightball_responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
+
 
 @somsiad.client.command(aliases=['8ball', '8-ball', '8'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)

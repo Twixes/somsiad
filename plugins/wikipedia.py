@@ -18,10 +18,11 @@ from discord.ext import commands
 from somsiad_helper import *
 from version import __version__
 
+
 async def wikipedia_search(ctx, args, lang):
     """Returns the closest matching article from Wikipedia."""
     embed = discord.Embed(title="Wikipedia", color=somsiad.color)
-    if len(args) == 0:
+    if not args:
         embed.add_field(name=':warning: Błąd', value=f'Nie podano szukanego hasła!')
         await ctx.send(embed=embed)
     else:
@@ -35,8 +36,10 @@ async def wikipedia_search(ctx, args, lang):
                 if r_open.status == 200:
                     res_open = await r_open.json()
                     if len(res_open[1]) < 1:
-                        embed.add_field(name=':slight_frown: Niepowodzenie',
-                            value=f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".')
+                        embed.add_field(
+                            name=':slight_frown: Niepowodzenie',
+                            value=f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".'
+                        )
                         await ctx.send(embed=embed)
                     else:
                         # Use title retrieved from OpenSearch response
@@ -73,7 +76,7 @@ async def wikipedia_search(ctx, args, lang):
                                         embed.set_thumbnail(url=thumbnail)
 
                                     embed.add_field(name=title, value=summary, inline=False)
-                                    embed.add_field(name='Pełny artykuł: ', value=url, inline=True)
+                                    embed.add_field(name='Pełny artykuł', value=url, inline=False)
                                     await ctx.send(embed=embed)
                             else:
                                 embed.add_field(name=':warning: Błąd', value='Nie udało się połączyć z serwisem!')
@@ -90,6 +93,7 @@ async def wikipediapl(ctx, *args):
     """Polish version of wikipedia_search."""
     lang = 'pl'
     await wikipedia_search(ctx, args, lang)
+
 
 @somsiad.client.command(aliases=['wikien', 'wen'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)

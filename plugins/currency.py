@@ -26,12 +26,12 @@ async def currency(ctx, *args):
     """Provides (crypto)currency exchange rates."""
     FOOTER_TEXT = 'CryptoCompare.com (CC BY-NC 3.0)'
     FOOTER_ICON_URL = 'https://www.cryptocompare.com/media/20562/favicon.png'
-    ERROR_NOTICE = ('Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 ' +
-        'WALUTA3 ...", gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody ' +
-        'walut ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody ' +
+    ERROR_NOTICE = ('Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 '
+        'WALUTA3 ...", gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody '
+        'walut ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody '
         'kryptowalut. Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.')
 
-    if len(args) == 0:
+    if not args:
         embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', color=somsiad.color)
     else:
         query = ' '.join(args)
@@ -42,7 +42,7 @@ async def currency(ctx, *args):
             (\s)?                       # whitespace
             (to|in|na|do|w)?            # optional preposition
             (((\s)?([a-zA-Z]{2,4}))*)   # optional 'target' value
-            ''', re.VERBOSE)
+        ''', re.VERBOSE)
         mo = query_regex.search(query)
         if mo is not None:
             if mo.group(1) is not None:
@@ -65,22 +65,24 @@ async def currency(ctx, *args):
                         response_data = await response.json()
                         if 'Response' in response_data:
                             if response_data['Response'] == 'Error' and response_data['Type'] == 1:
-                                embed = discord.Embed(title=':warning: Błąd', description=ERROR_NOTICE,
-                                    color=somsiad.color)
+                                embed = discord.Embed(
+                                    title=':warning: Błąd', description=ERROR_NOTICE, color=somsiad.color)
                             else:
-                                embed = discord.Embed(title=':warning: Błąd',
-                                    description='Niewłaściwie skonstruowane zapytanie!', color=somsiad.color)
+                                embed = discord.Embed(
+                                    title=':warning: Błąd', description='Niewłaściwie skonstruowane zapytanie!',
+                                    color=somsiad.color)
                         else:
                             if 'num' not in locals():
                                 num = 1
                             currency_values = [(str(num * value) + ' ' + currency) for currency, value in
                                 response_data.items()]
                             currency_values = '\n'.join(currency_values)
-                            embed = discord.Embed(title=f'{num} {initial}', description=currency_values,
-                                color=somsiad.color)
+                            embed = discord.Embed(
+                                title=f'{num} {initial}', description=currency_values, color=somsiad.color)
                     else:
-                        embed = discord.Embed(title=':warning: Błąd', description='Nie można połączyć się '
-                            'z serwisem, CryptoCompare.com!', color=somsiad.color)
+                        embed = discord.Embed(
+                            title=':warning: Błąd', description='Nie udało się połączyć z serwisem, CryptoCompare.com!',
+                            color=somsiad.color)
         else:
             embed = discord.Embed(title=':warning: Błąd', description=ERROR_NOTICE, color=somsiad.color)
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)

@@ -16,12 +16,13 @@ import discord
 from discord.ext import commands
 from somsiad_helper import *
 
+
 @somsiad.client.command(aliases=['isup', 'up'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def isitup(ctx, *args):
     """Returns information about website status."""
-    if len(args) == 0:
+    if not args:
         await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
     else:
         query = ' '.join(args)

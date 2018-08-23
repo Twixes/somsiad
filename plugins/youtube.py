@@ -17,14 +17,16 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from somsiad_helper import *
 
+
 youtube_client = build('youtube', 'v3', developerKey=somsiad.conf['google_key'])
+
 
 @somsiad.client.command(aliases=['yt', 'tuba'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def youtube(ctx, *args):
     """Returns first matching result from YouTube."""
-    if len(args) == 0:
+    if not args:
         await ctx.send(f'{ctx.author.mention}\nhttps://www.youtube.com/')
     else:
         try:

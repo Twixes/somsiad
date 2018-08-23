@@ -15,6 +15,7 @@ from discord.ext import commands
 from googleapiclient.discovery import build
 from somsiad_helper import *
 
+
 class GoogleCSE:
     google_cse = None
     google_cse_id = None
@@ -47,14 +48,16 @@ class GoogleCSE:
         else:
            return result['items'][0]['link']
 
+
 google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_search_engine_id'])
+
 
 @somsiad.client.command(aliases=['g', 'gugiel'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def google(ctx, *args):
     """Returns first matching website from Google using the provided Custom Search Engine."""
-    if len(args) == 0:
+    if not args:
         await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
     else:
         query = ' '.join(args)
@@ -64,12 +67,13 @@ async def google(ctx, *args):
         else:
             await ctx.send(f'{ctx.author.mention}\n{link}')
 
+
 @somsiad.client.command(aliases=['i', 'gi'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def googleimage(ctx, *args):
     """Returns first matching image from Google using the provided Custom Search Engine."""
-    if len(args) == 0:
+    if not args:
         await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
     else:
         query = ' '.join(args)

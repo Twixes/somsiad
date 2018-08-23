@@ -25,7 +25,11 @@ from somsiad_helper import *
 from version import __version__
 from plugins import *
 
-logging.basicConfig(filename='somsiad.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    filename='somsiad.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 class Informator:
     with_preposition_variant = staticmethod(lambda number : 'ze' if number >= 100 and number < 200 else 'z')
@@ -34,14 +38,15 @@ class Informator:
     @staticmethod
     def separator(block, width, verbose=False):
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
-        pattern = (block * int(width / len(block)) + block)[:width]
+        pattern = (block * int(width / len(block)) + block)[:width].strip()
         if verbose:
             print(pattern)
         return pattern
 
     def list_of_servers(self, client, verbose=False):
         """Generates a list of servers the bot is connected to, including the number of days since joining and
-            the number of users. Can print to the console."""
+        the number of users. Can print to the console.
+        """
         servers = sorted(client.guilds, key=lambda server: len(server.members), reverse=True)
         longest_server_name_length = 0
         longest_days_since_joining_info_length = 0
@@ -77,7 +82,8 @@ class Informator:
 
     def info(self, lines, separator_block=None, verbose=False):
         """Takes a list of lines containing bot information and returns a string ready for printing.
-            Can print to the console."""
+        Can print to the console.
+        """
         info = ''
         if separator_block is not None:
             separator = self.separator(separator_block, os.get_terminal_size()[0])
@@ -123,8 +129,9 @@ def print_info():
 async def on_ready():
     """Does things once the bot comes online."""
     print_info()
-    await somsiad.client.change_presence(activity=discord.Game(name='Kiedyś to było | '
-        f'{somsiad.conf["command_prefix"]}pomocy'))
+    await somsiad.client.change_presence(
+        activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy')
+    )
 
 @somsiad.client.event
 async def on_server_join(server):

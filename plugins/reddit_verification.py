@@ -24,6 +24,7 @@ import praw
 from somsiad_helper import *
 from version import __version__
 
+
 class RedditVerificator:
     users_db = None
     user_db_cursor = None
@@ -33,9 +34,14 @@ class RedditVerificator:
         """Connects to the database. Creates it if it doesn't yet. Sets up phrase parts."""
         self.users_db = sqlite3.connect(users_db_path)
         self.users_db_cursor = self.users_db.cursor()
-        self.users_db_cursor.execute("""CREATE TABLE IF NOT EXISTS reddit_verification_users(
-            discord_username TEXT PRIMARY KEY, phrase TEXT UNIQUE, phrase_gen_date DATE DEFAULT (date('now',
-            'localtime')), reddit_username TEXT UNIQUE)""")
+        self.users_db_cursor.execute(
+            '''CREATE TABLE IF NOT EXISTS reddit_verification_users(
+                discord_username TEXT PRIMARY KEY,
+                phrase TEXT UNIQUE,
+                phrase_gen_date DATE DEFAULT (date('now', 'localtime')),
+                reddit_username TEXT UNIQUE
+            )'''
+        )
         self.users_db.commit()
         self.phrase_parts = phrase_parts
 
@@ -45,7 +51,7 @@ class RedditVerificator:
         account_karma = reddit_user.link_karma + reddit_user.comment_karma
         account_age_days = (time.time() - reddit_user.created_utc) / 86400
         if (account_age_days >= float(somsiad.conf['reddit_account_min_age_days']) and
-            account_karma >= int(somsiad.conf['reddit_account_min_karma'])):
+                account_karma >= int(somsiad.conf['reddit_account_min_karma'])):
             return True
         else:
             return False
@@ -63,15 +69,19 @@ class RedditVerificator:
 
     def phrase_status(self, phrase):
         """Returns given phrase's status."""
-        self.users_db_cursor.execute('''SELECT discord_username FROM reddit_verification_users
-            WHERE phrase = ?''', (phrase,))
+        self.users_db_cursor.execute(
+            'SELECT discord_username FROM reddit_verification_users WHERE phrase = ?',
+            (phrase,)
+        )
         discord_username = self.users_db_cursor.fetchone()
         if discord_username is None:
             return {'discord_username': None, 'phrase_gen_date': None}
         else:
             discord_username = discord_username[0]
-            self.users_db_cursor.execute('''SELECT phrase_gen_date FROM reddit_verification_users
-                WHERE phrase = ?''', (phrase,))
+            self.users_db_cursor.execute(
+                'SELECT phrase_gen_date FROM reddit_verification_users WHERE phrase = ?',
+                (phrase,)
+            )
             phrase_gen_date = self.users_db_cursor.fetchone()[0]
             return {'discord_username': discord_username, 'phrase_gen_date': phrase_gen_date}
 
@@ -83,27 +93,34 @@ class RedditVerificator:
         else:
             discord_username = str(discord_user)
             # Check if (and when) user has already been verified
-            self.users_db_cursor.execute('''SELECT phrase_gen_date FROM reddit_verification_users
-                WHERE discord_username = ?''', (discord_username,))
+            self.users_db_cursor.execute(
+                'SELECT phrase_gen_date FROM reddit_verification_users WHERE discord_username = ?',
+                (discord_username,)
+            )
             phrase_gen_date = self.users_db_cursor.fetchone()
 
             if phrase_gen_date is None:
                 return {'phrase_gen_date': None, 'reddit_username': None}
 
             else:
-                self.users_db_cursor.execute('''SELECT reddit_username FROM reddit_verification_users
-                    WHERE discord_username = ?''', (discord_username,))
+                self.users_db_cursor.execute(
+                    'SELECT reddit_username FROM reddit_verification_users WHERE discord_username = ?',
+                    (discord_username,)
+                )
                 reddit_username = self.users_db_cursor.fetchone()
-                return {'phrase_gen_date': phrase_gen_date[0],
-                    'reddit_username': reddit_username[0]}
+                return {'phrase_gen_date': phrase_gen_date[0], 'reddit_username': reddit_username[0]}
 
     def reddit_user_status(self, reddit_username):
         """Returns given Reddit user's status."""
-        self.users_db_cursor.execute('''SELECT discord_username FROM reddit_verification_users
-            WHERE reddit_username = ?''', (reddit_username,))
+        self.users_db_cursor.execute(
+            'SELECT discord_username FROM reddit_verification_users WHERE reddit_username = ?',
+            (reddit_username,)
+        )
         discord_username = self.users_db_cursor.fetchone()
-        self.users_db_cursor.execute('''SELECT phrase_gen_date FROM reddit_verification_users
-            WHERE reddit_username = ?''', (reddit_username,))
+        self.users_db_cursor.execute(
+            'SELECT phrase_gen_date FROM reddit_verification_users WHERE reddit_username = ?',
+            (reddit_username,)
+        )
         phrase_gen_date = self.users_db_cursor.fetchone()
 
         return {'discord_username': discord_username, 'phrase_gen_date': phrase_gen_date}
@@ -113,12 +130,16 @@ class RedditVerificator:
         phrase = self.phrase_gen()
 
         if self.discord_user_status(discord_username)['phrase_gen_date'] is None:
-            self.users_db_cursor.execute('INSERT INTO reddit_verification_users(discord_username, phrase) VALUES(?, ?)',
-                (discord_username, phrase,))
+            self.users_db_cursor.execute(
+                'INSERT INTO reddit_verification_users(discord_username, phrase) VALUES(?, ?)',
+                (discord_username, phrase,)
+            )
         else:
             today_date = str(datetime.date.today())
-            self.users_db_cursor.execute('''UPDATE reddit_verification_users SET phrase = ?, phrase_gen_date = ?
-                WHERE discord_username = ?''', (phrase, today_date, discord_username,))
+            self.users_db_cursor.execute(
+                'UPDATE reddit_verification_users SET phrase = ?, phrase_gen_date = ? WHERE discord_username = ?',
+                (phrase, today_date, discord_username,)
+            )
         self.users_db.commit()
         return phrase
 
@@ -128,12 +149,15 @@ class RedditVerificator:
 
         if self.phrase_status(phrase)['discord_username'] is not None:
             if user_status['discord_username'] is None:
-                self.users_db_cursor.execute('''UPDATE reddit_verification_users SET reddit_username = ?,
-                    phrase = NULL WHERE phrase = ?''', (reddit_username, phrase,))
+                self.users_db_cursor.execute(
+                    'UPDATE reddit_verification_users SET reddit_username = ?, phrase = NULL WHERE phrase = ?',
+                    (reddit_username, phrase,)
+                )
                 self.users_db.commit()
             return self.reddit_user_status(reddit_username)
         else:
             return None
+
 
 class RedditVerificatorMessageWatch:
     watch_reddit = None
@@ -149,9 +173,13 @@ class RedditVerificatorMessageWatch:
     def run(self):
         """Processes new messages from the inbox stream and uses them for verification."""
         # Handle each new message
-        self.watch_reddit = praw.Reddit(client_id=somsiad.conf['reddit_id'],
-            client_secret=somsiad.conf['reddit_secret'], username=somsiad.conf['reddit_username'],
-            password=somsiad.conf['reddit_password'], user_agent=somsiad.user_agent)
+        self.watch_reddit = praw.Reddit(
+            client_id=somsiad.conf['reddit_id'],
+            client_secret=somsiad.conf['reddit_secret'],
+            username=somsiad.conf['reddit_username'],
+            password=somsiad.conf['reddit_password'],
+            user_agent=somsiad.user_agent
+        )
         self.watch_verificator = RedditVerificator(self.users_db_path)
         for message in praw.models.util.stream_generator(self.watch_reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
@@ -164,8 +192,9 @@ class RedditVerificatorMessageWatch:
                     # Check if the phrase is in the database
 
                     if self.watch_verificator.phrase_status(phrase)['discord_username'] is None:
-                        message.reply('Weryfikacja nie powiodła się. Wysłana fraza nie odpowiada żadnemu '
-                            'użytkownikowi.')
+                        message.reply(
+                            'Weryfikacja nie powiodła się. Wysłana fraza nie odpowiada żadnemu użytkownikowi.'
+                        )
 
                     else:
                         # Check if the phrase was sent the same day it was generated
@@ -178,36 +207,46 @@ class RedditVerificatorMessageWatch:
                                 # assign the Reddit username to the Discord user whose secret phrase this was
                                 discord_username = (self.watch_verificator.assign_reddit_username_by_phrase(phrase,
                                     reddit_username)['discord_username'][0])
-                                message.reply(f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda '
-                                    f'{discord_username}.')
+                                message.reply(
+                                    f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda '
+                                    f'{discord_username}.'
+                                )
 
                             else:
                                 day_noun_variant = ('dzień' if int(somsiad.conf['reddit_account_min_age_days']) == 1
                                     else 'dni')
-                                message.reply('Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia '
-                                    'wymagań. Do weryfikacji potrzebne jest konto założone co najmniej '
+                                message.reply(
+                                    'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
+                                    'Do weryfikacji potrzebne jest konto założone co najmniej '
                                     f'{somsiad.conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie '
-                                    f'nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.')
+                                    f'nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
+                                )
 
                         else:
-                            message.reply('Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę '
-                                'na Discordzie.')
+                            message.reply(
+                                'Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę '
+                                'na Discordzie.'
+                            )
 
                 else:
-                    message.reply('To konto zostało przypisane do użytkownika Discorda '
-                        f'{user_status["discord_username"][0]} '
+                    message.reply(
+                        f'To konto zostało przypisane do użytkownika Discorda {user_status["discord_username"][0]} '
                         f'{user_status["phrase_gen_date"][0]}.')
 
             message.mark_read()
 
+
 phrase_parts_file_path = os.path.join(somsiad.bot_dir_path, 'data', 'reddit_verification_phrase_parts.json')
 users_db_path = os.path.join(somsiad.storage_dir_path, 'reddit_verification.db')
+
 
 # Load phrase parts
 with open(phrase_parts_file_path, 'r') as f:
     phrase_parts = json.load(f)
 
+
 verificator = RedditVerificator(users_db_path, phrase_parts)
+
 
 @somsiad.client.command(aliases=['zweryfikuj'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -229,9 +268,11 @@ async def redditverify(ctx, *args):
                 f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
-            embed.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się '
-                f'wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
-                'Fraza ważna jest do końca dnia.')
+            embed.add_field(
+                name='Wygenerowano tajną frazę.',
+                value=f'By zweryfikować się wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie '
+                f'"Weryfikacja" i treści "{phrase}". Fraza ważna jest do końca dnia.'
+            )
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
             await ctx.author.send(embed=embed)
@@ -250,18 +291,23 @@ async def redditverify(ctx, *args):
                 f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
             embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
-            embed.add_field(name='Wygenerowano tajną frazę.', value='By zweryfikować się '
-                f'wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie "Weryfikacja" i treści "{phrase}". '
-                'Fraza ważna jest do końca dnia.')
+            embed.add_field(
+                name='Wygenerowano tajną frazę.',
+                value=f'By zweryfikować się wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie '
+                f'"Weryfikacja" i treści "{phrase}". Fraza ważna jest do końca dnia.'
+            )
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
             await ctx.author.send(embed=embed)
     else:
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
-        embed.add_field(name=f'Twoje konto na Reddicie to /u/{user_status["reddit_username"]}.',
-            value=f'Zweryfikowano {user_status["phrase_gen_date"]}.')
+        embed.add_field(
+            name=f'Twoje konto na Reddicie to /u/{user_status["reddit_username"]}.',
+            value=f'Zweryfikowano {user_status["phrase_gen_date"]}.'
+        )
 
         await ctx.author.send(embed=embed)
+
 
 @somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -272,25 +318,31 @@ async def redditxray(ctx, *args):
     embed = discord.Embed(title='Wynik prześwietlenia', color=somsiad.color)
 
     if (len(args) == 1 and args[0].strip('\\') == '@everyone' and
-        somsiad.does_member_have_elevated_permissions(ctx.author)):
+            somsiad.does_member_have_elevated_permissions(ctx.author)):
         for member in ctx.guild.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
-                embed.add_field(name=str(member), value=f'/u/{user_status["reddit_username"]}',
-                    inline=False)
+                embed.add_field(
+                    name=str(member),
+                    value=f'/u/{user_status["reddit_username"]}',
+                    inline=False
+                )
         await ctx.send(embed=embed)
 
     elif (len(args) == 1 and args[0].strip('\\') == '@here' and
-        somsiad.does_member_have_elevated_permissions(ctx.author)):
+            somsiad.does_member_have_elevated_permissions(ctx.author)):
         for member in ctx.channel.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
-                embed.add_field(name=str(member), value=f'/u/{user_status["reddit_username"]}',
-                    inline=False)
+                embed.add_field(
+                    name=str(member),
+                    value=f'/u/{user_status["reddit_username"]}',
+                    inline=False
+                )
         await ctx.send(embed=embed)
 
     else:
-        if len(args) == 0:
+        if not args:
             discord_user = ctx.author
             discord_username = str(discord_user)
 
@@ -309,29 +361,37 @@ async def redditxray(ctx, *args):
         if discord_user is not None:
             # Check if (and when) user has already been verified
             if user_status['phrase_gen_date'] is None:
-                embed.add_field(name=':red_circle: Niezweryfikowany',
-                    value=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.')
+                embed.add_field(
+                    name=':red_circle: Niezweryfikowany',
+                    value=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.'
+                )
                 await ctx.send(embed=embed)
 
             else:
                 if user_status['reddit_username'] is None:
-                    embed.add_field(name=':red_circle: Niezweryfikowany',
-                        value=f'Użytkownik {discord_user} zażądał weryfikacji '
-                        f'{user_status["phrase_gen_date"]}, '
-                        'ale nie dokończył jej na Reddicie.')
+                    embed.add_field(
+                        name=':red_circle: Niezweryfikowany',
+                        value=f'Użytkownik {discord_user} zażądał weryfikacji {user_status["phrase_gen_date"]}, '
+                        'ale nie dokończył jej na Reddicie.'
+                    )
                     await ctx.send(embed=embed)
                 else:
                     reddit_username_info = ''
                     if somsiad.does_member_have_elevated_permissions(ctx.author):
                         reddit_username_info = f' jako /u/{user_status["reddit_username"]}'
-                    embed.add_field(name=':white_check_mark: Zweryfikowany',
-                        value=f'Użytkownik {discord_user} został zweryfikowany '
-                        f'{user_status["phrase_gen_date"]}{reddit_username_info}.')
+                    embed.add_field(
+                        name=':white_check_mark: Zweryfikowany',
+                        value=f'Użytkownik {discord_user} został zweryfikowany {user_status["phrase_gen_date"]} '
+                        f'{reddit_username_info}.'
+                    )
                     await ctx.send(embed=embed)
 
         else:
-            embed.add_field(name=':warning: Błąd', value=f'Użytkownik {discord_username} nie znajduje się na tym '
-                'serwerze.')
+            embed.add_field(
+                name=':warning: Błąd',
+                value=f'Użytkownik {discord_username} nie znajduje się na tym serwerze.'
+            )
             await ctx.send(embed=embed)
+
 
 reddit_verificator_message_watch = RedditVerificatorMessageWatch(users_db_path)

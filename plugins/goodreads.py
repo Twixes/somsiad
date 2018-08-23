@@ -17,6 +17,7 @@ import discord
 from discord.ext import commands
 from somsiad_helper import *
 
+
 @somsiad.client.command(aliases=['gr'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
@@ -24,8 +25,12 @@ async def goodreads(ctx, *args):
     """Goodreads search. Responds with for the most popular books matching the query."""
     FOOTER_TEXT = 'goodreads'
     FOOTER_ICON_URL = 'http://www.goodreads.com/favicon.ico'
-    if len(args) == 0:
-        embed = discord.Embed(title=':warning: Błąd', description='Nie podano szukanego hasła!', color=somsiad.color)
+    if not args:
+        embed = discord.Embed(
+            title=':warning: Błąd',
+            description='Nie podano szukanego hasła!',
+            color=somsiad.color
+        )
     else:
         query = ' '.join(args)
         url = 'https://www.goodreads.com/search/index.xml'
@@ -37,8 +42,11 @@ async def goodreads(ctx, *args):
                     tree = ET.fromstring(await response.text())
                     node = tree.find('.//total-results')
                     if node.text == '0':
-                        embed = discord.Embed(title=':slight_frown: Niepowodzenie', description='Nie znaleziono '
-                            'żadnego wyniku pasującego do hasła "{query}".', color=somsiad.color)
+                        embed = discord.Embed(
+                            title=':slight_frown: Niepowodzenie',
+                            description='Nie znaleziono żadnego wyniku pasującego do zapytania "{query}".',
+                            color=somsiad.color
+                        )
                     else:
                         books = []
                         counter = 0
@@ -78,12 +86,12 @@ async def goodreads(ctx, *args):
                                 sec_url = sec_url.replace(' ', '%20')
                                 sec_url = sec_url.replace('(', '%28')
                                 sec_url = sec_url.replace(')', '%29')
-                                sec_results.append(f'• [{i["title"]}]({sec_url}) - {i["author"]} - ' +
-                                                   f'{i["average_rating"]}/5')
+                                sec_results.append(
+                                    f'• [{i["title"]}]({sec_url}) - {i["author"]} - {i["average_rating"]}/5')
                                 sec_results_str = '\n'.join(sec_results)
                             embed.add_field(name='Pozostałe trafienia', value=sec_results_str, inline=False)
                 else:
-                    embed = discord.Embed(title=':warning: Błąd', description='Nie można połączyć się z serwisem!',
-                        color=somsiad.color)
+                    embed = discord.Embed(
+                        title=':warning: Błąd', description='Nie można połączyć się z serwisem!', color=somsiad.color)
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)

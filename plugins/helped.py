@@ -16,16 +16,17 @@ from discord.ext import commands
 from somsiad_helper import *
 from version import __version__
 
+
 async def smart_add_reactions(server, channel, args, reactions):
     """Adds provided emojis to the specified user's last non-command message in the form of reactions.
         If no user was specified, adds emojis to the last non-command message sent by any non-bot user
         in the given channel."""
     was_message_found = False
 
-    if len(args) == 0:
+    if not args:
         async for message in channel.history(limit=5):
             if (not was_message_found and not message.author.bot and
-                not message.content.startswith(somsiad.conf['command_prefix'])):
+                    not message.content.startswith(somsiad.conf['command_prefix'])):
                 for reaction in reactions:
                     await message.add_reaction(reaction)
                 was_message_found = True
@@ -33,7 +34,7 @@ async def smart_add_reactions(server, channel, args, reactions):
     else:
         async for message in channel.history(limit=10):
             if (not was_message_found and message.author == somsiad.get_fellow_server_member(server, args) and
-                not message.content.startswith(somsiad.conf['command_prefix'])):
+                    not message.content.startswith(somsiad.conf['command_prefix'])):
                 for reaction in reactions:
                     await message.add_reaction(reaction)
                 was_message_found = True
@@ -46,6 +47,7 @@ async def helped(ctx, *args):
     """Adds "POMOGL" with smart_add_reactions()."""
     reactions = ('🇵', '🇴', '🇲', '🅾', '🇬', '🇱')
     await smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
+
 
 @somsiad.client.command(aliases=['niepomógł', 'niepomogl'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)

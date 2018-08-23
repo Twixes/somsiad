@@ -17,15 +17,16 @@ import discord
 from discord.ext import commands
 from somsiad_helper import *
 
+
 @somsiad.client.command(aliases=['urban'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def urbandictionary(ctx, *args):
     """Returns Urban Dictionary word definition."""
-    if len(args) == 0:
-        await ctx.send(f':warning: Musisz podać parametr wyszukiwania, {ctx.author.mention}.')
+    if not args:
+        await ctx.send(f'{ctx.author.mention}\n:warning: Musisz podać parametr wyszukiwania.')
     else:
-        query = '+'.join(args)
+        query = '%20'.join(args)
         url = f'https://api.urbandictionary.com/v0/define?term={query}'
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as r:
@@ -55,7 +56,8 @@ async def urbandictionary(ctx, *args):
                         embed.add_field(name='Link:', value=link, inline=False)
                         await ctx.send(embed=embed)
                     else:
-                        await ctx.send(f'{ctx.author.mention}, nie znaleziono pasujących wyników.')
+                        await ctx.send(f'{ctx.author.mention}\n:slight_frown: Nie znaleziono pasujących wyników.')
                 else:
-                    await ctx.send(':warning: Nie można połączyć się z serwisem Urban Dictionary, '
-                        f'{ctx.author.mention}')
+                    await ctx.send(
+                        f'{ctx.author.mention}\n:warning: Nie można połączyć się z serwisem Urban Dictionary.'
+                    )

@@ -15,6 +15,7 @@ from discord.ext import commands
 from somsiad_helper import *
 from version import __version__
 
+
 @somsiad.client.command(aliases=['wersja'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
@@ -26,11 +27,13 @@ async def version(ctx):
         version_string = __version__
     await ctx.send(version_string)
 
+
 @somsiad.client.command()
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def ping(ctx):
     """Pong!"""
     await ctx.send(':ping_pong: Pong!')
+
 
 @somsiad.client.command(aliases=['lenny'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -39,12 +42,14 @@ async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
+
 @somsiad.client.command()
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def tableflip(ctx):
     """(╯°□°）╯︵ ┻━┻"""
     await ctx.send('(╯°□°）╯︵ ┻━┻')
+
 
 @somsiad.client.command()
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -53,6 +58,7 @@ async def unflip(ctx):
     """┬─┬ ノ( ゜-゜ノ)"""
     await ctx.send('┬─┬ ノ( ゜-゜ノ)')
 
+
 @somsiad.client.command()
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
@@ -60,15 +66,17 @@ async def shrug(ctx):
     r"""¯\_(ツ)_/¯"""
     await ctx.send(r'¯\_(ツ)_/¯')
 
+
 @somsiad.client.command(aliases=['dej'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def gib(ctx, *args):
     """༼ つ ◕_◕ ༽つ"""
-    if len(args) == 0:
+    if not args:
         await ctx.send('༼ つ ◕_◕ ༽つ')
     else:
         await ctx.send(f'༼ つ ◕_◕ ༽つ {" ".join(args)}')
+
 
 @somsiad.client.command()
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
@@ -77,23 +85,25 @@ async def fccchk(ctx):
     """:japanese_goblin:"""
     await ctx.send(':japanese_goblin:')
 
+
 @somsiad.client.command(aliases=['r', 'sub'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def subreddit(ctx, *args):
     """Responds with the URL of the given subreddit."""
-    if len(args) == 0:
+    if not args:
         url = 'https://reddit.com/r/all'
     else:
         url = f'https://reddit.com/r/{"".join(args)}'
     await ctx.send(url)
+
 
 @somsiad.client.command(aliases=['u'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def user(ctx, *args):
     """Responds with the URL of the given Reddit user."""
-    if len(args) == 0:
+    if not args:
         url = f'https://reddit.com/u/{somsiad.conf["reddit_username"]}'
     else:
         url = f'https://reddit.com/u/{"".join(args)}'
