@@ -17,6 +17,7 @@ from version import __version__
 
 @somsiad.client.command(aliases=['wersja'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@commands.guild_only()
 async def version(ctx):
     """Responds with current version of the bot."""
     if somsiad.does_member_have_elevated_permissions(ctx.author):
