@@ -7,10 +7,11 @@ Polski bot discordowy. Napisany w Pythonie.
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
 * oznaczanie na żądanie pomocnych wiadomości za pomocą reakcji  
 * Magic 8-Ball  
-* kantor  
+* wymiana (krypto)walut  
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) po polsku i po angielsku  
+* wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
 * sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
 * weryfikacja konta redditowego  
@@ -22,16 +23,16 @@ Polski bot discordowy. Napisany w Pythonie.
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
 
-* Klucz API Google z obsługą YouTube Data API:  
-https://console.developers.google.com/apis/dashboard  
-
 * Klucz API Google z obsługą API YouTube Data i Google Custom Search Engine, a także identyfikator wyszukiwarki Google 
 Custom Search Engine:  
 https://console.developers.google.com/apis/dashboard  
 https://cse.google.com/cse/all  
 By twoja wyszukiwarka Google Custom Search Engine działała prawidłowo, musisz podczas jej tworzenia przypisać do niej 
 dowolną stronę (może być to https://example.com). Następnie musisz udać się do zakładki Konfiguracja / Podstawy 
-wyszukiwarki, usunąć dodaną stronę i zaznaczyć pola: "Wyszukiwarka grafiki" oraz "Wyszukiwanie w całej sieci".
+wyszukiwarki, usunąć dodaną stronę i zaznaczyć pola: "Wyszukiwarka grafiki" oraz "Wyszukiwanie w całej sieci".  
+
+* Klucz API goodreads:  
+https://www.goodreads.com/api  
 
 * Nazwa użytkownika i hasło konta na Reddicie, a także ID i szyfr aplikacji redditowej typu skrypt:  
 https://www.reddit.com/prefs/apps  
@@ -81,10 +82,11 @@ The Polish Discord bot. Written in Python.
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
 * reacting to helpful messages on demand  
 * Magic 8-Ball  
-* currency exchange  
+* (crypto)currency exchange  
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
+* [goodreads](https://www.goodreads.com) book search  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
 * website status check powered by [isitup.org](https://isitup.org)  
 * Reddit account verification
@@ -103,6 +105,9 @@ https://cse.google.com/cse/all
 In order to make your Google Custom Search Engine work correctly, you must assign any website to it during creation 
 (it might as well be https://example.com). Then you must go into the CSE's Setup / Basics, remove the website and 
 check boxes: "Image search" and "Search the entire web".  
+
+* A goodreads API key:  
+https://www.goodreads.com/api  
 
 * Reddit username and password, and also Reddit script application ID and secret:  
 https://www.reddit.com/prefs/apps  
