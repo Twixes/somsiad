@@ -85,9 +85,6 @@ async def goodreads(ctx, *args):
                             sec_results = []
                             for i in books[1:4]:
                                 sec_url = template_url + i['id']
-                                sec_url = sec_url.replace(' ', '%20')
-                                sec_url = sec_url.replace('(', '%28')
-                                sec_url = sec_url.replace(')', '%29')
                                 sec_results.append(
                                     f'• [{i["title"]}]({sec_url}) - {i["author"]} - {i["average_rating"]}/5')
                                 sec_results_str = '\n'.join(sec_results)
