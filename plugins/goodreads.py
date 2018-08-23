@@ -44,7 +44,7 @@ async def goodreads(ctx, *args):
                     if node.text == '0':
                         embed = discord.Embed(
                             title=':slight_frown: Niepowodzenie',
-                            description='Nie znaleziono żadnego wyniku pasującego do zapytania "{query}".',
+                            description=f'Nie znaleziono żadnego wyniku pasującego do zapytania "{query}".',
                             color=somsiad.color
                         )
                     else:
@@ -61,6 +61,8 @@ async def goodreads(ctx, *args):
                                     books[counter]['average_rating'] = work.text
 
                                 for best_book in work.findall('*'):
+                                    if best_book.tag == 'id':
+                                        books[counter]['id'] = best_book.text
                                     if best_book.tag == 'title':
                                         books[counter]['title'] = best_book.text
                                     if best_book.tag == 'image_url':
@@ -71,8 +73,8 @@ async def goodreads(ctx, *args):
                                             books[counter]['author'] = author.text
                             counter += 1
 
-                        template_url = 'https://www.goodreads.com/book/title?id='
-                        main_url = template_url + books[0]['title']
+                        template_url = 'https://www.goodreads.com/book/show/'
+                        main_url = template_url + books[0]['id']
                         main_url = main_url.replace(' ', '%20').replace('(', '%28').replace(')', '%29')
                         embed = discord.Embed(title=f'{books[0]["title"]}', url=main_url, color=somsiad.color)
                         embed.set_author(name=books[0]["author"])
@@ -82,7 +84,7 @@ async def goodreads(ctx, *args):
                         if len(books) > 1:
                             sec_results = []
                             for i in books[1:4]:
-                                sec_url = template_url + i['title']
+                                sec_url = template_url + i['id']
                                 sec_url = sec_url.replace(' ', '%20')
                                 sec_url = sec_url.replace('(', '%28')
                                 sec_url = sec_url.replace(')', '%29')
