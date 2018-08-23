@@ -13,6 +13,7 @@
 
 import os
 import logging
+from discord import errors
 from discord.ext.commands import Bot
 from version import __version__
 
@@ -108,7 +109,8 @@ class Configurator:
                 elif key_required[4] == 'password':
                     line = f'{key_required[3]}: {"*" * len(self.configuration[key_required[0]])}'
                 elif isinstance(key_required[4], tuple) and len(key_required[4]) == 2:
-                    unit_noun_variant = key_required[4][0] if int(somsiad.conf[key_required[0]]) == 1 else key_required[4][1]
+                    unit_noun_variant = (key_required[4][0] if int(somsiad.conf[key_required[0]]) == 1 else
+                        key_required[4][1])
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {unit_noun_variant}'
                 else:
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {key_required[4]}'
@@ -135,7 +137,7 @@ class Somsiad:
     conf = None
     client = None
 
-    def __init__(self, conf_required):
+    def __init__(self, conf_required_extension):
         logging.basicConfig(filename='somsiad.log', level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger()
@@ -143,12 +145,25 @@ class Somsiad:
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.conf_dir_path):
             os.makedirs(self.conf_dir_path)
+        conf_required = [
+            # (key, default_value, instruction, description, unit,)
+            ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
+            ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None,),
+            ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
+                '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund',),),
+        ]
+        for setting in conf_required_extension:
+            conf_required.append(setting)
         self.configurator = Configurator(self.conf_file_path, conf_required)
         self.conf = self.configurator.configuration
         self.client = Bot(description='Zawsze pomocny Somsiad', command_prefix=self.conf['command_prefix'])
 
     def run(self):
-        self.client.run(self.conf['discord_token'])
+        try:
+            self.client.run(somsiad.conf['discord_token'])
+            somsiad.logger.info('Client online.')
+        except errors.ClientException:
+            somsiad.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
 
     @staticmethod
     def get_fellow_server_member(server, args):
@@ -164,9 +179,8 @@ class Somsiad:
         return member.guild_permissions.administrator
 
 # Required configuration
-conf_required = [
+conf_required_extension = [
     # (key, default_value, instruction, description, unit,)
-    ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
     ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None,),
     ('google_custom_search_engine_id', None, 'Wprowadź identyfikator CSE Google', 'Identyfikator CSE Google', None,),
     ('goodreads_key', None, 'Wprowadź klucz API Goodreads', 'Klucz API Goodreads', None,),
@@ -178,12 +192,8 @@ conf_required = [
         '(w dniach, domyślnie 14)', 'Minimalny wiek weryfikowanego konta na Reddicie', ('dzień', 'dni',),),
     ('reddit_account_min_karma', 0, 'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)',
         'Minimalna karma weryfikowanego konta na Reddicie', None,),
-    ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
-        '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund',),),
-    ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None,),
 ]
 
-somsiad = Somsiad(conf_required)
+somsiad = Somsiad(conf_required_extension)
 
-somsiad.logger.info('Bot online')
 somsiad.client.remove_command('help') # Replaced with the 'help_direct' plugin

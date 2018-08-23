@@ -107,7 +107,8 @@ def print_info():
         informator.list_of_servers(somsiad.client),
         '',
         'Link do zaproszenia bota:',
-        f'https://discordapp.com/oauth2/authorize?somsiad.client_id={somsiad.client.user.id}&scope=bot&permissions=536083543',
+        f'https://discordapp.com/oauth2/authorize?somsiad.client_id={somsiad.client.user.id}&scope=bot'
+            '&permissions=536083543',
         '',
         somsiad.configurator.info(),
         '',
@@ -122,8 +123,8 @@ def print_info():
 async def on_ready():
     """Does things once the bot comes online."""
     print_info()
-    return await somsiad.client.change_presence(activity=discord.Game(
-        name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy'))
+    await somsiad.client.change_presence(activity=discord.Game(name='Kiedyś to było | '
+        f'{somsiad.conf["command_prefix"]}pomocy'))
 
 @somsiad.client.event
 async def on_server_join(server):
@@ -143,8 +144,7 @@ async def on_command_error(ctx, error):
             return await ctx.author.send(f'Komenda {ctx.command} nie może zostać użyta w prywatnej wiadomości.')
         except:
             pass
-    print(f'Ignorowanie wyjątku w komendzie {ctx.command}:', file=sys.stderr)
-    traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+    somsiad.logger.info(f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.command}: "{error}".')
 
 if __name__ == '__main__':
     somsiad.run()
