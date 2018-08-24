@@ -38,8 +38,7 @@ async def giphy(ctx, *args):
             'q': query,
             'limit': 1,
             'offset': 0,
-            'rating': 'PG-13',
-            'lang': 'pl'
+            'rating': 'PG-13'
         }
         async with aiohttp.ClientSession() as session:
             async with session.get(api_search_url, headers=headers, params=params) as response:
