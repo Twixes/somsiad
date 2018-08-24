@@ -181,6 +181,15 @@ class RedditVerificatorMessageWatch:
             user_agent=somsiad.user_agent
         )
         self.watch_verificator = RedditVerificator(self.users_db_path)
+        while True:
+            try:
+                self.process_messages()
+            except:
+                somsiad.logger.warning(
+                    'Something went wrong while trying to process Reddit verification messages! Trying again...'
+                )
+
+    def process_messages(self):
         for message in praw.models.util.stream_generator(self.watch_reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
                 # Check if (and when) Reddit account was verified
