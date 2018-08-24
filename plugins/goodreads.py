@@ -34,7 +34,10 @@ async def goodreads(ctx, *args):
     else:
         query = ' '.join(args)
         url = 'https://www.goodreads.com/search/index.xml'
-        params = {'q': query, 'key': somsiad.conf['goodreads_key']}
+        params = {
+            'q': query,
+            'key': somsiad.conf['goodreads_key']
+        }
         headers = {'User-Agent': somsiad.user_agent}
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, params=params) as response:

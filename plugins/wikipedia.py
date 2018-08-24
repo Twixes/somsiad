@@ -33,11 +33,17 @@ async def wikipedia_search(ctx, args, language):
         )
     else:
         query = '_'.join(args)
-        api_url = f'https://{language}.wikipedia.org/w/api.php?action=opensearch&search={query}&limit=10&format=json'
+        api_url = f'https://{language}.wikipedia.org/w/api.php'
+        params = {
+            'action': 'opensearch',
+            'search': query,
+            'limit': 20,
+            'format': 'json'
+        }
         headers = {'User-Agent': somsiad.user_agent}
         async with aiohttp.ClientSession() as session:
             # Use OpenSearch API first to get accurate page title of the result
-            async with session.get(api_url, headers=headers) as request:
+            async with session.get(api_url, headers=headers, params=params) as request:
                 if request.status == 200:
                     response_data = await request.json()
                     if not response_data[1]:

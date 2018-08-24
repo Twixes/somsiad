@@ -27,9 +27,11 @@ async def urbandictionary(ctx, *args):
         await ctx.send(f'{ctx.author.mention}\n:warning: Musisz podać parametr wyszukiwania.')
     else:
         query = '%20'.join(args)
-        url = f'https://api.urbandictionary.com/v0/define?term={query}'
+        api_url = f'https://api.urbandictionary.com/v0/define'
+        headers = {'User-Agent': somsiad.user_agent}
+        params = {'term': query}
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as r:
+            async with session.get(api_url, headers=headers, params=params) as r:
                 if r.status == 200:
                     resp = await r.json()
                     bra_pat = re.compile(r'[\[\]]')

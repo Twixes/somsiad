@@ -55,12 +55,15 @@ async def currency(ctx, *args):
                 target = target.replace(' ', ',')
             else:
                 target = 'PLN,USD,EUR'
+            api_url = 'https://min-api.cryptocompare.com/data/price'
             headers = {'User-Agent': somsiad.user_agent}
-            url_safe_user_agent = somsiad.user_agent.replace('/', '%2F')
-            api_url = (f'https://min-api.cryptocompare.com/data/price?fsym={initial}&tsyms={target}'
-                f'&extraParams={url_safe_user_agent}')
+            params = {
+                'fsym': initial,
+                'tsyms': target,
+                'extraParams': somsiad.user_agent
+            }
             async with aiohttp.ClientSession() as session:
-                async with session.get(api_url, headers=headers) as response:
+                async with session.get(api_url, headers=headers, params=params) as response:
                     if response.status == 200:
                         response_data = await response.json()
                         if 'Response' in response_data:

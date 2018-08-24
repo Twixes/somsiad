@@ -32,11 +32,18 @@ async def giphy(ctx, *args):
         )
     else:
         query = ' '.join(args)
-        query_url = (f'https://api.giphy.com/v1/gifs/search?api_key={somsiad.conf["giphy_key"]}&q={query}&limit=1'
-            '&offset=0&rating=PG-13&lang=pl')
+        api_search_url = 'https://api.giphy.com/v1/gifs/search'
         headers = {'User-Agent': somsiad.user_agent}
+        params = {
+            'api_key': somsiad.conf["giphy_key"],
+            'q': query,
+            'limit': 1,
+            'offset': 0,
+            'rating': 'PG-13',
+            'lang': 'pl'
+        }
         async with aiohttp.ClientSession() as session:
-            async with session.get(query_url, headers=headers) as response:
+            async with session.get(api_search_url, headers=headers, params=params) as response:
                 if response.status == 200:
                     response_data = await response.json()
                     response_data = response_data['data']
