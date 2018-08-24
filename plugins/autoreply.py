@@ -95,16 +95,16 @@ async def subreddit(ctx, *args):
         url = 'https://reddit.com/r/all'
     else:
         url = f'https://reddit.com/r/{"".join(args)}'
-    await ctx.send(url)
+    await ctx.send(f'{ctx.author.mention}\n{url}')
 
 
 @somsiad.client.command(aliases=['u'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def user(ctx, *args):
+async def reddit_user(ctx, *args):
     """Responds with the URL of the given Reddit user."""
     if not args:
         url = f'https://reddit.com/u/{somsiad.conf["reddit_username"]}'
     else:
         url = f'https://reddit.com/u/{"".join(args)}'
-    await ctx.send(url)
+    await ctx.send(f'{ctx.author.mention}\n{url}')
