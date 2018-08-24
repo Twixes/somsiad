@@ -171,7 +171,6 @@ class RedditVerificatorMessageWatch:
         thread.start()
 
     def run(self):
-        """Processes new messages from the inbox stream and uses them for verification."""
         # Handle each new message
         self.watch_reddit = praw.Reddit(
             client_id=somsiad.conf['reddit_id'],
@@ -190,6 +189,7 @@ class RedditVerificatorMessageWatch:
                 )
 
     def process_messages(self):
+        """Processes new messages from the inbox stream and uses them for verification."""
         for message in praw.models.util.stream_generator(self.watch_reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
                 # Check if (and when) Reddit account was verified
