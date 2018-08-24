@@ -23,7 +23,7 @@ async def wikipedia_search(ctx, args, language):
     """Returns the closest matching article from Wikipedia."""
     FOOTER_TEXT = 'Wikipedia'
     FOOTER_ICON_URL = ('https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/'
-        '40px-Wikipedia%27s_W.svg.png')
+        '60px-Wikipedia%27s_W.svg.png')
 
     if not args:
         embed = discord.Embed(
@@ -37,7 +37,7 @@ async def wikipedia_search(ctx, args, language):
         params = {
             'action': 'opensearch',
             'search': query,
-            'limit': 20,
+            'limit': 30,
             'format': 'json'
         }
         headers = {'User-Agent': somsiad.user_agent}
@@ -71,7 +71,8 @@ async def wikipedia_search(ctx, args, language):
                                         option_url = option_url.replace('(', '%28')
                                         option_url = option_url.replace(')', '%29')
                                         options_str = (f'• [{option}]({option_url})\n')
-                                        options_str_full += options_str
+                                        if len(options_str_full) + len(options_str) <= 2048:
+                                            options_str_full += options_str
                                     embed = discord.Embed(
                                         title=title,
                                         url=url,
