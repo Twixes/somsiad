@@ -11,42 +11,37 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import discord
 from discord.ext import commands
 from googleapiclient.discovery import build
 from somsiad_helper import *
 
 
 class GoogleCSE:
-    google_cse = None
-    google_cse_id = None
+    _google_cse = None
+    _google_cse_id = None
 
     def __init__(self, developer_key, google_cse_id):
-        self.google_cse = build('customsearch', 'v1', developerKey=developer_key)
-        self.google_cse_id = google_cse_id
+        self._google_cse = build('customsearch', 'v1', developerKey=developer_key)
+        self._google_cse_id = google_cse_id
 
-    def get_first_google_result_link(self, query, language, search_type=None):
-        if search_type == 'image':
-            result = self.google_cse.cse().list(
+    def search(self, query, language, number_of_results=1, search_type='web'):
+        """Returns first {number_of_results} result(s) from Google."""
+        try:
+            results = self._google_cse.cse().list(
                 q=query,
-                cx=self.google_cse_id,
+                cx=self._google_cse_id,
                 hl=language,
-                num=1,
-                searchType='image',
-                fields='items/link,searchInformation/totalResults'
-            ).execute()
-        else:
-            result = self.google_cse.cse().list(
-                q=query,
-                cx=self.google_cse_id,
-                hl=language,
-                num=1,
-                fields='items/link,searchInformation/totalResults'
+                num=number_of_results,
+                searchType=search_type
             ).execute()
 
-        if int(result['searchInformation']['totalResults']) == 0:
+            if int(results['searchInformation']['totalResults']) == 0:
+                return []
+            else:
+                return results['items']
+        except:
             return None
-        else:
-           return result['items'][0]['link']
 
 
 google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_search_engine_id'])
@@ -57,15 +52,47 @@ google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_s
 @commands.guild_only()
 async def google(ctx, *args):
     """Returns first matching website from Google using the provided Custom Search Engine."""
+    FOOTER_TEXT = 'Google'
+    FOOTER_ICON_URL = 'https://www.google.com/favicon.ico'
+
     if not args:
-        await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
+        embed = discord.Embed(
+            title=':warning: Błąd',
+            description='Nie podano szukanego hasła!',
+            color=somsiad.color
+        )
     else:
         query = ' '.join(args)
-        link = google_cse.get_first_google_result_link(query, 'pl')
-        if link is None:
-            await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
+        results = google_cse.search(query, 'pl')
+        if results is None:
+            embed = discord.Embed(
+                title=':warning: Błąd',
+                description=f'Nie udało się połączyć z serwerem wyszukiwania.',
+                color=somsiad.color
+            )
+        elif results == []:
+            embed = discord.Embed(
+                title=':slight_frown: Niepowodzenie',
+                description=f'Brak wyników dla zapytania "{query}".',
+                color=somsiad.color
+            )
         else:
-            await ctx.send(f'{ctx.author.mention}\n{link}')
+            result = results[0]
+            site_protocol = result['link'].split('://')[0]
+            embed = discord.Embed(
+                title=result['title'],
+                url=result['link'],
+                color=somsiad.color
+            )
+            embed.set_author(
+                name=result['displayLink'],
+                url=f'{site_protocol}://{result["displayLink"]}'
+            )
+            embed.set_image(
+                url=result['pagemap']['cse_image'][0]['src']
+            )
+    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 @somsiad.client.command(aliases=['i', 'gi'])
@@ -73,12 +100,45 @@ async def google(ctx, *args):
 @commands.guild_only()
 async def googleimage(ctx, *args):
     """Returns first matching image from Google using the provided Custom Search Engine."""
+    FOOTER_TEXT = 'Google'
+    FOOTER_ICON_URL = 'https://www.google.com/favicon.ico'
+
     if not args:
-        await ctx.send(f'{ctx.author.mention}\nhttps://www.google.com/')
+        embed = discord.Embed(
+            title=':warning: Błąd',
+            description='Nie podano szukanego hasła!',
+            color=somsiad.color
+        )
     else:
         query = ' '.join(args)
-        link = google_cse.get_first_google_result_link(query, 'pl', search_type='image')
-        if link is None:
-            await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
+        results = google_cse.search(query, 'pl', search_type='image')
+        if results is None:
+            embed = discord.Embed(
+                title=':warning: Błąd',
+                description=f'Nie udało się połączyć z serwerem wyszukiwania.',
+                color=somsiad.color
+            )
+        elif results == []:
+            embed = discord.Embed(
+                title=':slight_frown: Niepowodzenie',
+                description=f'Brak wyników dla zapytania "{query}".',
+                color=somsiad.color
+            )
         else:
-            await ctx.send(f'{ctx.author.mention}\n{link}')
+            result = results[0]
+            site_protocol = result['image']['contextLink'].split('://')
+            embed = discord.Embed(
+                title=result['title'],
+                url=result['image']['contextLink'],
+                color=somsiad.color
+            )
+            embed.set_author(
+                name=result['displayLink'],
+                url=f'{site_protocol}://{result["displayLink"]}'
+            )
+            embed.set_image(
+                url=result['link']
+            )
+
+    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
+    await ctx.send(ctx.author.mention, embed=embed)
