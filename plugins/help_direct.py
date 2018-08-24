@@ -43,53 +43,55 @@ async def help_direct(ctx):
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}google (gugiel, g) <zapytanie>',
-        value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasującą stronę.',
+        value='Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasującą stronę.',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}googleimage (gi, i) <zapytanie>',
-        value='Wysyła <zapytanie> do wyszukiwarki Google i zwraca najlepiej pasujący obrazek.',
+        value='Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasujący obrazek.',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
-        value='Zwraca z YouTube najlepiej pasujące do <zapytania> wideo.',
+        value='Zwraca z [YouTube](https://www.youtube.com) najlepiej pasujące do <zapytania> wideo.',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}giphy (gif) <zapytanie>',
-        value='Zwraca z Giphy najlepiej pasującego do <zapytania> gifa.',
+        value='Zwraca z [Giphy](https://giphy.com) najlepiej pasującego do <zapytania> gifa.',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
-        value='Sprawdza znaczenie <hasła> w polskiej wersji Wikipedii.',
+        value='Sprawdza znaczenie <hasła> w [polskiej wersji Wikipedii]'
+        '(https://pl.wikipedia.org/wiki/Wikipedia:Strona_główna).',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}wikipediaen (wikien, wen) <hasło>',
-        value='Sprawdza znaczenie <hasła> w anglojęzycznej wersji Wikipedii.',
+        value='Sprawdza znaczenie <hasła> w [anglojęzycznej wersji Wikipedii]'
+        '(https://en.wikipedia.org/wiki/Main_Page).',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}goodreads (gr) <tytuł/autor>',
-        value='Zwraca z goodreads książkę najlepiej pasującą do <tytułu/autora>.',
+        value='Zwraca z [goodreads](https://www.goodreads.com) książkę najlepiej pasującą do <tytułu/autora>.',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}urbandictionary (urban) <wyrażenie>',
-        value='Sprawdza znaczenie <wyrażenia> w Urban Dictionary.',
+        value='Sprawdza znaczenie <wyrażenia> w [Urban Dictionary](https://www.urbandictionary.com).',
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}isitup (isup, up) <url>',
-        value='Za pomocą serwisu isitup.org sprawdza status danej strony.',
+        name=f'{somsiad.conf["command_prefix"]}isitup (isup) <url>',
+        value='Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}kantor (kurs) <?liczba> '
         '<trzyliterowy kod waluty początkowej> <?trzyliterowy kod waluty docelowej>',
-        value='Konwertuje waluty.',
+        value='Konwertuje waluty za pomocą serwisu [CryptoCompare](https://www.cryptocompare.com).',
         inline=False
     )
     embed.add_field(
