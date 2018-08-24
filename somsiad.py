@@ -28,11 +28,11 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
+informator = Informator()
 
 # This is what happens every time the bot launches
 # In this case, it prints information like the user count, server count, and the bot's ID in the console
 def print_info():
-    informator = Informator()
 
     number_of_users = len(set(somsiad.client.get_all_members()))
     number_of_servers = len(somsiad.client.guilds)
@@ -68,9 +68,16 @@ async def on_ready():
 
 
 @somsiad.client.event
-async def on_server_join(server):
+async def on_guild_join(server):
     """Does things whenever the bot joins a server."""
     print_info()
+
+
+@somsiad.client.event
+async def on_guild_remove(server):
+    """Does things whenever the bot leaves a server."""
+    print_info()
+
 
 @somsiad.client.event
 async def on_command_error(ctx, error):
