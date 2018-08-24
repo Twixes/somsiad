@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
+import discord
 from discord.ext import commands
 from somsiad_helper import *
 
@@ -33,8 +34,10 @@ async def purge(ctx, *args):
 
         await ctx.channel.purge(limit=number_of_messages_to_delete+1)
 
-        await ctx.send(
-            f':white_check_mark: Usunięto {number_of_messages_to_delete} {last_adjective_variant} '
-            f'{messages_noun_variant}. Ta wiadomość ulegnie autodestrukcji w ciągu 5 sekund od wysłania.',
-            delete_after=5
-        )
+        embed = discord.Embed(
+            title=f':white_check_mark: Usunięto z kanału {number_of_messages_to_delete} {last_adjective_variant} '
+            f'{messages_noun_variant}',
+            description='Ta wiadomość ulegnie autodestrukcji w ciągu 5 sekund od wysłania.',
+            color=somsiad.color)
+
+        await ctx.send(embed=embed, delete_after=5)
