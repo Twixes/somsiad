@@ -19,7 +19,7 @@ from somsiad_helper import *
 
 
 @somsiad.client.command(aliases=['gr'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.server)
+@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.default)
 @commands.guild_only()
 async def goodreads(ctx, *args):
     """Goodreads search. Responds with for the most popular books matching the query."""
