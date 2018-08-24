@@ -25,7 +25,7 @@ class GoogleCSE:
         self._google_cse = build('customsearch', 'v1', developerKey=developer_key)
         self._google_cse_id = google_cse_id
 
-    def search(self, query, language, number_of_results=1, search_type='web'):
+    def search(self, query, language, number_of_results=1, safe='active', search_type=None):
         """Returns first {number_of_results} result(s) from Google."""
         try:
             results = self._google_cse.cse().list(
@@ -33,6 +33,7 @@ class GoogleCSE:
                 cx=self._google_cse_id,
                 hl=language,
                 num=number_of_results,
+                safe=safe,
                 searchType=search_type
             ).execute()
 
@@ -82,6 +83,7 @@ async def google(ctx, *args):
             embed = discord.Embed(
                 title=result['title'],
                 url=result['link'],
+                description=result['snippet'],
                 color=somsiad.color
             )
             embed.set_author(
@@ -91,6 +93,7 @@ async def google(ctx, *args):
             embed.set_image(
                 url=result['pagemap']['cse_image'][0]['src']
             )
+
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -112,7 +115,7 @@ async def googleimage(ctx, *args):
     else:
         query = ' '.join(args)
         results = google_cse.search(query, 'pl', search_type='image')
-        if results is None:
+        if results == None:
             embed = discord.Embed(
                 title=':warning: Błąd',
                 description=f'Nie udało się połączyć z serwerem wyszukiwania.',
@@ -126,7 +129,7 @@ async def googleimage(ctx, *args):
             )
         else:
             result = results[0]
-            site_protocol = result['image']['contextLink'].split('://')
+            site_protocol = result['link'].split('://')[0]
             embed = discord.Embed(
                 title=result['title'],
                 url=result['image']['contextLink'],
