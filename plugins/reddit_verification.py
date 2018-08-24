@@ -252,8 +252,9 @@ verificator = RedditVerificator(users_db_path, phrase_parts)
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 async def redditverify(ctx, *args):
     """Verifies Discord user via Reddit."""
-    discord_username = str(ctx.author)
+    FOOTER_TEXT = 'Reddit - weryfikacja'
 
+    discord_username = str(ctx.author)
     user_status = verificator.discord_user_status(discord_username)
 
     if user_status['reddit_username'] is None:
@@ -275,13 +276,10 @@ async def redditverify(ctx, *args):
             )
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-            await ctx.author.send(embed=embed)
-
         elif user_status['phrase_gen_date'] == today_date:
             # If user already has requested verification today, fend him off
             embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
             embed.add_field(name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.')
-            await ctx.author.send(embed=embed)
 
         else:
             # If user has requested verification but not today, assign him a new phrase
@@ -293,12 +291,12 @@ async def redditverify(ctx, *args):
             embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
             embed.add_field(
                 name='Wygenerowano tajną frazę.',
-                value=f'By zweryfikować się wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie '
+                value=f'By zweryfikować się wyślij [/u/{somsiad.conf["reddit_username"]}]'
+                f'(https://www.reddit.com/user/{somsiad.conf["reddit_username"]}) wiadomość o temacie '
                 f'"Weryfikacja" i treści "{phrase}". Fraza ważna jest do końca dnia.'
             )
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-            await ctx.author.send(embed=embed)
     else:
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
         embed.add_field(
@@ -306,19 +304,27 @@ async def redditverify(ctx, *args):
             value=f'Zweryfikowano {user_status["phrase_gen_date"]}.'
         )
 
-        await ctx.author.send(embed=embed)
+    embed.set_footer(text=FOOTER_TEXT)
+    await ctx.author.send(embed=embed)
 
 
 @somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
 async def redditxray(ctx, *args):
-    """Checks given user's verification status."""
-    # If no user was given assume message author
-    embed = discord.Embed(title='Wynik prześwietlenia', color=somsiad.color)
+    """Checks given user's verification status.
+    If no user was given, assumes message author.
+    If @here or @everyone mentions were given, returns a list of verified members of, respectively,
+    the channel or the server.
+    """
+    FOOTER_TEXT = 'Reddit - weryfikacja'
 
     if (len(args) == 1 and args[0].strip('\\') == '@everyone' and
             somsiad.does_member_have_elevated_permissions(ctx.author)):
+        embed = discord.Embed(
+            title='Zweryfikowani użytkownicy na tym serwerze',
+            color=somsiad.color
+        )
         for member in ctx.guild.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
@@ -330,6 +336,10 @@ async def redditxray(ctx, *args):
 
     elif (len(args) == 1 and args[0].strip('\\') == '@here' and
             somsiad.does_member_have_elevated_permissions(ctx.author)):
+        embed = discord.Embed(
+            title='Zweryfikowani użytkownicy na tym kanale',
+            color=somsiad.color
+        )
         for member in ctx.channel.members:
             user_status = verificator.discord_user_status(member)
             if user_status['reddit_username'] is not None:
@@ -359,32 +369,40 @@ async def redditxray(ctx, *args):
         if discord_user is not None:
             # Check if (and when) user has already been verified
             if user_status['phrase_gen_date'] is None:
-                embed.add_field(
-                    name=':red_circle: Niezweryfikowany',
-                    value=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.'
+                embed = discord.Embed(
+                    title=':red_circle: Niezweryfikowany',
+                    description=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.',
+                    color=somsiad.color
                 )
             else:
                 if user_status['reddit_username'] is None:
-                    embed.add_field(
-                        name=':red_circle: Niezweryfikowany',
-                        value=f'Użytkownik {discord_user} zażądał weryfikacji {user_status["phrase_gen_date"]}, '
-                        'ale nie dokończył jej na Reddicie.'
+                    embed = discord.Embed(
+                        title=':red_circle: Niezweryfikowany',
+                        description=f'Użytkownik {discord_user} zażądał weryfikacji {user_status["phrase_gen_date"]}, '
+                        'ale nie dokończył jej na Reddicie.',
+                        color=somsiad.color
                     )
                 else:
                     reddit_username_info = ''
                     if somsiad.does_member_have_elevated_permissions(ctx.author):
-                        reddit_username_info = f' jako /u/{user_status["reddit_username"]}'
-                    embed.add_field(
-                        name=':white_check_mark: Zweryfikowany',
-                        value=f'Użytkownik {discord_user} został zweryfikowany {user_status["phrase_gen_date"]} '
-                        f'{reddit_username_info}.'
+                        reddit_username_info = (f' jako [/u/{user_status["reddit_username"]}]'
+                        f'(https://www.reddit.com/user/{user_status["reddit_username"]})')
+                    embed = discord.Embed(
+                        title=':white_check_mark: Zweryfikowany',
+                        description=f'Użytkownik {discord_user} został zweryfikowany {user_status["phrase_gen_date"]}'
+                        f'{reddit_username_info}.',
+                        color=somsiad.color
                     )
 
         else:
-            embed.add_field(
-                name=':warning: Błąd',
-                value=f'Użytkownik {discord_username} nie znajduje się na tym serwerze.'
+            embed = discord.Embed(
+                title=':warning: Błąd',
+                description=f'Użytkownik {discord_username} nie znajduje się na tym serwerze.',
+                color=somsiad.color
             )
+
+
+    embed.set_footer(text=FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
 
 
