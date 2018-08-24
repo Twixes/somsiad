@@ -31,12 +31,23 @@ async def purge(ctx, *args):
             number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
         )
 
-        await ctx.channel.purge(limit=number_of_messages_to_delete+1)
+        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+            await ctx.channel.purge(limit=number_of_messages_to_delete+1)
 
-        embed = discord.Embed(
-            title=f':white_check_mark: Usunięto z kanału {number_of_messages_to_delete} {last_adjective_variant} '
-            f'{messages_noun_variant}',
-            description='Ta wiadomość ulegnie autodestrukcji w ciągu 5 sekund od wysłania.',
-            color=somsiad.color)
+            embed = discord.Embed(
+                title=f':white_check_mark: Usunięto z kanału {number_of_messages_to_delete} {last_adjective_variant} '
+                f'{messages_noun_variant}',
+                description='Ta wiadomość ulegnie autodestrukcji w ciągu 5 sekund od wysłania.',
+                color=somsiad.color
+            )
 
-        await ctx.send(embed=embed, delete_after=5)
+            await ctx.send(embed=embed, delete_after=5)
+
+        else:
+            embed = discord.Embed(
+                title=f':red_circle: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma do tego uprawnień',
+                description='Ta wiadomość ulegnie autodestrukcji w ciągu 5 sekund od wysłania.',
+                color=somsiad.color
+            )
+
+            await ctx.send(embed=embed, delete_after=5)
