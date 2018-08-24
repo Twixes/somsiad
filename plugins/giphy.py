@@ -23,7 +23,6 @@ from somsiad_helper import *
 async def giphy(ctx, *args):
     """Giphy search. Responds with the first GIF matching the query."""
     FOOTER_TEXT = 'Giphy'
-    FOOTER_ICON_URL = 'https://giphy.com/favicon.ico'
     if not args:
         embed = discord.Embed(
             title=':warning: Błąd',
@@ -66,5 +65,5 @@ async def giphy(ctx, *args):
                         description='Nie można połączyć się z serwisem!',
                         color=somsiad.color
                     )
-    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
+    embed.set_footer(text=FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
