@@ -11,7 +11,6 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
 import discord
 from discord.ext import commands
 from somsiad_helper import *
