@@ -164,6 +164,11 @@ class RedditVerificatorMessageWatch:
     watch_verificator = None
     users_db_path = None
 
+    class MessageRetrievalFailure(Exception):
+        somsiad.logger.warning(
+            'Something went wrong while trying to process Reddit verification messages!'
+        )
+
     def __init__(self, users_db_path):
         self.users_db_path = users_db_path
         thread = threading.Thread(target=self.run, args=())
@@ -171,7 +176,6 @@ class RedditVerificatorMessageWatch:
         thread.start()
 
     def run(self):
-        # Handle each new message
         self.watch_reddit = praw.Reddit(
             client_id=somsiad.conf['reddit_id'],
             client_secret=somsiad.conf['reddit_secret'],
@@ -183,13 +187,12 @@ class RedditVerificatorMessageWatch:
         while True:
             try:
                 self.process_messages()
-            except:
-                somsiad.logger.warning(
-                    'Something went wrong while trying to process Reddit verification messages! Trying again...'
-                )
+            except self.MessageRetrievalFailure:
+                pass
 
     def process_messages(self):
         """Processes new messages from the inbox stream and uses them for verification."""
+        # Handle each new message
         for message in praw.models.util.stream_generator(self.watch_reddit.inbox.unread):
             if message.subject == 'Weryfikacja':
                 # Check if (and when) Reddit account was verified
