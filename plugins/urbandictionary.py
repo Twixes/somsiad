@@ -23,11 +23,12 @@ from somsiad_helper import *
 @commands.guild_only()
 async def urbandictionary(ctx, *args):
     """Returns Urban Dictionary word definition."""
+    FOOTER_TEXT = 'Urban Dictionary'
     if not args:
         await ctx.send(f'{ctx.author.mention}\n:warning: Musisz podać parametr wyszukiwania.')
     else:
-        query = '%20'.join(args)
-        api_url = f'https://api.urbandictionary.com/v0/define'
+        query = ' '.join(args)
+        api_url = 'https://api.urbandictionary.com/v0/define'
         headers = {'User-Agent': somsiad.user_agent}
         params = {'term': query}
         async with aiohttp.ClientSession() as session:
@@ -50,16 +51,25 @@ async def urbandictionary(ctx, *args):
                         t_up = top_def['thumbs_up']
                         t_down = top_def['thumbs_down']
                         # Output results
-                        embed = discord.Embed(title='Urban Dictionary', color=somsiad.color)
-                        embed.add_field(name='Słowo:', value=word, inline=False)
-                        embed.add_field(name='Definicja:', value=definition, inline=False)
-                        embed.add_field(name='Przykład(y):', value=example, inline=False)
-                        embed.add_field(name='Głosy:', value=f':thumbsup: {str(t_up)} | :thumbsdown: {str(t_down)}')
-                        embed.add_field(name='Link:', value=link, inline=False)
-                        await ctx.send(embed=embed)
+                        embed = discord.Embed(
+                            title=word,
+                            url=link,
+                            description=definition,
+                            color=somsiad.color
+                        )
+                        embed.add_field(name=':thumbsup:', value=t_up)
+                        embed.add_field(name=':thumbsdown:', value=t_down)
                     else:
-                        await ctx.send(f'{ctx.author.mention}\n:slight_frown: Nie znaleziono pasujących wyników.')
+                        embed = discord.Embed(
+                            title=':slight_frown: Niepowodzenie',
+                            description=f'Nie znaleziono żadnego wyniku pasującego do zapytania "{query}".',
+                            color=somsiad.color
+                        )
                 else:
-                    await ctx.send(
-                        f'{ctx.author.mention}\n:warning: Nie można połączyć się z serwisem Urban Dictionary.'
+                    embed = discord.Embed(
+                        title=':warning: Błąd',
+                        description='Nie można połączyć się z serwisem!',
+                        color=somsiad.color
                     )
+    embed.set_footer(text=FOOTER_TEXT)
+    await ctx.send(ctx.author.mention, embed=embed)
