@@ -5,11 +5,12 @@ Polski bot discordowy. Napisany w Pythonie.
 ## Funkcje  
 
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
-* oznaczanie na żądanie pomocnych wiadomości za pomocą reakcji  
+* reagowanie na wiadomości na życzenie  
 * Magic 8-Ball  
-* wymiana (krypto)walut  
+* wymiana (krypto)walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
+* wyszukiwanie gifów na [Giphy](https://giphy.com/)  
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) po polsku i po angielsku  
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
@@ -30,6 +31,9 @@ https://cse.google.com/cse/all
 By twoja wyszukiwarka Google Custom Search Engine działała prawidłowo, musisz podczas jej tworzenia przypisać do niej 
 dowolną stronę (może być to https://example.com). Następnie musisz udać się do zakładki Konfiguracja / Podstawy 
 wyszukiwarki, usunąć dodaną stronę i zaznaczyć pola: "Wyszukiwarka grafiki" oraz "Wyszukiwanie w całej sieci".  
+
+* Klucz API Giphy:  
+https://developers.giphy.com/  
 
 * Klucz API goodreads:  
 https://www.goodreads.com/api  
@@ -80,11 +84,12 @@ The Polish Discord bot. Written in Python.
 ## Features  
 
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
-* reacting to helpful messages on demand  
+* reacting to messages on demand  
 * Magic 8-Ball  
-* (crypto)currency exchange  
+* (crypto)currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
+* [Giphy](https://giphy.com/) gif search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
 * [goodreads](https://www.goodreads.com) book search  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
@@ -105,6 +110,9 @@ https://cse.google.com/cse/all
 In order to make your Google Custom Search Engine work correctly, you must assign any website to it during creation 
 (it might as well be https://example.com). Then you must go into the CSE's Setup / Basics, remove the website and 
 check boxes: "Image search" and "Search the entire web".  
+
+* A Giphy API key:  
+https://developers.giphy.com/  
 
 * A goodreads API key:  
 https://www.goodreads.com/api  
