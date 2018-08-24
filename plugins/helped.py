@@ -47,7 +47,6 @@ async def helped(ctx, *args):
     """Adds "POMOGL" with smart_add_reactions()."""
     reactions = ['🇵', '🇴', '🇲', '🅾', '🇬', '🇱']
     for emoji in ctx.guild.emojis:
-        print(emoji)
         if emoji.name == 'regional_indicator_oo':
             reactions[3] = emoji
         if emoji.name == 'regional_indicator_el':
@@ -62,7 +61,6 @@ async def didnothelp(ctx, *args):
     """Adds "NIEPOMOGL" with smart_add_reactions()."""
     reactions = ['🇳', '🇮', '🇪', '🇵', '🇴', '🇲', '🅾', '🇬', '🇱']
     for emoji in ctx.guild.emojis:
-        print(emoji)
         if emoji.name == 'regional_indicator_oo':
             reactions[6] = emoji
         if emoji.name == 'regional_indicator_el':
