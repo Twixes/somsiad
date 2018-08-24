@@ -37,7 +37,7 @@ async def help_direct(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
+        name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8, czy) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.',
         inline=False
     )
