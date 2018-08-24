@@ -57,6 +57,11 @@ async def help_direct(ctx):
         inline=False
     )
     embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}giphy (gif) <zapytanie>',
+        value='Zwraca z Giphy najlepiej pasującego do <zapytania> gifa.',
+        inline=False
+    )
+    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
         value='Sprawdza znaczenie <hasła> w polskiej wersji Wikipedii.',
         inline=False
@@ -106,6 +111,12 @@ async def help_direct(ctx):
         name=f'{somsiad.conf["command_prefix"]}prześwietl (przeswietl) <?użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> '
         '(jeśli należy on do serwera na którym użyto komendy) lub, jeśli nie podano argumentu, dla ciebie.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}wyczyść (wyczysc) <?liczba>',
+        value='Usuwa <?liczbę> ostatnich wiadomości lub, jeśli nie podano liczby, jedną ostatnią wiadomość z kanału '
+        'na którym użyto komendy. Działa tylko dla członków serwera o podwyższonych uprawnieniach.',
         inline=False
     )
     embed.add_field(
