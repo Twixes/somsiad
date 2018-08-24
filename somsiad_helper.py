@@ -139,6 +139,16 @@ class Informator:
         return singular_form if number == 1 else plural_form
 
     @staticmethod
+    def adjective_variant(number, singular_form, plural_form_2_to_4, plural_form_5_to_1):
+        if number == 1:
+            return singular_form
+        elif ((number != 12 and number != 13 and number != 14) and
+                (str(number)[:1] == '2' or str(number)[:1] == '3' or str(number)[:1] == '4')):
+            return plural_form_2_to_4
+        else:
+            return plural_form_5_to_1
+
+    @staticmethod
     def separator(block, width, verbose=False):
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
         pattern = (block * int(width / len(block)) + block)[:width].strip()
