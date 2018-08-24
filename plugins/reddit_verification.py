@@ -164,10 +164,9 @@ class RedditVerificatorMessageWatch:
     watch_verificator = None
     users_db_path = None
 
-    class MessageRetrievalFailure(Exception):
-        somsiad.logger.warning(
-            'Something went wrong while trying to process Reddit verification messages!'
-        )
+    class MessageRetrievalFailure(praw.exceptions.APIException):
+        """Raised when messages could not be retrieved from Reddit."""
+        pass
 
     def __init__(self, users_db_path):
         self.users_db_path = users_db_path
@@ -188,6 +187,9 @@ class RedditVerificatorMessageWatch:
             try:
                 self.process_messages()
             except self.MessageRetrievalFailure:
+                somsiad.logger.warning(
+                    'Something went wrong while trying to process Reddit verification messages! Trying again...'
+                )
                 pass
 
     def process_messages(self):

@@ -14,7 +14,7 @@
 import os
 import logging
 import datetime
-from discord import errors
+import discord
 from discord.ext.commands import Bot
 from version import __version__
 
@@ -250,9 +250,9 @@ class Somsiad:
     def run(self):
         try:
             self.client.run(somsiad.conf['discord_token'])
-            somsiad.logger.info('Client online.')
-        except errors.ClientException:
-            somsiad.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
+            self.logger.info('Client online.')
+        except discord.errors.ClientException:
+            self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
 
     @staticmethod
     def get_fellow_server_member(server, args):

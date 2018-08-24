@@ -22,9 +22,8 @@ class GoogleCSE:
     _google_cse_id = None
 
     class SearchResultRetrievalFailure(Exception):
-        somsiad.logger.warning(
-            'Could not retrieve search results from Google!'
-        )
+        """Raised when search results could not be retrieved from Google."""
+        pass
 
     def __init__(self, developer_key, google_cse_id):
         self._google_cse = build('customsearch', 'v1', developerKey=developer_key)
@@ -47,6 +46,7 @@ class GoogleCSE:
             else:
                 return results['items']
         except self.SearchResultRetrievalFailure:
+            somsiad.logger.warning('Could not retrieve search results from Google!')
             return None
 
 
