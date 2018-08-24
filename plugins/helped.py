@@ -45,7 +45,13 @@ async def smart_add_reactions(server, channel, args, reactions):
 @commands.guild_only()
 async def helped(ctx, *args):
     """Adds "POMOGL" with smart_add_reactions()."""
-    reactions = ('🇵', '🇴', '🇲', '🅾', '🇬', '🇱')
+    reactions = ['🇵', '🇴', '🇲', '🅾', '🇬', '🇱']
+    for emoji in ctx.guild.emojis:
+        print(emoji)
+        if emoji.name == 'regional_indicator_oo':
+            reactions[3] = emoji
+        if emoji.name == 'regional_indicator_el':
+            reactions[5] = emoji
     await smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
 
 
@@ -54,5 +60,11 @@ async def helped(ctx, *args):
 @commands.guild_only()
 async def didnothelp(ctx, *args):
     """Adds "NIEPOMOGL" with smart_add_reactions()."""
-    reactions = ('🇳', '🇮', '🇪', '🇵', '🇴', '🇲', '🅾', '🇬', '🇱')
+    reactions = ['🇳', '🇮', '🇪', '🇵', '🇴', '🇲', '🅾', '🇬', '🇱']
+    for emoji in ctx.guild.emojis:
+        print(emoji)
+        if emoji.name == 'regional_indicator_oo':
+            reactions[6] = emoji
+        if emoji.name == 'regional_indicator_el':
+            reactions[8] = emoji
     await smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
