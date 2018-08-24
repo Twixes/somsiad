@@ -18,32 +18,48 @@ from googleapiclient.errors import HttpError
 from somsiad_helper import *
 
 
-youtube_client = build('youtube', 'v3', developerKey=somsiad.conf['google_key'])
+class YouTube:
+    _youtube_client = None
+
+    def __init__(self, developer_key):
+        self._youtube_client = build('youtube', 'v3', developerKey=developer_key)
+
+    def search(self, query, max_number_of_results=1, search_type='video'):
+        try:
+            # Call the search.list method to retrieve results matching the specified query term.
+            search_response = self._youtube_client.search().list(
+                q=query,
+                part='id',
+                maxResults=max_number_of_results,
+                type=search_type
+            ).execute()
+            # Output results if there are any
+            results = search_response.get('items')
+            return results
+        except HttpError as e:
+            logging.error(e)
+            return None
 
 
-@somsiad.client.command(aliases=['yt', 'tuba'])
+youtube = YouTube(somsiad.conf['google_key'])
+
+
+@somsiad.client.command(aliases=['youtube', 'yt', 'tuba'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def youtube(ctx, *args):
+async def youtube_search(ctx, *args):
     """Returns first matching result from YouTube."""
     if not args:
         await ctx.send(f'{ctx.author.mention}\nhttps://www.youtube.com/')
+
     else:
-        try:
-            # Call the search.list method to retrieve results matching the specified query term.
-            query = ' '.join(args)
-            search_response = youtube_client.search().list(
-                q=query,
-                part='id',
-                maxResults=1,
-                type='video'
-            ).execute()
-            # Output results
-            if len(search_response.get('items')) == 0:
-                await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
-            else:
-                video_id = search_response.get('items')[0]['id']['videoId']
-                video_url = f'https://www.youtube.com/watch?v={video_id}'
-                await ctx.send(f'{ctx.author.mention}\n{video_url}')
-        except HttpError as e:
-            logging.error(e)
+        query = ' '.join(args)
+
+        result = youtube.search(query)
+
+        if result:
+            video_id = result[0]['id']['videoId']
+            video_url = f'https://www.youtube.com/watch?v={video_id}'
+            await ctx.send(f'{ctx.author.mention}\n{video_url}')
+        else:
+            await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
