@@ -327,7 +327,6 @@ async def redditxray(ctx, *args):
                     value=f'/u/{user_status["reddit_username"]}',
                     inline=False
                 )
-        await ctx.send(embed=embed)
 
     elif (len(args) == 1 and args[0].strip('\\') == '@here' and
             somsiad.does_member_have_elevated_permissions(ctx.author)):
@@ -339,7 +338,6 @@ async def redditxray(ctx, *args):
                     value=f'/u/{user_status["reddit_username"]}',
                     inline=False
                 )
-        await ctx.send(embed=embed)
 
     else:
         if not args:
@@ -365,8 +363,6 @@ async def redditxray(ctx, *args):
                     name=':red_circle: Niezweryfikowany',
                     value=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.'
                 )
-                await ctx.send(embed=embed)
-
             else:
                 if user_status['reddit_username'] is None:
                     embed.add_field(
@@ -374,7 +370,6 @@ async def redditxray(ctx, *args):
                         value=f'Użytkownik {discord_user} zażądał weryfikacji {user_status["phrase_gen_date"]}, '
                         'ale nie dokończył jej na Reddicie.'
                     )
-                    await ctx.send(embed=embed)
                 else:
                     reddit_username_info = ''
                     if somsiad.does_member_have_elevated_permissions(ctx.author):
@@ -384,14 +379,13 @@ async def redditxray(ctx, *args):
                         value=f'Użytkownik {discord_user} został zweryfikowany {user_status["phrase_gen_date"]} '
                         f'{reddit_username_info}.'
                     )
-                    await ctx.send(embed=embed)
 
         else:
             embed.add_field(
                 name=':warning: Błąd',
                 value=f'Użytkownik {discord_username} nie znajduje się na tym serwerze.'
             )
-            await ctx.send(embed=embed)
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 reddit_verificator_message_watch = RedditVerificatorMessageWatch(users_db_path)
