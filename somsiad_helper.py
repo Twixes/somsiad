@@ -245,7 +245,11 @@ class Somsiad:
             conf_required.append(setting)
         self.configurator = Configurator(self.conf_file_path, conf_required)
         self.conf = self.configurator.configuration
-        self.client = Bot(description='Zawsze pomocny Somsiad', command_prefix=self.conf['command_prefix'])
+        self.client = Bot(
+            description='Zawsze pomocny Somsiad',
+            command_prefix=self.conf['command_prefix'],
+            case_insensitive=True
+        )
 
     def run(self):
         try:
