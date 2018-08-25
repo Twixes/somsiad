@@ -255,7 +255,7 @@ class RedditVerificatorMessageWatch:
 
 
 phrase_parts_file_path = os.path.join(somsiad.bot_dir_path, 'data', 'reddit_verification_phrase_parts.json')
-users_db_path = os.path.join(somsiad.storage_dir_path, 'reddit_verification.db')
+users_db_path = os.path.join(somsiad.storage_dir_path, 'reddit_verification_id_based.db')
 
 
 # Load phrase parts
