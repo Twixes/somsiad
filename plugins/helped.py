@@ -15,25 +15,31 @@ from discord.ext import commands
 from somsiad_helper import *
 from version import __version__
 
+discord_member_converter = discord.ext.commands.MemberConverter()
 
-async def smart_add_reactions(server, channel, args, reactions):
+async def smart_add_reactions(ctx, args, reactions):
     """Adds provided emojis to the specified user's last non-command message in the form of reactions.
         If no user was specified, adds emojis to the last non-command message sent by any non-bot user
         in the given channel."""
     was_message_found = False
 
     if not args:
-        async for message in channel.history(limit=5):
-            if (not was_message_found and not message.author.bot and
-                    not message.content.startswith(somsiad.conf['command_prefix'])):
+        async for message in ctx.channel.history(limit=5):
+            if (
+                not was_message_found
+                and not message.content.startswith(somsiad.conf['command_prefix'])
+            ):
                 for reaction in reactions:
                     await message.add_reaction(reaction)
                 was_message_found = True
 
     else:
-        async for message in channel.history(limit=10):
-            if (not was_message_found and message.author == somsiad.get_fellow_server_member(server, args) and
-                    not message.content.startswith(somsiad.conf['command_prefix'])):
+        async for message in ctx.channel.history(limit=10):
+            if (
+                not was_message_found
+                and message.author == await discord_member_converter.convert(ctx, ' '.join(args))
+                and not message.content.startswith(somsiad.conf['command_prefix'])
+            ):
                 for reaction in reactions:
                     await message.add_reaction(reaction)
                 was_message_found = True
@@ -50,7 +56,7 @@ async def helped(ctx, *args):
             reactions[3] = emoji
         if emoji.name == 'regional_indicator_el':
             reactions[5] = emoji
-    await smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
+    await smart_add_reactions(ctx, args, reactions)
 
 
 @somsiad.client.command(aliases=['niepomógł', 'niepomogl'])

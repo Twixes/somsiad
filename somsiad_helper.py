@@ -259,15 +259,6 @@ class Somsiad:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
 
     @staticmethod
-    def get_fellow_server_member(server, args):
-        if len(args) == 1 and args[0].strip('\\').startswith('<@') and args[0].endswith('>'):
-            user = server.get_member(int(args[0].strip('\\<@!>')))
-        else:
-            user = server.get_member_named(' '.join(args))
-
-        return user
-
-    @staticmethod
     def does_member_have_elevated_permissions(member):
         return member.guild_permissions.administrator
 
