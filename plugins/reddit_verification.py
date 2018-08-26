@@ -139,14 +139,14 @@ class RedditVerificator:
         if self.discord_user_status(discord_user_id)['phrase_gen_date'] is None:
             self._users_db_cursor.execute(
                 'INSERT INTO reddit_verification_users_id_based(discord_user_id, phrase) VALUES(?, ?)',
-                (discord_user_id, phrase,)
+                (discord_user_id, phrase)
             )
         else:
             today_date = str(datetime.date.today())
             self._users_db_cursor.execute(
                 '''UPDATE reddit_verification_users_id_based SET phrase = ?, phrase_gen_date = ?
                 WHERE discord_user_id = ?''',
-                (phrase, today_date, discord_user_id,)
+                (phrase, today_date, discord_user_id)
             )
         self._users_db.commit()
         return phrase
@@ -159,7 +159,7 @@ class RedditVerificator:
             if user_status['discord_user_id'] is None:
                 self._users_db_cursor.execute(
                     'UPDATE reddit_verification_users_id_based SET reddit_username = ?, phrase = NULL WHERE phrase = ?',
-                    (reddit_username, phrase,)
+                    (reddit_username, phrase)
                 )
                 self._users_db.commit()
             return self.reddit_user_status(reddit_username)
