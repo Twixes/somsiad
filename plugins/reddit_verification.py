@@ -31,7 +31,7 @@ class RedditVerificator:
     _phrase_parts = None
     discord_member_converter = None
 
-    def __init__(self, users_db_path, phrase_parts=None):
+    def __init__(self, users_db_path: str, phrase_parts=None):
         """Connects to the database. Creates it if it doesn't yet. Sets up phrase parts."""
         self._users_db = sqlite3.connect(users_db_path)
         self._users_db_cursor = self._users_db.cursor()
@@ -48,7 +48,7 @@ class RedditVerificator:
         self.discord_member_converter = discord.ext.commands.MemberConverter()
 
     @staticmethod
-    def is_reddit_user_trustworthy(reddit_user):
+    def is_reddit_user_trustworthy(reddit_user: str):
         """Checks if given Reddit user seems trustworthy."""
         account_karma = reddit_user.link_karma + reddit_user.comment_karma
         account_age_days = (time.time() - reddit_user.created_utc) / 86400
@@ -69,7 +69,7 @@ class RedditVerificator:
                 is_phrase_unique = True
         return phrase
 
-    def phrase_status(self, phrase):
+    def phrase_status(self, phrase: str):
         """Returns given phrase's status."""
         phrase_gen_date = None
 
@@ -89,7 +89,7 @@ class RedditVerificator:
 
         return {'discord_user_id': discord_user_id, 'phrase_gen_date': phrase_gen_date}
 
-    def discord_user_status(self, discord_user_id):
+    def discord_user_status(self, discord_user_id: int):
         """Returns given Discord user's status."""
         if discord_user_id is None:
             return {'phrase_gen_date': None, 'reddit_username': None}
@@ -113,7 +113,7 @@ class RedditVerificator:
                 reddit_username = self._users_db_cursor.fetchone()
                 return {'phrase_gen_date': phrase_gen_date[0], 'reddit_username': reddit_username[0]}
 
-    def reddit_user_status(self, reddit_username):
+    def reddit_user_status(self, reddit_username: str):
         """Returns given Reddit user's status."""
         phrase_gen_date = None
 
@@ -133,7 +133,7 @@ class RedditVerificator:
 
         return {'discord_user_id': discord_user_id, 'phrase_gen_date': phrase_gen_date}
 
-    def assign_phrase(self, discord_user_id):
+    def assign_phrase(self, discord_user_id: int):
         """Assigns a phrase to a Discord user."""
         phrase = self.phrase_gen()
 
@@ -151,7 +151,7 @@ class RedditVerificator:
         self._users_db.commit()
         return phrase
 
-    def assign_reddit_username_by_phrase(self, phrase, reddit_username):
+    def assign_reddit_username_by_phrase(self, phrase: str, reddit_username: str):
         """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
         user_status = self.reddit_user_status(reddit_username)
 
@@ -354,7 +354,7 @@ async def redditxray(ctx, *args):
             color=somsiad.color
         )
         for member in ctx.guild.members:
-            user_status = verificator.discord_user_status(member)
+            user_status = verificator.discord_user_status(member.id)
             if user_status['reddit_username'] is not None:
                 embed.add_field(
                     name=str(member),
