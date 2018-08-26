@@ -14,7 +14,7 @@
 import os
 import secrets
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 
 
 with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.txt')) as f:

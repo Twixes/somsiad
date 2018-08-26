@@ -13,7 +13,7 @@
 
 import discord
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
@@ -26,8 +26,8 @@ async def purge(ctx, *args):
         if args:
             number_of_messages_to_delete = int(args[0]) if int(args[0]) < 50 else 50
 
-        messages_noun_variant = Informator.noun_variant(number_of_messages_to_delete, 'wiadomość', 'wiadomości')
-        last_adjective_variant = Informator.adjective_variant(
+        messages_noun_variant = TextFormatter.noun_variant(number_of_messages_to_delete, 'wiadomość', 'wiadomości')
+        last_adjective_variant = TextFormatter.adjective_variant(
             number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
         )
 

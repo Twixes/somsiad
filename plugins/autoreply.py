@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 from version import __version__
 
 

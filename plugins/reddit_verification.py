@@ -21,7 +21,7 @@ import sqlite3
 import discord
 from discord.ext import commands
 import praw
-from somsiad_helper import *
+from somsiad import TextFormatter, somsiad
 from version import __version__
 
 
@@ -238,13 +238,14 @@ class RedditVerificatorMessageWatch:
                                 )
 
                             else:
-                                day_noun_variant = ('dzień' if int(somsiad.conf['reddit_account_min_age_days']) == 1
-                                    else 'dni')
+
+                                account_min_age_days = int(somsiad.conf['reddit_account_min_age_days'])
                                 message.reply(
                                     'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
                                     'Do weryfikacji potrzebne jest konto założone co najmniej '
-                                    f'{somsiad.conf["reddit_account_min_age_days"]} {day_noun_variant} temu i o karmie '
-                                    f'nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
+                                    f'{somsiad.conf["reddit_account_min_age_days"]} '
+                                    f'{TextFormatter.noun_variant(account_min_age_days, "dzień", "dni")} temu '
+                                    f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
                                 )
 
                         else:

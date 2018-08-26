@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
 # Copyright 2018 Twixes
 
@@ -13,24 +13,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-if command -V python3 &>/dev/null
-then
-    if command -V pip3 &>/dev/null
-    then
-        if ! test -d somsiad_env
-        then
-            echo Tworzenie środowiska wirtualnego...
-            python3 -m venv somsiad_env
-        fi
-        source ./somsiad_env/bin/activate
-        echo Spełnianie zależności...
-        pip3 install -q -U pip
-        pip3 install -q -r requirements.txt
-        echo Budzenie Somsiada...
-        python3 run.py
-    else
-        echo W systemie nie znaleziono menedżera paczek pip3! Somsiad nie może wstać.
-    fi
-else
-    echo W systemie nie znaleziono Pythona 3! Somsiad nie może wstać.
-fi
+import somsiad
+from plugins import *
+
+
+if __name__ == '__main__':
+    somsiad.somsiad.run()

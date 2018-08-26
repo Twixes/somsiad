@@ -14,7 +14,7 @@
 import discord
 from discord.ext import commands
 from googleapiclient.discovery import build
-from somsiad_helper import *
+from somsiad import somsiad
 
 
 class GoogleCSE:

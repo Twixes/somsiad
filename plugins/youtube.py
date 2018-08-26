@@ -15,7 +15,7 @@ import logging
 from discord.ext import commands
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from somsiad_helper import *
+from somsiad import somsiad
 
 
 class YouTube:

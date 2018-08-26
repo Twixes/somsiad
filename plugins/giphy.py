@@ -14,7 +14,7 @@
 import aiohttp
 import discord
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['gif'])
@@ -23,6 +23,7 @@ from somsiad_helper import *
 async def giphy(ctx, *args):
     """Giphy search. Responds with the first GIF matching the query."""
     FOOTER_TEXT = 'Giphy'
+
     if not args:
         embed = discord.Embed(
             title=':warning: Błąd',
@@ -64,5 +65,6 @@ async def giphy(ctx, *args):
                         description='Nie można połączyć się z serwisem!',
                         color=somsiad.color
                     )
+
     embed.set_footer(text=FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)

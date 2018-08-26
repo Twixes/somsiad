@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 import aiohttp
 import discord
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['gr'])
@@ -95,5 +95,6 @@ async def goodreads(ctx, *args):
                 else:
                     embed = discord.Embed(
                         title=':warning: Błąd', description='Nie można połączyć się z serwisem!', color=somsiad.color)
+
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)

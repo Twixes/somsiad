@@ -12,10 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 from version import __version__
-
-discord_member_converter = discord.ext.commands.MemberConverter()
 
 async def smart_add_reactions(ctx, args, reactions):
     """Adds provided emojis to the specified user's last non-command message in the form of reactions.
@@ -37,7 +35,7 @@ async def smart_add_reactions(ctx, args, reactions):
         async for message in ctx.channel.history(limit=10):
             if (
                 not was_message_found
-                and message.author == await discord_member_converter.convert(ctx, ' '.join(args))
+                and message.author == await somsiad.member_converter.convert(ctx, ' '.join(args))
                 and not message.content.startswith(somsiad.conf['command_prefix'])
             ):
                 for reaction in reactions:

@@ -15,7 +15,7 @@ import re
 import aiohttp
 import discord
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 from version import __version__
 
 
@@ -94,5 +94,6 @@ async def currency(ctx, *args):
                         )
         else:
             embed = discord.Embed(title=':warning: Błąd', description=ERROR_NOTICE, color=somsiad.color)
+
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)

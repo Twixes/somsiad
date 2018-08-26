@@ -14,7 +14,7 @@
 import aiohttp
 import discord
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['isup'])

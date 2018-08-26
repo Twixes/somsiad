@@ -14,7 +14,7 @@
 import aiohttp
 import discord
 from discord.ext import commands
-from somsiad_helper import *
+from somsiad import somsiad
 from version import __version__
 
 
