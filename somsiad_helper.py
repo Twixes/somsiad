@@ -163,7 +163,7 @@ class Informator:
         servers = sorted(client.guilds, key=lambda server: len(server.members), reverse=True)
         longest_server_name_length = 0
         longest_days_since_joining_info_length = 0
-        list_of_servers = ''
+        list_of_servers = []
 
         for server in servers:
             if server.me is not None:
@@ -182,11 +182,12 @@ class Informator:
                 days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
                 days_since_joining_info = (f'{days_since_joining} '
                     f'{self.noun_variant(days_since_joining, "dnia", "dni")}')
-                list_of_servers += (f'{server.name.ljust(longest_server_name_length)} - '
+                list_of_servers.append(f'{server.name.ljust(longest_server_name_length)} - '
                     f'od {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
-                    f'{str(len(server.members))} '
-                    f'{self.noun_variant(len(server.members), "użytkownik", "użytkowników")}\n')
-        list_of_servers = list_of_servers.strip('\n')
+                    f'{server.member_count} '
+                    f'{self.noun_variant(server.member_count, "użytkownik", "użytkowników")}')
+
+        list_of_servers = '\n'.join(list_of_servers)
 
         if verbose:
             print(list_of_servers)
