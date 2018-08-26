@@ -83,7 +83,8 @@ async def invite(ctx, *args):
         else:
             for current_channel in ctx.guild.channels:
                 if (current_channel.permissions_for(ctx.guild.me).create_instant_invite
-                        and current_channel.permissions_for(ctx.author).create_instant_invite):
+                        and current_channel.permissions_for(ctx.author).create_instant_invite
+                        and not isinstance(current_channel, discord.CategoryChannel)):
                     channel = current_channel
                     break
         invite = await channel.create_invite(max_uses=max_uses, unique=unique)
@@ -106,7 +107,7 @@ async def invite(ctx, *args):
                 f'{max_uses_info if max_uses == 1 else ""} zaproszenie na kanał '
                 f'{"#" if isinstance(channel, discord.TextChannel) else ""}{channel}'
                 f'{max_uses_info if max_uses != 1 else ""}',
-                description=str(invite),
+                description=invite.url,
                 color=somsiad.color
             )
 
@@ -117,9 +118,3 @@ async def invite(ctx, *args):
         )
 
     await ctx.send(ctx.author.mention, embed=embed)
-
-
-
-    #for channel in somsiad.client.guilds.channels:
-    #    if not was_proper_channel_found and channel.permissions_for(server.me).create_instant_invite:
-    #        invite = await channel.create_invite(max_uses=1, unique=False, reason='Test bota')
