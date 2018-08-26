@@ -96,14 +96,16 @@ async def invite(ctx, *args):
             )
         else:
             if max_uses == 0:
-                max_uses_info = 'o nieskończonej liczbie użyć'
+                max_uses_info = ' o nieskończonej liczbie użyć'
             elif max_uses == 1:
-                max_uses_info = 'jednorazowe'
+                max_uses_info = ' jednorazowe'
             else:
-                max_uses_info = f'o {max_uses} użyciach'
+                max_uses_info = f' o {max_uses} użyciach'
             embed = discord.Embed(
-                title=f':white_check_mark: {"Utworzono" if unique else "Zrecyklowano (jeśli się dało)"} zaproszenie '
-                f'{max_uses_info} na kanał {"#" if isinstance(channel, discord.TextChannel) else ""}{channel}',
+                title=f':white_check_mark: {"Utworzono" if unique else "Zrecyklowano (jeśli się dało)"}'
+                f'{max_uses_info if max_uses == 1 else ""} zaproszenie na kanał '
+                f'{"#" if isinstance(channel, discord.TextChannel) else ""}{channel}'
+                f'{max_uses_info if max_uses != 1 else ""}',
                 description=str(invite),
                 color=somsiad.color
             )
