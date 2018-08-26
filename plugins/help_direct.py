@@ -132,6 +132,11 @@ async def help_direct(ctx):
         inline=False
     )
     embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}rzuć (rzuc) <?liczba kości> <?liczba ścianek kości>',
+        value='Rzuca kością. ',
+        inline=False
+    )
+    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}tableflip',
         value='(╯°□°）╯︵ ┻━┻',
         inline=False
