@@ -103,10 +103,10 @@ async def google(ctx, *args):
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.client.command(aliases=['i', 'gi'])
+@somsiad.client.command(aliases=['googleimage', 'gi', 'i'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def googleimage(ctx, *args):
+async def google_image(ctx, *args):
     """Returns first matching image from Google using the provided Custom Search Engine."""
     FOOTER_TEXT = 'Google'
     FOOTER_ICON_URL = 'https://www.google.com/favicon.ico'

@@ -278,7 +278,7 @@ verificator = RedditVerificator(users_db_path, phrase_parts)
 
 @somsiad.client.command(aliases=['zweryfikuj'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-async def redditverify(ctx, *args):
+async def reddit_verify(ctx, *args):
     """Verifies Discord user via Reddit."""
     FOOTER_TEXT = 'Reddit - weryfikacja'
 
@@ -339,7 +339,7 @@ async def redditverify(ctx, *args):
 @somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def redditxray(ctx, *args):
+async def reddit_xray(ctx, *args):
     """Checks given user's verification status.
     If no user was given, assumes message author.
     If @here or @everyone mentions were given, returns a list of verified members of, respectively,
@@ -417,8 +417,8 @@ async def redditxray(ctx, *args):
     embed.set_footer(text=FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
 
-@redditxray.error
-async def redditxray_error(ctx, error):
+@reddit_xray.error
+async def reddit_xray_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         FOOTER_TEXT = 'Reddit - weryfikacja'
 

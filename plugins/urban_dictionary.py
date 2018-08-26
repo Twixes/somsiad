@@ -18,10 +18,10 @@ from discord.ext import commands
 from somsiad_helper import *
 
 
-@somsiad.client.command(aliases=['urban'])
+@somsiad.client.command(aliases=['urbandictionary', 'urban'])
 @commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
 @commands.guild_only()
-async def urbandictionary(ctx, *args):
+async def urban_dictionary(ctx, *args):
     """Returns Urban Dictionary word definition."""
     FOOTER_TEXT = 'Urban Dictionary'
     if not args:
