@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from discord.ext import commands
+import discord
 from somsiad import somsiad
 from version import __version__
 
@@ -44,8 +44,8 @@ async def smart_add_reactions(ctx, args, reactions):
 
 
 @somsiad.client.command(aliases=['pomógł', 'pomogl'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def helped(ctx, *args):
     """Adds "POMOGL" with smart_add_reactions()."""
     reactions = ['🇵', '🇴', '🇲', '🅾', '🇬', '🇱']
@@ -58,8 +58,8 @@ async def helped(ctx, *args):
 
 
 @somsiad.client.command(aliases=['niepomógł', 'niepomogl'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def didnothelp(ctx, *args):
     """Adds "NIEPOMOGL" with smart_add_reactions()."""
     reactions = ['🇳', '🇮', '🇪', '🇵', '🇴', '🇲', '🅾', '🇬', '🇱']

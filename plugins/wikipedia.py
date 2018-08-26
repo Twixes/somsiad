@@ -13,7 +13,6 @@
 
 import aiohttp
 import discord
-from discord.ext import commands
 from somsiad import somsiad
 from version import __version__
 
@@ -114,16 +113,16 @@ async def wikipedia_search(ctx, args, language):
 
 
 @somsiad.client.command(aliases=['wikipl', 'wpl'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def wikipediapl(ctx, *args):
     """Polish version of wikipedia_search."""
     await wikipedia_search(ctx, args, 'pl')
 
 
 @somsiad.client.command(aliases=['wikien', 'wen'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def wikipediaen(ctx, *args):
     """English version of wikipedia_search."""
     await wikipedia_search(ctx, args, 'en')

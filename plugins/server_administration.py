@@ -12,13 +12,12 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from discord.ext import commands
 from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def purge(ctx, *args):
     """Removes last n messages in the channel."""
     if somsiad.does_member_have_elevated_permissions(ctx.author):
@@ -54,8 +53,8 @@ async def purge(ctx, *args):
 
 
 @somsiad.client.command(aliases=['zaproś', 'zapros'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def invite(ctx, *args):
     is_user_permitted_to_invite = False
     for current_channel in ctx.guild.channels:

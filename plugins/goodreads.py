@@ -14,13 +14,14 @@
 import xml.etree.ElementTree as ET
 import aiohttp
 import discord
-from discord.ext import commands
 from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['gr'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.default)
-@commands.guild_only()
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.default
+)
+@discord.ext.commands.guild_only()
 async def goodreads(ctx, *args):
     """Goodreads search. Responds with for the most popular books matching the query."""
     FOOTER_TEXT = 'goodreads'

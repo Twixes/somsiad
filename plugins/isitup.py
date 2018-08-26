@@ -13,13 +13,12 @@
 
 import aiohttp
 import discord
-from discord.ext import commands
 from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['isup'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def isitup(ctx, *args):
     """Returns information about website status."""
     FOOTER_TEXT = 'Is it up?'

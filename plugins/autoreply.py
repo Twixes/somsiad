@@ -11,14 +11,14 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from discord.ext import commands
+import discord
 from somsiad import somsiad
 from version import __version__
 
 
 @somsiad.client.command(aliases=['wersja'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def version(ctx):
     """Responds with current version of the bot."""
     if somsiad.does_member_have_elevated_permissions(ctx.author):
@@ -29,47 +29,47 @@ async def version(ctx):
 
 
 @somsiad.client.command()
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 async def ping(ctx):
     """Pong!"""
     await ctx.send(':ping_pong: Pong!')
 
 
 @somsiad.client.command(aliases=['lenny'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
 
 @somsiad.client.command()
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def tableflip(ctx):
     """(╯°□°）╯︵ ┻━┻"""
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
 
 @somsiad.client.command()
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def unflip(ctx):
     """┬─┬ ノ( ゜-゜ノ)"""
     await ctx.send('┬─┬ ノ( ゜-゜ノ)')
 
 
 @somsiad.client.command()
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def shrug(ctx):
     r"""¯\_(ツ)_/¯"""
     await ctx.send(r'¯\_(ツ)_/¯')
 
 
 @somsiad.client.command(aliases=['dej'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def gib(ctx, *args):
     """༼ つ ◕_◕ ༽つ"""
     if not args:
@@ -79,16 +79,16 @@ async def gib(ctx, *args):
 
 
 @somsiad.client.command()
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def fccchk(ctx):
     """:japanese_goblin:"""
     await ctx.send(':japanese_goblin:')
 
 
 @somsiad.client.command(aliases=['r', 'sub'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def subreddit(ctx, *args):
     """Responds with the URL of the given subreddit."""
     if not args:
@@ -99,8 +99,8 @@ async def subreddit(ctx, *args):
 
 
 @somsiad.client.command(aliases=['u'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def reddit_user(ctx, *args):
     """Responds with the URL of the given Reddit user."""
     if not args:

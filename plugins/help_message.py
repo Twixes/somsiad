@@ -12,13 +12,12 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from discord.ext import commands
 from somsiad import somsiad
 from version import __version__
 
 
 @somsiad.client.command(aliases=['help', 'pomocy'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 async def help_message(ctx):
     embed = discord.Embed(title='Lecem na ratunek!' , color=somsiad.color)
     embed.add_field(

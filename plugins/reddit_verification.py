@@ -19,7 +19,6 @@ import threading
 import json
 import sqlite3
 import discord
-from discord.ext import commands
 import praw
 from somsiad import TextFormatter, somsiad
 from version import __version__
@@ -145,7 +144,8 @@ class RedditVerificator:
         else:
             today_date = str(datetime.date.today())
             self._users_db_cursor.execute(
-                'UPDATE reddit_verification_users_id_based SET phrase = ?, phrase_gen_date = ? WHERE discord_user_id = ?',
+                '''UPDATE reddit_verification_users_id_based SET phrase = ?, phrase_gen_date = ?
+                WHERE discord_user_id = ?''',
                 (phrase, today_date, discord_user_id,)
             )
         self._users_db.commit()
@@ -278,7 +278,7 @@ verificator = RedditVerificator(users_db_path, phrase_parts)
 
 
 @somsiad.client.command(aliases=['zweryfikuj'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 async def reddit_verify(ctx, *args):
     """Verifies Discord user via Reddit."""
     FOOTER_TEXT = 'Reddit - weryfikacja'
@@ -338,8 +338,8 @@ async def reddit_verify(ctx, *args):
 
 
 @somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
-@commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], commands.BucketType.user)
-@commands.guild_only()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
 async def reddit_xray(ctx, *args):
     """Checks given user's verification status.
     If no user was given, assumes message author.
@@ -420,7 +420,7 @@ async def reddit_xray(ctx, *args):
 
 @reddit_xray.error
 async def reddit_xray_error(ctx, error):
-    if isinstance(error, commands.BadArgument):
+    if isinstance(error, discord.ext.commands.BadArgument):
         FOOTER_TEXT = 'Reddit - weryfikacja'
 
         embed = discord.Embed(
