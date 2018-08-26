@@ -11,5 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ['autoreply', 'currency', 'dice', 'eightball', 'giphy', 'goodreads', 'google_search', 'help_message',
-    'helped', 'isitup', 'reddit_verification', 'server_administration', 'urban_dictionary', 'wikipedia', 'youtube']
+__all__ = [
+    'autoreply', 'currency', 'dice', 'eightball', 'giphy', 'goodreads', 'google_search', 'help_message', 'helped',
+    'isitup', 'reddit_verification', 'server_administration', 'urban_dictionary', 'wikipedia', 'youtube'
+]
