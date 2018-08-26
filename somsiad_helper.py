@@ -14,6 +14,7 @@
 import os
 import logging
 import datetime
+from typing import Union
 import discord
 from discord.ext.commands import Bot
 from version import __version__
@@ -224,6 +225,13 @@ class Somsiad:
     conf = None
     client = None
 
+    @property
+    def invite_url(self):
+        try:
+            return discord.utils.oauth_url(self.client.user.id, discord.Permissions(536083543))
+        except discord.errors.ClientException:
+            return None
+
     def __init__(self, conf_required_extension):
         logging.basicConfig(
             filename='somsiad.log',
@@ -260,9 +268,13 @@ class Somsiad:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
 
     @staticmethod
-    def does_member_have_elevated_permissions(member):
+    def does_member_have_elevated_permissions(member: discord.Member) -> bool:
         return member.guild_permissions.administrator
 
+    @staticmethod
+    async def is_user_bot_owner(user: Union[discord.User, discord.Member]) -> bool:
+        application_info = await somsiad.client.application_info()
+        return application_info.owner == user
 
 # Required configuration
 conf_required_extension = [

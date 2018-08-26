@@ -33,9 +33,9 @@ informator = Informator()
 # This is what happens every time the bot launches
 # In this case, it prints information like the user count, server count, and the bot's ID in the console
 def print_info():
-
     number_of_users = len(set(somsiad.client.get_all_members()))
     number_of_servers = len(somsiad.client.guilds)
+
     info_lines = (
         f'Obudzono Somsiada (ID {somsiad.client.user.id}).',
         '',
@@ -45,8 +45,7 @@ def print_info():
         informator.list_of_servers(somsiad.client),
         '',
         'Link do zaproszenia bota:',
-        f'https://discordapp.com/oauth2/authorize?somsiad.client_id={somsiad.client.user.id}&scope=bot'
-            '&permissions=536083543',
+        somsiad.invite_url,
         '',
         somsiad.configurator.info(),
         '',
