@@ -11,5 +11,5 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = ['help_direct', 'autoreply', 'eightball', 'google_search', 'wikipedia', 'urbandictionary', 'isitup',
-    'youtube', 'reddit_verification', 'currency', 'helped', 'goodreads', 'giphy', 'moderation', 'dice']
+__all__ = ['help_direct', 'server_administration', 'autoreply', 'eightball', 'google_search', 'wikipedia', 'urbandictionary',
+    'isitup', 'youtube', 'reddit_verification', 'currency', 'helped', 'goodreads', 'giphy', 'dice']
