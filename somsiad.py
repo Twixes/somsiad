@@ -23,15 +23,18 @@ from version import __version__
 
 class TextFormatter:
     @staticmethod
-    def with_preposition_variant(number):
+    def with_preposition_variant(number: int):
+        """Returns the gramatically correct variant of the 'with' preposition in Polish."""
         return 'ze' if number >= 100 and number < 200 else 'z'
 
     @staticmethod
-    def noun_variant(number, singular_form, plural_form):
+    def noun_variant(number: int, singular_form: str, plural_form: str):
+        """Returns the gramatically correct variant of the given noun in Polish."""
         return singular_form if number == 1 else plural_form
 
     @staticmethod
-    def adjective_variant(number, singular_form, plural_form_2_to_4, plural_form_5_to_1):
+    def adjective_variant(number:int , singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str):
+        """Returns the gramatically correct variant of the given adjective in Polish."""
         if number == 1:
             return singular_form
         elif ((number != 12 and number != 13 and number != 14) and
@@ -41,19 +44,21 @@ class TextFormatter:
             return plural_form_5_to_1
 
     @staticmethod
-    def separator(block: str, width: int):
+    def separator(block: str, width: int) -> str:
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
         pattern = (block * int(width / len(block)) + block)[:width].strip()
         return pattern
 
     @classmethod
-    def generate_info_block(cls, info_lines: list, separator_block: str = None, first_info_block: bool = True) -> str:
-        """Takes a list of lines containing bot information and returns a string ready for printing."""
+    def generate_console_block(
+        cls, info_lines: list, separator_block: str = None, first_console_block: bool = True
+    ) -> str:
+        """Takes a list of lines and returns a string ready for printing in the console."""
         info_block = []
         separator = None
         if separator_block is not None:
             separator = cls.separator(separator_block, os.get_terminal_size()[0])
-        if separator is not None and first_info_block:
+        if separator is not None and first_console_block:
             info_block.append(separator)
         for line in info_lines:
             info_block.append(line)
@@ -147,7 +152,7 @@ class Configurator:
         return self.configuration
 
     def info(self):
-        """Returns a string presenting the current configuration in a human-readable form. Can print to the console."""
+        """Returns a string presenting the current configuration in a human-readable form."""
         if self.configuration_required is not None:
             info = ''
             for key_required in self.configuration_required:
@@ -181,7 +186,7 @@ class Somsiad:
     configurator = None
     client = None
 
-    def __init__(self, conf_required_extension):
+    def __init__(self, required_configuration_extension):
         logging.basicConfig(
             filename='somsiad.log',
             level=logging.INFO,
@@ -191,16 +196,16 @@ class Somsiad:
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.conf_dir_path):
             os.makedirs(self.conf_dir_path)
-        conf_required = [
-            # (key, default_value, instruction, description, unit,)
-            ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None,),
-            ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None,),
+        required_configuration = [
+            # (key, default_value, instruction, description, unit)
+            ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None),
+            ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None),
             ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
-                '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund',),),
+                '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund'))
         ]
-        for setting in conf_required_extension:
-            conf_required.append(setting)
-        self.configurator = Configurator(self.conf_file_path, conf_required)
+        for setting in required_configuration_extension:
+            required_configuration.append(setting)
+        self.configurator = Configurator(self.conf_file_path, required_configuration)
         self.client = Bot(
             description='Zawsze pomocny Somsiad',
             command_prefix=self.conf['command_prefix'],
@@ -209,6 +214,7 @@ class Somsiad:
         self.client.remove_command('help') # Replaced with the 'help_direct' plugin
 
     def run(self):
+        """Launches the bot."""
         try:
             self.client.run(somsiad.conf['discord_token'])
             self.logger.info('Client online.')
@@ -217,10 +223,12 @@ class Somsiad:
 
     @property
     def conf(self):
+        """Returns current configuration of the bot."""
         return self.configurator.configuration
 
     @property
     def invite_url(self):
+        """Returns the invitation URL of the bot."""
         try:
             return discord.utils.oauth_url(self.client.user.id, discord.Permissions(536083543))
         except discord.errors.ClientException:
@@ -260,16 +268,18 @@ class Somsiad:
         return list_of_servers
 
     async def is_user_bot_owner(self, user: Union[discord.User, discord.Member]) -> bool:
+        """Returns whether the provided user/member is the owner of this instance of the bot."""
         application_info = await self.client.application_info()
         return application_info.owner == user
 
     @staticmethod
     def does_member_have_elevated_permissions(member: discord.Member) -> bool:
+        """Returns whether the provided member has elevated permissions."""
         return member.guild_permissions.administrator
 
 # Required configuration
-conf_required_extension = [
-    # (key, default_value, instruction, description, unit,)
+required_configuration_extension = [
+    # (key, default_value, instruction, description, unit)
     ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None),
     ('google_custom_search_engine_id', None, 'Wprowadź identyfikator CSE Google', 'Identyfikator CSE Google', None),
     ('goodreads_key', None, 'Wprowadź klucz API Goodreads', 'Klucz API Goodreads', None),
@@ -284,11 +294,11 @@ conf_required_extension = [
         'Minimalna karma weryfikowanego konta na Reddicie', None)
 ]
 
-somsiad = Somsiad(conf_required_extension)
+somsiad = Somsiad(required_configuration_extension)
 
-# This is what happens every time the bot launches
-# In this case, it prints information like the user count, server count, and the bot's ID in the console
-def print_info(first_info_block=True):
+
+def print_info(first_console_block=True):
+    """Prints information about the bot to the console."""
     number_of_users = len(set(somsiad.client.get_all_members()))
     number_of_servers = len(somsiad.client.guilds)
 
@@ -310,7 +320,7 @@ def print_info(first_info_block=True):
         'Copyright 2018 Habchy, ondondil & Twixes'
     ]
 
-    print(TextFormatter.generate_info_block(info_lines, '== ', first_info_block=first_info_block))
+    print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
 
 
 @somsiad.client.event
@@ -325,13 +335,13 @@ async def on_ready():
 @somsiad.client.event
 async def on_guild_join(server):
     """Does things whenever the bot joins a server."""
-    print_info(first_info_block=False)
+    print_info(first_console_block=False)
 
 
 @somsiad.client.event
 async def on_guild_remove(server):
     """Does things whenever the bot leaves a server."""
-    print_info(first_info_block=False)
+    print_info(first_console_block=False)
 
 
 @somsiad.client.event
