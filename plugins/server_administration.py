@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from somsiad import somsiad
+from somsiad import TextFormatter, somsiad
 
 
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
@@ -62,7 +62,16 @@ async def invite(ctx, *args):
             is_user_permitted_to_invite = True
             break
 
-    if is_user_permitted_to_invite:
+    argument = ' '.join(args).lower()
+
+    if 'somsiad' in argument or str(ctx.guild.me.id) in argument:
+        embed = discord.Embed(
+            title=':house: Zapraszam do Somsiad Labs - mojegu domu',
+            description='http://discord.gg/EFj3hhQ',
+            color=somsiad.color
+        )
+
+    elif is_user_permitted_to_invite:
         max_uses = 0
         unique = True
 
