@@ -5,7 +5,7 @@ Polski bot discordowy. Napisany w Pythonie.
 ## Funkcje  
 
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
-* reagowanie na wiadomości na życzenie  
+* rzucanie kośćmi do gry  
 * Magic 8-Ball  
 * wymiana (krypto)walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
@@ -84,7 +84,7 @@ The Polish Discord bot. Written in Python.
 ## Features  
 
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
-* reacting to messages on demand  
+* rolling dice  
 * Magic 8-Ball  
 * (crypto)currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
 * website and image search powered by [Google](https://www.google.com)  
