@@ -47,19 +47,22 @@ async def roll(ctx, *args):
     if number_of_dice > 100:
         number_of_dice = 100
 
+    # Generate random results
     results = []
     for _ in range(number_of_dice):
         result = random.randint(1, number_of_sides_on_a_die)
-        results.append(str(result))
+        results.append(result)
 
+    # Send the results
     if number_of_dice == 1:
         await ctx.send(
             f':game_die: Rzucono {number_of_sides_on_a_die}-ścienną kością. Wypadło {results[0]}.'
         )
     else:
-        results_string = ', '.join(results[:-1])
+        results_sum = sum(results)
+        results_string = ', '.join(list(map(str, results[:-1]))) # converts items in the results list to str
         results_string += f' i {results[-1]}'
         await ctx.send(
             f':game_die: Rzucono {number_of_dice} {number_of_sides_on_a_die}-ściennymi koścmi. '
-            f'Wypadło {results_string}.'
+            f'Wypadło {results_string}. Suma tych liczb to {results_sum}.'
         )
