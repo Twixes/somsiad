@@ -36,6 +36,7 @@ class RedditVerifier:
             '''CREATE TABLE IF NOT EXISTS reddit_verification_users_id_based(
                 discord_user_id INTEGER NOT NULL PRIMARY KEY,
                 phrase TEXT UNIQUE,
+                first_contact_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
                 phrase_gen_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
                 reddit_username TEXT UNIQUE
             )'''
