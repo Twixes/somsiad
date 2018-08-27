@@ -23,7 +23,7 @@ import praw
 from somsiad import TextFormatter, somsiad
 
 
-class RedditVerificator:
+class RedditVerifier:
     _users_db = None
     _users_db_cursor = None
     _phrase_parts = None
@@ -164,9 +164,9 @@ class RedditVerificator:
             return None
 
 
-class RedditVerificatorMessageWatch:
+class RedditVerificationMessageScout:
     _reddit = None
-    _verificator = None
+    _verifier = None
     _users_db_path = None
 
     class MessageRetrievalFailure(praw.exceptions.APIException):
@@ -187,7 +187,7 @@ class RedditVerificatorMessageWatch:
             password=somsiad.conf['reddit_password'],
             user_agent=somsiad.user_agent
         )
-        self._verificator = RedditVerificator(self._users_db_path)
+        self._verifier = RedditVerifier(self._users_db_path)
 
         while True:
             try:
@@ -206,11 +206,11 @@ class RedditVerificatorMessageWatch:
                 # Check if (and when) Reddit account was verified
                 phrase = message.body.strip().strip('"\'')
                 reddit_username = str(message.author)
-                user_status = self._verificator.reddit_user_status(str(message.author))
+                user_status = self._verifier.reddit_user_status(str(message.author))
                 if user_status['discord_user_id'] is None:
                     # Check if the phrase is in the database
 
-                    if self._verificator.phrase_status(phrase)['discord_user_id'] is None:
+                    if self._verifier.phrase_status(phrase)['discord_user_id'] is None:
                         message.reply(
                             'Weryfikacja nie powiodła się. Wysłana fraza nie odpowiada żadnemu użytkownikowi.'
                         )
@@ -219,12 +219,12 @@ class RedditVerificatorMessageWatch:
                         # Check if the phrase was sent the same day it was generated
                         message_sent_day = time.strftime('%Y-%m-%d', time.localtime(message.created_utc))
 
-                        if message_sent_day == self._verificator.phrase_status(phrase)['phrase_gen_date']:
-                            if self._verificator.is_reddit_user_trustworthy(message.author):
+                        if message_sent_day == self._verifier.phrase_status(phrase)['phrase_gen_date']:
+                            if self._verifier.is_reddit_user_trustworthy(message.author):
                                 # If the phrase was indeed sent the same day it was generated
                                 # and the user seems to be trustworthy,
                                 # assign the Reddit username to the Discord user whose secret phrase this was
-                                discord_user_id = (self._verificator.assign_reddit_username_by_phrase(
+                                discord_user_id = (self._verifier.assign_reddit_username_by_phrase(
                                     phrase,
                                     reddit_username
                                 )['discord_user_id'])
@@ -252,7 +252,7 @@ class RedditVerificatorMessageWatch:
                             )
 
                 else:
-                    discord_user_id = self._verificator.reddit_user_status(reddit_username)['discord_user_id']
+                    discord_user_id = self._verifier.reddit_user_status(reddit_username)['discord_user_id']
                     discord_user = somsiad.client.get_user(int(discord_user_id))
                     message.reply(
                         f'To konto zostało przypisane do użytkownika Discorda {discord_user} '
@@ -271,7 +271,7 @@ with open(phrase_parts_file_path, 'r') as f:
     phrase_parts = json.load(f)
 
 
-verificator = RedditVerificator(users_db_path, phrase_parts)
+verifier = RedditVerifier(users_db_path, phrase_parts)
 
 
 @somsiad.client.command(aliases=['zweryfikuj'])
@@ -281,7 +281,7 @@ async def reddit_verify(ctx, *args):
     FOOTER_TEXT = 'Reddit - weryfikacja'
 
     discord_user_id = ctx.author.id
-    user_status = verificator.discord_user_status(discord_user_id)
+    user_status = verifier.discord_user_status(discord_user_id)
 
     if user_status['reddit_username'] is None:
         # If user is not verified, check if he has ever requested verification
@@ -289,7 +289,7 @@ async def reddit_verify(ctx, *args):
 
         if user_status['phrase_gen_date'] is None:
             # If user has never requested verification, add him to the database and assign a phrase to him
-            phrase = verificator.assign_phrase(discord_user_id)
+            phrase = verifier.assign_phrase(discord_user_id)
 
             message_url = ('https://www.reddit.com/message/compose/'
                 f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
@@ -309,7 +309,7 @@ async def reddit_verify(ctx, *args):
 
         else:
             # If user has requested verification but not today, assign him a new phrase
-            phrase = verificator.assign_phrase(discord_user_id)
+            phrase = verifier.assign_phrase(discord_user_id)
 
             message_url = ('https://www.reddit.com/message/compose/'
                 f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
@@ -352,7 +352,7 @@ async def reddit_xray(ctx, *args):
             color=somsiad.color
         )
         for member in ctx.guild.members:
-            user_status = verificator.discord_user_status(member.id)
+            user_status = verifier.discord_user_status(member.id)
             if user_status['reddit_username'] is not None:
                 embed.add_field(
                     name=str(member),
@@ -367,7 +367,7 @@ async def reddit_xray(ctx, *args):
             color=somsiad.color
         )
         for member in ctx.channel.members:
-            user_status = verificator.discord_user_status(member.id)
+            user_status = verifier.discord_user_status(member.id)
             if user_status['reddit_username'] is not None:
                 embed.add_field(
                     name=str(member),
@@ -383,7 +383,7 @@ async def reddit_xray(ctx, *args):
             argument = ' '.join(args)
             discord_user = await somsiad.member_converter.convert(ctx, argument)
 
-        user_status = verificator.discord_user_status(discord_user.id)
+        user_status = verifier.discord_user_status(discord_user.id)
         # Check if (and when) user has already been verified
         if user_status['phrase_gen_date'] is None:
             embed = discord.Embed(
@@ -430,4 +430,4 @@ async def reddit_xray_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-reddit_verificator_message_watch = RedditVerificatorMessageWatch(users_db_path)
+reddit_verification_message_scout = RedditVerificationMessageScout(users_db_path)
