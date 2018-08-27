@@ -18,9 +18,8 @@ from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['gr'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.default
-)
+@discord.ext.commands.cooldown(1, 1, discord.ext.commands.BucketType.default)
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def goodreads(ctx, *args):
     """Goodreads search. Responds with for the most popular books matching the query."""
