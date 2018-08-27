@@ -14,7 +14,6 @@
 import random
 import discord
 from somsiad import somsiad
-from version import __version__
 
 
 @somsiad.client.command(aliases=['rzuć', 'rzuc'])

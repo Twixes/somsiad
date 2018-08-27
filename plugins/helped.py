@@ -13,7 +13,6 @@
 
 import discord
 from somsiad import somsiad
-from version import __version__
 
 async def smart_add_reactions(ctx, args, reactions):
     """Adds provided emojis to the specified user's last non-command message in the form of reactions.
@@ -68,4 +67,4 @@ async def didnothelp(ctx, *args):
             reactions[6] = emoji
         if emoji.name == 'regional_indicator_el':
             reactions[8] = emoji
-    await smart_add_reactions(ctx.guild, ctx.channel, args, reactions)
+    await smart_add_reactions(ctx, args, reactions)

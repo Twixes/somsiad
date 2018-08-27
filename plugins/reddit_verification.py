@@ -21,7 +21,6 @@ import sqlite3
 import discord
 import praw
 from somsiad import TextFormatter, somsiad
-from version import __version__
 
 
 class RedditVerificator:

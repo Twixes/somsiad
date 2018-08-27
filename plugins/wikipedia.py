@@ -14,7 +14,6 @@
 import aiohttp
 import discord
 from somsiad import somsiad
-from version import __version__
 
 
 async def wikipedia_search(ctx, args, language):

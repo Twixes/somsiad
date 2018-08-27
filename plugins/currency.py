@@ -15,7 +15,6 @@ import re
 import aiohttp
 import discord
 from somsiad import somsiad
-from version import __version__
 
 
 @somsiad.client.command(aliases=['exchange', 'kantor', 'kurs'])
