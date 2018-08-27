@@ -59,10 +59,9 @@ async def roll(ctx, *args):
             f':game_die: Rzucono {number_of_sides_on_a_die}-ścienną kością. Wypadło {results[0]}.'
         )
     else:
-        results_sum = sum(results)
         results_string = ', '.join(list(map(str, results[:-1]))) # converts items in the results list to str
         results_string += f' i {results[-1]}'
         await ctx.send(
             f':game_die: Rzucono {number_of_dice} {number_of_sides_on_a_die}-ściennymi koścmi. '
-            f'Wypadło {results_string}. Suma tych liczb to {results_sum}.'
+            f'Wypadło {results_string}. Suma tych liczb to {sum(results)}.'
         )
