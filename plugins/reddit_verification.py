@@ -27,7 +27,6 @@ class RedditVerificator:
     _users_db = None
     _users_db_cursor = None
     _phrase_parts = None
-    discord_member_converter = None
 
     def __init__(self, users_db_path: str, phrase_parts=None):
         """Connects to the database. Creates it if it doesn't yet. Sets up phrase parts."""
@@ -43,7 +42,6 @@ class RedditVerificator:
         )
         self._users_db.commit()
         self._phrase_parts = phrase_parts
-        self.discord_member_converter = discord.ext.commands.MemberConverter()
 
     @staticmethod
     def is_reddit_user_trustworthy(reddit_user: str):
@@ -383,7 +381,7 @@ async def reddit_xray(ctx, *args):
 
         else:
             argument = ' '.join(args)
-            discord_user = await verificator.discord_member_converter.convert(ctx, argument)
+            discord_user = await somsiad.member_converter.convert(ctx, argument)
 
         user_status = verificator.discord_user_status(discord_user.id)
         # Check if (and when) user has already been verified
