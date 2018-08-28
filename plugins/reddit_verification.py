@@ -42,7 +42,7 @@ class RedditVerifier:
                 verification_status TEXT NOT NULL,
                 first_contact_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
                 phrase_gen_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
-                verification_date TEXT,
+                verification_rejection_date TEXT,
                 phrase TEXT,
                 FOREIGN KEY(reddit_username) REFERENCES reddit_users(reddit_username)
             )'''
@@ -85,8 +85,8 @@ class RedditVerifier:
     def phrase_info(self, phrase: str):
         """Returns information related to the given phrase."""
         self._users_db_cursor.execute(
-            '''SELECT discord_user_id, verification_status, first_contact_date, phrase_gen_date, verification_date
-            FROM discord_users WHERE phrase = ?''',
+            '''SELECT discord_user_id, verification_status, first_contact_date, phrase_gen_date,
+            verification_rejection_date FROM discord_users WHERE phrase = ?''',
             (phrase,)
         )
         phrase_info = self._users_db_cursor.fetchone()
@@ -111,8 +111,8 @@ class RedditVerifier:
     def discord_user_info(self, discord_user_id: int):
         """Returns information related to the given Discord user."""
         self._users_db_cursor.execute(
-            '''SELECT reddit_username, verification_status, first_contact_date, phrase_gen_date, verification_date
-            FROM discord_users WHERE discord_user_id = ?''',
+            '''SELECT reddit_username, verification_status, first_contact_date, phrase_gen_date,
+            verification_rejection_date FROM discord_users WHERE discord_user_id = ?''',
             (discord_user_id,)
         )
         discord_user_info = self._users_db_cursor.fetchone()
@@ -122,7 +122,7 @@ class RedditVerifier:
             discord_first_contact_date = discord_user_info[2]
             reddit_first_contact_date = None
             phrase_gen_date = discord_user_info[3]
-            verification_date = discord_user_info[4]
+            verification_rejection_date = discord_user_info[4]
             if reddit_username is not None:
                 self._users_db_cursor.execute(
                     'SELECT first_contact_date FROM reddit_users WHERE reddit_username = ?',
@@ -137,7 +137,7 @@ class RedditVerifier:
             discord_first_contact_date = None
             reddit_first_contact_date = None
             phrase_gen_date = None
-            verification_date = None
+            verification_rejection_date = None
 
         return {
             'reddit_username': reddit_username,
@@ -145,7 +145,7 @@ class RedditVerifier:
             'discord_first_contact_date': discord_first_contact_date,
             'reddit_first_contact_date': reddit_first_contact_date,
             'phrase_gen_date': phrase_gen_date,
-            'verification_date': verification_date
+            'verification_rejection_date': verification_rejection_date
         }
 
     def reddit_user_info(self, reddit_username: str):
@@ -157,8 +157,8 @@ class RedditVerifier:
         reddit_first_contact_date = self._users_db_cursor.fetchone()
         reddit_first_contact_date = reddit_first_contact_date[0] if reddit_first_contact_date is not None else None
         self._users_db_cursor.execute(
-            '''SELECT discord_user_id, verification_status, first_contact_date, verification_date FROM discord_users
-            WHERE reddit_username = ?''',
+            '''SELECT discord_user_id, verification_status, first_contact_date, verification_rejection_date
+            FROM discord_users WHERE reddit_username = ?''',
             (reddit_username,)
         )
         reddit_user_info = self._users_db_cursor.fetchone()
@@ -166,19 +166,19 @@ class RedditVerifier:
             discord_user_id = int(reddit_user_info[0]) if reddit_user_info[0] is not None else None
             verification_status = reddit_user_info[1]
             discord_first_contact_date = reddit_user_info[2]
-            verification_date = reddit_user_info[3]
+            verification_rejection_date = reddit_user_info[3]
         else:
             discord_user_id = None
             verification_status = None
             discord_first_contact_date = None
-            verification_date = None
+            verification_rejection_date = None
 
         return {
             'discord_user_id': discord_user_id,
             'verification_status': verification_status,
             'discord_first_contact_date': discord_first_contact_date,
             'reddit_first_contact_date': reddit_first_contact_date,
-            'verification_date': verification_date
+            'verification_rejection_date': verification_rejection_date
         }
 
     def assign_phrase(self, discord_user_id: int):
@@ -217,8 +217,23 @@ class RedditVerifier:
             if self.reddit_user_info(reddit_username)['discord_user_id'] is None:
                 self._users_db_cursor.execute(
                     '''UPDATE discord_users SET reddit_username = ?, verification_status = 'VERIFIED_NOT_NOTIFIED',
-                    verification_date = ?, phrase = NULL WHERE phrase = ?''',
+                    verification_rejection_date = ?, phrase = NULL WHERE phrase = ?''',
                     (reddit_username, self.today_date(), phrase)
+                )
+                self._users_db.commit()
+            return self.reddit_user_info(reddit_username)
+        else:
+            return None
+
+    def reject_user(self, reddit_username: str, phrase: str, reason: str):
+        """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
+        if self.phrase_info(phrase)['discord_user_id'] is not None:
+            if self.reddit_user_info(reddit_username)['discord_user_id'] is None:
+                new_verification_status = f'REJECTED_{reason}'
+                self._users_db_cursor.execute(
+                    f'''UPDATE discord_users SET verification_status = ?,
+                    verification_rejection_date = ?, phrase = NULL WHERE phrase = ?''',
+                    (new_verification_status, self.today_date(), phrase)
                 )
                 self._users_db.commit()
             return self.reddit_user_info(reddit_username)
@@ -307,17 +322,17 @@ class RedditVerificationMessageScout:
                                         discord_user_id, 'VERIFIED_NOTIFIED'
                                     )
                             else:
-
+                                self._verifier.reject_user(reddit_username, phrase, 'NOT_TRUSTWORTHY')
                                 account_min_age_days = int(somsiad.conf['reddit_account_min_age_days'])
                                 message.reply(
                                     'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
-                                    'Do weryfikacji potrzebne jest konto założone co najmniej '
-                                    f'{somsiad.conf["reddit_account_min_age_days"]} '
+                                    f'Do weryfikacji potrzebne jest konto założone co najmniej {account_min_age_days} '
                                     f'{TextFormatter.noun_variant(account_min_age_days, "dzień", "dni")} temu '
                                     f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
                                 )
 
                         else:
+                            self._verifier.reject_user(reddit_username, phrase, 'PHRASE_EXPIRED')
                             message.reply(
                                 'Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę '
                                 'na Discordzie.'
@@ -328,7 +343,7 @@ class RedditVerificationMessageScout:
                     discord_user = somsiad.client.get_user(discord_user_id)
                     message.reply(
                         f'To konto zostało przypisane do użytkownika Discorda {discord_user} '
-                        f'{reddit_user_info["verification_date"]}.'
+                        f'{reddit_user_info["verification_rejection_date"]}.'
                     )
 
             message.mark_read()
@@ -353,30 +368,46 @@ async def reddit_verify(ctx, *args):
     FOOTER_TEXT = 'Reddit - weryfikacja'
 
     discord_user_id = ctx.author.id
-    user_status = verifier.discord_user_info(discord_user_id)
+    discord_user_info = verifier.discord_user_info(discord_user_id)
 
-    if user_status['reddit_username'] is None:
-        # If user is not verified, check if he has ever requested verification
+    if (discord_user_info['verification_status'] is None
+            or str(discord_user_info['verification_status']) == 'REJECTED_PHRASE_EXPIRED'):
+        # If user has never requested verification or his phrase expired,
+        # add him to the database and assign a phrase to him
+        phrase = verifier.assign_phrase(discord_user_id)
 
-        if user_status['verification_status'] is None:
-            # If user has never requested verification, add him to the database and assign a phrase to him
-            phrase = verifier.assign_phrase(discord_user_id)
+        message_url = ('https://www.reddit.com/message/compose/'
+            f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
 
-            message_url = ('https://www.reddit.com/message/compose/'
-                f'?to={somsiad.conf["reddit_username"]}&subject=Weryfikacja&message={phrase}')
+        embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
+        embed.add_field(
+            name='Wygenerowano tajną frazę.',
+            value=f'By zweryfikować się wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie '
+            f'"Weryfikacja" i treści "{phrase}". Fraza ważna jest do końca dnia.'
+        )
+        embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-            embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
-            embed.add_field(
-                name='Wygenerowano tajną frazę.',
-                value=f'By zweryfikować się wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie '
-                f'"Weryfikacja" i treści "{phrase}". Fraza ważna jest do końca dnia.'
-            )
-            embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
+    elif (discord_user_info['verification_status'] == 'AWAITING_MESSAGE'
+            or discord_user_info['verification_status'] == 'REJECTED_NOT_TRUSTWORTHY'):
+        if discord_user_info['phrase_gen_date'] == verifier.today_date():
+            # If user already has requested verification today or has been rejected due to not meeting requirements,
+            # fend him off
+            if discord_user_info['verification_status'] == 'AWAITING_MESSAGE':
+                embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
+                embed.add_field(
+                    name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.'
+                )
+            elif discord_user_info['verification_status'] == 'REJECTED_NOT_TRUSTWORTHY':
+                embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
+                embed.add_field(
+                    name='Weryfikacja nie powiodła się dzisiaj, bo twoje konto na Reddicie nie spełnia wymagań.',
+                    value='Do weryfikacji potrzebne jest konto założone co najmniej '
+                        f'{somsiad.conf["reddit_account_min_age_days"]} '
+                        f'{TextFormatter.noun_variant(somsiad.conf["reddit_account_min_age_days"], "dzień", "dni")} '
+                        f'temu i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}. '
+                        'Spróbuj zweryfikować się, gdy już będziesz spełniał te warunki.'
+                )
 
-        elif user_status['phrase_gen_date'] == verifier.today_date():
-            # If user already has requested verification today, fend him off
-            embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
-            embed.add_field(name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.')
 
         else:
             # If user has requested verification but not today, assign him a new phrase
@@ -394,11 +425,15 @@ async def reddit_verify(ctx, *args):
             )
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-    else:
+    elif str(discord_user_info['verification_status']).startswith('VERIFIED'):
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
         embed.add_field(
-            name=f'Twoje konto na Reddicie to /u/{user_status["reddit_username"]}.',
-            value=f'Zweryfikowano {user_status["verification_date"]}.'
+            name=f'Twoje konto na Reddicie to /u/{discord_user_info["reddit_username"]}.',
+            value=f'Zweryfikowano {discord_user_info["verification_rejection_date"]}.'
+        )
+    else:
+        embed = discord.Embed(
+            title='Wystąpił błąd podczas sprawdzania twojego statusu weryfikacji', color=somsiad.color
         )
 
     embed.set_footer(text=FOOTER_TEXT)
@@ -423,11 +458,11 @@ async def reddit_xray(ctx, *args):
             color=somsiad.color
         )
         for member in ctx.guild.members:
-            user_status = verifier.discord_user_info(member.id)
-            if user_status['reddit_username'] is not None:
+            discord_user_info = verifier.discord_user_info(member.id)
+            if str(discord_user_info['verification_status']).startswith('VERIFIED'):
                 embed.add_field(
                     name=str(member),
-                    value=f'/u/{user_status["reddit_username"]}',
+                    value=f'/u/{discord_user_info["reddit_username"]}',
                     inline=False
                 )
 
@@ -438,11 +473,11 @@ async def reddit_xray(ctx, *args):
             color=somsiad.color
         )
         for member in ctx.channel.members:
-            user_status = verifier.discord_user_info(member.id)
-            if user_status['reddit_username'] is not None:
+            discord_user_info = verifier.discord_user_info(member.id)
+            if str(discord_user_info['verification_status']).startswith('VERIFIED'):
                 embed.add_field(
                     name=str(member),
-                    value=f'/u/{user_status["reddit_username"]}',
+                    value=f'/u/{discord_user_info["reddit_username"]}',
                     inline=False
                 )
 
@@ -454,37 +489,60 @@ async def reddit_xray(ctx, *args):
             argument = ' '.join(args)
             discord_user = await somsiad.member_converter.convert(ctx, argument)
 
-        user_status = verifier.discord_user_info(discord_user.id)
+        discord_user_info = verifier.discord_user_info(discord_user.id)
         # Check if (and when) user has already been verified
-        if user_status['verification_status'] is None:
+        if discord_user_info['verification_status'] is None:
             embed = discord.Embed(
                 title=':red_circle: Niezweryfikowany',
                 description=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.',
                 color=somsiad.color
             )
         else:
-            if user_status['reddit_username'] is None:
+            if str(discord_user_info['verification_status']).startswith('VERIFIED'):
+                reddit_username_info = ''
+                if somsiad.does_member_have_elevated_permissions(ctx.author):
+                    reddit_username_info = (f' jako [/u/{discord_user_info["reddit_username"]}]'
+                    f'(https://www.reddit.com/user/{discord_user_info["reddit_username"]})')
+                embed = discord.Embed(
+                    title=':white_check_mark: Zweryfikowany',
+                    description=f'Użytkownik {discord_user} został zweryfikowany '
+                    f'{discord_user_info["verification_rejection_date"]}.'
+                    f'{reddit_username_info}.',
+                    color=somsiad.color
+                )
+            elif str(discord_user_info['verification_status']) == 'REJECTED_NOT_TRUSTWORTHY':
                 embed = discord.Embed(
                     title=':red_circle: Niezweryfikowany',
-                    description=f'Użytkownik {discord_user} zażądał weryfikacji {user_status["phrase_gen_date"]}, '
-                    'ale nie dokończył jej na Reddicie.',
+                    description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
+                    f'{discord_user_info["phrase_gen_date"]} i spróbował się zweryfikować '
+                    f'{discord_user_info["verification_rejection_date"]}, lecz jego konto nie spełniało wymagań.',
+                    color=somsiad.color
+                )
+            elif str(discord_user_info['verification_status']) == 'REJECTED_PHRASE_EXPIRED':
+                embed = discord.Embed(
+                    title=':red_circle: Niezweryfikowany',
+                    description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
+                    f'{discord_user_info["phrase_gen_date"]}, ale nie dokończył jej na Reddicie w wyznaczonym czasie '
+                    f'- wysłał wiadomość {discord_user_info["verification_rejection_date"]}.',
+                    color=somsiad.color
+                )
+            elif str(discord_user_info['verification_status']) == 'AWAITING_MESSAGE':
+                embed = discord.Embed(
+                    title=':red_circle: Niezweryfikowany',
+                    description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
+                    f'{discord_user_info["phrase_gen_date"]}, ale nie dokończył jej na Reddicie.',
                     color=somsiad.color
                 )
             else:
-                reddit_username_info = ''
-                if somsiad.does_member_have_elevated_permissions(ctx.author):
-                    reddit_username_info = (f' jako [/u/{user_status["reddit_username"]}]'
-                    f'(https://www.reddit.com/user/{user_status["reddit_username"]})')
                 embed = discord.Embed(
-                    title=':white_check_mark: Zweryfikowany',
-                    description=f'Użytkownik {discord_user} został zweryfikowany {user_status["verification_date"]}'
-                    f'{reddit_username_info}.',
+                    title=':warning: Błąd',
                     color=somsiad.color
                 )
 
 
     embed.set_footer(text=FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
+
 
 @reddit_xray.error
 async def reddit_xray_error(ctx, error):
