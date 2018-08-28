@@ -33,16 +33,32 @@ class RedditVerifier:
         self._users_db = sqlite3.connect(users_db_path)
         self._users_db_cursor = self._users_db.cursor()
         self._users_db_cursor.execute(
-            '''CREATE TABLE IF NOT EXISTS reddit_verification_users_id_based(
+            'PRAGMA foreign_keys = ON'
+        )
+        self._users_db_cursor.execute(
+            '''CREATE TABLE IF NOT EXISTS discord_users(
                 discord_user_id INTEGER NOT NULL PRIMARY KEY,
-                phrase TEXT UNIQUE,
+                reddit_username TEXT UNIQUE,
+                verification_status TEXT NOT NULL,
                 first_contact_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
                 phrase_gen_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
-                reddit_username TEXT UNIQUE
+                verification_date TEXT,
+                phrase TEXT,
+                FOREIGN KEY(reddit_username) REFERENCES reddit_users(reddit_username)
+            )'''
+        )
+        self._users_db_cursor.execute(
+            '''CREATE TABLE IF NOT EXISTS reddit_users(
+                reddit_username TEXT NOT NULL PRIMARY KEY,
+                first_contact_date TEXT NOT NULL DEFAULT (date('now', 'localtime'))
             )'''
         )
         self._users_db.commit()
         self._phrase_parts = phrase_parts
+
+    @staticmethod
+    def today_date():
+        return str(datetime.date.today())
 
     @staticmethod
     def is_reddit_user_trustworthy(reddit_user: str):
@@ -62,107 +78,161 @@ class RedditVerifier:
             phrase = ''
             for _, category_entry in self._phrase_parts.items():
                 phrase += secrets.choice(category_entry).capitalize()
-            if self.phrase_status(phrase)['discord_user_id'] is None:
+            if self.phrase_info(phrase)['discord_user_id'] is None:
                 is_phrase_unique = True
         return phrase
 
-    def phrase_status(self, phrase: str):
-        """Returns given phrase's status."""
-        phrase_gen_date = None
-
+    def phrase_info(self, phrase: str):
+        """Returns information related to the given phrase."""
         self._users_db_cursor.execute(
-            'SELECT discord_user_id FROM reddit_verification_users_id_based WHERE phrase = ?',
+            '''SELECT discord_user_id, verification_status, first_contact_date, phrase_gen_date, verification_date
+            FROM discord_users WHERE phrase = ?''',
             (phrase,)
         )
-        discord_user_id = self._users_db_cursor.fetchone()
-
-        if discord_user_id is not None:
-            discord_user_id = discord_user_id[0]
-            self._users_db_cursor.execute(
-                'SELECT phrase_gen_date FROM reddit_verification_users_id_based WHERE phrase = ?',
-                (phrase,)
-            )
-            phrase_gen_date = self._users_db_cursor.fetchone()[0]
-
-        return {'discord_user_id': discord_user_id, 'phrase_gen_date': phrase_gen_date}
-
-    def discord_user_status(self, discord_user_id: int):
-        """Returns given Discord user's status."""
-        if discord_user_id is None:
-            return {'phrase_gen_date': None, 'reddit_username': None}
-
+        phrase_info = self._users_db_cursor.fetchone()
+        if phrase_info is not None:
+            discord_user_id = int(phrase_info[0]) if phrase_info[0] is not None else None
+            verification_status = phrase_info[1]
+            discord_first_contact_date = phrase_info[2]
+            phrase_gen_date = phrase_info[3]
         else:
-            # Check if (and when) user has already been verified
-            self._users_db_cursor.execute(
-                'SELECT phrase_gen_date FROM reddit_verification_users_id_based WHERE discord_user_id = ?',
-                (discord_user_id,)
-            )
-            phrase_gen_date = self._users_db_cursor.fetchone()
+            discord_user_id = None
+            verification_status = None
+            discord_first_contact_date = None
+            phrase_gen_date = None
 
-            if phrase_gen_date is None:
-                return {'phrase_gen_date': None, 'reddit_username': None}
+        return {
+            'discord_user_id': discord_user_id,
+            'verification_status': verification_status,
+            'discord_first_contact_date': discord_first_contact_date,
+            'phrase_gen_date': phrase_gen_date
+        }
 
-            else:
-                self._users_db_cursor.execute(
-                    'SELECT reddit_username FROM reddit_verification_users_id_based WHERE discord_user_id = ?',
-                    (discord_user_id,)
-                )
-                reddit_username = self._users_db_cursor.fetchone()
-                return {'phrase_gen_date': phrase_gen_date[0], 'reddit_username': reddit_username[0]}
-
-    def reddit_user_status(self, reddit_username: str):
-        """Returns given Reddit user's status."""
-        phrase_gen_date = None
-
+    def discord_user_info(self, discord_user_id: int):
+        """Returns information related to the given Discord user."""
         self._users_db_cursor.execute(
-            'SELECT discord_user_id FROM reddit_verification_users_id_based WHERE reddit_username = ?',
+            '''SELECT reddit_username, verification_status, first_contact_date, phrase_gen_date, verification_date
+            FROM discord_users WHERE discord_user_id = ?''',
+            (discord_user_id,)
+        )
+        discord_user_info = self._users_db_cursor.fetchone()
+        if discord_user_info is not None:
+            reddit_username = discord_user_info[0]
+            verification_status = discord_user_info[1]
+            discord_first_contact_date = discord_user_info[2]
+            reddit_first_contact_date = None
+            phrase_gen_date = discord_user_info[3]
+            verification_date = discord_user_info[4]
+            if reddit_username is not None:
+                self._users_db_cursor.execute(
+                    'SELECT first_contact_date FROM reddit_users WHERE reddit_username = ?',
+                    (reddit_username,)
+                )
+                reddit_first_contact_date = self._users_db_cursor.fetchone()
+                reddit_first_contact_date = (reddit_first_contact_date[0] if reddit_first_contact_date is not None
+                    else None)
+        else:
+            reddit_username = None
+            verification_status = None
+            discord_first_contact_date = None
+            reddit_first_contact_date = None
+            phrase_gen_date = None
+            verification_date = None
+
+        return {
+            'reddit_username': reddit_username,
+            'verification_status': verification_status,
+            'discord_first_contact_date': discord_first_contact_date,
+            'reddit_first_contact_date': reddit_first_contact_date,
+            'phrase_gen_date': phrase_gen_date,
+            'verification_date': verification_date
+        }
+
+    def reddit_user_info(self, reddit_username: str):
+        """Returns information related to the given Reddit user."""
+        self._users_db_cursor.execute(
+            'SELECT first_contact_date FROM reddit_users WHERE reddit_username = ?',
             (reddit_username,)
         )
-        discord_user_id = self._users_db_cursor.fetchone()
+        reddit_first_contact_date = self._users_db_cursor.fetchone()
+        reddit_first_contact_date = reddit_first_contact_date[0] if reddit_first_contact_date is not None else None
+        self._users_db_cursor.execute(
+            '''SELECT discord_user_id, verification_status, first_contact_date, verification_date FROM discord_users
+            WHERE reddit_username = ?''',
+            (reddit_username,)
+        )
+        reddit_user_info = self._users_db_cursor.fetchone()
+        if reddit_user_info is not None:
+            discord_user_id = int(reddit_user_info[0]) if reddit_user_info[0] is not None else None
+            verification_status = reddit_user_info[1]
+            discord_first_contact_date = reddit_user_info[2]
+            verification_date = reddit_user_info[3]
+        else:
+            discord_user_id = None
+            verification_status = None
+            discord_first_contact_date = None
+            verification_date = None
 
-        if discord_user_id is not None:
-            discord_user_id = int(discord_user_id[0])
-            self._users_db_cursor.execute(
-                'SELECT phrase_gen_date FROM reddit_verification_users_id_based WHERE reddit_username = ?',
-                (reddit_username,)
-            )
-            phrase_gen_date = self._users_db_cursor.fetchone()[0]
-
-        return {'discord_user_id': discord_user_id, 'phrase_gen_date': phrase_gen_date}
+        return {
+            'discord_user_id': discord_user_id,
+            'verification_status': verification_status,
+            'discord_first_contact_date': discord_first_contact_date,
+            'reddit_first_contact_date': reddit_first_contact_date,
+            'verification_date': verification_date
+        }
 
     def assign_phrase(self, discord_user_id: int):
         """Assigns a phrase to a Discord user."""
         phrase = self.phrase_gen()
 
-        if self.discord_user_status(discord_user_id)['phrase_gen_date'] is None:
+        if self.discord_user_info(discord_user_id)['verification_status'] is None:
             self._users_db_cursor.execute(
-                'INSERT INTO reddit_verification_users_id_based(discord_user_id, phrase) VALUES(?, ?)',
+                '''INSERT INTO discord_users(discord_user_id, verification_status, phrase)
+                VALUES(?, 'AWAITING_MESSAGE', ?)''',
                 (discord_user_id, phrase)
             )
         else:
-            today_date = str(datetime.date.today())
             self._users_db_cursor.execute(
-                '''UPDATE reddit_verification_users_id_based SET phrase = ?, phrase_gen_date = ?
+                '''UPDATE discord_users SET phrase = ?, verification_status = 'AWAITING_MESSAGE', phrase_gen_date = ?
                 WHERE discord_user_id = ?''',
-                (phrase, today_date, discord_user_id)
+                (phrase, self.today_date(), discord_user_id)
             )
         self._users_db.commit()
         return phrase
 
-    def assign_reddit_username_by_phrase(self, phrase: str, reddit_username: str):
-        """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
-        user_status = self.reddit_user_status(reddit_username)
-
-        if self.phrase_status(phrase)['discord_user_id'] is not None:
-            if user_status['discord_user_id'] is None:
-                self._users_db_cursor.execute(
-                    'UPDATE reddit_verification_users_id_based SET reddit_username = ?, phrase = NULL WHERE phrase = ?',
-                    (reddit_username, phrase)
-                )
-                self._users_db.commit()
-            return self.reddit_user_status(reddit_username)
+    def add_reddit_user(self, reddit_username: str):
+        """Adds the given Reddit user to the database."""
+        if self.reddit_user_info(reddit_username)['reddit_first_contact_date'] is None:
+            self._users_db_cursor.execute(
+                'INSERT INTO reddit_users(reddit_username) VALUES(?)', (reddit_username,)
+            )
+            self._users_db.commit()
+            return self.reddit_user_info(reddit_username)
         else:
             return None
+
+    def verify_user(self, reddit_username: str, phrase: str):
+        """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
+        if self.phrase_info(phrase)['discord_user_id'] is not None:
+            if self.reddit_user_info(reddit_username)['discord_user_id'] is None:
+                self._users_db_cursor.execute(
+                    '''UPDATE discord_users SET reddit_username = ?, verification_status = 'VERIFIED_NOT_NOTIFIED',
+                    verification_date = ?, phrase = NULL WHERE phrase = ?''',
+                    (reddit_username, self.today_date(), phrase)
+                )
+                self._users_db.commit()
+            return self.reddit_user_info(reddit_username)
+        else:
+            return None
+
+    def update_discord_user_verification_status(self, discord_user_id: int, new_verification_status: str):
+        if self.discord_user_info(discord_user_id)['verification_status'] is not None:
+            self._users_db_cursor.execute(
+                '''UPDATE discord_users SET verification_status = ? WHERE discord_user_id = ?''',
+                (new_verification_status, discord_user_id)
+            )
+            self._users_db.commit()
+        return self.discord_user_info(discord_user_id)
 
 
 class RedditVerificationMessageScout:
@@ -197,7 +267,6 @@ class RedditVerificationMessageScout:
                 somsiad.logger.warning(
                     'Something went wrong while trying to process Reddit verification messages! Trying again...'
                 )
-                pass
 
     def process_messages(self):
         """Processes new messages from the inbox stream and uses them for verification."""
@@ -207,11 +276,12 @@ class RedditVerificationMessageScout:
                 # Check if (and when) Reddit account was verified
                 phrase = message.body.strip().strip('"\'')
                 reddit_username = str(message.author)
-                user_status = self._verifier.reddit_user_status(str(message.author))
-                if user_status['discord_user_id'] is None:
+                reddit_user_info = self._verifier.reddit_user_info(str(message.author))
+                self._verifier.add_reddit_user(reddit_username)
+                if reddit_user_info['discord_user_id'] is None:
                     # Check if the phrase is in the database
 
-                    if self._verifier.phrase_status(phrase)['discord_user_id'] is None:
+                    if self._verifier.phrase_info(phrase)['discord_user_id'] is None:
                         message.reply(
                             'Weryfikacja nie powiodła się. Wysłana fraza nie odpowiada żadnemu użytkownikowi.'
                         )
@@ -220,21 +290,22 @@ class RedditVerificationMessageScout:
                         # Check if the phrase was sent the same day it was generated
                         message_sent_day = time.strftime('%Y-%m-%d', time.localtime(message.created_utc))
 
-                        if message_sent_day == self._verifier.phrase_status(phrase)['phrase_gen_date']:
+                        if message_sent_day == self._verifier.phrase_info(phrase)['phrase_gen_date']:
                             if self._verifier.is_reddit_user_trustworthy(message.author):
                                 # If the phrase was indeed sent the same day it was generated
                                 # and the user seems to be trustworthy,
                                 # assign the Reddit username to the Discord user whose secret phrase this was
-                                discord_user_id = (self._verifier.assign_reddit_username_by_phrase(
-                                    phrase,
-                                    reddit_username
-                                )['discord_user_id'])
-                                discord_user = somsiad.client.get_user(discord_user_id)
-                                message.reply(
-                                    f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda '
-                                    f'{discord_user}.'
-                                )
-
+                                verification = self._verifier.verify_user(reddit_username, phrase)
+                                if verification is not None:
+                                    discord_user_id = verification['discord_user_id']
+                                    discord_user = somsiad.client.get_user(discord_user_id)
+                                    message.reply(
+                                        f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda '
+                                        f'{discord_user}.'
+                                    )
+                                    self._verifier.update_discord_user_verification_status(
+                                        discord_user_id, 'VERIFIED_NOTIFIED'
+                                    )
                             else:
 
                                 account_min_age_days = int(somsiad.conf['reddit_account_min_age_days'])
@@ -253,11 +324,11 @@ class RedditVerificationMessageScout:
                             )
 
                 else:
-                    discord_user_id = self._verifier.reddit_user_status(reddit_username)['discord_user_id']
-                    discord_user = somsiad.client.get_user(int(discord_user_id))
+                    discord_user_id = self._verifier.reddit_user_info(reddit_username)['discord_user_id']
+                    discord_user = somsiad.client.get_user(discord_user_id)
                     message.reply(
                         f'To konto zostało przypisane do użytkownika Discorda {discord_user} '
-                        f'{user_status["phrase_gen_date"]}.'
+                        f'{reddit_user_info["verification_date"]}.'
                     )
 
             message.mark_read()
@@ -282,13 +353,12 @@ async def reddit_verify(ctx, *args):
     FOOTER_TEXT = 'Reddit - weryfikacja'
 
     discord_user_id = ctx.author.id
-    user_status = verifier.discord_user_status(discord_user_id)
+    user_status = verifier.discord_user_info(discord_user_id)
 
     if user_status['reddit_username'] is None:
         # If user is not verified, check if he has ever requested verification
-        today_date = str(datetime.date.today())
 
-        if user_status['phrase_gen_date'] is None:
+        if user_status['verification_status'] is None:
             # If user has never requested verification, add him to the database and assign a phrase to him
             phrase = verifier.assign_phrase(discord_user_id)
 
@@ -303,7 +373,7 @@ async def reddit_verify(ctx, *args):
             )
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-        elif user_status['phrase_gen_date'] == today_date:
+        elif user_status['phrase_gen_date'] == verifier.today_date():
             # If user already has requested verification today, fend him off
             embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
             embed.add_field(name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.')
@@ -328,7 +398,7 @@ async def reddit_verify(ctx, *args):
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
         embed.add_field(
             name=f'Twoje konto na Reddicie to /u/{user_status["reddit_username"]}.',
-            value=f'Zweryfikowano {user_status["phrase_gen_date"]}.'
+            value=f'Zweryfikowano {user_status["verification_date"]}.'
         )
 
     embed.set_footer(text=FOOTER_TEXT)
@@ -353,7 +423,7 @@ async def reddit_xray(ctx, *args):
             color=somsiad.color
         )
         for member in ctx.guild.members:
-            user_status = verifier.discord_user_status(member.id)
+            user_status = verifier.discord_user_info(member.id)
             if user_status['reddit_username'] is not None:
                 embed.add_field(
                     name=str(member),
@@ -368,7 +438,7 @@ async def reddit_xray(ctx, *args):
             color=somsiad.color
         )
         for member in ctx.channel.members:
-            user_status = verifier.discord_user_status(member.id)
+            user_status = verifier.discord_user_info(member.id)
             if user_status['reddit_username'] is not None:
                 embed.add_field(
                     name=str(member),
@@ -384,9 +454,9 @@ async def reddit_xray(ctx, *args):
             argument = ' '.join(args)
             discord_user = await somsiad.member_converter.convert(ctx, argument)
 
-        user_status = verifier.discord_user_status(discord_user.id)
+        user_status = verifier.discord_user_info(discord_user.id)
         # Check if (and when) user has already been verified
-        if user_status['phrase_gen_date'] is None:
+        if user_status['verification_status'] is None:
             embed = discord.Embed(
                 title=':red_circle: Niezweryfikowany',
                 description=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.',
@@ -407,7 +477,7 @@ async def reddit_xray(ctx, *args):
                     f'(https://www.reddit.com/user/{user_status["reddit_username"]})')
                 embed = discord.Embed(
                     title=':white_check_mark: Zweryfikowany',
-                    description=f'Użytkownik {discord_user} został zweryfikowany {user_status["phrase_gen_date"]}'
+                    description=f'Użytkownik {discord_user} został zweryfikowany {user_status["verification_date"]}'
                     f'{reddit_username_info}.',
                     color=somsiad.color
                 )
