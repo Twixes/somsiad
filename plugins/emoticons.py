@@ -13,26 +13,6 @@
 
 import discord
 from somsiad import somsiad
-from version import __version__
-
-
-@somsiad.client.command(aliases=['wersja'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
-@discord.ext.commands.guild_only()
-async def version(ctx):
-    """Responds with current version of the bot."""
-    if somsiad.does_member_have_elevated_permissions(ctx.author):
-        version_string = f'{__version__}!'
-    else:
-        version_string = __version__
-    await ctx.send(version_string)
-
-
-@somsiad.client.command()
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
-async def ping(ctx):
-    """Pong!"""
-    await ctx.send(':ping_pong: Pong!')
 
 
 @somsiad.client.command(aliases=['lenny'])
@@ -41,6 +21,14 @@ async def ping(ctx):
 async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
     await ctx.send('( ͡° ͜ʖ ͡°)')
+
+
+@somsiad.client.command(aliases=['lenno'])
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
+async def lennoface(ctx):
+    """( ͡ʘ ͜ʖ ͡ʘ)"""
+    await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
 
 
 @somsiad.client.command()
@@ -84,27 +72,3 @@ async def gib(ctx, *args):
 async def fccchk(ctx):
     """:japanese_goblin:"""
     await ctx.send(':japanese_goblin:')
-
-
-@somsiad.client.command(aliases=['r', 'sub'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
-@discord.ext.commands.guild_only()
-async def subreddit(ctx, *args):
-    """Responds with the URL of the given subreddit."""
-    if not args:
-        url = 'https://reddit.com/r/all'
-    else:
-        url = f'https://reddit.com/r/{"".join(args)}'
-    await ctx.send(f'{ctx.author.mention}\n{url}')
-
-
-@somsiad.client.command(aliases=['u'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
-@discord.ext.commands.guild_only()
-async def reddit_user(ctx, *args):
-    """Responds with the URL of the given Reddit user."""
-    if not args:
-        url = f'https://reddit.com/u/{somsiad.conf["reddit_username"]}'
-    else:
-        url = f'https://reddit.com/u/{"".join(args)}'
-    await ctx.send(f'{ctx.author.mention}\n{url}')

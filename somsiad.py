@@ -322,6 +322,24 @@ def print_info(first_console_block=True):
 
     print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
 
+@somsiad.client.command(aliases=['wersja'])
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
+async def version(ctx):
+    """Responds with current version of the bot."""
+    if somsiad.does_member_have_elevated_permissions(ctx.author):
+        version_string = f'{__version__}!'
+    else:
+        version_string = __version__
+    await ctx.send(version_string)
+
+
+@somsiad.client.command()
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+async def ping(ctx):
+    """Pong!"""
+    await ctx.send(':ping_pong: Pong!')
+
 
 @somsiad.client.event
 async def on_ready():
