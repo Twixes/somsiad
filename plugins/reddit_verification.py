@@ -506,7 +506,7 @@ async def reddit_xray(ctx, *args):
                 embed = discord.Embed(
                     title=':white_check_mark: Zweryfikowany',
                     description=f'Użytkownik {discord_user} został zweryfikowany '
-                    f'{discord_user_info["verification_rejection_date"]}.'
+                    f'{discord_user_info["verification_rejection_date"]}'
                     f'{reddit_username_info}.',
                     color=somsiad.color
                 )
