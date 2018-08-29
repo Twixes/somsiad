@@ -30,7 +30,7 @@ async def purge(ctx, *args):
             number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
         )
 
-        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+        if ctx.channel.permissions_for(ctx.me).manage_messages:
             await ctx.channel.purge(limit=number_of_messages_to_delete+1)
 
             embed = discord.Embed(
@@ -64,7 +64,7 @@ async def invite(ctx, *args):
 
     argument = ' '.join(args).lower()
 
-    if 'somsiad' in argument or str(ctx.guild.me.id) in argument:
+    if 'somsi' in argument or str(ctx.me.id) in argument:
         embed = discord.Embed(
             title=':house: Zapraszam do Somsiad Labs - mojegu domu',
             description='http://discord.gg/EFj3hhQ',
@@ -86,16 +86,21 @@ async def invite(ctx, *args):
 
         channel = None
         invite = None
-        if ctx.channel.permissions_for(ctx.guild.me).create_instant_invite:
+        if ctx.channel.permissions_for(ctx.me).create_instant_invite:
             channel = ctx.channel
         else:
             for current_channel in ctx.guild.channels:
-                if (current_channel.permissions_for(ctx.guild.me).create_instant_invite
+                if (current_channel.permissions_for(ctx.me).create_instant_invite
                         and current_channel.permissions_for(ctx.author).create_instant_invite
                         and not isinstance(current_channel, discord.CategoryChannel)):
                     channel = current_channel
                     break
-        invite = await channel.create_invite(max_uses=max_uses, unique=unique)
+
+        invite = await channel.create_invite(
+            max_uses=max_uses,
+            unique=unique,
+            reason=str(ctx.author)
+        )
 
         if channel is None:
             embed = discord.Embed(
