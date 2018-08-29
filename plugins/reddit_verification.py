@@ -29,7 +29,7 @@ class RedditVerifier:
     _phrase_parts = None
 
     def __init__(self, users_db_path: str, phrase_parts=None):
-        """Connects to the database. Creates it if it doesn't yet. Sets up phrase parts."""
+        """Connects to the database. Creates it if it doesn't exist yet. Sets up tables. Sets up phrase parts."""
         self._users_db = sqlite3.connect(users_db_path)
         self._users_db_cursor = self._users_db.cursor()
         self._users_db_cursor.execute(
@@ -83,7 +83,7 @@ class RedditVerifier:
         return phrase
 
     def phrase_info(self, phrase: str):
-        """Returns information related to the given phrase."""
+        """Returns information from the database about the given phrase."""
         self._users_db_cursor.execute(
             '''SELECT discord_user_id, verification_status, first_contact_date, phrase_gen_date,
             verification_rejection_date FROM discord_users WHERE phrase = ?''',
@@ -109,7 +109,7 @@ class RedditVerifier:
         }
 
     def discord_user_info(self, discord_user_id: int):
-        """Returns information related to the given Discord user."""
+        """Returns information from the database about the given Discord user."""
         self._users_db_cursor.execute(
             '''SELECT reddit_username, verification_status, first_contact_date, phrase_gen_date,
             verification_rejection_date FROM discord_users WHERE discord_user_id = ?''',
@@ -149,7 +149,7 @@ class RedditVerifier:
         }
 
     def reddit_user_info(self, reddit_username: str):
-        """Returns information related to the given Reddit user."""
+        """Returns information from the database about the given Reddit user."""
         self._users_db_cursor.execute(
             'SELECT first_contact_date FROM reddit_users WHERE reddit_username = ?',
             (reddit_username,)
@@ -229,7 +229,7 @@ class RedditVerifier:
         """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
         if self.phrase_info(phrase)['discord_user_id'] is not None:
             if self.reddit_user_info(reddit_username)['discord_user_id'] is None:
-                new_verification_status = f'REJECTED_{reason}'
+                new_verification_status = f'REJECTED_{str(reason).upper()}'
                 self._users_db_cursor.execute(
                     f'''UPDATE discord_users SET verification_status = ?,
                     verification_rejection_date = ?, phrase = NULL WHERE phrase = ?''',
@@ -260,12 +260,14 @@ class RedditVerificationMessageScout:
         pass
 
     def __init__(self, users_db_path):
+        """Runs message processing in a new thread."""
         self._users_db_path = users_db_path
         thread = threading.Thread(target=self.run, args=())
         thread.daemon = True
         thread.start()
 
     def run(self):
+        """Ensures that message processing is running."""
         self._reddit = praw.Reddit(
             client_id=somsiad.conf['reddit_id'],
             client_secret=somsiad.conf['reddit_secret'],
@@ -287,12 +289,12 @@ class RedditVerificationMessageScout:
         """Processes new messages from the inbox stream and uses them for verification."""
         # Handle each new message
         for message in praw.models.util.stream_generator(self._reddit.inbox.unread):
+            reddit_username = str(message.author)
+            self._verifier.add_reddit_user(reddit_username)
             if message.subject == 'Weryfikacja':
                 # Check if (and when) Reddit account was verified
                 phrase = message.body.strip().strip('"\'')
-                reddit_username = str(message.author)
                 reddit_user_info = self._verifier.reddit_user_info(str(message.author))
-                self._verifier.add_reddit_user(reddit_username)
                 if reddit_user_info['discord_user_id'] is None:
                     # Check if the phrase is in the database
 
@@ -364,7 +366,7 @@ verifier = RedditVerifier(users_db_path, phrase_parts)
 @somsiad.client.command(aliases=['zweryfikuj'])
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 async def reddit_verify(ctx, *args):
-    """Verifies Discord user via Reddit."""
+    """Starts the Reddit account verification process for the invoking Discord user."""
     FOOTER_TEXT = 'Reddit - weryfikacja'
 
     discord_user_id = ctx.author.id
@@ -446,12 +448,12 @@ async def reddit_verify(ctx, *args):
 async def reddit_xray(ctx, *args):
     """Checks given user's verification status.
     If no user was given, assumes message author.
-    If @here or @everyone mentions were given, returns a list of verified members of, respectively,
-    the channel or the server.
+    If the argument passed was "@here" or "here" or "@everyone" or "everyone",
+    returns a list of verified members of, respectively, the channel or the server.
     """
     FOOTER_TEXT = 'Reddit - weryfikacja'
 
-    if (len(args) == 1 and args[0].strip('\\') == '@everyone' and
+    if (len(args) == 1 and args[0].strip('@\\') == 'everyone' and
             somsiad.does_member_have_elevated_permissions(ctx.author)):
         embed = discord.Embed(
             title='Zweryfikowani użytkownicy na tym serwerze',
@@ -466,7 +468,7 @@ async def reddit_xray(ctx, *args):
                     inline=False
                 )
 
-    elif (len(args) == 1 and args[0].strip('\\') == '@here' and
+    elif (len(args) == 1 and args[0].strip('@\\') == 'here' and
             somsiad.does_member_have_elevated_permissions(ctx.author)):
         embed = discord.Embed(
             title='Zweryfikowani użytkownicy na tym kanale',
