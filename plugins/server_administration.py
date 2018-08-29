@@ -15,11 +15,18 @@ import discord
 from somsiad import TextFormatter, somsiad
 
 
+autodestruction_time_in_seconds = 5
+autodestruction_notice = (
+    f'Ta wiadomość ulegnie autodestrukcji w ciągu {autodestruction_time_in_seconds} '
+    f'{TextFormatter.noun_variant(autodestruction_time_in_seconds, "sekundy", "sekund")} od wysłania.'
+)
+
+
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def purge(ctx, *args):
-    """Removes last n messages in the channel."""
+    """Removes last n messages from the channel."""
     if somsiad.does_member_have_elevated_permissions(ctx.author):
         number_of_messages_to_delete = 1
         if args:
@@ -36,20 +43,20 @@ async def purge(ctx, *args):
             embed = discord.Embed(
                 title=f':white_check_mark: Usunięto z kanału {number_of_messages_to_delete} {last_adjective_variant} '
                 f'{messages_noun_variant}',
-                description='Ta wiadomość ulegnie autodestrukcji w ciągu 5 sekund od wysłania.',
+                description=autodestruction_notice,
                 color=somsiad.color
             )
 
-            await ctx.send(embed=embed, delete_after=5)
+            await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
 
         else:
             embed = discord.Embed(
                 title=':red_circle: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma do tego uprawnień',
-                description='Ta wiadomość ulegnie autodestrukcji w ciągu 5 sekund od wysłania.',
+                description=autodestruction_notice,
                 color=somsiad.color
             )
 
-            await ctx.send(ctx.author.mention, embed=embed, delete_after=5)
+            await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
 
 
 @somsiad.client.command(aliases=['zaproś', 'zapros'])
@@ -106,8 +113,10 @@ async def invite(ctx, *args):
             embed = discord.Embed(
                 title=':red_circle: Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
                 'na którym ty je masz',
+                description=autodestruction_notice,
                 color=somsiad.color
             )
+            await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
         else:
             if max_uses == 0:
                 max_uses_info = ' o nieskończonej liczbie użyć'
@@ -123,11 +132,12 @@ async def invite(ctx, *args):
                 description=invite.url,
                 color=somsiad.color
             )
+            await ctx.send(ctx.author.mention, embed=embed)
 
     else:
         embed = discord.Embed(
             title=':red_circle: Nie utworzono zaproszenia, bo nie masz do tego uprawnień na żadnym kanale',
+            description=autodestruction_notice,
             color=somsiad.color
         )
-
-    await ctx.send(ctx.author.mention, embed=embed)
+    await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
