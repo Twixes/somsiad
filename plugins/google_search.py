@@ -13,6 +13,7 @@
 
 import discord
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from somsiad import somsiad
 
 
@@ -20,15 +21,13 @@ class GoogleCSE:
     _google_cse = None
     _google_cse_id = None
 
-    class SearchResultRetrievalFailure(Exception):
-        """Raised when search results could not be retrieved from Google."""
-        pass
-
     def __init__(self, developer_key, google_cse_id):
         self._google_cse = build('customsearch', 'v1', developerKey=developer_key)
         self._google_cse_id = google_cse_id
 
-    def search(self, query, language, number_of_results=1, safe='active', search_type=None):
+    def search(
+        self, query: str, language: str, number_of_results: int = 1, safe: str = 'active', search_type: str = None
+    ) -> list:
         """Returns first {number_of_results} result(s) from Google."""
         try:
             results = self._google_cse.cse().list(
@@ -44,8 +43,7 @@ class GoogleCSE:
                 return []
             else:
                 return results['items']
-        except self.SearchResultRetrievalFailure:
-            somsiad.logger.warning('Could not retrieve search results from Google!')
+        except HttpError:
             return None
 
 
@@ -69,10 +67,11 @@ async def google(ctx, *args):
     else:
         query = ' '.join(args)
         results = google_cse.search(query, 'pl')
-        if results is None:
+        if results == None:
             embed = discord.Embed(
                 title=':warning: Błąd',
-                description=f'Nie udało się połączyć z serwerem wyszukiwania.',
+                description='Nie udało się połączyć z serwerem wyszukiwania. '
+                'Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
                 color=somsiad.color
             )
         elif results == []:
@@ -122,7 +121,8 @@ async def google_image(ctx, *args):
         if results == None:
             embed = discord.Embed(
                 title=':warning: Błąd',
-                description=f'Nie udało się połączyć z serwerem wyszukiwania.',
+                description='Nie udało się połączyć z serwerem wyszukiwania. '
+                'Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
                 color=somsiad.color
             )
         elif results == []:
