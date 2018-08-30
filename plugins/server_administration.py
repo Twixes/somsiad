@@ -27,7 +27,7 @@ autodestruction_notice = (
 @discord.ext.commands.guild_only()
 async def purge(ctx, *args):
     """Removes last n messages from the channel."""
-    if somsiad.does_member_have_elevated_permissions(ctx.author):
+    if ctx.channel.permissions_for(ctx.author).manage_messages:
         number_of_messages_to_delete = 1
         if args:
             number_of_messages_to_delete = int(args[0]) if int(args[0]) < 50 else 50
@@ -45,18 +45,24 @@ async def purge(ctx, *args):
                 f'{messages_noun_variant}',
                 description=autodestruction_notice,
                 color=somsiad.color
-            )
-
-            await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
+            )\
 
         else:
             embed = discord.Embed(
-                title=':red_circle: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma do tego uprawnień',
+                title=':red_circle: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma tutaj '
+                'do tego uprawnień',
                 description=autodestruction_notice,
                 color=somsiad.color
             )
 
-            await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
+    else:
+        embed = discord.Embed(
+            title=':red_circle: Nie usunięto z kanału żadnych wiadomości, ponieważ nie masz tutaj uprawnień do tego',
+            description=autodestruction_notice,
+            color=somsiad.color
+        )
+
+    await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
 
 
 @somsiad.client.command(aliases=['zaproś', 'zapros'])
