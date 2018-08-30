@@ -77,6 +77,7 @@ async def invite(ctx, *args):
             description='http://discord.gg/EFj3hhQ',
             color=somsiad.color
         )
+        await ctx.send(ctx.author.mention, embed=embed)
 
     elif is_user_permitted_to_invite:
         max_uses = 0
@@ -140,4 +141,4 @@ async def invite(ctx, *args):
             description=autodestruction_notice,
             color=somsiad.color
         )
-    await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
