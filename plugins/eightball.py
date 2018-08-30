@@ -29,21 +29,17 @@ async def eightball(ctx, *args):
     question = ' '.join(args)
     question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/')
     if question != '':
-        if question.endswith('?'):
-            question = question.strip('?')
-            if 'fccchk' in question.lower():
-                response = secrets.choice(eightball_responses)
-                ReSPoNse = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in response)
-                await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {ReSPoNse}')
-            elif question != '':
-                response = secrets.choice(eightball_responses)
-                await ctx.send(f'{ctx.author.mention}\n:8ball: {response}')
-            else:
-                await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
-                    'Sam pytajnik to nie pytanie.')
+        question = question.strip('?')
+        if 'fccchk' in question.lower():
+            response = secrets.choice(eightball_responses)
+            ReSPoNse = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in response)
+            await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {ReSPoNse}')
+        elif question != '':
+            response = secrets.choice(eightball_responses)
+            await ctx.send(f'{ctx.author.mention}\n:8ball: {response}')
         else:
             await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
-                'A te kończą się pytajnikiem.')
+                'Sam pytajnik to nie pytanie.')
     else:
         await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
             'Aby zadać pytanie musisz użyć *słów*.')
