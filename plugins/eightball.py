@@ -18,7 +18,7 @@ from somsiad import somsiad
 
 
 with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.txt')) as f:
-    eightball_responses = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
+    eightball_answers = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
 
 
 @somsiad.client.command(aliases=['8ball', '8-ball', '8', 'czy'])
@@ -27,19 +27,16 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.txt')) a
 async def eightball(ctx, *args):
     """Returns an 8-Ball answer."""
     question = ' '.join(args)
-    question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/')
+    question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?')
     if question != '':
         question = question.strip('?')
         if 'fccchk' in question.lower():
-            response = secrets.choice(eightball_responses)
-            ReSPoNse = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in response)
-            await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {ReSPoNse}')
+            answer = secrets.choice(eightball_answers)
+            aNSwEr = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in answer)
+            await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {aNSwEr}')
         elif question != '':
-            response = secrets.choice(eightball_responses)
-            await ctx.send(f'{ctx.author.mention}\n:8ball: {response}')
-        else:
-            await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
-                'Sam pytajnik to nie pytanie.')
+            answer = secrets.choice(eightball_answers)
+            await ctx.send(f'{ctx.author.mention}\n:8ball: {answer}')
     else:
         await ctx.send(f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
             'Aby zadać pytanie musisz użyć *słów*.')
