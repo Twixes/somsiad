@@ -40,9 +40,9 @@ class RedditVerifier:
                 discord_user_id INTEGER NOT NULL PRIMARY KEY,
                 reddit_username TEXT UNIQUE,
                 verification_status TEXT NOT NULL,
-                first_contact_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
-                phrase_gen_date TEXT NOT NULL DEFAULT (date('now', 'localtime')),
-                verification_rejection_date TEXT,
+                first_contact_date NUMERIC NOT NULL DEFAULT (date('now', 'localtime')),
+                phrase_gen_date NUMERIC NOT NULL DEFAULT (date('now', 'localtime')),
+                verification_rejection_date NUMERIC,
                 phrase TEXT,
                 FOREIGN KEY(reddit_username) REFERENCES reddit_users(reddit_username)
             )'''
@@ -50,7 +50,7 @@ class RedditVerifier:
         self._users_db_cursor.execute(
             '''CREATE TABLE IF NOT EXISTS reddit_users(
                 reddit_username TEXT NOT NULL PRIMARY KEY,
-                first_contact_date TEXT NOT NULL DEFAULT (date('now', 'localtime'))
+                first_contact_date NUMERIC NOT NULL DEFAULT (date('now', 'localtime'))
             )'''
         )
         self._users_db.commit()
