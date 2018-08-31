@@ -15,22 +15,17 @@
 
 if command -V python3 &>/dev/null
 then
-    if command -V pip3 &>/dev/null
+    if ! test -d somsiad_env
     then
-        if ! test -d somsiad_env
-        then
-            echo Tworzenie środowiska wirtualnego...
-            python3 -m venv somsiad_env
-        fi
-        source ./somsiad_env/bin/activate
-        echo Spełnianie zależności...
-        pip3 install -q -U pip
-        pip3 install -q -r requirements.txt
-        echo Budzenie Somsiada...
-        python3 run.py
-    else
-        echo W systemie nie znaleziono menedżera paczek pip3! Somsiad nie może wstać.
+        echo Tworzenie środowiska wirtualnego...
+        python3 -m venv somsiad_env
     fi
+    source ./somsiad_env/bin/activate
+    echo Spełnianie zależności...
+    pip3 install -q -U pip
+    pip3 install -q -r requirements.txt
+    echo Budzenie Somsiada...
+    python3 run.py
 else
     echo W systemie nie znaleziono Pythona 3! Somsiad nie może wstać.
 fi
