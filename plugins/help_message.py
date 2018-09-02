@@ -115,9 +115,9 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}wyczyść (wyczysc) <?liczba>',
-        value='Usuwa <?liczbę> ostatnich wiadomości lub, jeśli nie podano liczby, jedną ostatnią wiadomość z kanału '
-        'na którym użyto komendy. Działa tylko dla członków serwera o podwyższonych uprawnieniach.',
+        name=f'{somsiad.conf["command_prefix"]}zweryfikowanymnadawaj <rola>',
+        value='Ustawia <rolę> jako rolę automatycznie nadawaną członkom serwera po pomyślnej weryfikacji konta na '
+        'Reddicie. Działa tylko dla członków mających uprawnienie do na zarządzania rolami.',
         inline=False
     )
     embed.add_field(
@@ -132,7 +132,7 @@ async def help_message(ctx):
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}rzuć (rzuc) <?liczba kości> <?liczba ścianek kości>',
-        value='Rzuca kością. ',
+        value='Rzuca kością lub kośćmi.',
         inline=False
     )
     embed.add_field(
@@ -156,8 +156,37 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}lenno (lennoface)',
+        value='( ͡ʘ ͜ʖ ͡ʘ)',
+        inline=False
+    )
+    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}dej (gib) <?rzecz>',
         value='༼ つ ◕_◕ ༽つ <?rzecz>',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}zaproś (zapros) <?liczba użyć>',
+        value='Tworzy zaproszenie na serwer o danej <?liczbie użyć> lub, jeśli jej nie podano, o nielimitowanej '
+        'liczbie użyć. Dodatkowo można użyć argumentu "recykluj" - wtedy bot spróbuje wykorzystać już istniejące '
+        'zaproszenie o podanych parametrach zamiast tworzyć nowe.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}wyczyść (wyczysc) <?liczba>',
+        value='Usuwa <?liczbę> ostatnich wiadomości lub, jeśli nie podano liczby, jedną ostatnią wiadomość z kanału '
+        'na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienie do zarządzania wiadomościami '
+        'na kanale.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}tutajloguj',
+        value='Ustawia kanał na którym użyto komendy jako kanał logów bota. Działa tylko dla administratorów serwera.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}nieloguj',
+        value='Wyłącza logi na serwerze. Działa tylko dla administratorów serwera.',
         inline=False
     )
     embed.add_field(
