@@ -117,7 +117,14 @@ async def help_message(ctx):
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}zweryfikowanymnadawaj <rola>',
         value='Ustawia <rolę> jako rolę automatycznie nadawaną członkom serwera po pomyślnej weryfikacji konta na '
-        'Reddicie. Działa tylko dla członków mających uprawnienie do na zarządzania rolami.',
+        'Reddicie. Dodatkowo nadaje tę rolę już zweryfikowanym członkom serwera. Działa tylko dla członków mających '
+        'uprawnienie do na zarządzania rolami.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}zweryfikowanymnienadawaj',
+        value='Wyłącza automatyczne nadawanie roli członkom serwera po weryfikacji konta na Reddicie. Działa tylko dla '
+        'członków mających uprawnienie do na zarządzania rolami.',
         inline=False
     )
     embed.add_field(
@@ -180,7 +187,7 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}tutajloguj',
+        name=f'{somsiad.conf["command_prefix"]}tutajloguj (tuloguj)',
         value='Ustawia kanał na którym użyto komendy jako kanał logów bota. Działa tylko dla administratorów serwera.',
         inline=False
     )

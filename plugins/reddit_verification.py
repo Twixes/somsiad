@@ -246,6 +246,17 @@ class RedditVerifier:
             results.append({'server_id': server[0], 'verified_role_id': server[1]})
         return results
 
+    def get_verified_role_id_of_server(self, server_id: int) -> int:
+        self._db_cursor.execute(
+            '''SELECT verified_role_id FROM discord_servers WHERE server_id = ?''',
+            (server_id,)
+        )
+        verified_role_id = self._db_cursor.fetchone()
+        if verified_role_id is not None:
+            return verified_role_id[0]
+        else:
+            return None
+
     def assign_phrase(self, discord_user_id: int):
         """Assigns a phrase to a Discord user."""
         phrase = self.phrase_gen()
@@ -371,6 +382,23 @@ class RedditVerifier:
                     if role.id == row['verified_role_id']:
                         asyncio.ensure_future(member.add_roles(role))
                         break
+
+    async def add_verified_role_to_members_of_discord_server(self, server: discord.Guild):
+        verified_role_id = self.get_verified_role_id_of_server(server.id)
+        verified_role = None
+
+        # get the verified role from server roles using the ID obtained
+        for role in server.roles:
+            if role.id == verified_role_id:
+                verified_role = role
+                break
+
+        # add the verified role to every member that is verified
+        if verified_role is not None:
+            for member in server.members:
+                if self.discord_user_info(member.id)['verification_status'] == 'VERIFIED':
+                    await member.add_roles(verified_role)
+
 
 class RedditVerificationMessageScout:
     _db_path = None
@@ -576,7 +604,7 @@ async def reddit_verify(ctx, *args):
             )
             embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
 
-    elif str(discord_user_info['verification_status']).startswith('VERIFIED'):
+    elif discord_user_info['verification_status'] == 'VERIFIED':
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
         embed.add_field(
             name=f'Twoje konto na Reddicie to /u/{discord_user_info["reddit_username"]}.',
@@ -609,7 +637,7 @@ async def reddit_xray(ctx, *args):
         )
         for member in ctx.guild.members:
             discord_user_info = verifier.discord_user_info(member.id)
-            if str(discord_user_info['verification_status']).startswith('VERIFIED'):
+            if discord_user_info['verification_status'] == 'VERIFIED':
                 embed.add_field(
                     name=str(member),
                     value=f'/u/{discord_user_info["reddit_username"]}',
@@ -624,7 +652,7 @@ async def reddit_xray(ctx, *args):
         )
         for member in ctx.channel.members:
             discord_user_info = verifier.discord_user_info(member.id)
-            if str(discord_user_info['verification_status']).startswith('VERIFIED'):
+            if discord_user_info['verification_status'] == 'VERIFIED':
                 embed.add_field(
                     name=str(member),
                     value=f'/u/{discord_user_info["reddit_username"]}',
@@ -648,7 +676,7 @@ async def reddit_xray(ctx, *args):
                 color=somsiad.color
             )
         else:
-            if str(discord_user_info['verification_status']).startswith('VERIFIED'):
+            if discord_user_info['verification_status'] == 'VERIFIED':
                 reddit_username_info = ''
                 if ctx.channel.permissions_for(ctx.author).manage_roles:
                     reddit_username_info = (f' jako [/u/{discord_user_info["reddit_username"]}]'
@@ -733,8 +761,11 @@ async def reddit_set_verified_role(ctx, *args):
             )
         elif len(roles_found) == 1:
             verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', roles_found[0].id)
+            await verifier.add_verified_role_to_members_of_discord_server(ctx.guild)
             embed = discord.Embed(
                 title=f':white_check_mark: Ustawiono {roles_found[0]} jako rolę zweryfikowanych użytkowników',
+                description=f'Rola została właśnie przyznana już zweryfikowanym użytkownikom. Reszcie zostanie '
+                'przyznana automatycznie, jeśli zweryfikują się.',
                 color=somsiad.color
             )
         else:
