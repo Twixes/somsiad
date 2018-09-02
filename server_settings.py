@@ -12,7 +12,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os.path
-import datetime
 import sqlite3
 import discord
 from somsiad import somsiad
