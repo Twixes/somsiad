@@ -314,8 +314,9 @@ class RedditVerifier:
             self._db.commit()
         return self.discord_user_info(discord_user_id)
 
+    @staticmethod
     def log_verification_result(
-        self, discord_user_id: int, reddit_username: str, success: bool, personal_reason: str = '',
+        discord_user_id: int, reddit_username: str, success: bool, personal_reason: str = '',
         log_reason: str = '', server_settings_manager: ServerSettingsManager = server_settings_manager
     ):
         discord_user = somsiad.client.get_user(discord_user_id)
