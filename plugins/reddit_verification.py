@@ -42,8 +42,8 @@ class RedditVerifier:
         self._db_cursor.execute(
             '''CREATE TABLE IF NOT EXISTS discord_servers(
                 server_id INTEGER NOT NULL PRIMARY KEY,
-                verified_role_id INTEGER UNIQUE,
-                verification_messages_channel_id INTEGER UNIQUE
+                verified_role_id INTEGER,
+                verification_messages_channel_id INTEGER
             )'''
         )
         self._db_cursor.execute(
@@ -688,7 +688,6 @@ async def reddit_xray(ctx, *args):
                     color=somsiad.color
                 )
 
-
     embed.set_footer(text=verifier.FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -712,17 +711,9 @@ async def reddit_xray_error(ctx, error):
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
 async def reddit_set_verified_role(ctx, *args):
-    """"""
+    """Sets the role to be given automatically to verified members."""
     provided_role_name = ' '.join(args)
     roles_found = []
-
-    verified_roles = verifier.get_verified_roles()
-    for verified_role in verified_roles:
-        server = somsiad.client.get_guild(verified_role['server_id'])
-        for channel in server.text_channels:
-            if channel.id == int(verified_role['verified_role_id']):
-                channel()
-                break
 
     if ctx.message.role_mentions:
         roles_found.append(ctx.message.role_mentions[0])
@@ -757,6 +748,21 @@ async def reddit_set_verified_role(ctx, *args):
             color=somsiad.color
         )
 
+    embed.set_footer(text=verifier.FOOTER_TEXT)
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@somsiad.client.command(aliases=['zweryfikowanymnienadawaj'])
+@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.guild_only()
+@discord.ext.commands.has_permissions(manage_roles=True)
+async def reddit_unset_verified_role(ctx):
+    """Unsets the role to be given automatically to verified members."""
+    verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', 'NULL')
+    embed = discord.Embed(
+        title=f':white_check_mark: Wyłączono automatyczne nadawanie roli zweryfikowanym użytkownikom',
+        color=somsiad.color
+    )
     embed.set_footer(text=verifier.FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
 
