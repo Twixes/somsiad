@@ -31,7 +31,7 @@ async def lennoface(ctx):
     await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
 
 
-@somsiad.client.command()
+@somsiad.client.command('wywróć')
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def tableflip(ctx):
@@ -39,7 +39,7 @@ async def tableflip(ctx):
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
 
-@somsiad.client.command()
+@somsiad.client.command('odstaw')
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def unflip(ctx):
@@ -62,6 +62,8 @@ async def gib(ctx, *args):
     """༼ つ ◕_◕ ༽つ"""
     if not args:
         await ctx.send('༼ つ ◕_◕ ༽つ')
+    elif 'fccchk' in ' '.join(args):
+        await ctx.send(f'༼ つ :japanese_goblin: ༽つ {" ".join(args)}')
     else:
         await ctx.send(f'༼ つ ◕_◕ ༽つ {" ".join(args)}')
 
