@@ -274,11 +274,6 @@ class Somsiad:
         application_info = await self.client.application_info()
         return application_info.owner == user
 
-    @staticmethod
-    def does_member_have_elevated_permissions(member: discord.Member) -> bool:
-        """Returns whether the provided member has elevated permissions."""
-        return member.guild_permissions.administrator
-
 # Required configuration
 required_configuration_extension = [
     # (key, default_value, instruction, description, unit)
@@ -329,7 +324,7 @@ def print_info(first_console_block=True):
 @discord.ext.commands.guild_only()
 async def version(ctx):
     """Responds with current version of the bot."""
-    if somsiad.does_member_have_elevated_permissions(ctx.author):
+    if ctx.channel.permissions_for(ctx.author).manage_roles:
         version_string = f'{__version__}!'
     else:
         version_string = __version__
