@@ -14,8 +14,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import somsiad
+import server_settings
 from plugins import *
-
 
 if __name__ == '__main__':
     somsiad.somsiad.run()
