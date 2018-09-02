@@ -559,7 +559,6 @@ async def reddit_verify(ctx, *args):
                         'Spróbuj zweryfikować się innego dnia, gdy twoje konto będzie już spełniało te warunki.'
                 )
 
-
         else:
             # If user has requested verification but not today, assign him a new phrase
             phrase = verifier.assign_phrase(discord_user_id)
@@ -602,7 +601,7 @@ async def reddit_xray(ctx, *args):
     """
 
     if (len(args) == 1 and args[0].strip('@\\') == 'everyone' and
-            somsiad.does_member_have_elevated_permissions(ctx.author)):
+            ctx.channel.permissions_for(ctx.author).manage_roles):
         embed = discord.Embed(
             title='Zweryfikowani użytkownicy na tym serwerze',
             color=somsiad.color
@@ -617,7 +616,7 @@ async def reddit_xray(ctx, *args):
                 )
 
     elif (len(args) == 1 and args[0].strip('@\\') == 'here' and
-            somsiad.does_member_have_elevated_permissions(ctx.author)):
+            ctx.channel.permissions_for(ctx.author).manage_roles):
         embed = discord.Embed(
             title='Zweryfikowani użytkownicy na tym kanale',
             color=somsiad.color
@@ -650,7 +649,7 @@ async def reddit_xray(ctx, *args):
         else:
             if str(discord_user_info['verification_status']).startswith('VERIFIED'):
                 reddit_username_info = ''
-                if somsiad.does_member_have_elevated_permissions(ctx.author):
+                if ctx.channel.permissions_for(ctx.author).manage_roles:
                     reddit_username_info = (f' jako [/u/{discord_user_info["reddit_username"]}]'
                     f'(https://www.reddit.com/user/{discord_user_info["reddit_username"]})')
                 embed = discord.Embed(
@@ -707,9 +706,11 @@ async def reddit_xray_error(ctx, error):
 
         await ctx.send(ctx.author.mention, embed=embed)
 
+
 @somsiad.client.command(aliases=['zweryfikowanymnadawaj'])
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
+@discord.ext.commands.has_permissions(manage_roles=True)
 async def reddit_set_verified_role(ctx, *args):
     """"""
     provided_role_name = ' '.join(args)
@@ -758,5 +759,6 @@ async def reddit_set_verified_role(ctx, *args):
 
     embed.set_footer(text=verifier.FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
+
 
 reddit_verification_message_scout = RedditVerificationMessageScout(db_path)

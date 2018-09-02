@@ -140,26 +140,26 @@ server_settings_manager = ServerSettingsManager()
 @somsiad.client.command(aliases=['tutajloguj', 'tuloguj'])
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
+@discord.ext.commands.has_permissions(administrator=True)
 async def log_here(ctx):
     """Sets the channel where the command was invoked as the bot's log channel for the server."""
-    if ctx.channel.permissions_for(ctx.author).administrator:
-        server_settings_manager.set_log_channel(ctx.guild.id, ctx.channel.id)
-        embed = discord.Embed(
-            title=f':white_check_mark: Ustawiono #{ctx.channel} jako kanał logów',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
+    server_settings_manager.set_log_channel(ctx.guild.id, ctx.channel.id)
+    embed = discord.Embed(
+        title=f':white_check_mark: Ustawiono #{ctx.channel} jako kanał logów',
+        color=somsiad.color
+    )
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 @somsiad.client.command(aliases=['nieloguj'])
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
+@discord.ext.commands.has_permissions(administrator=True)
 async def do_not_log(ctx):
     """Unsets the bot's log channel for the server."""
-    if ctx.channel.permissions_for(ctx.author).administrator:
-        server_settings_manager.set_log_channel(ctx.guild.id, 'NULL')
-        embed = discord.Embed(
-            title=f':white_check_mark: Wyłączono logi na tym serwerze',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
+    server_settings_manager.set_log_channel(ctx.guild.id, 'NULL')
+    embed = discord.Embed(
+        title=f':white_check_mark: Wyłączono logi na tym serwerze',
+        color=somsiad.color
+    )
+    await ctx.send(ctx.author.mention, embed=embed)
