@@ -361,19 +361,19 @@ async def on_guild_remove(server):
 
 @somsiad.client.event
 async def on_command_error(ctx, error):
-    """Handles command errors."""
-    ignored = (discord.ext.commands.CommandNotFound, discord.ext.commands.UserInputError)
-    if isinstance(error, ignored):
-        return
+    """Handles common command errors."""
+    if isinstance(error, (discord.ext.commands.CommandNotFound, discord.ext.commands.UserInputError)):
+        pass
     elif isinstance(error, discord.ext.commands.DisabledCommand):
-        return await ctx.send(f'Komenda {ctx.command} została wyłączona.')
+        await ctx.send(f'Komenda {ctx.command} została wyłączona.')
     elif isinstance(error, discord.ext.commands.NoPrivateMessage):
-        try:
-            return await ctx.author.send(
-                f'Komenda {somsiad.conf["command_prefix"]}{ctx.command} nie może zostać użyta w prywatnej wiadomości.'
-            )
-        except:
-            pass
+        embed = discord.Embed(
+            title=f':warning: Komenda {somsiad.conf["command_prefix"]}{ctx.command} nie może zostać użyta w prywatnej '
+            'wiadomości.',
+            color=somsiad.color
+        )
+        await ctx.author.send(embed=embed)
+
     somsiad.logger.error(
         f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.command} command: {error}.'
     )
