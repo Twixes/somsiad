@@ -25,44 +25,58 @@ autodestruction_notice = (
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
-async def purge(ctx, *args):
+@discord.ext.commands.has_permissions(manage_messages=True)
+@discord.ext.commands.bot_has_permissions(manage_messages=True)
+async def purge(ctx, number_of_messages_to_delete: int = 1):
     """Removes last n messages from the channel."""
-    if ctx.channel.permissions_for(ctx.author).manage_messages:
-        number_of_messages_to_delete = 1
-        if args:
-            number_of_messages_to_delete = int(args[0]) if int(args[0]) < 50 else 50
+    if number_of_messages_to_delete > 50:
+        number_of_messages_to_delete = 50
 
-        messages_noun_variant = TextFormatter.noun_variant(number_of_messages_to_delete, 'wiadomość', 'wiadomości')
-        last_adjective_variant = TextFormatter.adjective_variant(
-            number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
-        )
+    await ctx.channel.purge(limit=number_of_messages_to_delete+1)
 
-        if ctx.channel.permissions_for(ctx.me).manage_messages:
-            await ctx.channel.purge(limit=number_of_messages_to_delete+1)
+    messages_noun_variant = TextFormatter.noun_variant(number_of_messages_to_delete, 'wiadomość', 'wiadomości')
+    last_adjective_variant = TextFormatter.adjective_variant(
+        number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
+    )
 
-            embed = discord.Embed(
-                title=f':white_check_mark: Usunięto z kanału {number_of_messages_to_delete} {last_adjective_variant} '
-                f'{messages_noun_variant}',
-                description=autodestruction_notice,
-                color=somsiad.color
-            )\
+    embed = discord.Embed(
+        title=f':white_check_mark: Usunięto z kanału {number_of_messages_to_delete} {last_adjective_variant} '
+        f'{messages_noun_variant}',
+        description=autodestruction_notice,
+        color=somsiad.color
+    )
 
-        else:
-            embed = discord.Embed(
-                title=':red_circle: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma tutaj '
-                'do tego uprawnień',
-                description=autodestruction_notice,
-                color=somsiad.color
-            )
+    await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
 
-    else:
+
+@purge.error
+async def purge_error(ctx, error):
+    was_error_handled = False
+
+    if isinstance(error, discord.ext.commands.errors.BotMissingPermissions):
         embed = discord.Embed(
-            title=':red_circle: Nie usunięto z kanału żadnych wiadomości, ponieważ nie masz tutaj uprawnień do tego',
+            title=':warning: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma tutaj do tego uprawnień',
             description=autodestruction_notice,
             color=somsiad.color
         )
+        was_error_handled = True
+    elif isinstance(error, discord.ext.commands.MissingPermissions):
+        embed = discord.Embed(
+            title=':warning: Nie usunięto z kanału żadnych wiadomości, ponieważ nie masz tutaj uprawnień do tego',
+            description=autodestruction_notice,
+            color=somsiad.color
+        )
+        was_error_handled = True
+    elif isinstance(error, discord.ext.commands.BadArgument):
+        embed = discord.Embed(
+            title=':warning: Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia',
+            description=autodestruction_notice,
+            color=somsiad.color
+        )
+        was_error_handled = True
 
-    await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
+    if was_error_handled:
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=autodestruction_time_in_seconds)
 
 
 @somsiad.client.command(aliases=['zaproś', 'zapros'])
@@ -118,7 +132,7 @@ async def invite(ctx, *args):
 
         if channel is None:
             embed = discord.Embed(
-                title=':red_circle: Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
+                title=':warning: Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
                 'na którym ty je masz',
                 description=autodestruction_notice,
                 color=somsiad.color
@@ -143,7 +157,7 @@ async def invite(ctx, *args):
 
     else:
         embed = discord.Embed(
-            title=':red_circle: Nie utworzono zaproszenia, bo nie masz do tego uprawnień na żadnym kanale',
+            title=':warning: Nie utworzono zaproszenia, bo nie masz do tego uprawnień na żadnym kanale',
             description=autodestruction_notice,
             color=somsiad.color
         )
