@@ -43,25 +43,30 @@ async def roll(ctx, *args):
             number_of_dice = int(args[0])
             number_of_sides_on_a_die = int(args[1].strip('dD'))
 
-    # Limit the number of dice to 200
-    if number_of_dice > 100:
-        number_of_dice = 100
-
-    # Generate random results
-    results = []
-    for _ in range(number_of_dice):
-        result = random.randint(1, number_of_sides_on_a_die)
-        results.append(result)
-
-    # Send the results
-    if number_of_dice == 1:
-        await ctx.send(
-            f':game_die: Rzucono {number_of_sides_on_a_die}-ścienną kością. Wypadło {results[0]}.'
-        )
+    if number_of_sides_on_a_die > 1:
+        # Limit the number of dice to between 1 and 100 (including 1 and 100)
+        if number_of_dice > 100:
+            number_of_dice = 100
+        elif number_of_dice < 1:
+            number_of_dice = 1
+        # Generate random results
+        results = []
+        for _ in range(number_of_dice):
+            result = random.randint(1, number_of_sides_on_a_die)
+            results.append(result)
+        # Send the results
+        if number_of_dice == 1:
+            await ctx.send(
+                f':game_die: Rzucono {number_of_sides_on_a_die}-ścienną kością. Wypadło {results[0]}.'
+            )
+        else:
+            results_string = ', '.join(list(map(str, results[:-1]))) # converts items in the results list to str
+            results_string += f' i {results[-1]}'
+            await ctx.send(
+                f':game_die: Rzucono {number_of_dice} {number_of_sides_on_a_die}-ściennymi koścmi. '
+                f'Wypadło {results_string}. Suma tych liczb to {sum(results)}.'
+            )
     else:
-        results_string = ', '.join(list(map(str, results[:-1]))) # converts items in the results list to str
-        results_string += f' i {results[-1]}'
         await ctx.send(
-            f':game_die: Rzucono {number_of_dice} {number_of_sides_on_a_die}-ściennymi koścmi. '
-            f'Wypadło {results_string}. Suma tych liczb to {sum(results)}.'
+            f'{ctx.author.mention}\n:game_die: {number_of_sides_on_a_die}-ścienna kość nie ma sensu!'
         )
