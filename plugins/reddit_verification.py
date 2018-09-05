@@ -543,7 +543,7 @@ verifier = RedditVerifier(db_path, phrase_parts)
 
 
 @somsiad.client.command(aliases=['zweryfikuj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 async def reddit_verify(ctx, *args):
     """Starts the Reddit account verification process for the invoking Discord user."""
 
@@ -620,7 +620,7 @@ async def reddit_verify(ctx, *args):
 
 
 @somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def reddit_xray(ctx, *args):
     """Checks given user's verification status.
@@ -736,7 +736,7 @@ async def reddit_xray_error(ctx, error):
 
 
 @somsiad.client.command(aliases=['zweryfikowanymnadawaj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
 async def reddit_set_verified_role(ctx, *args):
@@ -785,7 +785,7 @@ async def reddit_set_verified_role(ctx, *args):
 
 
 @somsiad.client.command(aliases=['zweryfikowanymnienadawaj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
 async def reddit_unset_verified_role(ctx):

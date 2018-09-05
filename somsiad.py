@@ -202,7 +202,7 @@ class Somsiad:
             # (key, default_value, instruction, description, unit)
             ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None),
             ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None),
-            ('user_command_cooldown_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
+            ('command_cooldown_per_user_in_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
                 '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund'))
         ]
         for setting in required_configuration_extension:
@@ -320,7 +320,7 @@ def print_info(first_console_block=True):
     print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
 
 @somsiad.client.command(aliases=['wersja'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def version(ctx):
     """Responds with current version of the bot."""
@@ -332,7 +332,7 @@ async def version(ctx):
 
 
 @somsiad.client.command()
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 async def ping(ctx):
     """Pong!"""
     await ctx.send(':ping_pong: Pong!')

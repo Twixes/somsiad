@@ -45,7 +45,7 @@ class ServerSettingsManager:
             )'''
         )
         self._servers_db.commit()
-        self.load_all_servers()
+        self.load_all_server_dbs()
 
     def is_server_known(self, server_id: int) -> bool:
         """Returns whether the specified server is known."""
@@ -98,24 +98,24 @@ class ServerSettingsManager:
                 self.servers[server_id][table] = rows
         return self.servers[server_id]
 
-    def load_all_servers(self) -> dict:
+    def load_all_server_dbs(self) -> dict:
         """Loads all known servers."""
         for server_id in self.load_servers_list():
             self.load_server(server_id, load_own_db=True)
         return self.servers
 
-    def ensure_table_existence_for_server(self, server_id: int, table_name: str, columns: list):
+    def ensure_table_existence_for_server(self, server_id: int, table_name: str, table_columns: list):
         """Ensures that a table with the provided name exists in the database assigned to the server.
         If no such table exists, it is created with provided column specs.
         """
-        self.load_server(server_id)
+        self.load_server(server_id, load_own_db=True)
         self.servers[server_id]['_db_cursor'].execute(
             f'''CREATE TABLE IF NOT EXISTS {table_name}(
-                {', '.join(columns)}
+                {', '.join(table_columns)}
             )'''
         )
         self.servers[server_id]['_db'].commit()
-        self.load_server(server_id)
+        self.load_server(server_id, load_own_db=True)
 
     def set_log_channel(self, server_id: int, log_channel_id):
         """Sets the log channel for the specified server."""
@@ -138,7 +138,7 @@ server_settings_manager = ServerSettingsManager()
 
 
 @somsiad.client.command(aliases=['tutajloguj', 'tuloguj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
 async def log_here(ctx):
@@ -152,7 +152,7 @@ async def log_here(ctx):
 
 
 @somsiad.client.command(aliases=['nieloguj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
 async def do_not_log(ctx):

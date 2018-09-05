@@ -20,7 +20,7 @@ from somsiad import somsiad
 @somsiad.client.command(aliases=['gr'])
 @discord.ext.commands.cooldown(
     1,
-    int(somsiad.conf['user_command_cooldown_seconds']) if int(somsiad.conf['user_command_cooldown_seconds']) > 1 else 1,
+    int(somsiad.conf['command_cooldown_per_user_in_seconds']) if int(somsiad.conf['command_cooldown_per_user_in_seconds']) > 1 else 1,
     discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()

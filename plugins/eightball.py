@@ -22,7 +22,7 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.txt')) a
 
 
 @somsiad.client.command(aliases=['8ball', '8-ball', '8', 'czy'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def eightball(ctx, *args):
     """Returns an 8-Ball answer."""

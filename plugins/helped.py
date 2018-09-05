@@ -43,7 +43,7 @@ async def smart_add_reactions(ctx, args, reactions):
 
 
 @somsiad.client.command(aliases=['pomógł', 'pomogl'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def helped(ctx, *args):
     """Adds "POMOGL" with smart_add_reactions()."""
@@ -57,7 +57,7 @@ async def helped(ctx, *args):
 
 
 @somsiad.client.command(aliases=['niepomógł', 'niepomogl'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 @discord.ext.commands.guild_only()
 async def didnothelp(ctx, *args):
     """Adds "NIEPOMOGL" with smart_add_reactions()."""

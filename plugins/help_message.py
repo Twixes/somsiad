@@ -17,7 +17,7 @@ from version import __version__
 
 
 @somsiad.client.command(aliases=['help', 'pomocy'])
-@discord.ext.commands.cooldown(1, somsiad.conf['user_command_cooldown_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
 async def help_message(ctx):
     embed = discord.Embed(title='Lecem na ratunek!' , color=somsiad.color)
     embed.add_field(
