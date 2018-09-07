@@ -18,7 +18,9 @@ from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['urbandictionary', 'urban'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def urban_dictionary(ctx, *args):
     """Returns Urban Dictionary word definition."""

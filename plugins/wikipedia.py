@@ -19,8 +19,9 @@ from somsiad import somsiad
 async def wikipedia_search(ctx, args, language):
     """Returns the closest matching article from Wikipedia."""
     FOOTER_TEXT = 'Wikipedia'
-    FOOTER_ICON_URL = ('https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/'
-        '60px-Wikipedia%27s_W.svg.png')
+    FOOTER_ICON_URL = (
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/60px-Wikipedia%27s_W.svg.png'
+    )
 
     if not args:
         embed = discord.Embed(
@@ -112,7 +113,9 @@ async def wikipedia_search(ctx, args, language):
 
 
 @somsiad.client.command(aliases=['wikipl', 'wpl'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def wikipediapl(ctx, *args):
     """Polish version of wikipedia_search."""
@@ -120,7 +123,9 @@ async def wikipediapl(ctx, *args):
 
 
 @somsiad.client.command(aliases=['wikien', 'wen'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def wikipediaen(ctx, *args):
     """English version of wikipedia_search."""
