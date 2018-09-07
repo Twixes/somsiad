@@ -15,12 +15,13 @@
 
 if command -V python3 &>/dev/null
 then
-    if ! test -d somsiad_env
+    if ! test -d `dirname "$BASH_SOURCE"`/somsiad_env
     then
         echo Tworzenie środowiska wirtualnego...
-        python3 -m venv somsiad_env
+        python3 -m venv `dirname "$BASH_SOURCE"`/somsiad_env
     fi
-    source ./somsiad_env/bin/activate
+    source `dirname "$BASH_SOURCE"`/somsiad_env/bin/activate
+    echo `dirname "$BASH_SOURCE"`/somsiad_env/bin/activate
     echo Spełnianie zależności...
     pip3 install -q -U pip
     pip3 install -q -r requirements.txt
