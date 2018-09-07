@@ -281,6 +281,7 @@ required_configuration_extension = [
     ('google_custom_search_engine_id', None, 'Wprowadź identyfikator CSE Google', 'Identyfikator CSE Google', None),
     ('goodreads_key', None, 'Wprowadź klucz API Goodreads', 'Klucz API Goodreads', None),
     ('giphy_key', None, 'Wprowadź klucz API Giphy', 'Klucz API Giphy', None),
+    ('omdb_key', None, 'Wprowadź klucz API OMDb', 'Klucz API OMDb', None),
     ('reddit_id', None, 'Wprowadź ID aplikacji redditowej', 'ID aplikacji redditowej', None),
     ('reddit_secret', None, 'Wprowadź szyfr aplikacji redditowej', 'Szyfr aplikacji redditowej', None),
     ('reddit_username', None, 'Wprowadź redditową nazwę użytkownika', 'Redditowa nazwa użytkownika', None),
