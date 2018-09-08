@@ -43,8 +43,8 @@ class TextFormatter:
                 and number not in (12, 13, 14)
         ):
             return plural_form_2_to_4
-        else:
-            return plural_form_5_to_1
+
+        return plural_form_5_to_1
 
     @staticmethod
     def separator(block: str, width: int) -> str:
@@ -286,7 +286,7 @@ class Somsiad:
 
 
 # Required configuration
-required_configuration_extension = [
+required_configuration_extension = (
     # (key, default_value, instruction, description, unit)
     ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None),
     ('google_custom_search_engine_id', None, 'Wprowadź identyfikator CSE Google', 'Identyfikator CSE Google', None),
@@ -300,7 +300,7 @@ required_configuration_extension = [
         '(w dniach, domyślnie 14)', 'Minimalny wiek weryfikowanego konta na Reddicie', ('dzień', 'dni')),
     ('reddit_account_min_karma', 0, 'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)',
         'Minimalna karma weryfikowanego konta na Reddicie', None)
-]
+)
 
 somsiad = Somsiad(required_configuration_extension)
 
@@ -335,14 +335,9 @@ def print_info(first_console_block=True):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def version(ctx):
     """Responds with current version of the bot."""
-    if ctx.channel.permissions_for(ctx.author).manage_roles:
-        version_string = f'{__version__}!'
-    else:
-        version_string = __version__
-    await ctx.send(version_string)
+    await ctx.send(__version__)
 
 
 @somsiad.client.command()
@@ -364,13 +359,13 @@ async def on_ready():
 
 
 @somsiad.client.event
-async def on_guild_join():
+async def on_guild_join(guild):
     """Does things whenever the bot joins a server."""
     print_info(first_console_block=False)
 
 
 @somsiad.client.event
-async def on_guild_remove():
+async def on_guild_remove(guild):
     """Does things whenever the bot leaves a server."""
     print_info(first_console_block=False)
 

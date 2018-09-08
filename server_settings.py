@@ -63,13 +63,14 @@ class ServerSettingsManager:
         """Loads the specified server."""
         if not self.is_server_known(server_id):
             self._servers_db_cursor.execute(
-                'INSERT INTO servers(server_id) VALUES(?)', (server_id,)
+                'INSERT INTO servers(server_id) VALUES(?)',
+                (server_id,)
             )
             self._servers_db.commit()
 
         self.servers[server_id] = {}
         self._servers_db_cursor.execute(
-            '''SELECT * FROM servers WHERE server_id = ?''',
+            'SELECT * FROM servers WHERE server_id = ?',
             (server_id,)
         )
         self.servers[server_id].update(self.dict_from_row(self._servers_db_cursor.fetchone()))
@@ -83,7 +84,7 @@ class ServerSettingsManager:
             )
             self.servers[server_id]['_db'].commit()
             self.servers[server_id]['_db_cursor'].execute(
-                '''SELECT name FROM sqlite_master WHERE type = "table"'''
+                'SELECT name FROM sqlite_master WHERE type = "table"'
             )
             tables = [table['name'] for table in self.servers[server_id]['_db_cursor'].fetchall()]
             for table in tables:

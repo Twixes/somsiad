@@ -35,7 +35,7 @@ async def lennoface(ctx):
     await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
 
 
-@somsiad.client.command('wywróć')
+@somsiad.client.command(aliases=['wywróć'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -45,7 +45,7 @@ async def tableflip(ctx):
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
 
-@somsiad.client.command('odstaw')
+@somsiad.client.command(aliases=['odstaw'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
