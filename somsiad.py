@@ -194,7 +194,7 @@ class Somsiad:
 
     def __init__(self, required_configuration_extension):
         logging.basicConfig(
-            filename='somsiad.log',
+            filename=os.path.join(self.bot_dir_path, 'somsiad.log'),
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
