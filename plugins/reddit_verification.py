@@ -75,9 +75,9 @@ class RedditVerifier:
     def is_reddit_user_trustworthy(reddit_user: str):
         """Checks if given Reddit user seems trustworthy."""
         account_karma = reddit_user.link_karma + reddit_user.comment_karma
-        account_age_days = (time.time() - reddit_user.created_utc) / 86400
+        account_age_in_days = (time.time() - reddit_user.created_utc) / 86400
         return bool(
-            account_age_days >= float(somsiad.conf['reddit_account_min_age_in_days']) and
+            account_age_in_days >= float(somsiad.conf['reddit_account_min_age_in_days']) and
             account_karma >= int(somsiad.conf['reddit_account_min_karma'])
         )
 
@@ -483,22 +483,24 @@ class RedditVerificationMessageScout:
                                 )
                             else:
                                 self._verifier.reject_user(reddit_username, phrase, 'NOT_TRUSTWORTHY')
-                                account_min_age_days = int(somsiad.conf['reddit_account_min_age_in_days'])
+                                account_min_age_in_days = int(somsiad.conf['reddit_account_min_age_in_days'])
                                 self._verifier.log_verification_result(
                                     phrase_info['discord_user_id'],
                                     reddit_username,
                                     False,
                                     personal_reason='twoje konto na Reddicie nie spełnia wymagań. '
-                                    f'Do weryfikacji potrzebne jest konto założone co najmniej {account_min_age_days} '
-                                    f'{TextFormatter.noun_variant(account_min_age_days, "dzień", "dni")} temu '
+                                    f'Do weryfikacji potrzebne jest konto założone co najmniej '
+                                    f'{account_min_age_in_days} '
+                                    f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                     f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}',
                                     log_reason='jego konto na Reddicie nie spełniło wymagań',
                                     server_settings_manager=self._server_settings_manager
                                 )
                                 message.reply(
                                     'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
-                                    f'Do weryfikacji potrzebne jest konto założone co najmniej {account_min_age_days} '
-                                    f'{TextFormatter.noun_variant(account_min_age_days, "dzień", "dni")} temu '
+                                    f'Do weryfikacji potrzebne jest konto założone co najmniej '
+                                    f'{account_min_age_in_days} '
+                                    f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                     f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
                                 )
 
