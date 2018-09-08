@@ -121,7 +121,7 @@ class Configurator:
             self.load()
 
         if self.configuration_required is not None:
-            if self.configuration:
+            if not self.configuration:
                 for key_required in self.configuration_required:
                     self.obtain_key_value(key_required[0], key_required[1], key_required[2], step_number)
                     step_number += 1
