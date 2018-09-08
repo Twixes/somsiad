@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import sys
 import platform
 import logging
 import datetime
@@ -182,7 +183,7 @@ class Configurator:
 class Somsiad:
     color = 0x7289da
     user_agent = f'SomsiadBot/{__version__}'
-    bot_dir_path = os.getcwd()
+    bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
     conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
