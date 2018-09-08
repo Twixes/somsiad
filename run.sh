@@ -23,9 +23,9 @@ then
     source `dirname "$BASH_SOURCE"`/somsiad_env/bin/activate
     echo Spełnianie zależności...
     pip3 install -q -U pip
-    pip3 install -q -r requirements.txt
+    pip3 install -q -r `dirname "$BASH_SOURCE"`/requirements.txt
     echo Budzenie Somsiada...
-    python3 run.py
+    python3 `dirname "$BASH_SOURCE"`/run.py
 else
     echo W systemie nie znaleziono Pythona 3! Somsiad nie może wstać.
 fi
