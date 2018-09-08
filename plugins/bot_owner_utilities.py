@@ -16,7 +16,9 @@ from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['ogłoś', 'oglos'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.is_owner()
 async def announce(ctx, *args):
     """Makes an announcement on all servers smaller than 10000 members not containing "bot" in their name."""
@@ -40,7 +42,9 @@ async def announce(ctx, *args):
 
 
 @somsiad.client.command(aliases=['ogłośnasucho', 'oglosnasucho'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.is_owner()
 async def dry_announce(ctx, *args):
     """Makes an announcement only on the server where it was invoked."""

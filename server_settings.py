@@ -49,10 +49,7 @@ class ServerSettingsManager:
 
     def is_server_known(self, server_id: int) -> bool:
         """Returns whether the specified server is known."""
-        if server_id in self.load_servers_list():
-            return True
-        else:
-            return False
+        return bool(server_id in self.load_servers_list())
 
     def load_servers_list(self) -> list:
         """Loads IDs of all known servers from the servers database."""
@@ -138,7 +135,9 @@ server_settings_manager = ServerSettingsManager()
 
 
 @somsiad.client.command(aliases=['tutajloguj', 'tuloguj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
 async def log_here(ctx):
@@ -152,7 +151,9 @@ async def log_here(ctx):
 
 
 @somsiad.client.command(aliases=['nieloguj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
 async def do_not_log(ctx):

@@ -17,7 +17,9 @@ from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['isup'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def isitup(ctx, *args):
     """Returns information about website status."""
@@ -70,11 +72,11 @@ async def isitup(ctx, *args):
                             color=somsiad.color
                         )
                 else:
-                        embed = discord.Embed(
-                            title=':warning: Błąd',
-                            description='Nie udało się połączyć z serwerem sprawdzania statusu stron!',
-                            color=somsiad.color
-                        )
+                    embed = discord.Embed(
+                        title=':warning: Błąd',
+                        description='Nie udało się połączyć z serwerem sprawdzania statusu stron!',
+                        color=somsiad.color
+                    )
 
     embed.set_footer(text=FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)

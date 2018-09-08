@@ -51,7 +51,9 @@ google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_s
 
 
 @somsiad.client.command(aliases=['g', 'gugiel'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def google(ctx, *args):
     """Returns first matching website from Google using the provided Custom Search Engine."""
@@ -102,7 +104,9 @@ async def google(ctx, *args):
 
 
 @somsiad.client.command(aliases=['googleimage', 'gi', 'i'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def google_image(ctx, *args):
     """Returns first matching image from Google using the provided Custom Search Engine."""

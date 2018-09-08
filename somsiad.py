@@ -12,12 +12,13 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import sys
 import platform
 import logging
 import datetime
+from typing import Union
 import discord
 from discord.ext.commands import Bot
-from typing import Union
 from version import __version__
 
 
@@ -25,7 +26,7 @@ class TextFormatter:
     @staticmethod
     def with_preposition_variant(number: int):
         """Returns the gramatically correct variant of the 'with' preposition in Polish."""
-        return 'ze' if number >= 100 and number < 200 else 'z'
+        return 'ze' if 100 <= number < 200 else 'z'
 
     @staticmethod
     def noun_variant(number: int, singular_form: str, plural_form: str):
@@ -38,8 +39,8 @@ class TextFormatter:
         if number == 1:
             return singular_form
         elif (
-            (number != 12 and number != 13 and number != 14) and
-            (str(number)[-1:] == '2' or str(number)[-1:] == '3' or str(number)[-1:] == '4')
+                (str(number)[-1:] == '2' or str(number)[-1:] == '3' or str(number)[-1:] == '4')
+                and number not in (12, 13, 14)
         ):
             return plural_form_2_to_4
         else:
@@ -53,7 +54,7 @@ class TextFormatter:
 
     @classmethod
     def generate_console_block(
-        cls, info_lines: list, separator_block: str = None, first_console_block: bool = True
+            cls, info_lines: list, separator_block: str = None, first_console_block: bool = True
     ) -> str:
         """Takes a list of lines and returns a string ready for printing in the console."""
         info_block = []
@@ -85,7 +86,7 @@ class Configurator:
         else:
             self.ensure_completeness()
 
-    def write_key_value(self, key, value):
+    def write_key_value(self, key):
         """Writes a key-value pair to the configuration file."""
         with open(self.configuration_file_path, 'a') as self.configuration_file:
             self.configuration_file.write(f'{key}={self.configuration[key]}\n')
@@ -107,7 +108,7 @@ class Configurator:
             else:
                 break
 
-        self.write_key_value(key, self.configuration[key])
+        self.write_key_value(key)
 
     def ensure_completeness(self):
         """Loads the configuration from the file specified during class initialization and ensures
@@ -121,7 +122,7 @@ class Configurator:
             self.load()
 
         if self.configuration_required is not None:
-            if self.configuration is {} or self.configuration is None:
+            if not self.configuration:
                 for key_required in self.configuration_required:
                     self.obtain_key_value(key_required[0], key_required[1], key_required[2], step_number)
                     step_number += 1
@@ -163,8 +164,9 @@ class Configurator:
                 elif key_required[4] == 'password':
                     line = f'{key_required[3]}: {"*" * len(self.configuration[key_required[0]])}'
                 elif isinstance(key_required[4], tuple) and len(key_required[4]) == 2:
-                    unit_noun_variant = (key_required[4][0] if int(somsiad.conf[key_required[0]]) == 1 else
-                        key_required[4][1])
+                    unit_noun_variant = (
+                        key_required[4][0] if int(somsiad.conf[key_required[0]]) == 1 else key_required[4][1]
+                    )
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {unit_noun_variant}'
                 else:
                     line = f'{key_required[3]}: {self.configuration[key_required[0]]} {key_required[4]}'
@@ -175,11 +177,13 @@ class Configurator:
 
             return info
 
+        return None
+
 
 class Somsiad:
     color = 0x7289da
     user_agent = f'SomsiadBot/{__version__}'
-    bot_dir_path = os.getcwd()
+    bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
     conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
@@ -190,7 +194,7 @@ class Somsiad:
 
     def __init__(self, required_configuration_extension):
         logging.basicConfig(
-            filename='somsiad.log',
+            filename=os.path.join(self.bot_dir_path, 'somsiad.log'),
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
@@ -202,8 +206,10 @@ class Somsiad:
             # (key, default_value, instruction, description, unit)
             ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None),
             ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None),
-            ('command_cooldown_per_user_in_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
-                '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund'))
+            (
+                'command_cooldown_per_user_in_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
+                '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund')
+            )
         ]
         for setting in required_configuration_extension:
             required_configuration.append(setting)
@@ -251,8 +257,9 @@ class Somsiad:
                     longest_server_name_length = len(server.name)
                 date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
                 days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
-                days_since_joining_info = (f'{days_since_joining} '
-                    f'{TextFormatter.noun_variant(days_since_joining, "dnia", "dni")}')
+                days_since_joining_info = (
+                    f'{days_since_joining} {TextFormatter.noun_variant(days_since_joining, "dnia", "dni")}'
+                )
                 if len(days_since_joining_info) > longest_days_since_joining_info_length:
                     longest_days_since_joining_info_length = len(days_since_joining_info)
 
@@ -260,12 +267,15 @@ class Somsiad:
             if server.me is not None:
                 date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
                 days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
-                days_since_joining_info = (f'{days_since_joining} '
-                    f'{TextFormatter.noun_variant(days_since_joining, "dnia", "dni")}')
-                list_of_servers.append(f'{server.name.ljust(longest_server_name_length)} - '
+                days_since_joining_info = (
+                    f'{days_since_joining} {TextFormatter.noun_variant(days_since_joining, "dnia", "dni")}'
+                )
+                list_of_servers.append(
+                    f'{server.name.ljust(longest_server_name_length)} - '
                     f'od {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
                     f'{server.member_count} '
-                    f'{TextFormatter.noun_variant(server.member_count, "użytkownik", "użytkowników")}')
+                    f'{TextFormatter.noun_variant(server.member_count, "użytkownik", "użytkowników")}'
+                )
 
         return list_of_servers
 
@@ -273,6 +283,7 @@ class Somsiad:
         """Returns whether the provided user/member is the owner of this instance of the bot."""
         application_info = await self.client.application_info()
         return application_info.owner == user
+
 
 # Required configuration
 required_configuration_extension = [
@@ -286,7 +297,7 @@ required_configuration_extension = [
     ('reddit_secret', None, 'Wprowadź szyfr aplikacji redditowej', 'Szyfr aplikacji redditowej', None),
     ('reddit_username', None, 'Wprowadź redditową nazwę użytkownika', 'Redditowa nazwa użytkownika', None),
     ('reddit_password', None, 'Wprowadź hasło do konta na Reddicie', 'Hasło do konta na Reddicie', 'password'),
-    ('reddit_account_min_age_days', 14, 'Wprowadź minimalny wiek weryfikowanego konta na Reddicie '
+    ('reddit_account_min_age_in_days', 14, 'Wprowadź minimalny wiek weryfikowanego konta na Reddicie '
         '(w dniach, domyślnie 14)', 'Minimalny wiek weryfikowanego konta na Reddicie', ('dzień', 'dni')),
     ('reddit_account_min_karma', 0, 'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)',
         'Minimalna karma weryfikowanego konta na Reddicie', None)
@@ -320,8 +331,11 @@ def print_info(first_console_block=True):
 
     print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
 
+
 @somsiad.client.command(aliases=['wersja'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def version(ctx):
     """Responds with current version of the bot."""
@@ -333,7 +347,9 @@ async def version(ctx):
 
 
 @somsiad.client.command()
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 async def ping(ctx):
     """Pong!"""
     await ctx.send(':ping_pong: Pong!')
@@ -349,13 +365,13 @@ async def on_ready():
 
 
 @somsiad.client.event
-async def on_guild_join(server):
+async def on_guild_join():
     """Does things whenever the bot joins a server."""
     print_info(first_console_block=False)
 
 
 @somsiad.client.event
-async def on_guild_remove(server):
+async def on_guild_remove():
     """Does things whenever the bot leaves a server."""
     print_info(first_console_block=False)
 

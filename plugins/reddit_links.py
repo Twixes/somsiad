@@ -16,7 +16,9 @@ from somsiad import somsiad
 
 
 @somsiad.client.command(aliases=['r', 'sub'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def subreddit(ctx, *args):
     """Responds with the URL of the given subreddit."""
@@ -28,7 +30,9 @@ async def subreddit(ctx, *args):
 
 
 @somsiad.client.command(aliases=['u'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def reddit_user(ctx, *args):
     """Responds with the URL of the given Reddit user."""

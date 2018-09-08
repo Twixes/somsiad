@@ -75,12 +75,11 @@ class RedditVerifier:
     def is_reddit_user_trustworthy(reddit_user: str):
         """Checks if given Reddit user seems trustworthy."""
         account_karma = reddit_user.link_karma + reddit_user.comment_karma
-        account_age_days = (time.time() - reddit_user.created_utc) / 86400
-        if (account_age_days >= float(somsiad.conf['reddit_account_min_age_days']) and
-                account_karma >= int(somsiad.conf['reddit_account_min_karma'])):
-            return True
-        else:
-            return False
+        account_age_in_days = (time.time() - reddit_user.created_utc) / 86400
+        return bool(
+            account_age_in_days >= float(somsiad.conf['reddit_account_min_age_in_days']) and
+            account_karma >= int(somsiad.conf['reddit_account_min_karma'])
+        )
 
     def phrase_gen(self):
         """Assembles a unique random phrase from given phrase parts."""
@@ -230,7 +229,7 @@ class RedditVerifier:
         )
         self._db.commit()
 
-    def get_known_servers_ids(self, server_id: int, column: str, value):
+    def get_known_servers_ids(self):
         self._db_cursor.execute(
             '''SELECT server_id FROM discord_servers'''
         )
@@ -254,8 +253,8 @@ class RedditVerifier:
         verified_role_id = self._db_cursor.fetchone()
         if verified_role_id is not None:
             return verified_role_id[0]
-        else:
-            return None
+
+        return None
 
     def assign_phrase(self, discord_user_id: int):
         """Assigns a phrase to a Discord user."""
@@ -284,8 +283,8 @@ class RedditVerifier:
             )
             self._db.commit()
             return self.reddit_user_info(reddit_username)
-        else:
-            return None
+
+        return None
 
     def verify_user(self, reddit_username: str, phrase: str):
         """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
@@ -298,8 +297,8 @@ class RedditVerifier:
                 )
                 self._db.commit()
             return self.reddit_user_info(reddit_username)
-        else:
-            return None
+
+        return None
 
     def reject_user(self, reddit_username: str, phrase: str, reason: str):
         """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
@@ -313,8 +312,8 @@ class RedditVerifier:
                 )
                 self._db.commit()
             return self.reddit_user_info(reddit_username)
-        else:
-            return None
+
+        return None
 
     def update_discord_user_verification_status(self, discord_user_id: int, new_verification_status: str):
         if self.discord_user_info(discord_user_id)['verification_status'] is not None:
@@ -484,22 +483,24 @@ class RedditVerificationMessageScout:
                                 )
                             else:
                                 self._verifier.reject_user(reddit_username, phrase, 'NOT_TRUSTWORTHY')
-                                account_min_age_days = int(somsiad.conf['reddit_account_min_age_days'])
+                                account_min_age_in_days = int(somsiad.conf['reddit_account_min_age_in_days'])
                                 self._verifier.log_verification_result(
                                     phrase_info['discord_user_id'],
                                     reddit_username,
                                     False,
                                     personal_reason='twoje konto na Reddicie nie spełnia wymagań. '
-                                    f'Do weryfikacji potrzebne jest konto założone co najmniej {account_min_age_days} '
-                                    f'{TextFormatter.noun_variant(account_min_age_days, "dzień", "dni")} temu '
+                                    f'Do weryfikacji potrzebne jest konto założone co najmniej '
+                                    f'{account_min_age_in_days} '
+                                    f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                     f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}',
                                     log_reason='jego konto na Reddicie nie spełniło wymagań',
                                     server_settings_manager=self._server_settings_manager
                                 )
                                 message.reply(
                                     'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
-                                    f'Do weryfikacji potrzebne jest konto założone co najmniej {account_min_age_days} '
-                                    f'{TextFormatter.noun_variant(account_min_age_days, "dzień", "dni")} temu '
+                                    f'Do weryfikacji potrzebne jest konto założone co najmniej '
+                                    f'{account_min_age_in_days} '
+                                    f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                     f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
                                 )
 
@@ -543,8 +544,10 @@ verifier = RedditVerifier(db_path, phrase_parts)
 
 
 @somsiad.client.command(aliases=['zweryfikuj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
-async def reddit_verify(ctx, *args):
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+async def reddit_verify(ctx):
     """Starts the Reddit account verification process for the invoking Discord user."""
 
     discord_user_id = ctx.author.id
@@ -582,8 +585,8 @@ async def reddit_verify(ctx, *args):
                 embed.add_field(
                     name='Weryfikacja nie powiodła się dzisiaj, bo twoje konto na Reddicie nie spełnia wymagań.',
                     value='Do weryfikacji potrzebne jest konto założone co najmniej '
-                        f'{somsiad.conf["reddit_account_min_age_days"]} '
-                        f'{TextFormatter.noun_variant(somsiad.conf["reddit_account_min_age_days"], "dzień", "dni")} '
+                        f'{somsiad.conf["reddit_account_min_age_in_days"]} '
+                        f'{TextFormatter.noun_variant(somsiad.conf["reddit_account_min_age_in_days"], "dzień", "dni")} '
                         f'temu i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}. '
                         'Spróbuj zweryfikować się innego dnia, gdy twoje konto będzie już spełniało te warunki.'
                 )
@@ -620,7 +623,9 @@ async def reddit_verify(ctx, *args):
 
 
 @somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def reddit_xray(ctx, *args):
     """Checks given user's verification status.
@@ -736,7 +741,9 @@ async def reddit_xray_error(ctx, error):
 
 
 @somsiad.client.command(aliases=['zweryfikowanymnadawaj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
 async def reddit_set_verified_role(ctx, *args):
@@ -785,7 +792,9 @@ async def reddit_set_verified_role(ctx, *args):
 
 
 @somsiad.client.command(aliases=['zweryfikowanymnienadawaj'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
 async def reddit_unset_verified_role(ctx):

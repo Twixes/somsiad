@@ -13,6 +13,6 @@
 
 __all__ = [
     'bot_owner_utilities', 'copypasta', 'currency', 'dice', 'eightball', 'emoticons', 'giphy', 'goodreads',
-    'google_search', 'help_message', 'helped', 'isitup', 'omdb', 'reddit_links', 'reddit_verification',
-    'server_administration', 'urban_dictionary', 'wikipedia', 'youtube',
+    'google_search', 'help_message', 'helped', 'isitup', 'moderation', 'omdb', 'reddit_links', 'reddit_verification',
+    'urban_dictionary', 'wikipedia', 'youtube',
 ]

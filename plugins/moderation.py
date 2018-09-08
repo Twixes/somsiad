@@ -23,7 +23,9 @@ autodestruction_notice = (
 
 
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_messages=True)
 @discord.ext.commands.bot_has_permissions(manage_messages=True)
@@ -51,8 +53,6 @@ async def purge(ctx, number_of_messages_to_delete: int = 1):
 
 @purge.error
 async def purge_error(ctx, error):
-    was_error_recognized = False
-
     if isinstance(error, discord.ext.commands.errors.BotMissingPermissions):
         embed = discord.Embed(
             title=':warning: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma tutaj do tego uprawnień',
@@ -77,7 +77,9 @@ async def purge_error(ctx, error):
 
 
 @somsiad.client.command(aliases=['zaproś', 'zapros'])
-@discord.ext.commands.cooldown(1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
 @discord.ext.commands.guild_only()
 async def invite(ctx, *args):
     is_user_permitted_to_invite = False
