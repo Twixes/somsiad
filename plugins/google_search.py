@@ -69,7 +69,7 @@ async def google(ctx, *args):
     else:
         query = ' '.join(args)
         results = google_cse.search(query, 'pl')
-        if results == None:
+        if results is None:
             embed = discord.Embed(
                 title=':warning: Błąd',
                 description='Nie udało się połączyć z serwerem wyszukiwania. '
@@ -122,7 +122,7 @@ async def google_image(ctx, *args):
     else:
         query = ' '.join(args)
         results = google_cse.search(query, 'pl', search_type='image')
-        if results == None:
+        if results is None:
             embed = discord.Embed(
                 title=':warning: Błąd',
                 description='Nie udało się połączyć z serwerem wyszukiwania. '
