@@ -43,8 +43,8 @@ class TextFormatter:
                 and number not in (12, 13, 14)
         ):
             return plural_form_2_to_4
-
-        return plural_form_5_to_1
+        else:
+            return plural_form_5_to_1
 
     @staticmethod
     def separator(block: str, width: int) -> str:
@@ -72,45 +72,42 @@ class TextFormatter:
 
 
 class Configurator:
-    configuration_file_path = None
-    configuration_file = None
-    configuration_required = None
-    configuration = {}
-
-    def __init__(self, configuration_file_path, configuration_required=None):
+    """Handles bot configuration."""
+    def __init__(self, configuration_file_path: str, required_settings: tuple = None):
         self.configuration_file_path = configuration_file_path
-        self.configuration_required = configuration_required
+        self.required_settings = required_settings
+        self.configuration = {}
 
-        if configuration_required is None:
-            self.load()
-        else:
-            self.ensure_completeness()
+        self.ensure_completeness()
 
-    def write_key_value(self, key):
+    def write_setting(self, setting, value):
         """Writes a key-value pair to the configuration file."""
-        with open(self.configuration_file_path, 'a') as self.configuration_file:
-            self.configuration_file.write(f'{key}={self.configuration[key]}\n')
+        self.configuration[setting.name] = value
+        with open(self.configuration_file_path, 'a') as configuration_file:
+            configuration_file.write(f'{setting.name}={self.configuration[setting.name]}\n')
 
-    def obtain_key_value(self, key, default_value, instruction, step_number=None):
+    def input_setting(self, setting, step_number: int = None):
         """Asks the CLI user to input a setting."""
-        while True:
+        was_setting_input = False
+
+        while not was_setting_input:
             if step_number is None:
-                self.configuration[key] = input(f'{instruction}:\n')
+                buffer = input(f'{setting.input_instruction}:\n').strip()
             else:
-                self.configuration[key] = input(f'{step_number}. {instruction}:\n')
+                buffer = input(f'{step_number}. {setting.input_instruction}:\n').strip()
 
-            if self.configuration[key].strip() == '':
-                if default_value is None:
-                    continue
+            if buffer == '':
+                if setting.default_value is None:
+                    was_setting_input = False
                 else:
-                    self.configuration[key] = default_value
-                    break
+                    buffer = str(setting.default_value).strip()
+                    was_setting_input = True
             else:
-                break
+                was_setting_input = True
 
-        self.write_key_value(key)
+        self.write_setting(setting, buffer)
 
-    def ensure_completeness(self):
+    def ensure_completeness(self) -> dict:
         """Loads the configuration from the file specified during class initialization and ensures
         that all required keys are present. If not, the CLI user is asked to input missing settings.
         If the file doesn't exist yet, configuration is started from scratch.
@@ -121,21 +118,21 @@ class Configurator:
         if os.path.exists(self.configuration_file_path):
             self.load()
 
-        if self.configuration_required is not None:
+        if self.required_settings is not None:
             if not self.configuration:
-                for key_required in self.configuration_required:
-                    self.obtain_key_value(key_required[0], key_required[1], key_required[2], step_number)
+                for required_setting in self.required_settings:
+                    self.input_setting(required_setting, step_number)
                     step_number += 1
                 was_configuration_changed = True
             else:
-                for key_required in self.configuration_required:
-                    is_key_required_present = False
-                    for key in self.configuration:
-                        if key == key_required[0]:
-                            is_key_required_present = True
+                for required_setting in self.required_settings:
+                    is_setting_present = False
+                    for setting in self.configuration:
+                        if setting == required_setting.name:
+                            is_setting_present = True
                             break
-                    if not is_key_required_present:
-                        self.obtain_key_value(key_required[0], key_required[1], key_required[2], step_number)
+                    if not is_setting_present:
+                        self.input_setting(required_setting, step_number)
                         was_configuration_changed = True
                     step_number += 1
 
@@ -144,40 +141,53 @@ class Configurator:
 
         return self.configuration
 
-    def load(self):
+    def load(self) -> dict:
         """Loads the configuration from the file specified during class initialization."""
-        with open(self.configuration_file_path, 'r') as self.configuration_file:
-            for line in self.configuration_file.readlines():
+        with open(self.configuration_file_path, 'r') as configuration_file:
+            for line in configuration_file.readlines():
                 if not line.strip().startswith('#'):
-                    line = line.strip().split('=')
-                    self.configuration[line[0].strip()] = line[1].strip() if len(line) >= 2 else None
+                    line = line.strip().split('=', 1)
+                    self.configuration[line[0].strip()] = line[1]
 
         return self.configuration
 
     def info(self):
         """Returns a string presenting the current configuration in a human-readable form."""
-        if self.configuration_required is not None:
+        if self.required_settings is not None:
             info = ''
-            for key_required in self.configuration_required:
-                if key_required[4] is None:
-                    line = f'{key_required[3]}: {self.configuration[key_required[0]]}'
-                elif key_required[4] == 'password':
-                    line = f'{key_required[3]}: {"*" * len(self.configuration[key_required[0]])}'
-                elif isinstance(key_required[4], tuple) and len(key_required[4]) == 2:
-                    unit_noun_variant = (
-                        key_required[4][0] if int(somsiad.conf[key_required[0]]) == 1 else key_required[4][1]
+            for setting in self.required_settings:
+                # Handle the unit
+                if setting.unit is None:
+                    line = f'{setting.description}: {self.configuration[setting.name]}'
+                elif setting.unit == 'password':
+                    line = f'{setting.description}: {"*" * len(self.configuration[setting.name])}'
+                elif isinstance(setting.unit, tuple) and len(setting.unit) == 2:
+                    unit_variant = (
+                        setting.unit[0] if int(somsiad.conf[setting.name]) == 1 else setting.unit[1]
                     )
-                    line = f'{key_required[3]}: {self.configuration[key_required[0]]} {unit_noun_variant}'
+                    line = f'{setting.description}: {self.configuration[setting.name]} {unit_variant}'
                 else:
-                    line = f'{key_required[3]}: {self.configuration[key_required[0]]} {key_required[4]}'
+                    line = f'{setting.description}: {self.configuration[setting.name]} {setting.unit}'
                 info += line + '\n'
 
             line = f'Ścieżka pliku konfiguracyjnego: {self.configuration_file_path}'
             info += line
 
             return info
+        else:
+            return None
 
-        return None
+    class SettingTemplate:
+        """A bot setting template."""
+        def __init__(
+                self, name: str, description: str, input_instruction: str, default_value=None,
+                unit: Union[tuple, str] = None
+        ):
+            self.name = name
+            self.input_instruction = input_instruction
+            self.description = description
+            self.default_value = default_value
+            self.unit = unit
 
 
 class Somsiad:
@@ -187,12 +197,26 @@ class Somsiad:
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
     conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
-    logger = logging.getLogger()
-    member_converter = discord.ext.commands.MemberConverter()
+    logger = None
+    member_converter = None
     configurator = None
     client = None
 
-    def __init__(self, required_configuration_extension):
+    _ESSENTIAL_REQUIRED_SETTINGS = (
+        Configurator.SettingTemplate(
+            'discord_token', 'Token bota', 'Wprowadź discordowy token bota'
+        ),
+        Configurator.SettingTemplate(
+            'command_prefix', 'Prefiks komend', 'Wprowadź prefiks komend (domyślnie !)', '!'
+        ),
+        Configurator.SettingTemplate(
+            'command_cooldown_per_user_in_seconds', 'Cooldown wywołania komendy przez użytkownika',
+            'Wprowadź cooldown wywołania komendy przez użytkownika (w sekundach, domyślnie 1)', 1, ('sekunda', 'sekund')
+        )
+    )
+
+    def __init__(self, additional_required_settings):
+        self.logger = logging.getLogger()
         logging.basicConfig(
             filename=os.path.join(self.bot_dir_path, 'somsiad.log'),
             level=logging.INFO,
@@ -202,24 +226,15 @@ class Somsiad:
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.conf_dir_path):
             os.makedirs(self.conf_dir_path)
-        required_configuration = [
-            # (key, default_value, instruction, description, unit)
-            ('discord_token', None, 'Wprowadź discordowy token bota', 'Token bota', None),
-            ('command_prefix', '!', 'Wprowadź prefiks komend (domyślnie !)', 'Prefiks komend', None),
-            (
-                'command_cooldown_per_user_in_seconds', 1, 'Wprowadź cooldown wywołania komendy przez użytkownika '
-                '(w sekundach, domyślnie 1)', 'Cooldown wywołania komendy przez użytkownika', ('sekunda', 'sekund')
-            )
-        ]
-        for setting in required_configuration_extension:
-            required_configuration.append(setting)
-        self.configurator = Configurator(self.conf_file_path, required_configuration)
+        combined_required_settings = self._ESSENTIAL_REQUIRED_SETTINGS + additional_required_settings
+        self.configurator = Configurator(self.conf_file_path, combined_required_settings)
         self.client = Bot(
             description='Zawsze pomocny Somsiad',
             command_prefix=self.conf['command_prefix'],
             case_insensitive=True
         )
         self.client.remove_command('help') # Replaced with the 'help_direct' plugin
+        self.member_converter = discord.ext.commands.MemberConverter()
 
     def run(self):
         """Launches the bot."""
@@ -285,25 +300,46 @@ class Somsiad:
         return application_info.owner == user
 
 
-# Required configuration
-required_configuration_extension = (
-    # (key, default_value, instruction, description, unit)
-    ('google_key', None, 'Wprowadź klucz API Google', 'Klucz API Google', None),
-    ('google_custom_search_engine_id', None, 'Wprowadź identyfikator CSE Google', 'Identyfikator CSE Google', None),
-    ('goodreads_key', None, 'Wprowadź klucz API Goodreads', 'Klucz API Goodreads', None),
-    ('giphy_key', None, 'Wprowadź klucz API Giphy', 'Klucz API Giphy', None),
-    ('omdb_key', None, 'Wprowadź klucz API OMDb', 'Klucz API OMDb', None),
-    ('reddit_id', None, 'Wprowadź ID aplikacji redditowej', 'ID aplikacji redditowej', None),
-    ('reddit_secret', None, 'Wprowadź szyfr aplikacji redditowej', 'Szyfr aplikacji redditowej', None),
-    ('reddit_username', None, 'Wprowadź redditową nazwę użytkownika', 'Redditowa nazwa użytkownika', None),
-    ('reddit_password', None, 'Wprowadź hasło do konta na Reddicie', 'Hasło do konta na Reddicie', 'password'),
-    ('reddit_account_min_age_in_days', 14, 'Wprowadź minimalny wiek weryfikowanego konta na Reddicie '
-        '(w dniach, domyślnie 14)', 'Minimalny wiek weryfikowanego konta na Reddicie', ('dzień', 'dni')),
-    ('reddit_account_min_karma', 0, 'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)',
-        'Minimalna karma weryfikowanego konta na Reddicie', None)
+# Plugin settings
+ADDITIONAL_REQUIRED_SETTINGS = (
+    Configurator.SettingTemplate(
+        'google_key', 'Klucz API Google', 'Wprowadź klucz API Google'
+    ),
+    Configurator.SettingTemplate(
+        'google_custom_search_engine_id', 'Identyfikator CSE Google', 'Wprowadź identyfikator CSE Google'
+    ),
+    Configurator.SettingTemplate(
+        'goodreads_key', 'Klucz API Goodreads', 'Wprowadź klucz API Goodreads'
+    ),
+    Configurator.SettingTemplate(
+        'giphy_key', 'Klucz API Giphy', 'Wprowadź klucz API Giphy'
+    ),
+    Configurator.SettingTemplate(
+        'omdb_key', 'Klucz API OMDb', 'Wprowadź klucz API OMDb'
+    ),
+    Configurator.SettingTemplate(
+        'reddit_id', 'ID aplikacji redditowej', 'Wprowadź ID aplikacji redditowej'
+    ),
+    Configurator.SettingTemplate(
+        'reddit_secret', 'Szyfr aplikacji redditowej', 'Wprowadź szyfr aplikacji redditowej'
+    ),
+    Configurator.SettingTemplate(
+        'reddit_username', 'Redditowa nazwa użytkownika', 'Wprowadź redditową nazwę użytkownika'
+    ),
+    Configurator.SettingTemplate(
+        'reddit_password', 'Hasło do konta na Reddicie', 'Wprowadź hasło do konta na Reddicie', unit='password'
+    ),
+    Configurator.SettingTemplate(
+        'reddit_account_min_age_in_days', 'Minimalny wiek weryfikowanego konta na Reddicie',
+        'Wprowadź minimalny wiek weryfikowanego konta na Reddicie (w dniach, domyślnie 14)', 14, ('dzień', 'dni')
+    ),
+    Configurator.SettingTemplate(
+        'reddit_account_min_karma', 'Minimalna karma weryfikowanego konta na Reddicie',
+        'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)', 0
+    )
 )
 
-somsiad = Somsiad(required_configuration_extension)
+somsiad = Somsiad(ADDITIONAL_REQUIRED_SETTINGS)
 
 
 def print_info(first_console_block=True):
