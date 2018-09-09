@@ -47,7 +47,7 @@ async def wikipedia_search(ctx, args, language):
                     if not response_data[1]:
                         embed = discord.Embed(
                             title=':slight_frown: Niepowodzenie',
-                            description=f'Nie znaleziono żadnego wyniku pasującego do hasła "{query}".',
+                            description=f'Brak wyników dla hasła "{query}".',
                             color=somsiad.color
                         )
                     else:

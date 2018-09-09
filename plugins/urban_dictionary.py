@@ -26,7 +26,7 @@ async def urban_dictionary(ctx, *args):
     """Returns Urban Dictionary word definition."""
     FOOTER_TEXT = 'Urban Dictionary'
     if not args:
-        await ctx.send(f'{ctx.author.mention}\n:warning: Musisz podać parametr wyszukiwania.')
+        await ctx.send(f'{ctx.author.mention}\n:warning: Musisz podać termin do sprawdzenia!')
     else:
         query = ' '.join(args)
         api_url = 'https://api.urbandictionary.com/v0/define'
@@ -63,7 +63,7 @@ async def urban_dictionary(ctx, *args):
                     else:
                         embed = discord.Embed(
                             title=':slight_frown: Niepowodzenie',
-                            description=f'Nie znaleziono żadnego wyniku pasującego do zapytania "{query}".',
+                            description=f'Brak wyników dla terminu "{query}".',
                             color=somsiad.color
                         )
                 else:

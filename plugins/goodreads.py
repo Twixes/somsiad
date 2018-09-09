@@ -50,7 +50,7 @@ async def goodreads(ctx, *args):
                     if node.text == '0':
                         embed = discord.Embed(
                             title=':slight_frown: Niepowodzenie',
-                            description=f'Nie znaleziono żadnego wyniku pasującego do zapytania "{query}".',
+                            description=f'Brak wyników dla zapytania "{query}".',
                             color=somsiad.color
                         )
                     else:
