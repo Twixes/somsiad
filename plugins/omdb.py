@@ -11,52 +11,66 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import discord
 import aiohttp
 import re
+import discord
 from somsiad import somsiad
 
 
-def add_non_empty(embed, res, key, name, is_inline):
-    if key in res:
-        if res[key] != 'N/A':
-            embed.add_field(name=name, value=res[key], inline=is_inline)
+class OMDb:
+    """Handles OMDb API integration."""
+    FOOTER_TEXT = 'OMDb (CC BY-NC 4.0)'
+
+    @staticmethod
+    def smart_add_info_field_to_embed(embed: discord.Embed, name: str, res: list, key: str, inline: bool = True):
+        if key in res:
+            if res[key] != 'N/A':
+                embed.add_field(name=name, value=res[key], inline=inline)
 
 
-@somsiad.client.command(aliases=['film', 'movie', 'imdb'])
+@somsiad.client.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def omdb(ctx, *args):
     """OMDb search. Responds with the most popular movies and TV series matching the query."""
-    FOOTER_TEXT = '📷 OMDb API (CC BY-NC 4.0)'
-    if not args or (len(args) == 1 and args[0].lower() in ('tv', 'm')):
-            embed = discord.Embed(
-                title=':warning: Błąd', description='Nie podano szukanego hasła!', color=somsiad.color
-            )
-            embed.set_footer(text=FOOTER_TEXT)
-            await ctx.send(embed=embed)
-    else:
-        if re.match(r's\d\de\d\d', args[0].lower()):
-            if len(args) == 1:
-                embed = discord.Embed(
-                    title=':warning: Błąd', description='Nie podano szukanego hasła!', color=somsiad.color
+    if (
+            not args or (
+                len(args) == 1 and (
+                    args[0].lower() in ('film', 'tv', 'serial') or
+                    re.match(r's\d\de\d\d', args[0].lower())
                 )
-                embed.set_footer(text=FOOTER_TEXT)
-                await ctx.send(embed=embed)
-                return
-            query = ' '.join(args[1:])
-            series_season_episode = args[0].lower()
-            series_season_episode = series_season_episode.lstrip('s')
-            series_season, series_episode = series_season_episode.split('e')
-            params = {
-                'apikey': somsiad.conf['omdb_key'], 't': query, 'Season': series_season, 'Episode': series_episode
-            }
-        elif args[0].lower() == 'm':
+            ) or (
+                len(args) == 2 and
+                args[0].lower() in ('tv', 'serial') and
+                re.match(r's\d\de\d\d', args[1].lower())
+            )
+    ):
+        embed = discord.Embed(
+            title=':warning: Błąd', description='Nie podano tytułu szukanego dzieła!', color=somsiad.color
+        )
+    else:
+        if re.match(r's\d\de\d\d', args[1].lower() if args[0].lower() in ('tv', 'serial') else args[0].lower()):
+            if args[0].lower() in ('tv', 'serial'):
+                args = args[1:]
+
+            if len(args) == (2 if args[0].lower() in ('tv', 'serial') else 1):
+                embed = discord.Embed(
+                    title=':warning: Błąd', description='Nie podano tytułu szukanego dzieła!', color=somsiad.color
+                )
+            else:
+                query = ' '.join(args[1:])
+                series_season_episode = args[0].lower()
+                series_season_episode = series_season_episode.lstrip('s')
+                series_season, series_episode = series_season_episode.split('e')
+                params = {
+                    'apikey': somsiad.conf['omdb_key'], 't': query, 'Season': series_season, 'Episode': series_episode
+                }
+        elif args[0].lower() == 'film':
             query = ' '.join(args[1:])
             params = {'apikey': somsiad.conf['omdb_key'], 't': query, 'type': 'movie'}
-        elif args[0].lower() == 'tv':
+        elif args[0].lower() in ('tv', 'serial'):
             query = ' '.join(args[1:])
             params = {'apikey': somsiad.conf['omdb_key'], 't': query, 'type': 'series'}
         else:
@@ -64,11 +78,11 @@ async def omdb(ctx, *args):
             params = {'apikey': somsiad.conf['omdb_key'], 't': query}
 
         headers = {'User-Agent': somsiad.user_agent}
-        url = 'http://www.omdbapi.com/'
-        basic_info = ['Rated', 'Runtime', 'Released', 'Country']
+        URL = 'http://www.omdbapi.com/'
+        BASIC_INFO = ['Rated', 'Runtime', 'Released', 'Country']
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, params=params) as r:
+            async with session.get(URL, headers=headers, params=params) as r:
                 if r.status == 200:
                     res = await r.json()
                     if res['Response'] == 'True':
@@ -77,10 +91,10 @@ async def omdb(ctx, *args):
                                 if res['Year'] != 'N/A':
                                     title = f'{res["Title"]} ({res["Year"]})'
                                 else:
-                                    title = f'{res["Title"]}'
+                                    title = res['Title']
 
                             mess_part1 = []
-                            for i in basic_info:
+                            for i in BASIC_INFO:
                                 if i in res:
                                     if res[i] != 'N/A':
                                         mess_part1.append(f'{res[i]}')
@@ -94,34 +108,29 @@ async def omdb(ctx, *args):
                             else:
                                 embed = discord.Embed(title=title, description=mess_part1, color=somsiad.color)
 
-                            if 'seriesID' in res:
-                                if 'seriesID' != 'N/A':
-                                    series_url = 'https://www.imdb.com/title/' + res['seriesID']
-                                    embed.add_field(
-                                        name='Strona serialu w serwisie IMDb', value=series_url, inline=False
-                                    )
-
-                            add_non_empty(embed, res, 'Genre', 'Gatunek', True)
-                            add_non_empty(embed, res, 'totalSeasons', 'Liczba sezonów', True)
-                            add_non_empty(embed, res, 'Season', 'Sezon', True)
-                            add_non_empty(embed, res, 'Episode', 'Odcinek', True)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Gatunek', res, 'Genre')
 
                             if 'imdbRating' in res:
                                 if res['imdbRating'] != 'N/A':
                                     msg = res['imdbRating'] + '/10'
                                     if 'imdbVotes' in res:
                                         if res['imdbVotes'] != 'N/A':
-                                            msg += f' *({res["imdbVotes"]})*'
-                                    embed.add_field(name='IMDb', value=msg, inline=True)
+                                            msg += f' ({res["imdbVotes"]} głosów)'
+                                    embed.add_field(name='IMDb', value=msg)
 
-                            add_non_empty(embed, res, 'Metascore', 'Metascore', True)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Liczba sezonów', res, 'totalSeasons')
 
                             if 'Ratings' in res:
                                 for i in res['Ratings']:
                                     if i['Source'] == 'Rotten Tomatoes':
-                                        embed.add_field(name='Rotten Tomatoes', value=i['Value'], inline=True)
+                                        embed.add_field(
+                                            name='Rotten Tomatoes',
+                                            value=i['Value']
+                                        )
 
-                            add_non_empty(embed, res, 'Plot', 'Fabuła', False)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Metascore', res, 'Metascore')
+                            OMDb.smart_add_info_field_to_embed(embed, 'Fabuła', res, 'Plot', False)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Produkcja', res, 'Production')
 
                             if res['Type'] == 'movie':
                                 if 'Director' in res:
@@ -136,8 +145,8 @@ async def omdb(ctx, *args):
                                     if res['Writer'] != 'N/A':
                                         embed.add_field(name='Twórcy', value=res['Writer'], inline=False)
 
-                            add_non_empty(embed, res, 'Actors', 'Aktorzy', False)
-                            add_non_empty(embed, res, 'Awards', 'Nagrody', False)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Występują', res, 'Actors', False)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Nagrody', res, 'Awards', False)
 
                             if 'BoxOffice' in res:
                                 if res['BoxOffice'] != 'N/A':
@@ -146,26 +155,22 @@ async def omdb(ctx, *args):
                                         box_office = '£' + box_office
                                     else:
                                         box_office = res['BoxOffice']
-                                    embed.add_field(name='Box Office', value=box_office, inline=True)
-
-                            add_non_empty(embed, res, 'Production', 'Produkcja', True)
+                                    embed.add_field(name='Box office', value=box_office)
 
                         if 'Poster' in res:
                             if res['Poster'] != 'N/A':
                                 embed.set_thumbnail(url=res['Poster'])
-                        embed.set_footer(text=FOOTER_TEXT)
-                        await ctx.send(embed=embed)
                     elif res['Response'] == 'False':
                         embed = discord.Embed(
                             title=':slight_frown: Niepowodzenie',
-                            description=f'Nie znaleziono żadnego wyniku pasującego do zapytania "{query}".',
+                            description=f'Brak wyników dla tytułu "{query}".',
                             color=somsiad.color
                         )
-                        embed.set_footer(text=FOOTER_TEXT)
-                        await ctx.send(embed=embed)
                 else:
                     embed = discord.Embed(
-                        title=':warning: Błąd', description='Nie można połączyć się z serwisem.', color=somsiad.color
+                        title=':warning: Błąd',
+                        description='Nie można połączyć się z serwisem!',
+                        color=somsiad.color
                     )
-                    embed.set_footer(text=FOOTER_TEXT)
-                    await ctx.send(embed=embed)
+    embed.set_footer(text=OMDb.FOOTER_TEXT)
+    await ctx.send(ctx.author.mention, embed=embed)
