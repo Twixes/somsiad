@@ -253,8 +253,8 @@ class RedditVerifier:
         verified_role_id = self._db_cursor.fetchone()
         if verified_role_id is not None:
             return verified_role_id[0]
-
-        return None
+        else:
+            return None
 
     def assign_phrase(self, discord_user_id: int):
         """Assigns a phrase to a Discord user."""
@@ -284,8 +284,8 @@ class RedditVerifier:
             )
             self._db.commit()
             return self.reddit_user_info(reddit_username)
-
-        return None
+        else:
+            return None
 
     def verify_user(self, reddit_username: str, phrase: str):
         """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
@@ -298,8 +298,8 @@ class RedditVerifier:
                 )
                 self._db.commit()
             return self.reddit_user_info(reddit_username)
-
-        return None
+        else:
+            return None
 
     def reject_user(self, reddit_username: str, phrase: str, reason: str):
         """Assigns a Reddit username to a Discord user. Also unassigns the phrase."""
@@ -313,8 +313,8 @@ class RedditVerifier:
                 )
                 self._db.commit()
             return self.reddit_user_info(reddit_username)
-
-        return None
+        else:
+            return None
 
     def update_discord_user_verification_status(self, discord_user_id: int, new_verification_status: str):
         if self.discord_user_info(discord_user_id)['verification_status'] is not None:
@@ -371,9 +371,7 @@ class RedditVerifier:
                     embed.set_footer(text=verifier.FOOTER_TEXT)
                     asyncio.ensure_future(channel.send(embed=embed))
 
-    def add_verified_roles_to_discord_user(
-        self, discord_user_id: int, server_settings_manager: ServerSettingsManager = server_settings_manager
-    ):
+    def add_verified_roles_to_discord_user(self, discord_user_id: int):
         for row in self.get_verified_roles():
             server = somsiad.client.get_guild(row['server_id'])
             member = server.get_member(discord_user_id)
@@ -471,10 +469,7 @@ class RedditVerificationMessageScout:
                             # assign the Reddit username to the Discord user whose secret phrase this was
                             self._verifier.verify_user(reddit_username, phrase)
                             discord_user = somsiad.client.get_user(phrase_info['discord_user_id'])
-                            self._verifier.add_verified_roles_to_discord_user(
-                                phrase_info['discord_user_id'],
-                                server_settings_manager=self._server_settings_manager
-                            )
+                            self._verifier.add_verified_roles_to_discord_user(phrase_info['discord_user_id'])
                             self._verifier.log_verification_result(
                                 phrase_info['discord_user_id'],
                                 reddit_username,
@@ -494,7 +489,6 @@ class RedditVerificationMessageScout:
                                 False,
                                 personal_reason='twoje konto na Reddicie nie spełnia wymagań. '
                                 f'Do weryfikacji potrzebne jest konto założone co najmniej '
-                                f'{account_min_age_in_days} '
                                 f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                 f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}',
                                 log_reason='jego konto na Reddicie nie spełniło wymagań',
@@ -503,7 +497,6 @@ class RedditVerificationMessageScout:
                             message.reply(
                                 'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
                                 f'Do weryfikacji potrzebne jest konto założone co najmniej '
-                                f'{account_min_age_in_days} '
                                 f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                 f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
                             )
@@ -587,7 +580,6 @@ async def reddit_verify(ctx):
                     name='Weryfikacja nie powiodła się dzisiaj, bo twoje konto na Reddicie nie spełnia wymagań.',
                     value=(
                         'Do weryfikacji potrzebne jest konto założone co najmniej '
-                        f'{somsiad.conf["reddit_account_min_age_in_days"]} '
                         f'{TextFormatter.noun_variant(somsiad.conf["reddit_account_min_age_in_days"], "dzień", "dni")} '
                         f'temu i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}. '
                         'Spróbuj zweryfikować się innego dnia, gdy twoje konto będzie już spełniało te warunki.'

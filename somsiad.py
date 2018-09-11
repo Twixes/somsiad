@@ -29,25 +29,38 @@ class TextFormatter:
         return 'ze' if 100 <= number < 200 else 'z'
 
     @staticmethod
-    def noun_variant(number: int, singular_form: str, plural_form: str) -> str:
+    def noun_variant(number: int, singular_form: str, plural_form: str, *, include_number: bool = True) -> str:
         """Returns the gramatically correct variant of the given noun in Polish."""
-        return singular_form if number == 1 else plural_form
+        proper_form = singular_form if number == 1 else plural_form
+
+        if include_number:
+            return f'{number} {proper_form}'
+        else:
+            return proper_form
 
     @staticmethod
-    def adjective_variant(number: int, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str) -> str:
+    def adjective_variant(
+            number: int, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str,
+            *, include_number: bool = True
+    ) -> str:
         """Returns the gramatically correct variant of the given adjective in Polish."""
         if number == 1:
-            return singular_form
+            proper_form = singular_form
         elif (
                 (str(number)[-1:] == '2' or str(number)[-1:] == '3' or str(number)[-1:] == '4')
                 and number not in (12, 13, 14)
         ):
-            return plural_form_2_to_4
+            proper_form = plural_form_2_to_4
         else:
-            return plural_form_5_to_1
+            proper_form = plural_form_5_to_1
+
+        if include_number:
+            return f'{number} {proper_form}'
+        else:
+            return proper_form
 
     @classmethod
-    def human_readable_time_since(cls, utc_datetime: datetime.datetime, *, date=True, time=True, days=True) -> str:
+    def human_readable_time_ago(cls, utc_datetime: datetime.datetime, *, date=True, time=True, days=True) -> str:
         local_datetime = utc_datetime.replace(tzinfo=datetime.timezone.utc).astimezone()
         delta = datetime.datetime.now().astimezone() - local_datetime
 
@@ -68,38 +81,7 @@ class TextFormatter:
             elif days_since == 1:
                 days_since_string = 'wczoraj'
             else:
-                days_since_string = f'{days_since} {cls.noun_variant(days_since, "dzień", "dni")} temu'
-
-            if date or time:
-                combined_information.append(f', {days_since_string}')
-            else:
-                combined_information.append(days_since_string)
-
-        return ''.join(combined_information)
-
-    @classmethod
-    def human_readable_time_for(cls, utc_datetime: datetime.datetime, *, date=True, time=True, days=True) -> str:
-        local_datetime = utc_datetime.replace(tzinfo=datetime.timezone.utc).astimezone()
-        delta = datetime.datetime.now().astimezone() - local_datetime
-
-        combined_information = ['od ']
-        if time:
-            time_string = local_datetime.strftime('%H:%M')
-            if date:
-                combined_information.append(f'{time_string} ')
-            else:
-                combined_information.append(time_string)
-        if date:
-            date_string = local_datetime.strftime('%d.%m.%Y')
-            combined_information.append(date_string)
-        if days:
-            days_since = delta.days
-            if days_since == 0:
-                days_since_string = 'dzisiaj'
-            elif days_since == 1:
-                days_since_string = 'wczoraj'
-            else:
-                days_since_string = f'{days_since} {cls.noun_variant(days_since, "dzień", "dni")}'
+                days_since_string = f'{cls.noun_variant(days_since, "dzień", "dni")} temu'
 
             if date or time:
                 combined_information.append(f', {days_since_string}')
@@ -109,20 +91,20 @@ class TextFormatter:
         return ''.join(combined_information)
 
     @staticmethod
-    def separator(block: str, width: int) -> str:
+    def separator(block: str, width: int = os.get_terminal_size()[0]) -> str:
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
         pattern = (block * int(width / len(block)) + block)[:width].strip()
         return pattern
 
     @classmethod
     def generate_console_block(
-            cls, info_lines: list, separator_block: str = None, first_console_block: bool = True
+            cls, info_lines: list, separator_block: str = None, *, first_console_block: bool = True
     ) -> str:
         """Takes a list of lines and returns a string ready for printing in the console."""
         info_block = []
         separator = None
         if separator_block is not None:
-            separator = cls.separator(separator_block, os.get_terminal_size()[0])
+            separator = cls.separator(separator_block)
         if separator is not None and first_console_block:
             info_block.append(separator)
         for line in info_lines:
@@ -332,17 +314,16 @@ class Somsiad:
             if server.me is not None:
                 if len(server.name) > longest_server_name_length:
                     longest_server_name_length = len(server.name)
-                days_since_joining_info = TextFormatter.human_readable_time_for(server.me.joined_at)
+                days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
                 if len(days_since_joining_info) > longest_days_since_joining_info_length:
                     longest_days_since_joining_info_length = len(days_since_joining_info)
 
         for server in servers:
             if server.me is not None:
-                days_since_joining_info = TextFormatter.human_readable_time_for(server.me.joined_at)
+                days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
                 list_of_servers.append(
                     f'{server.name.ljust(longest_server_name_length)} - '
-                    f'{days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
-                    f'{server.member_count} '
+                    f'dołączono {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
                     f'{TextFormatter.noun_variant(server.member_count, "użytkownik", "użytkowników")}'
                 )
 
@@ -404,9 +385,9 @@ def print_info(first_console_block=True):
     info_lines = [
         f'Obudzono Somsiada (ID {somsiad.client.user.id}).',
         '',
-        f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} {number_of_users} '
-        f'{TextFormatter.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} na {number_of_servers} '
-        f'{TextFormatter.noun_variant(number_of_servers, "serwerze", "serwerach")}:',
+        f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
+        f'{TextFormatter.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
+        f'na {TextFormatter.noun_variant(number_of_servers, "serwerze", "serwerach")}:',
         '\n'.join(somsiad.list_of_servers()),
         '',
         'Link do zaproszenia bota:',
