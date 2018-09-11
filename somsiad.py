@@ -445,18 +445,24 @@ async def on_guild_remove(guild):
 @somsiad.client.event
 async def on_command_error(ctx, error):
     """Handles common command errors."""
-    if isinstance(error, (discord.ext.commands.CommandNotFound, discord.ext.commands.UserInputError)):
-        pass
-    elif isinstance(error, discord.ext.commands.DisabledCommand):
-        await ctx.send(f'Komenda {ctx.command} została wyłączona.')
+    if isinstance(error, discord.ext.commands.errors.CommandInvokeError):
+        if isinstance(error.original, discord.errors.Forbidden):
+            embed = discord.Embed(
+                title=f':warning: Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} nie zadziałała z powodu '
+                f'niedostatecznych uprawnień Somsiada na kanale #{ctx.channel.name} serwera {ctx.guild.name}!',
+                color=somsiad.color
+            )
+            await ctx.author.send(embed=embed)
     elif isinstance(error, discord.ext.commands.NoPrivateMessage):
         embed = discord.Embed(
-            title=f':warning: Komenda {somsiad.conf["command_prefix"]}{ctx.command} nie może zostać użyta w prywatnej '
-            'wiadomości.',
+            title=f':warning: Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} nie może być użyta '
+            'w prywatnych wiadomościach.',
             color=somsiad.color
         )
         await ctx.author.send(embed=embed)
+    elif isinstance(error, discord.ext.commands.DisabledCommand):
+        await ctx.send(f'Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} została wyłączona.')
 
     somsiad.logger.error(
-        f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.command} command: {error}.'
+        f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.invoked_with} command: {error}.'
     )
