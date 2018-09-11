@@ -12,7 +12,31 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from somsiad import TextFormatter, somsiad
+from somsiad import somsiad
+
+
+@somsiad.client.command(aliases=['wejdź'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.is_owner()
+async def enter(ctx, *args):
+    """Generates an invite to the provided server."""
+    server_name = ' '.join(args)
+    invite = None
+    for server in somsiad.client.guilds:
+        if server.name == server_name:
+            for channel in server.channels:
+                if (
+                        not isinstance(channel, discord.CategoryChannel)
+                        and server.me.permissions_in(channel).create_instant_invite
+                ):
+                    invite = await channel.create_invite(max_uses=1)
+                    break
+            break
+
+    if invite is not None:
+        await ctx.send(invite.url)
 
 
 @somsiad.client.command(aliases=['ogłośglobalnie', 'oglosglobalnie'])
