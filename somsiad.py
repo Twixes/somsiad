@@ -464,5 +464,6 @@ async def on_command_error(ctx, error):
         await ctx.send(f'Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} została wyłączona.')
 
     somsiad.logger.error(
-        f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.invoked_with} command: {error}.'
+        f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.invoked_with} command '
+        f'used by {ctx.author} on {ctx.guild}: {error}.'
     )
