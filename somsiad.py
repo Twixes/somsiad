@@ -24,17 +24,17 @@ from version import __version__
 
 class TextFormatter:
     @staticmethod
-    def with_preposition_variant(number: int):
+    def with_preposition_variant(number: int) -> str:
         """Returns the gramatically correct variant of the 'with' preposition in Polish."""
         return 'ze' if 100 <= number < 200 else 'z'
 
     @staticmethod
-    def noun_variant(number: int, singular_form: str, plural_form: str):
+    def noun_variant(number: int, singular_form: str, plural_form: str) -> str:
         """Returns the gramatically correct variant of the given noun in Polish."""
         return singular_form if number == 1 else plural_form
 
     @staticmethod
-    def adjective_variant(number: int, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str):
+    def adjective_variant(number: int, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str) -> str:
         """Returns the gramatically correct variant of the given adjective in Polish."""
         if number == 1:
             return singular_form
@@ -45,6 +45,68 @@ class TextFormatter:
             return plural_form_2_to_4
         else:
             return plural_form_5_to_1
+
+    @classmethod
+    def human_readable_time_since(cls, utc_datetime: datetime.datetime, *, date=True, time=True, days=True) -> str:
+        local_datetime = utc_datetime.replace(tzinfo=datetime.timezone.utc).astimezone()
+        delta = datetime.datetime.now().astimezone() - local_datetime
+
+        combined_information = []
+        if date:
+            date_string = local_datetime.strftime('%d.%m.%Y')
+            combined_information.append(date_string)
+        if time:
+            time_string = local_datetime.strftime('%H:%M')
+            if date:
+                combined_information.append(f' o {time_string}')
+            else:
+                combined_information.append(time_string)
+        if days:
+            days_since = delta.days
+            if days_since == 0:
+                days_since_string = 'dzisiaj'
+            elif days_since == 1:
+                days_since_string = 'wczoraj'
+            else:
+                days_since_string = f'{days_since} {cls.noun_variant(days_since, "dzień", "dni")} temu'
+
+            if date or time:
+                combined_information.append(f', {days_since_string}')
+            else:
+                combined_information.append(days_since_string)
+
+        return ''.join(combined_information)
+
+    @classmethod
+    def human_readable_time_for(cls, utc_datetime: datetime.datetime, *, date=True, time=True, days=True) -> str:
+        local_datetime = utc_datetime.replace(tzinfo=datetime.timezone.utc).astimezone()
+        delta = datetime.datetime.now().astimezone() - local_datetime
+
+        combined_information = ['od ']
+        if time:
+            time_string = local_datetime.strftime('%H:%M')
+            if date:
+                combined_information.append(f'{time_string} ')
+            else:
+                combined_information.append(time_string)
+        if date:
+            date_string = local_datetime.strftime('%d.%m.%Y')
+            combined_information.append(date_string)
+        if days:
+            days_since = delta.days
+            if days_since == 0:
+                days_since_string = 'dzisiaj'
+            elif days_since == 1:
+                days_since_string = 'wczoraj'
+            else:
+                days_since_string = f'{days_since} {cls.noun_variant(days_since, "dzień", "dni")}'
+
+            if date or time:
+                combined_information.append(f', {days_since_string}')
+            else:
+                combined_information.append(days_since_string)
+
+        return ''.join(combined_information)
 
     @staticmethod
     def separator(block: str, width: int) -> str:
@@ -261,7 +323,7 @@ class Somsiad:
         """Generates a list of servers the bot is connected to, including the number of days since joining
         and the number of users.
         """
-        servers = sorted(self.client.guilds, key=lambda server: len(server.members), reverse=True)
+        servers = sorted(self.client.guilds, key=lambda server: server.me.joined_at, reverse=True)
         longest_server_name_length = 0
         longest_days_since_joining_info_length = 0
         list_of_servers = []
@@ -270,24 +332,16 @@ class Somsiad:
             if server.me is not None:
                 if len(server.name) > longest_server_name_length:
                     longest_server_name_length = len(server.name)
-                date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
-                days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
-                days_since_joining_info = (
-                    f'{days_since_joining} {TextFormatter.noun_variant(days_since_joining, "dnia", "dni")}'
-                )
+                days_since_joining_info = TextFormatter.human_readable_time_for(server.me.joined_at)
                 if len(days_since_joining_info) > longest_days_since_joining_info_length:
                     longest_days_since_joining_info_length = len(days_since_joining_info)
 
         for server in servers:
             if server.me is not None:
-                date_of_joining = server.me.joined_at.replace(tzinfo=datetime.timezone.utc).astimezone()
-                days_since_joining = (datetime.datetime.now().astimezone() - date_of_joining).days
-                days_since_joining_info = (
-                    f'{days_since_joining} {TextFormatter.noun_variant(days_since_joining, "dnia", "dni")}'
-                )
+                days_since_joining_info = TextFormatter.human_readable_time_for(server.me.joined_at)
                 list_of_servers.append(
                     f'{server.name.ljust(longest_server_name_length)} - '
-                    f'od {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
+                    f'{days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
                     f'{server.member_count} '
                     f'{TextFormatter.noun_variant(server.member_count, "użytkownik", "użytkowników")}'
                 )
