@@ -1,4 +1,4 @@
-# Somsiad - po polsku  
+# Somsiad – po polsku  
 
 Polski bot discordowy. Napisany w Pythonie.  
 
@@ -77,7 +77,7 @@ Kod tego projektu udostępniony jest na licencji GPLv3.
 
 ---
 
-# Somsiad - in English  
+# Somsiad – in English  
 
 The Polish Discord bot. Written in Python.  
 

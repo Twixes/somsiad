@@ -91,7 +91,7 @@ async def invite(ctx, *args):
 
     if 'somsi' in argument or str(ctx.me.id) in argument:
         embed = discord.Embed(
-            title=':house: Zapraszam do Somsiad Labs - mojegu domu',
+            title=':house: Zapraszam do Somsiad Labs – mojegu domu',
             description='http://discord.gg/EFj3hhQ',
             color=somsiad.color
         )

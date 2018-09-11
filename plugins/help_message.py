@@ -27,7 +27,7 @@ async def help_message(ctx):
         value='Somsiad jestem. Na co dzień pomagam ludziom w różnych kwestiach. '
         'By skorzystać z mojej pomocy wystarczy wysłać komendę w miejscu, w którym będę mógł ją zobaczyć. '
         'Lista komend wraz z ich opisami znajduje się poniżej.\n'
-        'W nawiasach okrągłych podane są alternatywne nazwy komend - tak dla różnorodności.\n'
+        'W nawiasach okrągłych podane są alternatywne nazwy komend – tak dla różnorodności.\n'
         'W nawiasach ostrokątnych podane są argumenty komend. Jeśli na początku nazwy argumentu jest pytajnik, '
         'oznacza to, że jest to argument opcjonalny.\n',
         inline=False
@@ -177,7 +177,7 @@ async def help_message(ctx):
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}zaproś (zapros) <?liczba użyć>',
         value='Tworzy zaproszenie na serwer o danej <?liczbie użyć> lub, jeśli jej nie podano, o nielimitowanej '
-        'liczbie użyć. Dodatkowo można użyć argumentu "recykluj" - wtedy bot spróbuje wykorzystać już istniejące '
+        'liczbie użyć. Dodatkowo można użyć argumentu "recykluj" – wtedy bot spróbuje wykorzystać już istniejące '
         'zaproszenie o podanych parametrach zamiast tworzyć nowe.',
         inline=False
     )
