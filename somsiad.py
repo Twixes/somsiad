@@ -23,6 +23,22 @@ from version import __version__
 
 
 class TextFormatter:
+    """Text formatting utilities."""
+    @staticmethod
+    def limit_text_length(text: str, limit: int) -> str:
+        words = text.split()
+        cut_text = ''
+        for word in words:
+            if len(word) > 2 and len(cut_text) + len(word) <= limit:
+                cut_text += word + ' '
+
+        if cut_text[-1:] == '.':
+            cut_text = cut_text.rstrip()
+        else:
+            cut_text = cut_text.rstrip().rstrip(',') + '...'
+
+        return cut_text
+
     @staticmethod
     def with_preposition_variant(number: int) -> str:
         """Returns the gramatically correct variant of the 'with' preposition in Polish."""

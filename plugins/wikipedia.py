@@ -13,120 +13,175 @@
 
 import aiohttp
 import discord
-from somsiad import somsiad
+from somsiad import TextFormatter, somsiad
 
-
-async def wikipedia_search(ctx, args, language):
-    """Returns the closest matching article from Wikipedia."""
+class Wikipedia:
+    """Handles Wikipedia search."""
     FOOTER_TEXT = 'Wikipedia'
     FOOTER_ICON_URL = (
         'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/60px-Wikipedia%27s_W.svg.png'
     )
+    headers = {'User-Agent': somsiad.user_agent}
 
-    if not args:
-        embed = discord.Embed(
-            title=':warning: Błąd',
-            description='Nie podano szukanego hasła!',
-            color=somsiad.color
-        )
-    else:
-        query = '_'.join(args)
-        api_url = f'https://{language}.wikipedia.org/w/api.php'
+    class SearchResult:
+        """Wikipedia search results."""
+        __slots__ = 'language', 'status', 'title', 'url', 'articles'
+
+        def __init__(self, language):
+            self.language = language
+            self.status = None
+            self.title = None
+            self.url = None
+            self.articles = []
+
+        def __str__(self):
+            return self.title
+
+    @staticmethod
+    def link(language: str, path: str) -> str:
+        """Generates a link to Wikipedia using the provided language and path."""
+        return f'https://{language}.wikipedia.org/{path.strip("/")}'
+
+    @classmethod
+    async def search(cls, language: str, title: str):
+        """Returns the closest matching article or articles from Wikipedia."""
         params = {
             'action': 'opensearch',
-            'search': query,
-            'limit': 30,
+            'search': title,
+            'limit': 25,
             'format': 'json'
         }
-        headers = {'User-Agent': somsiad.user_agent}
-        async with aiohttp.ClientSession() as session:
-            # Use OpenSearch API first to get accurate page title of the result
-            async with session.get(api_url, headers=headers, params=params) as request:
-                if request.status == 200:
-                    response_data = await request.json()
-                    if not response_data[1]:
-                        embed = discord.Embed(
-                            title=':slight_frown: Niepowodzenie',
-                            description=f'Brak wyników dla hasła "{query}".',
-                            color=somsiad.color
-                        )
-                    else:
-                        # Use title retrieved from OpenSearch response
-                        # as a search term in REST request
-                        query = response_data[1][0]
-                        search_url = f'https://{language}.wikipedia.org/api/rest_v1/page/summary/{query}'
-                        async with session.get(search_url, headers=headers) as r:
-                            if r.status == 200:
-                                res = await r.json()
 
-                                if res['type'] == 'disambiguation':
-                                    # Use results from OpenSearch to create a list of links from disambiguation page
-                                    title = f'"{res["title"]}" może odnosić się do:'
-                                    url = res['content_urls']['desktop']['page']
-                                    options_str_full = ''
-                                    for i, option in enumerate(response_data[1][1:]):
-                                        option_url = response_data[3][i+1]
-                                        option_url = option_url.replace('(', '%28')
-                                        option_url = option_url.replace(')', '%29')
-                                        options_str = (f'• [{option}]({option_url})\n')
-                                        if len(options_str_full) + len(options_str) <= 2048:
-                                            options_str_full += options_str
-                                    embed = discord.Embed(
-                                        title=title,
-                                        url=url,
-                                        description=options_str_full,
-                                        color=somsiad.color
-                                    )
+        search_result = cls.SearchResult(language)
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Use OpenSearch API first to get accurate page title of the result
+                async with session.get(
+                        cls.link(language, 'w/api.php'), headers=cls.headers, params=params
+                ) as title_request:
+                    search_result.status = title_request.status
 
-                                elif res['type'] == 'standard':
-                                    title = res['title']
-                                    # Reduce the length of summary to 400 chars
-                                    if len(res['extract']) <= 400:
-                                        summary = res['extract']
-                                    else:
-                                        summary = res['extract'][:400].rstrip() + '...'
-                                    url = res['content_urls']['desktop']['page']
-                                    embed = discord.Embed(
-                                        title=title,
-                                        url=url,
-                                        description=summary,
-                                        color=somsiad.color
-                                    )
-                                    if 'thumbnail' in res:
-                                        thumbnail = res['thumbnail']['source']
-                                        embed.set_thumbnail(url=thumbnail)
-                            else:
-                                embed = discord.Embed(
-                                    title=':warning: Błąd',
-                                    description='Nie udało się połączyć z serwisem!',
-                                    color=somsiad.color
-                                )
-                else:
-                    embed = discord.Embed(
-                        title=':warning: Błąd',
-                        description='Nie udało się połączyć z serwisem!',
-                        color=somsiad.color
-                    )
+                    if title_request.status == 200:
+                        title_data = await title_request.json()
 
-    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
+                        if title_data[1]:
+                            # Use the title retrieved from the OpenSearch response as a search term in the REST request
+                            query = title_data[1][0]
+
+                            async with session.get(
+                                    cls.link(language, f'api/rest_v1/page/summary/{query}'), headers=cls.headers
+                            ) as article_request:
+                                search_result.status = article_request.status
+                                if article_request.status == 200:
+                                    article_data = await article_request.json()
+                                    search_result.title = article_data["title"]
+                                    search_result.url = article_data['content_urls']['desktop']['page']
+
+                                    if article_data['type'] == 'disambiguation':
+                                        # Use results from OpenSearch to create a list of links from disambiguation page
+                                        for i, option in enumerate(title_data[1][1:]):
+                                            article_url = title_data[3][i+1].replace('(', '%28').replace(')', '%29')
+                                            search_result.articles.append({
+                                                'title': option,
+                                                'summary': None,
+                                                'url': article_url,
+                                                'thumbnail_url': None
+                                                })
+
+                                    elif article_data['type'] == 'standard':
+                                        if len(article_data['extract']) > 400:
+                                            summary = TextFormatter.limit_text_length(article_data['extract'], 400)
+                                        else:
+                                            summary =  article_data['extract']
+                                        thumbnail_url = (
+                                            article_data['thumbnail']['source'] if 'thumbnail' in article_data else None
+                                        )
+                                        search_result.articles.append({
+                                            'title': article_data['title'],
+                                            'summary': summary,
+                                            'url': article_data['content_urls']['desktop']['page'],
+                                            'thumbnail_url': thumbnail_url
+                                        })
+
+        except aiohttp.client_exceptions.ClientConnectorError:
+            pass
+
+        return search_result
+
+    @classmethod
+    async def embed_search_result(cls, language: str, title: str) -> discord.Embed:
+        """Generates an embed presenting the closest matching article or articles from Wikipedia."""
+        search_result = await cls.search(language, title)
+        if search_result.status is None:
+            embed = discord.Embed(
+                title=':warning: Błąd',
+                description=f'Nie istnieje wersja językowa Wikipedii o kodzie "{language.upper()}"!',
+                color=somsiad.color
+            )
+        elif search_result.status == 200:
+            number_of_articles = len(search_result.articles)
+            if number_of_articles > 1:
+                disambiguation = []
+                for article in search_result.articles:
+                    disambiguation.append(f'• [{article["title"]}]({article["url"]})')
+                embed = discord.Embed(
+                    title=f'Hasło "{search_result.title}" może odnosić się do:',
+                    url=search_result.url,
+                    description='\n'.join(disambiguation),
+                    color=somsiad.color
+                )
+            elif number_of_articles == 1:
+                embed = discord.Embed(
+                    title=search_result.articles[0]['title'],
+                    url=search_result.articles[0]['url'],
+                    description=search_result.articles[0]['summary'],
+                    color=somsiad.color
+                )
+                if search_result.articles[0]['thumbnail_url'] is not None:
+                    embed.set_thumbnail(url=search_result.articles[0]['thumbnail_url'])
+            else:
+                embed = discord.Embed(
+                    title=':slight_frown: Niepowodzenie',
+                    description=f'Brak wyników dla hasła "{title}".',
+                    color=somsiad.color
+                )
+
+        else:
+            embed = discord.Embed(
+                title=':warning: Błąd',
+                description='Nie udało się połączyć z serwisem!',
+                color=somsiad.color
+            )
+
+        embed.set_footer(
+            text=cls.FOOTER_TEXT if search_result.status is None else f'{cls.FOOTER_TEXT} {language.upper()}',
+            icon_url=cls.FOOTER_ICON_URL
+        )
+        return embed
+
+
+@somsiad.client.command(aliases=['wiki', 'w'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def wikipedia(ctx, language: str, *args):
+    """The Wikipedia search command."""
+    title = '_'.join(args) if args else 'Wikipedia'
+    embed = await Wikipedia.embed_search_result(language, title)
     await ctx.send(ctx.author.mention, embed=embed)
 
+@wikipedia.error
+async def wikipedia_error(ctx, error):
+    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
+        embed = discord.Embed(
+            title=':warning: Błąd',
+            description='Nie podano wersji językowej Wikipedii ani hasła do sprawdzenia!',
+            color=somsiad.color
+        )
+        embed.set_footer(
+            text=Wikipedia.FOOTER_TEXT,
+            icon_url=Wikipedia.FOOTER_ICON_URL
+        )
 
-@somsiad.client.command(aliases=['wikipl', 'wpl'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def wikipediapl(ctx, *args):
-    """Polish version of wikipedia_search."""
-    await wikipedia_search(ctx, args, 'pl')
-
-
-@somsiad.client.command(aliases=['wikien', 'wen'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def wikipediaen(ctx, *args):
-    """English version of wikipedia_search."""
-    await wikipedia_search(ctx, args, 'en')
+        await ctx.send(ctx.author.mention, embed=embed)
