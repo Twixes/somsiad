@@ -202,16 +202,16 @@ class Configurator:
             for setting in self.required_settings:
                 # Handle the unit
                 if setting.unit is None:
-                    line = f'{setting.description}: {self.configuration[setting.name]}'
+                    line = f'{setting}: {self.configuration[setting.name]}'
                 elif setting.unit == 'password':
-                    line = f'{setting.description}: {"*" * len(self.configuration[setting.name])}'
+                    line = f'{setting}: {"*" * len(self.configuration[setting.name])}'
                 elif isinstance(setting.unit, tuple) and len(setting.unit) == 2:
                     unit_variant = (
                         setting.unit[0] if int(somsiad.conf[setting.name]) == 1 else setting.unit[1]
                     )
-                    line = f'{setting.description}: {self.configuration[setting.name]} {unit_variant}'
+                    line = f'{setting}: {self.configuration[setting.name]} {unit_variant}'
                 else:
-                    line = f'{setting.description}: {self.configuration[setting.name]} {setting.unit}'
+                    line = f'{setting}: {self.configuration[setting.name]} {setting.unit}'
                 info += line + '\n'
 
             line = f'Ścieżka pliku konfiguracyjnego: {self.configuration_file_path}'
@@ -223,6 +223,8 @@ class Configurator:
 
     class SettingTemplate:
         """A bot setting template."""
+        __slots__ = 'name', 'description', 'input_instruction', 'default_value', 'unit'
+
         def __init__(
                 self, name: str, description: str, input_instruction: str, default_value=None,
                 unit: Union[tuple, str] = None
@@ -233,6 +235,9 @@ class Configurator:
             self.default_value = default_value
             self.unit = unit
 
+        def __str__(self):
+            return self.description
+
 
 class Somsiad:
     color = 0x7289da
@@ -242,6 +247,7 @@ class Somsiad:
     conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
     conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
     logger = None
+    user_converter = None
     member_converter = None
     configurator = None
     client = None
@@ -279,6 +285,7 @@ class Somsiad:
         )
         self.client.remove_command('help') # Replaced with the 'help_direct' plugin
         self.member_converter = discord.ext.commands.MemberConverter()
+        self.user_converter = discord.ext.commands.UserConverter()
 
     def run(self):
         """Launches the bot."""
@@ -445,7 +452,9 @@ async def on_guild_remove(guild):
 @somsiad.client.event
 async def on_command_error(ctx, error):
     """Handles common command errors."""
-    if isinstance(error, discord.ext.commands.NoPrivateMessage):
+    if isinstance(error, discord.ext.commands.errors.CommandNotFound):
+        pass
+    elif isinstance(error, discord.ext.commands.NoPrivateMessage):
         embed = discord.Embed(
             title=f':warning: Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} nie może być użyta '
             'w prywatnych wiadomościach.',
@@ -454,8 +463,8 @@ async def on_command_error(ctx, error):
         await ctx.send(embed=embed)
     elif isinstance(error, discord.ext.commands.DisabledCommand):
         await ctx.send(f'Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} została wyłączona.')
-
-    somsiad.logger.error(
-        f'Ignoring an exception in the {somsiad.conf["command_prefix"]}{ctx.invoked_with} command '
-        f'used by {ctx.author} on {ctx.guild}: {error}.'
-    )
+    else:
+        somsiad.logger.error(
+            f'Ignoring an exception of type {type(error)} in the {somsiad.conf["command_prefix"]}{ctx.invoked_with} '
+            f'command used by {ctx.author} on server {ctx.guild}: {error}.'
+        )
