@@ -32,7 +32,7 @@ class TextFormatter:
             if len(word) > 2 and len(cut_text) + len(word) <= limit:
                 cut_text += word + ' '
 
-        if cut_text[-1:] == '.':
+        if cut_text[-1:] == '. ':
             cut_text = cut_text.rstrip()
         else:
             cut_text = cut_text.rstrip().rstrip(',') + '...'
