@@ -358,13 +358,15 @@ class RedditVerifier:
                             title=f':white_check_mark: Pomyślna weryfikacja użytkownika na Reddicie',
                             description=f'Użytkownik {discord_user.mention} został zweryfikowany jako '
                             f'/u/{reddit_username}.',
+                            timestamp=datetime.datetime.now(),
                             color=somsiad.color
                         )
                     else:
                         embed = discord.Embed(
                             title=f':red_circle: Nieudana próba weryfikacji użytkownika na Reddicie',
                             description=f'Użytkownik {discord_user.mention} próbował zweryfikować się jako '
-                            f'/u/{reddit_username}, ale jego {log_reason}.',
+                            f'/u/{reddit_username}, ale {log_reason}.',
+                            timestamp=datetime.datetime.now(),
                             color=somsiad.color
                         )
 
