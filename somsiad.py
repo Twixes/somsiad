@@ -63,7 +63,7 @@ class TextFormatter:
         if number == 1:
             proper_form = singular_form
         elif (
-                (str(number)[-1:] == '2' or str(number)[-1:] == '3' or str(number)[-1:] == '4')
+                (str(number)[-1] == '2' or str(number)[-1] == '3' or str(number)[-1] == '4')
                 and number not in (12, 13, 14)
         ):
             proper_form = plural_form_2_to_4
@@ -339,7 +339,7 @@ class Somsiad:
         list_of_servers = []
 
         for server in servers:
-            if not server.unavailable:
+            if server is not None:
                 if len(server.name) > longest_server_name_length:
                     longest_server_name_length = len(server.name)
                 days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
@@ -347,7 +347,7 @@ class Somsiad:
                     longest_days_since_joining_info_length = len(days_since_joining_info)
 
         for server in servers:
-            if not server.unavailable:
+            if server is not None:
                 days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
                 list_of_servers.append(
                     f'{server.name.ljust(longest_server_name_length)} - '
@@ -432,7 +432,7 @@ def print_info(first_console_block=True):
 )
 async def version(ctx):
     """Responds with current version of the bot."""
-    await ctx.send(__version__)
+    await ctx.send(f'{ctx.author.mention}\n{__version__}')
 
 
 @somsiad.client.command()
@@ -441,7 +441,7 @@ async def version(ctx):
 )
 async def ping(ctx):
     """Pong!"""
-    await ctx.send(':ping_pong: Pong!')
+    await ctx.send(f'{ctx.author.mention}\n:ping_pong: Pong!')
 
 
 @somsiad.client.event
@@ -467,24 +467,29 @@ async def on_guild_remove(guild):
 
 @somsiad.client.event
 async def on_command_error(ctx, error):
-    """Handles common command errors."""
-    if isinstance(error, discord.ext.commands.errors.CommandNotFound):
+    """Handles command errors."""
+    ignored_errors = (discord.ext.commands.CommandNotFound, discord.ext.commands.BadArgument)
+
+    if ctx.command is not None:
+        command_with_prefix = f'{somsiad.conf["command_prefix"]}{ctx.command.qualified_name}'
+
+    if isinstance(error, ignored_errors):
         pass
     elif isinstance(error, discord.ext.commands.NoPrivateMessage):
         embed = discord.Embed(
-            title=f':warning: Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} nie może być użyta '
-            'w prywatnych wiadomościach.',
+            title=f':warning: Komenda {command_with_prefix} nie może być użyta '
+            'w prywatnych wiadomościach',
             color=somsiad.color
         )
         await ctx.send(embed=embed)
     elif isinstance(error, discord.ext.commands.DisabledCommand):
-        await ctx.send(f'Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} została wyłączona.')
+        embed = discord.Embed(
+            title=f':warning: Komenda jest wyłączona',
+            color=somsiad.color
+        )
+        await ctx.send(ctx.author.mention, embed=embed)
     else:
-        if ctx.invoked_subcommand is None:
-            command = f'{somsiad.conf["command_prefix"]}{ctx.command}'
-        else:
-            command = f'{somsiad.conf["command_prefix"]}{ctx.command} {ctx.invoked_subcommand}'
         somsiad.logger.error(
-            f'Ignoring an exception of type {type(error)} in the {command} command used by {ctx.author} '
+            f'Ignoring an exception of type {type(error)} in the {command_with_prefix} command used by {ctx.author} '
             f'on server {ctx.guild}: {error}'
         )
