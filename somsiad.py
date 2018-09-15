@@ -334,7 +334,7 @@ class Somsiad:
         list_of_servers = []
 
         for server in servers:
-            if server.me is not None:
+            if not server.unavailable:
                 if len(server.name) > longest_server_name_length:
                     longest_server_name_length = len(server.name)
                 days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
@@ -342,7 +342,7 @@ class Somsiad:
                     longest_days_since_joining_info_length = len(days_since_joining_info)
 
         for server in servers:
-            if server.me is not None:
+            if not server.unavailable:
                 days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
                 list_of_servers.append(
                     f'{server.name.ljust(longest_server_name_length)} - '
@@ -351,11 +351,6 @@ class Somsiad:
                 )
 
         return list_of_servers
-
-    async def is_user_bot_owner(self, user: Union[discord.User, discord.Member]) -> bool:
-        """Returns whether the provided user/member is the owner of this instance of the bot."""
-        application_info = await self.client.application_info()
-        return application_info.owner == user
 
 
 # Plugin settings
@@ -480,7 +475,11 @@ async def on_command_error(ctx, error):
     elif isinstance(error, discord.ext.commands.DisabledCommand):
         await ctx.send(f'Komenda {somsiad.conf["command_prefix"]}{ctx.invoked_with} została wyłączona.')
     else:
+        if ctx.invoked_subcommand is None:
+            command = f'{somsiad.conf["command_prefix"]}{ctx.command}'
+        else:
+            command = f'{somsiad.conf["command_prefix"]}{ctx.command} {ctx.invoked_subcommand}'
         somsiad.logger.error(
-            f'Ignoring an exception of type {type(error)} in the {somsiad.conf["command_prefix"]}{ctx.invoked_with} '
-            f'command used by {ctx.author} on server {ctx.guild}: {error}.'
+            f'Ignoring an exception of type {type(error)} in the {command} command used by {ctx.author} '
+            f'on server {ctx.guild}: {error}'
         )
