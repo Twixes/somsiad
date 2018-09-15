@@ -16,41 +16,39 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.client.command(aliases=['rzuć', 'rzuc'])
+@somsiad.client.command(aliases=['roll', 'rzuć', 'rzuc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def roll(ctx, *args):
+async def roll_dice(ctx, *args):
     number_of_dice = 1
     number_of_sides_on_a_die = 6
-
-    if len(args) == 1:
-        if len(args[0].lower().split('d')) >= 2 and args[0].lower().split('d')[0] != '':
-            # Handle the argument if it's in the format {number_of_dice}d{number_of_sides_on_a_die}
-            argument = args[0].lower().split('d')
-            number_of_dice = int(argument[0])
-            number_of_sides_on_a_die = int(argument[1])
-        else:
+    try:
+        if len(args) == 1:
             # Handle the argument if only either number_of_dice or number_of_sides_on_a_die were given
-            if args[0].lower().startswith('d'):
-                number_of_sides_on_a_die = int(args[0].strip('dD'))
+            argument = args[0].lower()
+            if argument.startswith('d'):
+                number_of_sides_on_a_die = abs(int(argument.strip('d')))
             else:
-                number_of_dice = int(args[0])
-    elif args:
-        if args[0].lower().startswith('d'):
-            number_of_dice = int(args[1])
-            number_of_sides_on_a_die = int(args[0].strip('dD'))
-        else:
-            number_of_dice = int(args[0])
-            number_of_sides_on_a_die = int(args[1].strip('dD'))
+                number_of_dice = abs(int(argument))
+        elif len(args) >= 2:
+            # Handle the arguments if there's 2 or more of them
+            first_argument = args[0].lower()
+            second_argument = args[1].lower()
+            if first_argument.startswith('d'):
+                number_of_dice = abs(int(second_argument))
+                number_of_sides_on_a_die = abs(int(first_argument.strip('d')))
+            else:
+                number_of_dice = abs(int(first_argument))
+                number_of_sides_on_a_die = abs(int(second_argument.strip('d')))
+    except ValueError:
+        raise discord.ext.commands.BadArgument
 
     if number_of_sides_on_a_die > 1:
-        # Limit the number of dice to between 1 and 100 (including 1 and 100)
+        # Limit the number of dice to 100 or less
         if number_of_dice > 100:
             number_of_dice = 100
-        elif number_of_dice < 1:
-            number_of_dice = 1
         # Generate random results
         results = []
         for _ in range(number_of_dice):
@@ -58,17 +56,44 @@ async def roll(ctx, *args):
             results.append(result)
         # Send the results
         if number_of_dice == 1:
-            await ctx.send(
-                f':game_die: Rzucono {number_of_sides_on_a_die}-ścienną kością. Wypadło {results[0]}.'
+            number_of_sides_description = (
+                'sześcienną' if number_of_sides_on_a_die == 6 else f'{number_of_sides_on_a_die}-ścienną'
+            )
+            results_info = f'Wypadło {results[0]}.'
+            embed = discord.Embed(
+                title=f':game_die: Rzucono {number_of_sides_description} kością',
+                description=results_info,
+                color=somsiad.color
             )
         else:
-            results_string = ', '.join(list(map(str, results[:-1]))) # converts items in the results list to str
+            # Convert results to strings and concatenate them
+            results_string = ', '.join(list(map(str, results[:-1])))
             results_string += f' i {results[-1]}'
-            await ctx.send(
-                f':game_die: Rzucono {number_of_dice} {number_of_sides_on_a_die}-ściennymi koścmi. '
-                f'Wypadło {results_string}. Suma tych liczb to {sum(results)}.'
+            number_of_sides_description = (
+                'sześciennymi' if number_of_sides_on_a_die == 6 else f'{number_of_sides_on_a_die}-ściennymi'
+            )
+            results_info = f'Wypadło {results_string}.\nSuma tych liczb to {sum(results)}.'
+            embed = discord.Embed(
+                title=f':game_die: Rzucono {number_of_dice} {number_of_sides_description} koścmi',
+                description=results_info,
+                color=somsiad.color
             )
     else:
-        await ctx.send(
-            f'{ctx.author.mention}\n:game_die: {number_of_sides_on_a_die}-ścienna kość nie ma sensu!'
+        embed = discord.Embed(
+            title=f':warning: {number_of_sides_on_a_die}-ścienna kość nie ma sensu!',
+            color=somsiad.color
         )
+
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@roll_dice.error
+async def roll_dice(ctx, error):
+    if isinstance(error, discord.ext.commands.BadArgument):
+        embed = discord.Embed(
+            title=':warning: Podano nieprawidłowy argument!',
+            description='Ta komenda przyjmuje argumenty w formacie <?liczba kości> <?liczba ścianek kości>.',
+            color=somsiad.color
+        )
+
+        await ctx.send(ctx.author.mention, embed=embed)
