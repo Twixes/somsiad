@@ -14,12 +14,6 @@
 import discord
 from somsiad import TextFormatter, somsiad
 
-AUTODESTRUCTION_TIME_IN_SECONDS = 5
-AUTODESTRUCTION_NOTICE = (
-    f'Ta wiadomość ulegnie autodestrukcji w ciągu '
-    f'{TextFormatter.noun_variant(AUTODESTRUCTION_TIME_IN_SECONDS, "sekundy", "sekund")} od wysłania.'
-)
-
 
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(
@@ -43,11 +37,11 @@ async def purge(ctx, number_of_messages_to_delete: int = 1):
     )
     embed = discord.Embed(
         title=f':white_check_mark: Usunięto z kanału {last_adjective_variant} {messages_noun_variant}',
-        description=AUTODESTRUCTION_NOTICE,
+        description=somsiad.message_autodestruction_notice,
         color=somsiad.color
     )
 
-    await ctx.send(ctx.author.mention, embed=embed, delete_after=AUTODESTRUCTION_TIME_IN_SECONDS)
+    await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
 
 
 @purge.error
@@ -55,24 +49,24 @@ async def purge_error(ctx, error):
     if isinstance(error, discord.ext.commands.errors.BotMissingPermissions):
         embed = discord.Embed(
             title=':warning: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma tutaj do tego uprawnień',
-            description=AUTODESTRUCTION_NOTICE,
+            description=somsiad.message_autodestruction_notice,
             color=somsiad.color
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=AUTODESTRUCTION_TIME_IN_SECONDS)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
     elif isinstance(error, discord.ext.commands.MissingPermissions):
         embed = discord.Embed(
             title=':warning: Nie usunięto z kanału żadnych wiadomości, ponieważ nie masz tutaj uprawnień do tego',
-            description=AUTODESTRUCTION_NOTICE,
+            description=somsiad.message_autodestruction_notice,
             color=somsiad.color
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=AUTODESTRUCTION_TIME_IN_SECONDS)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia',
-            description=AUTODESTRUCTION_NOTICE,
+            description=somsiad.message_autodestruction_notice,
             color=somsiad.color
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=AUTODESTRUCTION_TIME_IN_SECONDS)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
 
 
 @somsiad.client.command(aliases=['zaproś', 'zapros'])
@@ -132,10 +126,10 @@ async def invite(ctx, *args):
             embed = discord.Embed(
                 title=':warning: Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
                 'na którym ty je masz',
-                description=AUTODESTRUCTION_NOTICE,
+                description=somsiad.message_autodestruction_notice,
                 color=somsiad.color
             )
-            await ctx.send(ctx.author.mention, embed=embed, delete_after=AUTODESTRUCTION_TIME_IN_SECONDS)
+            await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
         else:
             if max_uses == 0:
                 max_uses_info = ' o nieskończonej liczbie użyć'
@@ -156,7 +150,7 @@ async def invite(ctx, *args):
     else:
         embed = discord.Embed(
             title=':warning: Nie utworzono zaproszenia, bo nie masz do tego uprawnień na żadnym kanale',
-            description=AUTODESTRUCTION_NOTICE,
+            description=somsiad.message_autodestruction_notice,
             color=somsiad.color
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=AUTODESTRUCTION_TIME_IN_SECONDS)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)

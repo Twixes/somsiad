@@ -256,6 +256,11 @@ class Configurator:
 
 
 class Somsiad:
+    message_autodestruction_time_in_seconds = 5
+    message_autodestruction_notice = (
+        'Ta wiadomość ulegnie autodestrukcji w ciągu '
+        f'{TextFormatter.noun_variant(message_autodestruction_time_in_seconds, "sekundy", "sekund")} od wysłania.'
+    )
     color = 0x7289da
     user_agent = f'SomsiadBot/{__version__}'
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
