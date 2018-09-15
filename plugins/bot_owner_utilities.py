@@ -36,7 +36,7 @@ async def enter(ctx, *args):
             break
 
     if invite is not None:
-        await ctx.send(invite.url)
+        await ctx.send(f'{ctx.author.mention}\n{invite.url}')
 
 
 @somsiad.client.command(aliases=['ogłośglobalnie', 'oglosglobalnie'])
@@ -100,6 +100,6 @@ async def stop(ctx):
         title=':stop_button: Zatrzymywanie bota...',
         color=somsiad.color
     )
-    await ctx.send(embed=embed)
+    await ctx.send(ctx.author.mention, embed=embed)
     await somsiad.client.close()
     exit()
