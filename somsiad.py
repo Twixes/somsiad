@@ -152,20 +152,26 @@ class Configurator:
 
         while not was_setting_input:
             if step_number is None:
-                buffer = input(f'{setting.input_instruction}:\n').strip()
+                input_buffer = input(f'{setting.input_instruction_with_default_value}:\n').strip()
             else:
-                buffer = input(f'{step_number}. {setting.input_instruction}:\n').strip()
+                input_buffer = input(f'{step_number}. {setting.input_instruction_with_default_value}:\n').strip()
 
-            if buffer == '':
-                if setting.default_value is None:
-                    was_setting_input = False
+            try:
+                if input_buffer == '':
+                    set_value = setting.set_value() # Set the setting's value using its default_value
+                    if set_value is None: # If None was set then there must be no default_value to fall back to
+                        print('Nie podano obowiązkowej wartości!')
+                        was_setting_input = False
+                    else:
+                        was_setting_input = True
                 else:
-                    buffer = str(setting.default_value).strip()
+                    set_value = setting.set_value(input_buffer)
                     was_setting_input = True
-            else:
-                was_setting_input = True
+            except ValueError:
+                print('Podano wartość nieodpowiedniego typu!')
+                was_setting_input = False
 
-        self.write_setting(setting, buffer)
+        self.write_setting(setting, set_value)
 
     def ensure_completeness(self) -> dict:
         """Loads the configuration from the file specified during class initialization and ensures
@@ -211,9 +217,11 @@ class Configurator:
 
         return self.configuration
 
-    def info(self):
+    def info(self) -> str:
         """Returns a string presenting the current configuration in a human-readable form."""
-        if self.required_settings is not None:
+        if self.required_settings is None:
+            return ''
+        else:
             info = ''
             for setting in self.required_settings:
                 # Handle the unit
@@ -234,60 +242,148 @@ class Configurator:
             info += line
 
             return info
-        else:
-            return None
 
-    class SettingTemplate:
-        """A bot setting template."""
-        __slots__ = 'name', 'description', 'input_instruction', 'default_value', 'unit'
+    class Setting:
+        """A setting used for configuration."""
+        __slots__ = '_name', '_description', '_input_instruction', '_unit', '_value_type', '_default_value', '_value'
 
         def __init__(
-                self, name: str, description: str, input_instruction: str, default_value=None,
-                unit: Union[tuple, str] = None
+                self, name: str, *, description: str, input_instruction: str, unit: Union[tuple, str] = None,
+                value_type: str = None, default_value=None, value=None
         ):
-            self.name = name
-            self.input_instruction = input_instruction
-            self.description = description
-            self.default_value = default_value
-            self.unit = unit
+            self._name = str(name)
+            self._input_instruction = str(input_instruction)
+            self._description = str(description)
+            self._value_type = value_type
+            self._default_value = None if default_value is None else self._convert_to_value_type(default_value)
+            if unit is None:
+                self._unit = None
+            else:
+                self._unit = tuple(map(str, unit)) if isinstance(unit, (list, tuple)) else str(unit)
+            self._value = self._convert_to_value_type(value)
 
-        def __str__(self):
-            return self.description
+        def __repr__(self) -> str:
+            return f'Setting(\'{self._name}\')'
+
+        def __str__(self) -> str:
+            return self._description
+
+        def _convert_to_value_type(self, value):
+            if value is not None:
+                if self._value_type == 'str':
+                    return str(value)
+                elif self._value_type == 'int':
+                    return int(value)
+                elif self._value_type == 'float':
+                    return float(value)
+                else:
+                    return value
+            else:
+                return None
+
+        def as_dict(self) -> str:
+            return {
+                'name': self._name,
+                'description': self._description,
+                'input_instruction': self._input_instruction,
+                'unit': self._unit,
+                'value_type': self._value_type,
+                'default_value': self._default_value,
+                'value': self._value
+            }
+
+        @property
+        def name(self) -> str:
+            return self._name
+
+        @property
+        def description(self) -> str:
+            return self._description
+
+        @property
+        def input_instruction(self) -> str:
+            return self._input_instruction
+
+        @property
+        def default_value(self):
+            return self._default_value
+
+        @property
+        def unit(self) -> Union[tuple, str]:
+            return self._unit
+
+        @property
+        def value(self):
+            return self._value
+
+        @property
+        def input_instruction_with_default_value(self) -> str:
+            if self.default_value is None:
+                return self.input_instruction
+            else:
+                return f'{self.input_instruction} (domyślnie {self.default_value})'
+
+        @property
+        def value_with_unit(self) -> str:
+            if self._value is None:
+                return 'brak'
+            else:
+                if isinstance(self._unit, (list, tuple)):
+                    if self._value_type in ('int', 'float') and abs(self._value) == 1:
+                        return f'{self._value} {self._unit[0]}'
+                    else:
+                        return f'{self._value} {self._unit[1]}'
+                else:
+                    return f'{self.input_instruction} {self._unit})'
+
+        def set_value(self, value=None):
+            if value is None:
+                self._value = self._default_value
+            else:
+                self._value = self._convert_to_value_type(value)
+
+            return self._value
 
 
 class Somsiad:
+    color = 0x7289da
+    user_agent = f'SomsiadBot/{__version__}'
+
+    bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+    storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
+    conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
+    conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
+
+    logger = None
+    configurator = None
+    client = None
+    user_converter = None
+    member_converter = None
+
     message_autodestruction_time_in_seconds = 5
     message_autodestruction_notice = (
         'Ta wiadomość ulegnie autodestrukcji w ciągu '
         f'{TextFormatter.noun_variant(message_autodestruction_time_in_seconds, "sekundy", "sekund")} od wysłania.'
     )
-    color = 0x7289da
-    user_agent = f'SomsiadBot/{__version__}'
-    bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
-    conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
-    conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
-    logger = None
-    user_converter = None
-    member_converter = None
-    configurator = None
-    client = None
 
-    _ESSENTIAL_REQUIRED_SETTINGS = (
-        Configurator.SettingTemplate(
-            'discord_token', 'Token bota', 'Wprowadź discordowy token bota'
+    required_settings = [
+        Configurator.Setting(
+            'discord_token', description='Token bota', input_instruction='Wprowadź discordowy token bota',
+            value_type='str'
         ),
-        Configurator.SettingTemplate(
-            'command_prefix', 'Prefiks komend', 'Wprowadź prefiks komend (domyślnie !)', '!'
+        Configurator.Setting(
+            'command_prefix', description='Prefiks komend', input_instruction='Wprowadź prefiks komend',
+            value_type='str', default_value='!'
         ),
-        Configurator.SettingTemplate(
-            'command_cooldown_per_user_in_seconds', 'Cooldown wywołania komendy przez użytkownika',
-            'Wprowadź cooldown wywołania komendy przez użytkownika (w sekundach, domyślnie 1)', 1, ('sekunda', 'sekund')
+        Configurator.Setting(
+            'command_cooldown_per_user_in_seconds', description='Cooldown wywołania komendy przez użytkownika',
+            input_instruction='Wprowadź cooldown wywołania komendy przez użytkownika w sekundach',
+            unit=('sekunda', 'sekund'), value_type='float', default_value=1.0
         )
-    )
+    ]
 
-    def __init__(self, additional_required_settings):
-        self.logger = logging.getLogger()
+    def __init__(self, additional_required_settings: Union[list, tuple] = None):
+        self.logger = logging.getLogger('Somsiad')
         logging.basicConfig(
             filename=os.path.join(self.bot_dir_path, 'somsiad.log'),
             level=logging.INFO,
@@ -297,8 +393,8 @@ class Somsiad:
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.conf_dir_path):
             os.makedirs(self.conf_dir_path)
-        combined_required_settings = self._ESSENTIAL_REQUIRED_SETTINGS + additional_required_settings
-        self.configurator = Configurator(self.conf_file_path, combined_required_settings)
+        self.required_settings.extend(additional_required_settings)
+        self.configurator = Configurator(self.conf_file_path, self.required_settings)
         self.client = Bot(
             description='Zawsze pomocny Somsiad',
             command_prefix=self.conf['command_prefix'],
@@ -360,40 +456,48 @@ class Somsiad:
 
 # Plugin settings
 ADDITIONAL_REQUIRED_SETTINGS = (
-    Configurator.SettingTemplate(
-        'google_key', 'Klucz API Google', 'Wprowadź klucz API Google'
+    Configurator.Setting(
+        'google_key', description='Klucz API Google', input_instruction='Wprowadź klucz API Google', value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'google_custom_search_engine_id', 'Identyfikator CSE Google', 'Wprowadź identyfikator CSE Google'
+    Configurator.Setting(
+        'google_custom_search_engine_id', description='Identyfikator CSE Google',
+        input_instruction='Wprowadź identyfikator CSE Google', value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'goodreads_key', 'Klucz API Goodreads', 'Wprowadź klucz API Goodreads'
+    Configurator.Setting(
+        'goodreads_key', description='Klucz API Goodreads', input_instruction='Wprowadź klucz API Goodreads',
+        value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'giphy_key', 'Klucz API Giphy', 'Wprowadź klucz API Giphy'
+    Configurator.Setting(
+        'giphy_key', description='Klucz API Giphy', input_instruction='Wprowadź klucz API Giphy', value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'omdb_key', 'Klucz API OMDb', 'Wprowadź klucz API OMDb'
+    Configurator.Setting(
+        'omdb_key', description='Klucz API OMDb', input_instruction='Wprowadź klucz API OMDb', value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'reddit_id', 'ID aplikacji redditowej', 'Wprowadź ID aplikacji redditowej'
+    Configurator.Setting(
+        'reddit_id', description='ID aplikacji redditowej', input_instruction='Wprowadź ID aplikacji redditowej',
+        value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'reddit_secret', 'Szyfr aplikacji redditowej', 'Wprowadź szyfr aplikacji redditowej'
+    Configurator.Setting(
+        'reddit_secret', description='Szyfr aplikacji redditowej',
+        input_instruction='Wprowadź szyfr aplikacji redditowej', value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'reddit_username', 'Redditowa nazwa użytkownika', 'Wprowadź redditową nazwę użytkownika'
+    Configurator.Setting(
+        'reddit_username', description='Redditowa nazwa użytkownika',
+        input_instruction='Wprowadź redditową nazwę użytkownika', value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'reddit_password', 'Hasło do konta na Reddicie', 'Wprowadź hasło do konta na Reddicie', unit='password'
+    Configurator.Setting(
+        'reddit_password', description='Hasło do konta na Reddicie',
+        input_instruction='Wprowadź hasło do konta na Reddicie', value_type='str'
     ),
-    Configurator.SettingTemplate(
-        'reddit_account_min_age_in_days', 'Minimalny wiek weryfikowanego konta na Reddicie',
-        'Wprowadź minimalny wiek weryfikowanego konta na Reddicie (w dniach, domyślnie 14)', 14, ('dzień', 'dni')
+    Configurator.Setting(
+        'reddit_account_min_age_in_days', description='Minimalny wiek weryfikowanego konta na Reddicie',
+        input_instruction='Wprowadź minimalny wiek weryfikowanego konta na Reddicie w dniach',
+        unit=('dzień', 'dni'), value_type='int', default_value=14
     ),
-    Configurator.SettingTemplate(
-        'reddit_account_min_karma', 'Minimalna karma weryfikowanego konta na Reddicie',
-        'Wprowadź minimalną karmę weryfikowanego konta na Reddicie (domyślnie 0)', 0
+    Configurator.Setting(
+        'reddit_account_min_karma', description='Minimalna karma weryfikowanego konta na Reddicie',
+        input_instruction='Wprowadź minimalną karmę weryfikowanego konta na Reddicie', value_type='int',
+        default_value=0
     )
 )
 
