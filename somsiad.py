@@ -435,7 +435,7 @@ class Somsiad:
         list_of_servers = []
 
         for server in servers:
-            if server is not None:
+            if server.me is not None:
                 if len(server.name) > longest_server_name_length:
                     longest_server_name_length = len(server.name)
                 days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
@@ -443,7 +443,7 @@ class Somsiad:
                     longest_days_since_joining_info_length = len(days_since_joining_info)
 
         for server in servers:
-            if server is not None:
+            if server.me is not None:
                 days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
                 list_of_servers.append(
                     f'{server.name.ljust(longest_server_name_length)} - '
