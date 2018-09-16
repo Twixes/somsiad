@@ -13,9 +13,11 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import locale
 import somsiad
 import server_settings
 from plugins import *
 
 if __name__ == '__main__':
+    locale.setlocale(locale.LC_ALL, 'pl_PL')
     somsiad.somsiad.run()
