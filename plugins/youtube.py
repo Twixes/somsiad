@@ -44,7 +44,7 @@ class YouTube:
 youtube = YouTube(somsiad.conf['google_key'])
 
 
-@somsiad.client.command(aliases=['youtube', 'yt', 'tuba'])
+@somsiad.client.command(aliases=['youtube', 'yt', 'tuba', 'alexa'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -55,7 +55,7 @@ async def youtube_search(ctx, *args):
         await ctx.send(f'{ctx.author.mention}\nhttps://www.youtube.com/')
 
     else:
-        query = ' '.join(args)
+        query = ' '.join(args[1:]) if ctx.invoked_with == 'alexa' and args[0] == 'play' else ' '.join(args)
 
         result = youtube.search(query)
 
