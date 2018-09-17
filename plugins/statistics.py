@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import io
-import datetime
+import datetime as dt
 from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -61,20 +61,20 @@ class Report:
         elif isinstance(subject, discord.Member):
             self.subject_type = 'member'
 
-    def _prepare_messages_over_date(self, start_utc_datetime: datetime.datetime):
+    def _prepare_messages_over_date(self, start_utc_datetime: dt.datetime):
         """Updates the dictionary of messages over date."""
-        subject_creation_date = start_utc_datetime.replace(tzinfo=datetime.timezone.utc).astimezone().date()
-        subject_existence_day_count = (datetime.date.today() - subject_creation_date).days + 1
+        subject_creation_date = start_utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone().date()
+        subject_existence_day_count = (dt.date.today() - subject_creation_date).days + 1
         subject_existence_days = [
             date for date in (
-                subject_creation_date + datetime.timedelta(n) for n in range(subject_existence_day_count)
+                subject_creation_date + dt.timedelta(n) for n in range(subject_existence_day_count)
             )
         ]
         for date in subject_existence_days:
             self.messages_over_date[date.isoformat()] = 0
 
     def _update_message_stats(
-            self, message_sent_date: datetime.datetime, message_word_count: int, message_character_count: int
+            self, message_sent_date: dt.datetime, message_word_count: int, message_character_count: int
     ):
         """Updates message statistics."""
         self.total_message_count += 1
@@ -180,7 +180,7 @@ class Report:
         message_limit_left = self.MESSAGE_LIMIT
         for channel in self.subject.text_channels:
             async for message in channel.history(limit=message_limit_left):
-                message_sent_date = message.created_at.replace(tzinfo=datetime.timezone.utc).astimezone().date()
+                message_sent_date = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
                 message_word_count = len(message.clean_content.split())
                 message_character_count = len(message.clean_content)
 
@@ -215,7 +215,7 @@ class Report:
         self._prepare_messages_over_date(self.subject.created_at)
 
         async for message in self.subject.history(limit=self.MESSAGE_LIMIT):
-            message_sent_date = message.created_at.replace(tzinfo=datetime.timezone.utc).astimezone().date()
+            message_sent_date = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
             message_word_count = len(message.clean_content.split())
             message_character_count = len(message.clean_content)
             self._update_message_stats(message_sent_date, message_word_count, message_character_count)
@@ -245,7 +245,7 @@ class Report:
         message_limit_left = self.MESSAGE_LIMIT / 2
         for channel in self.subject.guild.text_channels:
             async for message in channel.history(limit=message_limit_left).filter(self._is_message_by_subject):
-                message_sent_date = message.created_at.replace(tzinfo=datetime.timezone.utc).astimezone().date()
+                message_sent_date = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
                 message_word_count = len(message.clean_content.split())
                 message_character_count = len(message.clean_content)
                 self._update_message_stats(message_sent_date, message_word_count, message_character_count)
@@ -283,7 +283,7 @@ class Report:
             title = f'Aktywność użytkownika {self.subject}'
 
         # Convert date strings provided to datetime objects
-        dates = [datetime.datetime.fromisoformat(date) for date in self.messages_over_date]
+        dates = [dt.datetime.fromisoformat(date) for date in self.messages_over_date]
         messages = self.messages_over_date.values()
 
         # Initialize the chart
