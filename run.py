@@ -19,5 +19,15 @@ import server_settings
 from plugins import *
 
 if __name__ == '__main__':
-    locale.setlocale(locale.LC_ALL, 'pl_PL')
+    try:
+        locale.setlocale(locale.LC_ALL, 'pl_PL.utf8')
+    except locale.Error:
+        try:
+            locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
+        except locale.Error:
+            try:
+                locale.setlocale(locale.LC_ALL, 'pl_PL')
+            except locale.Error:
+                raise locale.Error
+
     somsiad.somsiad.run()
