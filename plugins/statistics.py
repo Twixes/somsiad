@@ -32,16 +32,9 @@ class Report:
     FOREGROUND_COLOR = '#ffffff'
 
     plt.style.use('dark_background')
-    plt.rcParams['font.size'] = 11
-    plt.rcParams['font.weight'] = 'bold'
-    plt.rcParams['axes.facecolor'] = FOREGROUND_COLOR
-    plt.rcParams['axes.linewidth'] = 2
-    plt.rcParams['xtick.major.width'] = 2
-    plt.rcParams['xtick.minor.width'] = 1
-    plt.rcParams['ytick.major.width'] = 2
-    plt.rcParams['ytick.minor.width'] = 1
 
     subject_type = None
+    datetime = None
     total_message_count = 0
     total_word_count = 0
     total_character_count = 0
@@ -60,6 +53,7 @@ class Report:
             self.subject_type = 'channel'
         elif isinstance(subject, discord.Member):
             self.subject_type = 'member'
+        self.datetime = dt.datetime.now()
 
     def _prepare_messages_over_date(self, start_utc_datetime: dt.datetime):
         """Updates the dictionary of messages over date."""
@@ -301,8 +295,8 @@ class Report:
         # Set proper ticker intervals on the X axis accounting for the range of time
         start_date = dates[0]
         end_date = dates[-1]
-        year_difference = int(end_date.strftime('%Y')) - int(start_date.strftime('%Y'))
-        month_difference = 12 * year_difference + int(end_date.strftime('%m')) - int(start_date.strftime('%m'))
+        year_difference = end_date.year - start_date.year
+        month_difference = 12 * year_difference + end_date.month - start_date.month
         day_difference = (end_date - start_date).days
 
         year_locator = mdates.YearLocator()
@@ -332,20 +326,32 @@ class Report:
 
         # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
+        ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
         ax.set_title(title, color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold', y=1.04)
         ax.set_xlabel('Data', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
         ax.set_ylabel('Liczba wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
         fig.autofmt_xdate()
         chart_bytes = io.BytesIO()
-        fig.savefig(chart_bytes, format='png', facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
+        fig.savefig(chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
         plt.close(fig)
         chart_bytes.seek(0)
+        if self.subject_type == 'server':
+            filename = (
+                f'{self.subject_type}-{str(self.subject).replace(" ", "-").replace(":", ".")}-'
+                f'{self.datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
+            )
+        else:
+            filename = (
+                f'server-{str(self.subject.guild).replace(" ", "-").replace(":", ".")}-{self.subject_type}-'
+                f'{str(self.subject).replace(" ", "-").replace(":", ".")}-'
+                f'{self.datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
+            )
         self.activity_chart_file = discord.File(
             fp=chart_bytes,
-            filename='activity.png'
+            filename=filename
         )
-        self.embed.set_image(url='attachment://activity.png')
+        self.embed.set_image(url=f'attachment://{filename}')
         return self.activity_chart_file
 
 
