@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import os
 import sys
 import platform
@@ -140,38 +141,40 @@ class Configurator:
 
         self.ensure_completeness()
 
-    def write_setting(self, setting, value):
-        """Writes a key-value pair to the configuration file."""
-        self.configuration[setting.name] = value
-        with open(self.configuration_file_path, 'a') as configuration_file:
-            configuration_file.write(f'{setting.name}={self.configuration[setting.name]}\n')
+    def load(self) -> dict:
+        """Loads the configuration from the file specified during class initialization."""
+        # LEGACY; FOR REMOVAL
+        with open(os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf'), 'r') as configuration_file:
+            for line in configuration_file.readlines():
+                if not line.strip().startswith('#'):
+                    line = line.strip().split('=', 1)
+                    self.configuration[line[0].strip()] = line[1]
+
+        # FUTURE; FOR CHANGE
+        if os.path.exists(self.configuration_file_path):
+            with open(self.configuration_file_path, 'r') as configuration_file:
+                self.configuration = json.load(configuration_file)
+        else:
+            with open(self.configuration_file_path, 'w') as configuration_file:
+                json.dump(self.configuration, configuration_file)
+
+        return self.configuration
 
     def input_setting(self, setting, step_number: int = None):
         """Asks the CLI user to input a setting."""
-        was_setting_input = False
+        setting.input(step_number)
+        self.write_setting(setting)
 
-        while not was_setting_input:
-            if step_number is None:
-                input_buffer = input(f'{setting.input_instruction_with_default_value}:\n').strip()
-            else:
-                input_buffer = input(f'{step_number}. {setting.input_instruction_with_default_value}:\n').strip()
+    def write_setting(self, setting):
+        """Writes a key-value pair to the configuration file."""
+        self.configuration[setting.name] = setting.value
 
-            try:
-                if input_buffer == '':
-                    set_value = setting.set_value() # Set the setting's value using its default_value
-                    if set_value is None: # If None was set then there must be no default_value to fall back to
-                        print('Nie podano obowiązkowej wartości!')
-                        was_setting_input = False
-                    else:
-                        was_setting_input = True
-                else:
-                    set_value = setting.set_value(input_buffer)
-                    was_setting_input = True
-            except ValueError:
-                print('Podano wartość nieodpowiedniego typu!')
-                was_setting_input = False
+        # LEGACY; FOR REMOVAL
+        with open(os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf'), 'a') as configuration_file:
+            configuration_file.write(f'{setting.name}={self.configuration[setting.name]}\n')
 
-        self.write_setting(setting, set_value)
+        with open(self.configuration_file_path, 'w') as configuration_file:
+            json.dump(self.configuration, configuration_file)
 
     def ensure_completeness(self) -> dict:
         """Loads the configuration from the file specified during class initialization and ensures
@@ -181,7 +184,8 @@ class Configurator:
         was_configuration_changed = False
         step_number = 1
 
-        if os.path.exists(self.configuration_file_path):
+        # LEGACY; FOR CHANGE
+        if os.path.exists(os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')):
             self.load()
 
         if self.required_settings is not None:
@@ -207,16 +211,6 @@ class Configurator:
 
         return self.configuration
 
-    def load(self) -> dict:
-        """Loads the configuration from the file specified during class initialization."""
-        with open(self.configuration_file_path, 'r') as configuration_file:
-            for line in configuration_file.readlines():
-                if not line.strip().startswith('#'):
-                    line = line.strip().split('=', 1)
-                    self.configuration[line[0].strip()] = line[1]
-
-        return self.configuration
-
     def info(self) -> str:
         """Returns a string presenting the current configuration in a human-readable form."""
         if self.required_settings is None:
@@ -227,8 +221,6 @@ class Configurator:
                 # Handle the unit
                 if setting.unit is None:
                     line = f'{setting}: {self.configuration[setting.name]}'
-                elif setting.unit == 'password':
-                    line = f'{setting}: {"*" * len(self.configuration[setting.name])}'
                 elif isinstance(setting.unit, tuple) and len(setting.unit) == 2:
                     unit_variant = (
                         setting.unit[0] if int(somsiad.conf[setting.name]) == 1 else setting.unit[1]
@@ -268,30 +260,6 @@ class Configurator:
         def __str__(self) -> str:
             return self._description
 
-        def _convert_to_value_type(self, value):
-            if value is not None:
-                if self._value_type == 'str':
-                    return str(value)
-                elif self._value_type == 'int':
-                    return int(value)
-                elif self._value_type == 'float':
-                    return float(value)
-                else:
-                    return value
-            else:
-                return None
-
-        def as_dict(self) -> str:
-            return {
-                'name': self._name,
-                'description': self._description,
-                'input_instruction': self._input_instruction,
-                'unit': self._unit,
-                'value_type': self._value_type,
-                'default_value': self._default_value,
-                'value': self._value
-            }
-
         @property
         def name(self) -> str:
             return self._name
@@ -305,12 +273,16 @@ class Configurator:
             return self._input_instruction
 
         @property
-        def default_value(self):
-            return self._default_value
-
-        @property
         def unit(self) -> Union[tuple, str]:
             return self._unit
+
+        @property
+        def value_type(self):
+            return self._value_type
+
+        @property
+        def default_value(self):
+            return self._default_value
 
         @property
         def value(self):
@@ -336,6 +308,30 @@ class Configurator:
                 else:
                     return f'{self.input_instruction} {self._unit})'
 
+        def as_dict(self) -> str:
+            return {
+                'name': self._name,
+                'description': self._description,
+                'input_instruction': self._input_instruction,
+                'unit': self._unit,
+                'value_type': self._value_type,
+                'default_value': self._default_value,
+                'value': self._value
+            }
+
+        def _convert_to_value_type(self, value):
+            if value is not None:
+                if self._value_type == 'str':
+                    return str(value)
+                elif self._value_type == 'int':
+                    return int(value)
+                elif self._value_type == 'float':
+                    return float(value)
+                else:
+                    return value
+            else:
+                return None
+
         def set_value(self, value=None):
             if value is None:
                 self._value = self._default_value
@@ -343,6 +339,29 @@ class Configurator:
                 self._value = self._convert_to_value_type(value)
 
             return self._value
+
+        def input(self, step_number: int = None):
+            while True:
+                if step_number is None:
+                    input_buffer = input(f'{self.input_instruction_with_default_value}:\n').strip()
+                else:
+                    input_buffer = input(f'{step_number}. {self.input_instruction_with_default_value}:\n').strip()
+
+                if input_buffer == '':
+                    if self._default_value is None:
+                        print('Nie podano obowiązkowej wartości!')
+                        continue
+                    else:
+                        self.set_value()
+                        break
+                else:
+                    try:
+                        self.set_value(input_buffer)
+                        break
+                    except ValueError:
+                        print(f'Podana wartość nie pasuje do typu {self._value_type}!')
+                        continue
+            return self.value
 
 
 class Somsiad:
@@ -352,7 +371,7 @@ class Somsiad:
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
-    conf_file_path = os.path.join(conf_dir_path, 'somsiad.conf')
+    conf_file_path = os.path.join(conf_dir_path, 'somsiad.json')
 
     logger = None
     configurator = None
