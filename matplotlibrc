@@ -14,6 +14,7 @@
 backend: Agg
 font.size: 11
 font.weight: bold
+figure.figsize: 9.6, 7.2
 figure.autolayout: True
 axes.linewidth: 2
 axes.formatter.use_locale: True

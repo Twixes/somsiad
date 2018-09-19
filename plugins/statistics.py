@@ -13,7 +13,7 @@
 
 import io
 import datetime as dt
-from typing import Union
+from typing import Union, List
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
@@ -27,22 +27,23 @@ class Report:
         15 if int(somsiad.conf['command_cooldown_per_user_in_seconds']) < 15
         else somsiad.conf['command_cooldown_per_user_in_seconds']
     )
-    MESSAGE_LIMIT = 50000
     BACKGROUND_COLOR = '#32363c'
     FOREGROUND_COLOR = '#ffffff'
 
-    plt.style.use('dark_background')
-
+    message_limit = 50000
     subject_type = None
     datetime = None
     total_message_count = 0
     total_word_count = 0
     total_character_count = 0
     messages_over_date = {}
+    messages_over_hour = [0 for hour in range(24)]
     active_users = {}
     active_channels = {}
     embed = None
     activity_chart_file = None
+
+    plt.style.use('dark_background')
 
     def __init__(self, requesting_user: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
         self.requesting_user = requesting_user
@@ -68,13 +69,14 @@ class Report:
             self.messages_over_date[date.isoformat()] = 0
 
     def _update_message_stats(
-            self, message_sent_date: dt.datetime, message_word_count: int, message_character_count: int
+            self, message_sent_datetime: dt.datetime, message_word_count: int, message_character_count: int
     ):
         """Updates message statistics."""
         self.total_message_count += 1
         self.total_word_count += message_word_count
         self.total_character_count += message_character_count
-        self.messages_over_date[message_sent_date.isoformat()] += 1
+        self.messages_over_date[message_sent_datetime.date().isoformat()] += 1
+        self.messages_over_hour[message_sent_datetime.hour] += 1
 
     def _update_active_channels(
             self, channel: discord.TextChannel, message_word_count: int, message_character_count: int
@@ -114,7 +116,7 @@ class Report:
         self.embed.add_field(
             name='Wysłanych wiadomości',
             value=(
-                f'{self.total_message_count} (osiągnięto limit)' if self.total_message_count == self.MESSAGE_LIMIT
+                f'{self.total_message_count} (osiągnięto limit)' if self.total_message_count == self.message_limit
                 else self.total_message_count
             )
         )
@@ -170,19 +172,19 @@ class Report:
         """Analyzes the subject as a server."""
         self._prepare_messages_over_date(self.subject.created_at)
 
-        # Ensure that no more than MESSAGE_LIMIT messages will be downloaded by reducing the limit after each channel
-        message_limit_left = self.MESSAGE_LIMIT
+        # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
+        message_limit_left = self.message_limit
         for channel in self.subject.text_channels:
             async for message in channel.history(limit=message_limit_left):
-                message_sent_date = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
+                message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
                 message_word_count = len(message.clean_content.split())
                 message_character_count = len(message.clean_content)
 
-                self._update_message_stats(message_sent_date, message_word_count, message_character_count)
+                self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
                 self._update_active_channels(channel, message_word_count, message_character_count)
                 self._update_active_users(message.author, message_word_count, message_character_count)
 
-            message_limit_left = self.MESSAGE_LIMIT - self.total_message_count
+            message_limit_left = self.message_limit - self.total_message_count
 
         server_creation_datetime_information = TextFormatter.human_readable_time_ago(self.subject.created_at)
 
@@ -208,11 +210,11 @@ class Report:
 
         self._prepare_messages_over_date(self.subject.created_at)
 
-        async for message in self.subject.history(limit=self.MESSAGE_LIMIT):
-            message_sent_date = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
+        async for message in self.subject.history(limit=self.message_limit):
+            message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
             message_word_count = len(message.clean_content.split())
             message_character_count = len(message.clean_content)
-            self._update_message_stats(message_sent_date, message_word_count, message_character_count)
+            self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
             self._update_active_users(message.author, message_word_count, message_character_count)
 
         channel_creation_datetime_information = TextFormatter.human_readable_time_ago(self.subject.created_at)
@@ -228,23 +230,27 @@ class Report:
         self._embed_message_stats()
         self._embed_top_active_users()
 
-    def _is_message_by_subject(self, message: discord.Message) -> bool:
-        """Channel history filter predicate."""
+    async def _is_message_by_subject(self, message: discord.Message) -> bool:
+        """Channel history filter predicate. Used for filtering out messages sent by users that are not our subject."""
         return message.author == self.subject
 
     async def _analyze_member(self):
         """Analyzes the subject as a member."""
         self._prepare_messages_over_date(self.subject.joined_at)
-        # Ensure that no more than MESSAGE_LIMIT messages will be downloaded by reducing the limit after each channel
-        message_limit_left = self.MESSAGE_LIMIT / 2
+
+        # Lower the message limit
+        self.message_limit = 10000;
+
+        # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
+        message_limit_left = self.message_limit
         for channel in self.subject.guild.text_channels:
             async for message in channel.history(limit=message_limit_left).filter(self._is_message_by_subject):
-                message_sent_date = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
+                message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
                 message_word_count = len(message.clean_content.split())
                 message_character_count = len(message.clean_content)
-                self._update_message_stats(message_sent_date, message_word_count, message_character_count)
+                self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
                 self._update_active_channels(message.channel, message_word_count, message_character_count)
-            message_limit_left = self.MESSAGE_LIMIT / 2 - self.total_message_count
+            message_limit_left = self.message_limit - self.total_message_count
 
         member_account_creation_datetime_information = TextFormatter.human_readable_time_ago(self.subject.created_at)
         member_server_joining_datetime_information = TextFormatter.human_readable_time_ago(self.subject.joined_at)
@@ -257,6 +263,94 @@ class Report:
         self.embed.add_field(name='Dołączył do serwera', value=member_server_joining_datetime_information, inline=False)
         self._embed_message_stats()
         self._embed_top_active_channels()
+
+    def _plot_activity_by_hour(self, ax):
+        # Plot the chart
+        ax.bar(
+            [f'{hour}:00' for hour in range(24)],
+            self.messages_over_hour,
+            color=self.BACKGROUND_COLOR,
+            facecolor=self.FOREGROUND_COLOR,
+            width=1
+        )
+
+        # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
+        if max(self.messages_over_hour) >= 10:
+            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
+
+        # Make it look nice
+        ax.set_facecolor(self.BACKGROUND_COLOR)
+        ax.set_xlabel('Godzina', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        ax.set_ylabel(
+            'Liczba wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
+        )
+
+        return ax
+
+    def _plot_activity_by_date(self, ax):
+        # Convert date strings provided to datetime objects
+        dates = [dt.datetime.fromisoformat(date) for date in self.messages_over_date]
+        messages_over_date = self.messages_over_date.values()
+
+        # Plot the chart
+        ax.bar(
+            dates,
+            messages_over_date,
+            color=self.BACKGROUND_COLOR,
+            facecolor=self.FOREGROUND_COLOR,
+            width=1
+        )
+
+        # Set proper ticker intervals on the X axis accounting for the range of time
+        start_date = dates[0]
+        end_date = dates[-1]
+        year_difference = end_date.year - start_date.year
+        month_difference = 12 * year_difference + end_date.month - start_date.month
+        day_difference = (end_date - start_date).days
+
+        year_locator = mdates.YearLocator()
+        month_locator = mdates.MonthLocator()
+        quarter_locator = mdates.MonthLocator(bymonth=[1,4,7,10])
+        week_locator = mdates.WeekdayLocator(byweekday=mdates.MO)
+        day_locator = mdates.DayLocator()
+
+        year_formatter = mdates.DateFormatter('%Y')
+        month_formatter = mdates.DateFormatter('%b %Y')
+        day_formatter = mdates.DateFormatter('%d %b %Y')
+
+        if year_difference > 1:
+            ax.xaxis.set_major_locator(year_locator)
+            ax.xaxis.set_major_formatter(year_formatter)
+            ax.xaxis.set_minor_locator(quarter_locator)
+        if month_difference > 12:
+            ax.xaxis.set_major_locator(quarter_locator)
+            ax.xaxis.set_major_formatter(month_formatter)
+            ax.xaxis.set_minor_locator(month_locator)
+        elif day_difference > 42:
+            ax.xaxis.set_major_locator(month_locator)
+            ax.xaxis.set_major_formatter(month_formatter)
+        elif day_difference > 21:
+            ax.xaxis.set_major_locator(week_locator)
+            ax.xaxis.set_major_formatter(day_formatter)
+            ax.xaxis.set_minor_locator(day_locator)
+        else:
+            ax.xaxis.set_major_locator(day_locator)
+            ax.xaxis.set_major_formatter(day_formatter)
+
+        # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
+        if max(messages_over_date) >= 10:
+            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
+
+        # Make it look nice
+        ax.set_facecolor(self.BACKGROUND_COLOR)
+        ax.set_xlabel('Data', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        ax.set_ylabel(
+            'Liczba wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
+        )
+
+        return ax
 
     async def analyze_subject(self):
         """Selects the right type of analysis depending on the subject."""
@@ -276,82 +370,32 @@ class Report:
         elif self.subject_type == 'member':
             title = f'Aktywność użytkownika {self.subject}'
 
-        # Convert date strings provided to datetime objects
-        dates = [dt.datetime.fromisoformat(date) for date in self.messages_over_date]
-        messages = self.messages_over_date.values()
-
         # Initialize the chart
-        fig, ax = plt.subplots()
+        fig, [ax_by_hour, ax_by_date] = plt.subplots(2)
+
+        # Make it look nice
         fig.set_facecolor(self.BACKGROUND_COLOR)
-        ax.set_facecolor(self.BACKGROUND_COLOR)
-        ax.bar(
-            dates,
-            messages,
-            color=self.BACKGROUND_COLOR,
-            facecolor=self.FOREGROUND_COLOR,
-            width=1
-        )
+        ax_by_hour.set_title(title, color=self.FOREGROUND_COLOR, fontsize=13, fontweight='bold', y=1.04)
 
-        # Set proper ticker intervals on the X axis accounting for the range of time
-        start_date = dates[0]
-        end_date = dates[-1]
-        year_difference = end_date.year - start_date.year
-        month_difference = 12 * year_difference + end_date.month - start_date.month
-        day_difference = (end_date - start_date).days
-
-        year_locator = mdates.YearLocator()
-        month_locator = mdates.MonthLocator()
-        quarter_locator = mdates.MonthLocator(bymonth=[1,4,7,10])
-        week_locator = mdates.WeekdayLocator(byweekday=mdates.MO)
-        day_locator = mdates.DayLocator()
-
-        if year_difference > 1:
-            ax.xaxis.set_major_locator(year_locator)
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-            ax.xaxis.set_minor_locator(quarter_locator)
-        if month_difference > 12:
-            ax.xaxis.set_major_locator(quarter_locator)
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
-            ax.xaxis.set_minor_locator(month_locator)
-        elif day_difference > 42:
-            ax.xaxis.set_major_locator(month_locator)
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
-        elif day_difference > 7:
-            ax.xaxis.set_major_locator(week_locator)
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b %Y'))
-            ax.xaxis.set_minor_locator(day_locator)
-        else:
-            ax.xaxis.set_major_locator(day_locator)
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %b %Y'))
-
-        # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
-        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
-        ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
-
-        ax.set_title(title, color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold', y=1.04)
-        ax.set_xlabel('Data', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
-        ax.set_ylabel('Liczba wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        # Plot
+        ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
+        ax_by_date = self._plot_activity_by_date(ax_by_date)
         fig.autofmt_xdate()
+
+        # Save as bytes
         chart_bytes = io.BytesIO()
         fig.savefig(chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
         plt.close(fig)
         chart_bytes.seek(0)
-        if self.subject_type == 'server':
-            filename = (
-                f'{self.subject_type}-{str(self.subject).replace(" ", "-").replace(":", ".")}-'
-                f'{self.datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
-            )
-        else:
-            filename = (
-                f'server-{str(self.subject.guild).replace(" ", "-").replace(":", ".")}-{self.subject_type}-'
-                f'{str(self.subject).replace(" ", "-").replace(":", ".")}-'
-                f'{self.datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
-            )
+
+        # Create a Discord file and embed it
+        filename = f'activity-{self.datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
         self.activity_chart_file = discord.File(
             fp=chart_bytes,
             filename=filename
         )
         self.embed.set_image(url=f'attachment://{filename}')
+
         return self.activity_chart_file
 
 
