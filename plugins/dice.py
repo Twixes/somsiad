@@ -68,7 +68,7 @@ async def roll_dice(ctx, *args):
         else:
             # Convert results to strings and concatenate them
             results_string = ', '.join(list(map(str, results[:-1])))
-            results_string += f' i {results[-1]}'
+            results_string = f'{results_string} i {results[-1]}'
             number_of_sides_description = (
                 'sześciennymi' if number_of_sides_on_a_die == 6 else f'{number_of_sides_on_a_die}-ściennymi'
             )

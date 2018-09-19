@@ -115,7 +115,7 @@ async def omdb(ctx, *args):
                                     msg = res['imdbRating'] + '/10'
                                     if 'imdbVotes' in res:
                                         if res['imdbVotes'] != 'N/A':
-                                            msg += f' ({res["imdbVotes"]} głosów)'
+                                            msg = f'{msg} ({res["imdbVotes"]} głosów)'
                                     embed.add_field(name='IMDb', value=msg)
 
                             OMDb.smart_add_info_field_to_embed(embed, 'Liczba sezonów', res, 'totalSeasons')

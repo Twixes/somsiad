@@ -13,7 +13,7 @@
 
 import os.path
 import time
-import datetime
+import datetime as dt
 import secrets
 import asyncio
 import threading
@@ -70,7 +70,7 @@ class RedditVerifier:
 
     @staticmethod
     def today_date():
-        return str(datetime.date.today())
+        return str(dt.date.today())
 
     @staticmethod
     def is_reddit_user_trustworthy(reddit_user: str):
@@ -86,9 +86,10 @@ class RedditVerifier:
         """Assembles a unique random phrase from given phrase parts."""
         is_phrase_unique = False
         while not is_phrase_unique:
-            phrase = ''
+            chosen_parts = []
             for _, category_entry in self._phrase_parts.items():
-                phrase += secrets.choice(category_entry).capitalize()
+                chosen_parts.append(secrets.choice(category_entry).capitalize())
+            phrase = ''.join(chosen_parts)
             if self.phrase_info(phrase)['discord_user_id'] is None:
                 is_phrase_unique = True
         return phrase
@@ -359,7 +360,7 @@ class RedditVerifier:
                             title=f':white_check_mark: Pomyślna weryfikacja użytkownika na Reddicie',
                             description=f'Użytkownik {discord_user.mention} został zweryfikowany jako '
                             f'/u/{reddit_username}.',
-                            timestamp=datetime.datetime.now(),
+                            timestamp=dt.datetime.now(),
                             color=somsiad.color
                         )
                     else:
@@ -367,7 +368,7 @@ class RedditVerifier:
                             title=f':red_circle: Nieudana próba weryfikacji użytkownika na Reddicie',
                             description=f'Użytkownik {discord_user.mention} próbował zweryfikować się jako '
                             f'/u/{reddit_username}, ale {log_reason}.',
-                            timestamp=datetime.datetime.now(),
+                            timestamp=dt.datetime.now(),
                             color=somsiad.color
                         )
 

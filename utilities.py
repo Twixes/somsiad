@@ -25,12 +25,12 @@ class TextFormatter:
         cut_text = ''
         for word in words:
             if len(cut_text) + len(word) <= limit:
-                cut_text += word + ' '
+                cut_text = f'{cut_text} {word}'
 
         if cut_text[-2:] == '. ':
-            cut_text = cut_text.rstrip()
+            cut_text = cut_text
         else:
-            cut_text = cut_text.rstrip().rstrip(',') + '...'
+            cut_text = cut_text.rstrip(',') + '...'
 
         return cut_text
 
