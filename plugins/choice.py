@@ -22,20 +22,23 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r'
     choice_answers = json.load(f)
 
 
-@somsiad.client.command(aliases=['choice', 'wybierz'])
+@somsiad.client.command(aliases=['choice', 'choose', 'wybierz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def random_choice(ctx, *args):
-    """Returns an 8-Ball answer."""
-    options = ' '.join(args).split(',')
-    if len(options) <= -1:
+    """Randomly chooses one of provided options."""
+    options = [
+        option.strip() for option in ' '.join(args).replace(' czy ', ',').replace(' or ', ',').split(',')
+        if option.strip() != ''
+    ]
+    if len(options) <= 1:
         await ctx.send(
             f'{ctx.author.mention}\nChętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych '
-            'przecinkami opcji!'
+            'przecinkami lub "czy" opcji!'
         )
     else:
-        option = random.choice(options)
-        answer = random.choice(choice_answers).replace('{}', f'"{option.strip()}"')
-        await ctx.send(f'{ctx.author.mention}\n:point_right: {answer}')
+        chosen_option = random.choice(options)
+        chosen_answer = random.choice(choice_answers).replace('{}', f'"{chosen_option}"')
+        await ctx.send(f'{ctx.author.mention}\n:point_right: {chosen_answer}')
