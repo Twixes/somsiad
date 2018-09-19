@@ -21,7 +21,8 @@ import json
 import sqlite3
 import discord
 import praw
-from somsiad import TextFormatter, somsiad
+from somsiad import somsiad
+from utilities import TextFormatter
 from server_settings import ServerSettingsManager, server_settings_manager
 
 

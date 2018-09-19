@@ -12,7 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from somsiad import TextFormatter, somsiad
+from somsiad import somsiad
+from utilities import TextFormatter
 
 
 @somsiad.client.command(aliases=['wyczyść', 'wyczysc'])

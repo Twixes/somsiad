@@ -13,12 +13,13 @@
 
 import io
 import datetime as dt
-from typing import Union, List
+from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 import discord
-from somsiad import TextFormatter, somsiad
+from somsiad import somsiad
+from utilities import TextFormatter
 
 
 class Report:

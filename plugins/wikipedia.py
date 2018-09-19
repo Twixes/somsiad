@@ -13,7 +13,8 @@
 
 import aiohttp
 import discord
-from somsiad import TextFormatter, somsiad
+from somsiad import somsiad
+from utilities import TextFormatter
 
 class Wikipedia:
     """Handles Wikipedia search."""
