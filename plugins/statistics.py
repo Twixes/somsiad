@@ -290,7 +290,7 @@ class Report:
 
     def _plot_activity_by_date(self, ax):
         # Convert date strings provided to datetime objects
-        dates = [dt.datetime.fromisoformat(date) for date in self.messages_over_date]
+        dates = [dt.datetime.strptime(date, '%Y-%m-%d') for date in self.messages_over_date]
         messages_over_date = self.messages_over_date.values()
 
         # Plot the chart
