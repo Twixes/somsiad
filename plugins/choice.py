@@ -29,14 +29,18 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r'
 @discord.ext.commands.guild_only()
 async def random_choice(ctx, *args):
     """Randomly chooses one of provided options."""
-    options = [
-        option.strip() for option in ' '.join(args).replace(' czy ', ',').replace(' or ', ',').split(',')
-        if option.strip() != ''
-    ]
+    options_words = []
+    for arg in args:
+        if arg.lower() in ('or', 'czy', 'albo', 'lub'):
+            options_words.append(',')
+        else:
+            options_words.append(arg)
+
+    options = [option.strip() for option in ' '.join(options_words).split(',') if option.strip() != '']
     if len(options) <= 1:
         await ctx.send(
             f'{ctx.author.mention}\nChętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych '
-            'przecinkami lub "czy" opcji!'
+            'przecinkami, "lub", "albo" lub "czy" opcji!'
         )
     else:
         chosen_option = random.choice(options)
