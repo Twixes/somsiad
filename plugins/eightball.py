@@ -21,7 +21,7 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.txt')) a
     eightball_answers = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
 
 
-@somsiad.client.command(aliases=['8ball', '8-ball', '8', 'czy'])
+@somsiad.client.command(aliases=['8ball', '8-ball', '8'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
