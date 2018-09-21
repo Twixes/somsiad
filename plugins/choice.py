@@ -37,12 +37,12 @@ async def random_choice(ctx, *args):
             options_words.append(arg)
 
     options = [option.strip() for option in ' '.join(options_words).split(',') if option.strip() != '']
-    if len(options) <= 1:
+    if len(options) >= 2:
+        chosen_option = random.choice(options)
+        answer = random.choice(choice_answers).format(chosen_option)
+        await ctx.send(f'{ctx.author.mention}\n:point_right: {answer}')
+    else:
         await ctx.send(
             f'{ctx.author.mention}\nChętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych '
             'przecinkami, "lub", "albo" lub "czy" opcji!'
         )
-    else:
-        chosen_option = random.choice(options)
-        chosen_answer = random.choice(choice_answers).replace('{}', f'"{chosen_option}"')
-        await ctx.send(f'{ctx.author.mention}\n:point_right: {chosen_answer}')
