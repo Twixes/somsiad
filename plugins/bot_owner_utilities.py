@@ -39,20 +39,36 @@ async def enter(ctx, *args):
         await ctx.send(f'{ctx.author.mention}\n{invite.url}')
 
 
-@somsiad.client.command(aliases=['ogłośglobalnie', 'oglosglobalnie'])
+@somsiad.client.group(aliases=['ogłoś', 'oglos'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.is_owner()
+async def announce(ctx):
+    pass
+
+@announce.command(aliases=['globalnie'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
 async def announce_globally(ctx, *args):
     """Makes an announcement on all servers smaller than 10000 members not containing "bot" in their name."""
-    announcement = ' '.join(args)
+    announcement = ' '.join(args).replace('\\n','\n').split(';')
+    if announcement[0].startswith('!'):
+        description = announcement[0].lstrip('!').strip()
+        announcement = announcement[1:]
+    else:
+        description = None
 
     embed = discord.Embed(
         title='Ogłoszenie somsiedzkie',
-        description=announcement,
+        description=description,
         color=somsiad.color
     )
+
+    for n in range(0, len(announcement) - 1, 2):
+        embed.add_field(name=announcement[n].strip(), value=announcement[n+1].strip(), inline=False)
 
     for server in ctx.bot.guilds:
         if 'bot' not in server.name and server.member_count < 10000:
@@ -65,21 +81,29 @@ async def announce_globally(ctx, *args):
                         break
 
 
-@somsiad.client.command(aliases=['ogłoślokalnie', 'ogloslokalnie'])
+@announce.command(aliases=['lokalnie'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 @discord.ext.commands.is_owner()
+@discord.ext.commands.guild_only()
 async def announce_locally(ctx, *args):
     """Makes an announcement only on the server where the command was invoked."""
-    announcement = ' '.join(args)
+    announcement = ' '.join(args).replace('\\n','\n').split(';')
+    if announcement[0].startswith('!'):
+        description = announcement[0].lstrip('!').strip()
+        announcement = announcement[1:]
+    else:
+        description = None
 
     embed = discord.Embed(
         title='Ogłoszenie somsiedzkie',
-        description=announcement,
+        description=description,
         color=somsiad.color
     )
+
+    for n in range(0, len(announcement) - 1, 2):
+        embed.add_field(name=announcement[n].strip(), value=announcement[n+1].strip(), inline=False)
 
     if ctx.guild.system_channel is not None and ctx.guild.system_channel.permissions_for(ctx.me).send_messages:
         await ctx.guild.system_channel.send(embed=embed)
