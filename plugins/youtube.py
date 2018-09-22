@@ -44,24 +44,38 @@ class YouTube:
 youtube = YouTube(somsiad.conf['google_key'])
 
 
-@somsiad.client.command(aliases=['youtube', 'yt', 'tuba', 'alexa'])
+@somsiad.client.command(aliases=['youtube', 'yt', 'tuba'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def youtube_search(ctx, *args):
     """Returns first matching result from YouTube."""
-    if not args:
-        await ctx.send(f'{ctx.author.mention}\nhttps://www.youtube.com/')
+    query = ' '.join(args)
 
+    result = youtube.search(query)
+
+    if result:
+        video_id = result[0]['id']['videoId']
+        video_url = f'https://www.youtube.com/watch?v={video_id}'
+        await ctx.send(f'{ctx.author.mention}\n{video_url}')
     else:
-        query = ' '.join(args[1:]) if ctx.invoked_with == 'alexa' and args[0] == 'play' else ' '.join(args)
+        await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
 
-        result = youtube.search(query)
 
-        if result:
-            video_id = result[0]['id']['videoId']
-            video_url = f'https://www.youtube.com/watch?v={video_id}'
-            await ctx.send(f'{ctx.author.mention}\n{video_url}')
-        else:
-            await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
+@somsiad.client.group(invoke_without_command=True)
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def alexa(ctx):
+    pass
+
+
+@alexa.command(aliases=['play'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def alexa_play(ctx):
+    await youtube_search.invoke(ctx)
