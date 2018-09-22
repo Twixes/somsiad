@@ -43,6 +43,16 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}wybierz <opcje>',
+        value='Wybiera opcję z oddzielonych przecinkami, "lub", "albo" lub "czy" <opcji>.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}rzuć (rzuc) <?liczba kości> <?liczba ścianek kości>',
+        value='Rzuca kością/kośćmi.',
+        inline=False
+    )
+    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}google (gugiel, g) <zapytanie>',
         value='Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasującą stronę.',
         inline=False
@@ -63,20 +73,22 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}wikipediapl (wikipl, wpl) <hasło>',
-        value='Sprawdza znaczenie <hasła> w [polskiej wersji Wikipedii]'
-        '(https://pl.wikipedia.org/wiki/Wikipedia:Strona_główna).',
+        name=f'{somsiad.conf["command_prefix"]}wikipedia (wiki, w) <dwuliterowy kod języka> <hasło>',
+        value='Sprawdza znaczenie <hasła> w danej wersji językowej [Wikipedii]'
+        '(https://www.wikipedia.org/).',
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}wikipediaen (wikien, wen) <hasło>',
-        value='Sprawdza znaczenie <hasła> w [anglojęzycznej wersji Wikipedii]'
-        '(https://en.wikipedia.org/wiki/Main_Page).',
+        name=f'{somsiad.conf["command_prefix"]}omdb <?odcinek> <tytuł>',
+        value='Zwraca z [OMDb](https://www.omdbapi.com/) informacje na temat filmu lub serialu najlepiej pasującego '
+        'do <tytułu>. Jeśli chcesz znaleźć informacje na temat konkretnego odcinka serialu, podaj przed tytułem '
+        'odcinek w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}goodreads (gr) <tytuł/autor>',
-        value='Zwraca z [goodreads](https://www.goodreads.com) książkę najlepiej pasującą do <tytułu/autora>.',
+        value='Zwraca z [goodreads](https://www.goodreads.com) informacje na temat książki najlepiej pasującej do '
+        '<tytułu/autora>.',
         inline=False
     )
     embed.add_field(
@@ -85,14 +97,14 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}isitup (isup) <url>',
-        value='Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.',
-        inline=False
-    )
-    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}kantor (kurs) <?liczba> '
         '<trzyliterowy kod waluty początkowej> <?trzyliterowy kod waluty docelowej>',
         value='Konwertuje waluty za pomocą serwisu [CryptoCompare](https://www.cryptocompare.com).',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}isitup <url>',
+        value='Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.',
         inline=False
     )
     embed.add_field(
@@ -106,27 +118,15 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}zweryfikuj',
-        value=f'Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.',
+        name=f'{somsiad.conf["command_prefix"]}weryfikacja <?podkomenda>',
+        value='Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
+        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy by dowiedzieć się więcej.',
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}prześwietl (przeswietl) <?użytkownik Discorda>',
-        value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> '
-        '(jeśli należy on do serwera na którym użyto komendy) lub, jeśli nie podano argumentu, dla ciebie.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}zweryfikowanymnadawaj <rola>',
-        value='Ustawia <rolę> jako rolę automatycznie nadawaną członkom serwera po pomyślnej weryfikacji konta na '
-        'Reddicie. Dodatkowo nadaje tę rolę już zweryfikowanym członkom serwera. Działa tylko dla członków mających '
-        'uprawnienie do na zarządzania rolami.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}zweryfikowanymnienadawaj',
-        value='Wyłącza automatyczne nadawanie roli członkom serwera po weryfikacji konta na Reddicie. Działa tylko dla '
-        'członków mających uprawnienie do na zarządzania rolami.',
+        name=f'{somsiad.conf["command_prefix"]}stat <?podkomenda>',
+        value='Grupa komend związanych ze statystykami na serwerze. '
+        f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy by dowiedzieć się więcej.',
         inline=False
     )
     embed.add_field(
@@ -137,11 +137,6 @@ async def help_message(ctx):
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}niepomógł (niepomogl) <?użytkownik Discorda>',
         value='Oznacza niepomocną wiadomość za pomocą reakcji.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}rzuć (rzuc) <?liczba kości> <?liczba ścianek kości>',
-        value='Rzuca kością lub kośćmi.',
         inline=False
     )
     embed.add_field(
@@ -175,13 +170,6 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}zaproś (zapros) <?liczba użyć>',
-        value='Tworzy zaproszenie na serwer o danej <?liczbie użyć> lub, jeśli jej nie podano, o nielimitowanej '
-        'liczbie użyć. Dodatkowo można użyć argumentu "recykluj" – wtedy bot spróbuje wykorzystać już istniejące '
-        'zaproszenie o podanych parametrach zamiast tworzyć nowe.',
-        inline=False
-    )
-    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}wyczyść (wyczysc) <?liczba>',
         value='Usuwa <?liczbę> ostatnich wiadomości lub, jeśli nie podano liczby, jedną ostatnią wiadomość z kanału '
         'na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienie do zarządzania wiadomościami '
@@ -189,13 +177,13 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}tutajloguj (tuloguj)',
+        name=f'{somsiad.conf["command_prefix"]}loguj',
         value='Ustawia kanał na którym użyto komendy jako kanał logów bota. Działa tylko dla administratorów serwera.',
         inline=False
     )
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}nieloguj',
-        value='Wyłącza logi na serwerze. Działa tylko dla administratorów serwera.',
+        value='Wyłącza logi dla serwera. Działa tylko dla administratorów serwera.',
         inline=False
     )
     embed.add_field(
