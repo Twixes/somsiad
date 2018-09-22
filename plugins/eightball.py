@@ -12,13 +12,28 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import secrets
+import random
+import json
 import discord
 from somsiad import somsiad
 
+class Ball:
+    with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.json')) as f:
+        eightball_answers = json.load(f)
 
-with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.txt')) as f:
-    eightball_answers = [line.strip() for line in f.readlines() if not line.strip().startswith('#')]
+    categories = ['affirmative' for _ in range(2)] + ['negative' for _ in range(2)] + ['enigmatic']
+
+    @classmethod
+    def ask(cls) -> str:
+        category = random.choice(cls.categories)
+        answer = random.choice(cls.eightball_answers[category])
+        return answer
+
+    @classmethod
+    def AsK(cls) -> str:
+        aNSwEr = ''.join(random.choice([letter.lower(), letter.upper()]) for letter in cls.ask())
+        return aNSwEr
+
 
 
 @somsiad.client.command(aliases=['8ball', '8-ball', '8'])
@@ -31,14 +46,10 @@ async def eightball(ctx, *args):
     question = ' '.join(args)
     question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?')
     if question != '':
-        question = question.strip('?')
         if 'fccchk' in question.lower():
-            answer = secrets.choice(eightball_answers)
-            aNSwEr = ''.join(secrets.choice([letter.lower(), letter.upper()]) for letter in answer)
-            await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {aNSwEr}')
-        elif question != '':
-            answer = secrets.choice(eightball_answers)
-            await ctx.send(f'{ctx.author.mention}\n:8ball: {answer}')
+            await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {Ball.AsK()}')
+        else:
+            await ctx.send(f'{ctx.author.mention}\n:8ball: {Ball.ask()}')
     else:
         await ctx.send(
             f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '

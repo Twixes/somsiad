@@ -85,7 +85,7 @@ class Somsiad:
         """Launches the bot."""
         try:
             self.client.run(somsiad.conf['discord_token'])
-            self.logger.info('Client online.')
+            self.logger.info('Client started.')
         except discord.errors.ClientException:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
 
@@ -193,7 +193,7 @@ def print_info(first_console_block=True):
         f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
         f'{TextFormatter.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
         f'na {TextFormatter.noun_variant(number_of_servers, "serwerze", "serwerach")}:',
-        '\n'.join(somsiad.list_of_servers()),
+        *somsiad.list_of_servers(),
         '',
         'Link do zaproszenia bota:',
         somsiad.invite_url,
