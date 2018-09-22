@@ -5,21 +5,24 @@ Polski bot discordowy. Napisany w Pythonie.
 ## Funkcje  
 
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
-* rzucanie kośćmi do gry  
 * Magic 8-Ball  
-* wymiana (krypto)walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
+* wybieranie jednej z podanych opcji
+* rzucanie kośćmi do gry  
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
 * wyszukiwanie gifów na [Giphy](https://giphy.com/)  
-* wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) po polsku i po angielsku  
+* wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
+* wyszukiwanie filmów i seriali w [OMDb](https://www.omdbapi.com/)  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
+* wymiana walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
 * sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
-* weryfikacja konta redditowego  
+* weryfikacja konta na [Reddicie](https://www.reddit.com/)   
+* statystyki serwera/kanału/użytkownika (wraz z generowaniem wykresu aktywności)  
 
 ## Wymagania  
 
-* Python 3.6 lub późniejszy.  
+* Python 3.6.x.  
 
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
@@ -38,6 +41,9 @@ https://developers.giphy.com/
 * Klucz API goodreads:  
 https://www.goodreads.com/api  
 
+* Klucz API OMDb:  
+https://www.omdbapi.com/apikey.aspx  
+
 * Nazwa użytkownika i hasło konta na Reddicie, a także ID i szyfr aplikacji redditowej typu skrypt:  
 https://www.reddit.com/prefs/apps  
 
@@ -50,12 +56,11 @@ https://www.reddit.com/prefs/apps
   * python3-wheel  
   * python3-venv  
 
-  Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `apt`:  
-`$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`  
+  A także paczkę wsparcia języka polskiego dla twojego systemu.  
+Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `apt`:  
+`$ sudo apt install language-pack-pl-base libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`  
 
 ## Instalacja  
-
-By nie zanieczyszczać swojego systemu, zainstaluj Somsiada w środowisku wirtualnym.  
 
 1. Pobierz kopię najnowszego wydania:  
 https://github.com/Twixes/Somsiad/releases/latest  
@@ -84,21 +89,24 @@ The Polish Discord bot. Written in Python.
 ## Features  
 
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
-* rolling dice  
 * Magic 8-Ball  
-* (crypto)currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
+* choosing one of provided options
+* rolling dice  
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
 * [Giphy](https://giphy.com/) gif search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
 * [goodreads](https://www.goodreads.com) book search  
+* [OMDb](https://www.omdbapi.com/) movie and TV show search  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
+* currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
 * website status check powered by [isitup.org](https://isitup.org)  
-* Reddit account verification
+* [Reddit](https://www.reddit.com/) account verification  
+* server/channel/user statistics (with activity chart generation)  
 
 ## Prerequisites  
 
-* Python 3.6 or later.  
+* Python 3.6.x.  
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
@@ -117,6 +125,9 @@ https://developers.giphy.com/
 * A goodreads API key:  
 https://www.goodreads.com/api  
 
+* An OMDb API key:  
+https://www.omdbapi.com/apikey.aspx 
+
 * Reddit username and password, and also Reddit script application ID and secret:  
 https://www.reddit.com/prefs/apps  
 
@@ -129,12 +140,11 @@ https://www.reddit.com/prefs/apps
   * python3-wheel  
   * python3-venv  
 
-  On Debian-based systems you can satisfy those dependencies with `apt`:  
-`$ sudo apt install libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`  
+  And also whatever the Polish language support package is for your system.  
+On Debian-based systems you can satisfy those dependencies with `apt`:  
+`$ sudo apt install language-pack-pl-base libffi-dev libnacl-dev python3-dev python3-pip python3-wheel python3-venv`  
 
 ## Installation  
-
-In order not to pollute your system, install Somsiad in a virtual environment.  
 
 1. Grab a copy of the latest release:  
 https://github.com/Twixes/Somsiad/releases/latest  
@@ -143,7 +153,7 @@ https://github.com/Twixes/Somsiad/releases/latest
 `$ tar -xvf Somsiad-<version>.tar.gz`  
 `$ cd Somsiad-<version>`  
 
-3. Run the bot (you will be guided through a quick configuration process on the first run):  
+3. Run the bot (you will be guided through configuration on the first run):  
 `$ ./run.sh`  
 or if you have `screen` installed:  
 `$ screen -S Somsiad ./run.sh`  
