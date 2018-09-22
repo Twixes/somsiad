@@ -1,6 +1,5 @@
 {
     "affirmative": [
-        "YES, YES, YES!",
         "Jak najbardziej tak.",
         "Z całą pewnością tak.",
         "Bez wątpienia tak.",
@@ -8,6 +7,8 @@
         "Na szczęście tak.",
         "Chyba tak.",
         "Wszystko wskazuje na to, że tak.",
+        "YES, YES, YES!",
+        "Dа.",
         "Yep."
     ], "negative": [
         "Zdecydowanie nie.",
@@ -18,12 +19,15 @@
         "Raczej nie.",
         "Nie wydaje mi się.",
         "Mój wywiad donosi: NIE.",
+        "Nein!",
+        "Niet.",
         "Nope."
     ], "enigmatic": [
         "Zbyt wcześnie, by powiedzieć.",
         "Kto wie?",
         "Być może.",
         "Trudno powiedzieć.",
-        "To pytanie jest dla mnie zbyt głębokie."
+        "To pytanie jest dla mnie zbyt głębokie.",
+        "Przecież już znasz odpowiedź."
     ]
 }
