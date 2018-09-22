@@ -53,6 +53,13 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}policz <wyrażenie> <?zmienne>',
+        value='Liczy podane wyrażenie. Przyjmuje również oddzielone średnikami zmienne, '
+        'np. "x ^ 2 + y + 4; x = 3; y = 5". Jeśli podane dane nie są wystarczające do obliczenia równania, '
+        'próbuje je uprościć.',
+        inline=False
+    )
+    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}google (gugiel, g) <zapytanie>',
         value='Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasującą stronę.',
         inline=False

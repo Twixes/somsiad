@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = [
-    'bot_owner_utilities', 'choice', 'copypasta', 'currency', 'dice', 'eightball', 'emoticons', 'giphy', 'goodreads',
-    'google_search', 'help_message', 'helped', 'isitup', 'moderation', 'omdb', 'reddit_links', 'reddit_verification',
-    'statistics', 'urban_dictionary', 'wikipedia', 'youtube',
+    'bot_owner_utilities', 'calculator', 'choice', 'copypasta', 'currency', 'dice', 'eightball', 'emoticons', 'giphy',
+    'goodreads', 'google_search', 'help_message', 'helped', 'isitup', 'moderation', 'omdb', 'reddit_links',
+    'reddit_verification', 'statistics', 'urban_dictionary', 'wikipedia', 'youtube',
 ]
