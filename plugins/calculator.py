@@ -53,7 +53,7 @@ async def calculate(ctx, *args):
             try:
                 result = parsed_expression.evaluate(variables_dict)
                 embed = discord.Embed(
-                    title=':1234: Policzono wyrażenie',
+                    title=':1234: Obliczono wyrażenie',
                     color=somsiad.color
                 )
                 embed.add_field(name='Wejście', value=input_info_string, inline=False)
