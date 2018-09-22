@@ -106,27 +106,26 @@ class Somsiad:
         """Generates a list of servers the bot is connected to, including the number of days since joining
         and the number of users.
         """
-        servers = sorted(self.client.guilds, key=lambda server: server.me.joined_at, reverse=True)
+        servers = [guild for guild in self.client.guilds if guild.me is not None]
+        sorted_servers = sorted(servers, key=lambda server: server.me.joined_at, reverse=True)
         longest_server_name_length = 0
         longest_days_since_joining_info_length = 0
         list_of_servers = []
 
-        for server in servers:
-            if server.me is not None:
-                if len(server.name) > longest_server_name_length:
-                    longest_server_name_length = len(server.name)
-                days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
-                if len(days_since_joining_info) > longest_days_since_joining_info_length:
-                    longest_days_since_joining_info_length = len(days_since_joining_info)
+        for server in sorted_servers:
+            if len(server.name) > longest_server_name_length:
+                longest_server_name_length = len(server.name)
+            days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
+            if len(days_since_joining_info) > longest_days_since_joining_info_length:
+                longest_days_since_joining_info_length = len(days_since_joining_info)
 
-        for server in servers:
-            if server.me is not None:
-                days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
-                list_of_servers.append(
-                    f'{server.name.ljust(longest_server_name_length)} - '
-                    f'dołączono {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
-                    f'{TextFormatter.noun_variant(server.member_count, "użytkownik", "użytkowników")}'
-                )
+        for server in sorted_servers:
+            days_since_joining_info = TextFormatter.human_readable_time_ago(server.me.joined_at)
+            list_of_servers.append(
+                f'{server.name.ljust(longest_server_name_length)} - '
+                f'dołączono {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
+                f'{TextFormatter.noun_variant(server.member_count, "użytkownik", "użytkowników")}'
+            )
 
         return list_of_servers
 
