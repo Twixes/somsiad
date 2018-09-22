@@ -20,7 +20,6 @@ from somsiad import somsiad
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def roll_dice(ctx, *args):
     number_of_dice = 1
     number_of_sides_on_a_die = 6

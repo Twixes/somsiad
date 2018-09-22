@@ -165,7 +165,6 @@ class Wikipedia:
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def wikipedia(ctx, language: str, *args):
     """The Wikipedia search command."""
     title = '_'.join(args) if args else 'Wikipedia'

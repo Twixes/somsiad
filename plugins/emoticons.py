@@ -19,7 +19,6 @@ from somsiad import somsiad
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
     await ctx.send('( ͡° ͜ʖ ͡°)')
@@ -29,7 +28,6 @@ async def lennyface(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def lennoface(ctx):
     """( ͡ʘ ͜ʖ ͡ʘ)"""
     await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
@@ -39,7 +37,6 @@ async def lennoface(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def tableflip(ctx):
     """(╯°□°）╯︵ ┻━┻"""
     await ctx.send('(╯°□°）╯︵ ┻━┻')
@@ -49,7 +46,6 @@ async def tableflip(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def unflip(ctx):
     """┬─┬ ノ( ゜-゜ノ)"""
     await ctx.send('┬─┬ ノ( ゜-゜ノ)')
@@ -59,7 +55,6 @@ async def unflip(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def shrug(ctx):
     r"""¯\_(ツ)_/¯"""
     await ctx.send(r'¯\_(ツ)_/¯')
@@ -69,7 +64,6 @@ async def shrug(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def gib(ctx, *args):
     """༼ つ ◕_◕ ༽つ"""
     if not args:
@@ -84,7 +78,6 @@ async def gib(ctx, *args):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def fccchk(ctx):
     """:japanese_goblin:"""
     await ctx.send(':japanese_goblin:')

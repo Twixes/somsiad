@@ -69,6 +69,7 @@ async def announce_globally(ctx, *args):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
+@discord.ext.commands.guild_only()
 @discord.ext.commands.is_owner()
 async def announce_locally(ctx, *args):
     """Makes an announcement only on the server where the command was invoked."""

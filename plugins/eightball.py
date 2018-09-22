@@ -40,7 +40,6 @@ class Ball:
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def eightball(ctx, *args):
     """Returns an 8-Ball answer."""
     question = ' '.join(args)

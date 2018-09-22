@@ -21,7 +21,6 @@ from somsiad import somsiad
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def currency(ctx, *args):
     """Provides (crypto)currency exchange rates."""
     FOOTER_TEXT = 'CryptoCompare.com (CC BY-NC 3.0)'

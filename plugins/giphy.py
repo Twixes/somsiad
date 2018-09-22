@@ -20,7 +20,6 @@ from somsiad import somsiad
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def giphy(ctx, *args):
     """Giphy search. Responds with the first GIF matching the query."""
     FOOTER_TEXT = 'Giphy'

@@ -19,13 +19,12 @@ from somsiad import somsiad
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def subreddit(ctx, *args):
     """Responds with the URL of the given subreddit."""
     if not args:
         url = 'https://reddit.com/r/all'
     else:
-        url = f'https://reddit.com/r/{"".join(args)}'
+        url = f'https://reddit.com/r/{"_".join(args)}'
     await ctx.send(f'{ctx.author.mention}\n{url}')
 
 
@@ -33,11 +32,10 @@ async def subreddit(ctx, *args):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def reddit_user(ctx, *args):
     """Responds with the URL of the given Reddit user."""
     if not args:
         url = f'https://reddit.com/u/{somsiad.conf["reddit_username"]}'
     else:
-        url = f'https://reddit.com/u/{"".join(args)}'
+        url = f'https://reddit.com/u/{"_".join(args)}'
     await ctx.send(f'{ctx.author.mention}\n{url}')

@@ -26,7 +26,6 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r'
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def random_choice(ctx, *args):
     """Randomly chooses one of provided options."""
     options_words = []
