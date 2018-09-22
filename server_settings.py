@@ -135,13 +135,13 @@ class ServerSettingsManager:
 server_settings_manager = ServerSettingsManager()
 
 
-@somsiad.client.command(aliases=['tutajloguj', 'tuloguj'])
+@somsiad.client.command(aliases=['loguj'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
-async def log_here(ctx):
+async def do_log(ctx):
     """Sets the channel where the command was invoked as the bot's log channel for the server."""
     server_settings_manager.set_log_channel(ctx.guild.id, ctx.channel.id)
     embed = discord.Embed(
