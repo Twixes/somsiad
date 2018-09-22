@@ -23,7 +23,7 @@ import discord
 import praw
 from somsiad import somsiad
 from utilities import TextFormatter
-from server_settings import ServerSettingsManager, server_settings_manager
+from server_settings import ServerSettingsManager
 
 
 class RedditVerifier:
@@ -331,27 +331,29 @@ class RedditVerifier:
     @staticmethod
     def log_verification_result(
         discord_user_id: int, reddit_username: str, *, success: bool, personal_reason: str = '',
-        log_reason: str = '', server_settings_manager: ServerSettingsManager = server_settings_manager
+        log_reason: str = '', thread_server_settings_manager: ServerSettingsManager
     ):
         discord_user = somsiad.client.get_user(discord_user_id)
 
         if success:
             embed = discord.Embed(
                 title=f':white_check_mark: Pomyślnie zweryfikowano',
-                description=f'Przypisano twoje konto na Discordzie do konta /u/{reddit_username} na Reddicie.',
+                description=f'Przypisano twoje konto na Discordzie do konta [/u/{reddit_username}]'
+                f'(https://www.reddit.com/user/{reddit_username}).',
                 color=somsiad.color
             )
         else:
             embed = discord.Embed(
                 title=f':red_circle: Weryfikacja nie powiodła się',
-                description=f'Próbowałeś zweryfikować się jako /u/{reddit_username}, ale {personal_reason}.',
+                description=f'Próbowałeś zweryfikować się jako [/u/{reddit_username}]'
+                f'(https://www.reddit.com/user/{reddit_username}), ale {personal_reason}.',
                 color=somsiad.color
             )
 
         embed.set_footer(text=verifier.FOOTER_TEXT)
         asyncio.ensure_future(discord_user.send(embed=embed))
 
-        for row in server_settings_manager.get_log_channels():
+        for row in thread_server_settings_manager.get_log_channels():
             server = somsiad.client.get_guild(row['server_id'])
             if server.get_member(discord_user_id) is not None:
                 channel = server.get_channel(row['log_channel_id'])
@@ -360,7 +362,7 @@ class RedditVerifier:
                         embed = discord.Embed(
                             title=f':white_check_mark: Pomyślna weryfikacja użytkownika na Reddicie',
                             description=f'Użytkownik {discord_user.mention} został zweryfikowany jako '
-                            f'/u/{reddit_username}.',
+                            f'[/u/{reddit_username}](https://www.reddit.com/user/{reddit_username}).',
                             timestamp=dt.datetime.now(),
                             color=somsiad.color
                         )
@@ -368,7 +370,7 @@ class RedditVerifier:
                         embed = discord.Embed(
                             title=f':red_circle: Nieudana próba weryfikacji użytkownika na Reddicie',
                             description=f'Użytkownik {discord_user.mention} próbował zweryfikować się jako '
-                            f'/u/{reddit_username}, ale {log_reason}.',
+                            f'[/u/{reddit_username}](https://www.reddit.com/user/{reddit_username}), ale {log_reason}.',
                             timestamp=dt.datetime.now(),
                             color=somsiad.color
                         )
@@ -479,7 +481,7 @@ class RedditVerificationMessageScout:
                                 phrase_info['discord_user_id'],
                                 reddit_username,
                                 success=True,
-                                server_settings_manager=self._server_settings_manager
+                                thread_server_settings_manager=self._server_settings_manager
                             )
                             message.reply(
                                 f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda '
@@ -497,7 +499,7 @@ class RedditVerificationMessageScout:
                                 f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                 f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}',
                                 log_reason='jego konto na Reddicie nie spełniło wymagań',
-                                server_settings_manager=self._server_settings_manager
+                                thread_server_settings_manager=self._server_settings_manager
                             )
                             message.reply(
                                 'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
