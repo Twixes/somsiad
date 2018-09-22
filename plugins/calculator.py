@@ -28,7 +28,7 @@ async def calculate(ctx, *args):
     If calculation is not possible with available data, simplifies the expression.
     """
     if args:
-        input_data = ' '.join(args).split(';')
+        input_data = ' '.join(args).strip(';').split(';')
         expression = input_data[0].strip()
         variables_list = input_data[1:]
         variables_dict = {}
