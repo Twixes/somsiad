@@ -87,7 +87,7 @@ async def roll_dice(ctx, *args):
 
 
 @roll_dice.error
-async def roll_dice(ctx, error):
+async def roll_dice_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Podano nieprawidłowy argument!',
