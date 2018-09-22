@@ -89,12 +89,12 @@ async def announce_locally(ctx, *args):
                 break
 
 
-@somsiad.client.command(aliases=['zatrzymaj'])
+@somsiad.client.command(aliases=['wyłącz', 'wylacz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
-async def stop(ctx):
+async def shut_down(ctx):
     """Shuts down the bot."""
     embed = discord.Embed(
         title=':stop_button: Zatrzymywanie bota...',
