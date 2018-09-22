@@ -403,11 +403,10 @@ class Report:
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def stat(ctx):
     embed = discord.Embed(
-        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}stat',
-        description=f'Użycie: {somsiad.conf["command_prefix"]}stat <podkomenda>',
+        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
+        description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
         color=somsiad.color
     )
     embed.add_field(

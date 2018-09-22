@@ -546,24 +546,24 @@ verifier = RedditVerifier(db_path, phrase_parts)
 )
 async def verification(ctx):
     embed = discord.Embed(
-        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}weryfikacja',
-        description=f'Użycie: {somsiad.conf["command_prefix"]}weryfikacja <podkomenda>',
+        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
+        description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
         color=somsiad.color
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}rozpocznij',
+        name=f'rozpocznij',
         value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.',
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}prześwietl (przeswietl) <?użytkownik Discorda>',
+        name=f'prześwietl (przeswietl) <?użytkownik Discorda>',
         value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> '
         '(jeśli należy on do serwera na którym użyto komendy) lub, jeśli nie podano argumentu, dla ciebie.',
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}rola <rola>',
-        value='Ustawia <rolę> jako rolę automatycznie nadawaną członkom serwera po pomyślnej weryfikacji konta na '
+        name=f'rola <?rola>',
+        value='Ustawia <?rolę> jako rolę automatycznie nadawaną członkom serwera po pomyślnej weryfikacji konta na '
         'Reddicie. Dodatkowo nadaje tę rolę już zweryfikowanym członkom serwera. Jeśli nie podano roli, wyłącza tę '
         'funkcję dla serwera. Działa tylko dla członków mających uprawnienie do na zarządzania rolami.',
         inline=False
@@ -800,7 +800,7 @@ async def verification_role(ctx, *args):
             verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', roles_found[0].id)
             await verifier.add_verified_role_to_members_of_discord_server(ctx.guild)
             embed = discord.Embed(
-                title=f':white_check_mark: Ustawiono {roles_found[0]} jako rolę zweryfikowanych użytkowników',
+                title=f':white_check_mark: Ustawiono {roles_found[0]} jako rolę weryfikacji',
                 description=f'Rola została właśnie przyznana już zweryfikowanym użytkownikom. Reszcie zostanie '
                 'przyznana automatycznie, jeśli zweryfikują się.',
                 color=somsiad.color
