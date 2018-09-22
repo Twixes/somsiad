@@ -76,7 +76,10 @@ class Report:
         self.total_message_count += 1
         self.total_word_count += message_word_count
         self.total_character_count += message_character_count
-        self.messages_over_date[message_sent_datetime.date().isoformat()] += 1
+        try:
+            self.messages_over_date[message_sent_datetime.date().isoformat()] += 1
+        except KeyError:
+            pass
         self.messages_over_hour[message_sent_datetime.hour] += 1
 
     def _update_active_channels(
@@ -268,12 +271,17 @@ class Report:
     def _plot_activity_by_hour(self, ax):
         # Plot the chart
         ax.bar(
-            [f'{hour}:00' for hour in range(24)],
+            [f'{hour}:00'.zfill(5) for hour in range(24)],
             self.messages_over_hour,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
-            width=1
+            width=1,
+            align='edge'
         )
+
+        # Set proper X axis formatting
+        ax.set_xlim(0, 24)
+        ax.set_xticklabels([f'{hour}:00'.zfill(5) for hour in range(24)], rotation=30, ha='right')
 
         # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
@@ -291,8 +299,13 @@ class Report:
 
     def _plot_activity_by_date(self, ax):
         # Convert date strings provided to datetime objects
-        dates = [dt.datetime.strptime(date, '%Y-%m-%d') for date in self.messages_over_date]
-        messages_over_date = self.messages_over_date.values()
+        sorted_messages_over_date = sorted(
+            self.messages_over_date.items(), key=lambda date: dt.datetime.strptime(date[0], '%Y-%m-%d')
+        )
+        from pprint import pprint
+        pprint(sorted_messages_over_date)
+        dates = [dt.datetime.strptime(date[0], '%Y-%m-%d') for date in sorted_messages_over_date]
+        messages_over_date = [date[1] for date in sorted_messages_over_date]
 
         # Plot the chart
         ax.bar(
@@ -320,15 +333,15 @@ class Report:
         month_formatter = mdates.DateFormatter('%b %Y')
         day_formatter = mdates.DateFormatter('%d %b %Y')
 
-        if year_difference > 1:
+        if month_difference > 24:
             ax.xaxis.set_major_locator(year_locator)
             ax.xaxis.set_major_formatter(year_formatter)
             ax.xaxis.set_minor_locator(quarter_locator)
-        if month_difference > 12:
+        elif month_difference > 12:
             ax.xaxis.set_major_locator(quarter_locator)
             ax.xaxis.set_major_formatter(month_formatter)
             ax.xaxis.set_minor_locator(month_locator)
-        elif day_difference > 42:
+        elif day_difference > 70:
             ax.xaxis.set_major_locator(month_locator)
             ax.xaxis.set_major_formatter(month_formatter)
         elif day_difference > 21:
@@ -338,6 +351,10 @@ class Report:
         else:
             ax.xaxis.set_major_locator(day_locator)
             ax.xaxis.set_major_formatter(day_formatter)
+
+        for tick in ax.get_xticklabels():
+            tick.set_rotation(30)
+            tick.set_horizontalalignment('right')
 
         # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
@@ -375,13 +392,12 @@ class Report:
         fig, [ax_by_hour, ax_by_date] = plt.subplots(2)
 
         # Make it look nice
-        fig.set_facecolor(self.BACKGROUND_COLOR)
+        fig.set_tight_layout(True)
         ax_by_hour.set_title(title, color=self.FOREGROUND_COLOR, fontsize=13, fontweight='bold', y=1.04)
 
         # Plot
         ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
         ax_by_date = self._plot_activity_by_date(ax_by_date)
-        fig.autofmt_xdate()
 
         # Save as bytes
         chart_bytes = io.BytesIO()
