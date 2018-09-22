@@ -36,7 +36,7 @@ async def calculate(ctx, *args):
             key_value_pair = variable.split('=')
             try:
                 variables_dict[key_value_pair[0].strip()] = float(key_value_pair[1].strip())
-            except ValueError:
+            except (IndexError, ValueError):
                 embed = discord.Embed(
                     title=':warning: Podano nieprawidłowe zmienne!',
                     color=somsiad.color
