@@ -31,31 +31,36 @@ class Report:
     BACKGROUND_COLOR = '#32363c'
     FOREGROUND_COLOR = '#ffffff'
 
-    message_limit = 50000
-    subject_type = None
-    datetime = None
-    total_message_count = 0
-    total_word_count = 0
-    total_character_count = 0
-    messages_over_date = {}
-    messages_over_hour = [0 for hour in range(24)]
-    active_users = {}
-    active_channels = {}
-    embed = None
-    activity_chart_file = None
-
     plt.style.use('dark_background')
 
     def __init__(self, requesting_user: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
+        self.message_limit = 50000
+        self.total_message_count = 0
+        self.total_word_count = 0
+        self.total_character_count = 0
+        self.messages_over_date = {}
+        self.messages_over_hour = [0 for hour in range(24)]
+        self.active_users = {}
+        self.active_channels = {}
+        self.embed = None
+        self.activity_chart_file = None
+
+        self.datetime = dt.datetime.now()
         self.requesting_user = requesting_user
         self.subject = subject
+
         if isinstance(subject, discord.Guild):
             self.subject_type = 'server'
+            self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.TextChannel):
             self.subject_type = 'channel'
+            if not self.subject.permissions_for(self.requesting_user).read_messages:
+                raise discord.ext.commands.BadArgument
+            self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.Member):
             self.subject_type = 'member'
-        self.datetime = dt.datetime.now()
+            self._prepare_messages_over_date(self.subject.joined_at)
+            self.message_limit = 10000
 
     def _prepare_messages_over_date(self, start_utc_datetime: dt.datetime):
         """Updates the dictionary of messages over date."""
@@ -108,15 +113,6 @@ class Report:
 
     def _embed_message_stats(self):
         """Adds the usual message statistics to the report embed."""
-        try:
-            average_word_count = int(self.total_word_count / self.total_message_count)
-        except ZeroDivisionError:
-            average_word_count = 0
-        try:
-            average_character_count = int(self.total_character_count / self.total_message_count)
-        except ZeroDivisionError:
-            average_character_count = 0
-
         self.embed.add_field(
             name='Wysłanych wiadomości',
             value=(
@@ -126,8 +122,9 @@ class Report:
         )
         self.embed.add_field(name='Wysłanych słów', value=self.total_word_count)
         self.embed.add_field(name='Wysłanych znaków', value=self.total_character_count)
-        self.embed.add_field(name='Średnio słów w wiadomości', value=average_word_count)
-        self.embed.add_field(name='Średnio znaków w wiadomości', value=average_character_count)
+        self.embed.add_field(
+            name='Średnio wiadomości dziennie', value=int(self.total_message_count / len(self.messages_over_date))
+        )
 
     def _embed_top_active_channels(self):
         """Adds the list of top active channels to the report embed."""
@@ -174,8 +171,6 @@ class Report:
 
     async def _analyze_server(self):
         """Analyzes the subject as a server."""
-        self._prepare_messages_over_date(self.subject.created_at)
-
         # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
         message_limit_left = self.message_limit
         for channel in self.subject.text_channels:
@@ -209,11 +204,6 @@ class Report:
 
     async def _analyze_channel(self):
         """Analyzes the subject as a channel."""
-        if not self.subject.permissions_for(self.requesting_user).read_messages:
-            raise discord.ext.commands.BadArgument
-
-        self._prepare_messages_over_date(self.subject.created_at)
-
         async for message in self.subject.history(limit=self.message_limit):
             message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
             message_word_count = len(message.clean_content.split())
@@ -240,11 +230,6 @@ class Report:
 
     async def _analyze_member(self):
         """Analyzes the subject as a member."""
-        self._prepare_messages_over_date(self.subject.joined_at)
-
-        # Lower the message limit
-        self.message_limit = 10000;
-
         # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
         message_limit_left = self.message_limit
         for channel in self.subject.guild.text_channels:
@@ -302,8 +287,6 @@ class Report:
         sorted_messages_over_date = sorted(
             self.messages_over_date.items(), key=lambda date: dt.datetime.strptime(date[0], '%Y-%m-%d')
         )
-        from pprint import pprint
-        pprint(sorted_messages_over_date)
         dates = [dt.datetime.strptime(date[0], '%Y-%m-%d') for date in sorted_messages_over_date]
         messages_over_date = [date[1] for date in sorted_messages_over_date]
 
@@ -333,11 +316,11 @@ class Report:
         month_formatter = mdates.DateFormatter('%b %Y')
         day_formatter = mdates.DateFormatter('%d %b %Y')
 
-        if month_difference > 24:
+        if month_difference > 48:
             ax.xaxis.set_major_locator(year_locator)
             ax.xaxis.set_major_formatter(year_formatter)
             ax.xaxis.set_minor_locator(quarter_locator)
-        elif month_difference > 12:
+        elif month_difference > 24:
             ax.xaxis.set_major_locator(quarter_locator)
             ax.xaxis.set_major_formatter(month_formatter)
             ax.xaxis.set_minor_locator(month_locator)
