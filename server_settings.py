@@ -141,11 +141,14 @@ server_settings_manager = ServerSettingsManager()
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
-async def do_log(ctx):
+async def do_log(ctx, channel: discord.TextChannel = None):
     """Sets the channel where the command was invoked as the bot's log channel for the server."""
-    server_settings_manager.set_log_channel(ctx.guild.id, ctx.channel.id)
+    if channel is None:
+        channel = ctx.channel
+
+    server_settings_manager.set_log_channel(ctx.guild.id, channel.id)
     embed = discord.Embed(
-        title=f':white_check_mark: Ustawiono #{ctx.channel} jako kanał logów',
+        title=f':white_check_mark: Ustawiono #{channel} jako kanał logów',
         color=somsiad.color
     )
     await ctx.send(ctx.author.mention, embed=embed)

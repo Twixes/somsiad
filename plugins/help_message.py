@@ -79,10 +79,10 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}omdb <?odcinek> <tytuł>',
+        name=f'{somsiad.conf["command_prefix"]}omdb <?sezon i odcinek> <tytuł>',
         value='Zwraca z [OMDb](https://www.omdbapi.com/) informacje na temat filmu lub serialu najlepiej pasującego '
         'do <tytułu>. Jeśli chcesz znaleźć informacje na temat konkretnego odcinka serialu, podaj przed tytułem '
-        'odcinek w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".',
+        '<?sezon i odcinek> w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".',
         inline=False
     )
     embed.add_field(
@@ -177,8 +177,9 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}loguj',
-        value='Ustawia kanał na którym użyto komendy jako kanał logów bota. Działa tylko dla administratorów serwera.',
+        name=f'{somsiad.conf["command_prefix"]}loguj <?kanał>',
+        value='Ustawia <?kanał> jako kanał logów bota. Jeśli nie podano <?kanału> przyjmuje kanał na którym użyto '
+        'komendy. Działa tylko dla administratorów serwera.',
         inline=False
     )
     embed.add_field(
