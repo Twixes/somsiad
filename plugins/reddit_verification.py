@@ -517,7 +517,7 @@ class RedditVerificationMessageScout:
                             personal_reason='twoja fraza wygasła. Wygeneruj nową frazę za pomocą komendy '
                             f'{somsiad.conf["command_prefix"]}weryfikacja zweryfikuj',
                             log_reason='jego fraza wygasła',
-                            server_settings_manager=self._server_settings_manager
+                            thread_server_settings_manager=self._server_settings_manager
                         )
                         message.reply(
                             'Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę '
