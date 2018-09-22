@@ -540,14 +540,44 @@ with open(phrase_parts_file_path, 'r') as f:
 
 verifier = RedditVerifier(db_path, phrase_parts)
 
-
-@somsiad.client.command(aliases=['zweryfikuj'])
+@somsiad.client.group(aliases=['weryfikacja'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def reddit_verify(ctx):
-    """Starts the Reddit account verification process for the invoking Discord user."""
+async def verification(ctx):
+    embed = discord.Embed(
+        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}weryfikacja',
+        description=f'Użycie: {somsiad.conf["command_prefix"]}weryfikacja <podkomenda>',
+        color=somsiad.color
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}rozpocznij',
+        value='Rozpoczyna proces weryfikacji konta na Reddicie dla ciebie.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}prześwietl (przeswietl) <?użytkownik Discorda>',
+        value='Sprawdza status weryfikacji konta na Reddicie dla <?użytkownika Discorda> '
+        '(jeśli należy on do serwera na którym użyto komendy) lub, jeśli nie podano argumentu, dla ciebie.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}rola <rola>',
+        value='Ustawia <rolę> jako rolę automatycznie nadawaną członkom serwera po pomyślnej weryfikacji konta na '
+        'Reddicie. Dodatkowo nadaje tę rolę już zweryfikowanym członkom serwera. Jeśli nie podano roli, wyłącza tę '
+        'funkcję dla serwera. Działa tylko dla członków mających uprawnienie do na zarządzania rolami.',
+        inline=False
+    )
 
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@verification.command(aliases=['rozpocznij'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+async def verification_begin(ctx):
+    """Starts the Reddit account verification process for the invoking Discord user."""
     discord_user_id = ctx.author.id
     discord_user_info = verifier.discord_user_info(discord_user_id)
 
@@ -621,12 +651,12 @@ async def reddit_verify(ctx):
     await ctx.author.send(embed=embed)
 
 
-@somsiad.client.command(aliases=['prześwietl', 'przeswietl'])
+@verification.command(aliases=['prześwietl', 'przeswietl'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def reddit_xray(ctx, *args):
+async def verification_xray(ctx, *args):
     """Checks given user's verification status.
     If no user was given, assumes message author.
     If the argument passed was "@here" or "here" or "@everyone" or "everyone",
@@ -634,7 +664,8 @@ async def reddit_xray(ctx, *args):
     """
 
     if (len(args) == 1 and args[0].strip('@\\') == 'everyone' and
-            ctx.channel.permissions_for(ctx.author).manage_roles):
+            ctx.channel.permissions_for(ctx.author).manage_roles
+    ):
         embed = discord.Embed(
             title='Zweryfikowani użytkownicy na tym serwerze',
             color=somsiad.color
@@ -649,7 +680,8 @@ async def reddit_xray(ctx, *args):
                 )
 
     elif (len(args) == 1 and args[0].strip('@\\') == 'here' and
-            ctx.channel.permissions_for(ctx.author).manage_roles):
+            ctx.channel.permissions_for(ctx.author).manage_roles
+    ):
         embed = discord.Embed(
             title='Zweryfikowani użytkownicy na tym kanale',
             color=somsiad.color
@@ -681,15 +713,14 @@ async def reddit_xray(ctx, *args):
             )
         else:
             if discord_user_info['verification_status'] == 'VERIFIED':
-                reddit_username_info = ''
                 if ctx.channel.permissions_for(ctx.author).manage_roles:
-                    reddit_username_info = (f' jako [/u/{discord_user_info["reddit_username"]}]'
+                    more_info = (f' {discord_user_info["verification_rejection_date"]} jako [/u/{discord_user_info["reddit_username"]}]'
                     f'(https://www.reddit.com/user/{discord_user_info["reddit_username"]})')
+                else:
+                    more_info = ''
                 embed = discord.Embed(
                     title=':white_check_mark: Zweryfikowany',
-                    description=f'Użytkownik {discord_user} został zweryfikowany '
-                    f'{discord_user_info["verification_rejection_date"]}'
-                    f'{reddit_username_info}.',
+                    description=f'Użytkownik {discord_user} został zweryfikowany{more_info}.',
                     color=somsiad.color
                 )
             elif str(discord_user_info['verification_status']) == 'REJECTED_NOT_TRUSTWORTHY':
@@ -725,9 +756,9 @@ async def reddit_xray(ctx, *args):
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@reddit_xray.error
-async def reddit_xray_error(ctx, error):
-    """Handles errors in the reddit_xray command."""
+@verification_xray.error
+async def verification_xray_error(ctx, error):
+    """Handles errors in the verification_xrays command."""
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Błąd',
@@ -739,13 +770,13 @@ async def reddit_xray_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.client.command(aliases=['zweryfikowanymnadawaj'])
+@verification.command(aliases=['rola'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
-async def reddit_set_verified_role(ctx, *args):
+async def verification_role(ctx, *args):
     """Sets the role to be given automatically to verified members."""
     provided_role_name = ' '.join(args)
     roles_found = []
@@ -780,29 +811,12 @@ async def reddit_set_verified_role(ctx, *args):
                 color=somsiad.color
             )
     else:
+        verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', 'NULL')
         embed = discord.Embed(
-            title=f':warning: Nie podano roli, która ma być przyznawana zweryfikowanym użytkownikom',
-            description=f'Możesz podać nazwę lub użyć @wzmianki.',
+            title=f':white_check_mark: Wyłączono przyznawanie roli zweryfikowanym użytkownikom',
             color=somsiad.color
         )
 
-    embed.set_footer(text=verifier.FOOTER_TEXT)
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.client.command(aliases=['zweryfikowanymnienadawaj'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(manage_roles=True)
-async def reddit_unset_verified_role(ctx):
-    """Unsets the role to be given automatically to verified members."""
-    verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', 'NULL')
-    embed = discord.Embed(
-        title=f':white_check_mark: Wyłączono automatyczne nadawanie roli zweryfikowanym użytkownikom',
-        color=somsiad.color
-    )
     embed.set_footer(text=verifier.FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
 
