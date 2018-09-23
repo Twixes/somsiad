@@ -15,10 +15,12 @@
 
 import locale
 import somsiad
-import server_settings
+import server_data
 from plugins import *
 
+
 ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8', 'pl_PL')
+
 
 def set_locale(iteration: int = 0):
     if len(ACCEPTED_LOCALES) > iteration:
@@ -26,6 +28,7 @@ def set_locale(iteration: int = 0):
             locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[iteration])
         except locale.Error:
             set_locale(iteration + 1)
+
 
 if __name__ == '__main__':
     set_locale()

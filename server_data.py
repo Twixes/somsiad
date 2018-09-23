@@ -17,14 +17,9 @@ import discord
 from somsiad import somsiad
 
 
-class ServerSettingsManager:
-    """Handles server-specific settings."""
+class ServerDataManager:
+    """Handles server-specific data."""
     servers_db_path = os.path.join(somsiad.storage_dir_path, 'servers.db')
-    servers = {
-        'ids': []
-    }
-    _servers_db = None
-    _servers_db_cursor = None
 
     @staticmethod
     def dict_from_row(row: sqlite3.Row) -> dict:
@@ -33,8 +28,11 @@ class ServerSettingsManager:
 
     def __init__(self):
         """Connects to the servers database. Creates it if it doesn't exist yet.
-        Creates a table containing known servers. Creates a database for each known server.
+        Creates a table containing known servers.
         """
+        self.servers = {
+            'ids': []
+        }
         self._servers_db = sqlite3.connect(self.servers_db_path)
         self._servers_db.row_factory = sqlite3.Row
         self._servers_db_cursor = self._servers_db.cursor()
@@ -99,7 +97,7 @@ class ServerSettingsManager:
     def load_all_server_dbs(self) -> dict:
         """Loads all known servers."""
         for server_id in self.load_servers_list():
-            self.load_server(server_id, load_own_db=True)
+            self.load_server(server_id)
         return self.servers
 
     def ensure_table_existence_for_server(self, server_id: int, table_name: str, table_columns: list):
@@ -132,7 +130,7 @@ class ServerSettingsManager:
         return [self.dict_from_row(server) for server in self._servers_db_cursor.fetchall()]
 
 
-server_settings_manager = ServerSettingsManager()
+server_data_manager = ServerDataManager()
 
 
 @somsiad.client.command(aliases=['loguj'])
@@ -146,7 +144,7 @@ async def do_log(ctx, channel: discord.TextChannel = None):
     if channel is None:
         channel = ctx.channel
 
-    server_settings_manager.set_log_channel(ctx.guild.id, channel.id)
+    server_data_manager.set_log_channel(ctx.guild.id, channel.id)
     embed = discord.Embed(
         title=f':white_check_mark: Ustawiono #{channel} jako kanał logów',
         color=somsiad.color
@@ -162,7 +160,7 @@ async def do_log(ctx, channel: discord.TextChannel = None):
 @discord.ext.commands.has_permissions(administrator=True)
 async def do_not_log(ctx):
     """Unsets the bot's log channel for the server."""
-    server_settings_manager.set_log_channel(ctx.guild.id, 'NULL')
+    server_data_manager.set_log_channel(ctx.guild.id, 'NULL')
     embed = discord.Embed(
         title=f':white_check_mark: Wyłączono logi na tym serwerze',
         color=somsiad.color

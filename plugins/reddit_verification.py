@@ -23,7 +23,7 @@ import discord
 import praw
 from somsiad import somsiad
 from utilities import TextFormatter
-from server_settings import ServerSettingsManager
+from server_data import ServerDataManager
 
 
 class RedditVerifier:
@@ -331,7 +331,7 @@ class RedditVerifier:
     @staticmethod
     def log_verification_result(
         discord_user_id: int, reddit_username: str, *, success: bool, personal_reason: str = '',
-        log_reason: str = '', thread_server_settings_manager: ServerSettingsManager
+        log_reason: str = '', thread_server_data_manager: ServerDataManager
     ):
         discord_user = somsiad.client.get_user(discord_user_id)
 
@@ -353,7 +353,7 @@ class RedditVerifier:
         embed.set_footer(text=verifier.FOOTER_TEXT)
         asyncio.ensure_future(discord_user.send(embed=embed))
 
-        for row in thread_server_settings_manager.get_log_channels():
+        for row in thread_server_data_manager.get_log_channels():
             server = somsiad.client.get_guild(row['server_id'])
             if server.get_member(discord_user_id) is not None:
                 channel = server.get_channel(row['log_channel_id'])
@@ -409,7 +409,7 @@ class RedditVerificationMessageScout:
     _db_path = None
     _reddit = None
     _verifier = None
-    _server_settings_manager = None
+    _server_data_manager = None
 
     class MessageRetrievalFailure(praw.exceptions.APIException):
         """Raised when messages could not be retrieved from Reddit."""
@@ -434,7 +434,7 @@ class RedditVerificationMessageScout:
             user_agent=somsiad.user_agent
         )
         self._verifier = RedditVerifier(self._db_path)
-        self._server_settings_manager = ServerSettingsManager()
+        self._server_data_manager = ServerDataManager()
 
         while True:
             try:
@@ -481,7 +481,7 @@ class RedditVerificationMessageScout:
                                 phrase_info['discord_user_id'],
                                 reddit_username,
                                 success=True,
-                                thread_server_settings_manager=self._server_settings_manager
+                                thread_server_data_manager=self._server_data_manager
                             )
                             message.reply(
                                 f'Pomyślnie zweryfikowano! Przypisano to konto do użytkownika Discorda '
@@ -499,7 +499,7 @@ class RedditVerificationMessageScout:
                                 f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                 f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}',
                                 log_reason='jego konto na Reddicie nie spełniło wymagań',
-                                thread_server_settings_manager=self._server_settings_manager
+                                thread_server_data_manager=self._server_data_manager
                             )
                             message.reply(
                                 'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
@@ -517,7 +517,7 @@ class RedditVerificationMessageScout:
                             personal_reason='twoja fraza wygasła. Wygeneruj nową frazę za pomocą komendy '
                             f'{somsiad.conf["command_prefix"]}weryfikacja zweryfikuj',
                             log_reason='jego fraza wygasła',
-                            thread_server_settings_manager=self._server_settings_manager
+                            thread_server_data_manager=self._server_data_manager
                         )
                         message.reply(
                             'Weryfikacja nie powiodła się. Wysłana fraza wygasła. Wygeneruj nową frazę '
