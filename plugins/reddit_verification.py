@@ -411,10 +411,6 @@ class RedditVerificationMessageScout:
     _verifier = None
     _server_data_manager = None
 
-    class MessageRetrievalFailure(praw.exceptions.APIException):
-        """Raised when messages could not be retrieved from Reddit."""
-        pass
-
     def __init__(self, db_path):
         """Runs message processing in a new thread."""
         self._db_path = db_path
@@ -439,7 +435,7 @@ class RedditVerificationMessageScout:
         while True:
             try:
                 self._process_unread_messages()
-            except self.MessageRetrievalFailure:
+            except:
                 somsiad.logger.warning(
                     'Something went wrong while trying to process Reddit verification messages! Trying again...'
                 )
