@@ -38,7 +38,7 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8, czy) <pytanie>',
+        name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.',
         inline=False
     )
@@ -53,7 +53,7 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}policz <wyrażenie> <?zmienne>',
+        name=f'{somsiad.conf["command_prefix"]}oblicz (policz) <wyrażenie> <?zmienne>',
         value='Liczy podane wyrażenie. Przyjmuje również oddzielone średnikami zmienne, '
         'np. "x ^ 2 + y + 4; x = 3; y = 5". Jeśli podane dane nie są wystarczające do obliczenia równania, '
         'próbuje je uprościć.',
