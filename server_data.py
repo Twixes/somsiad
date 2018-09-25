@@ -13,6 +13,7 @@
 
 import os.path
 import sqlite3
+from typing import Union, Tuple, List
 import discord
 from somsiad import somsiad
 
@@ -33,16 +34,16 @@ class ServerDataManager:
         self.servers = {
             'ids': []
         }
-        self._servers_db = sqlite3.connect(self.servers_db_path)
-        self._servers_db.row_factory = sqlite3.Row
-        self._servers_db_cursor = self._servers_db.cursor()
-        self._servers_db_cursor.execute(
+        self.servers_db = sqlite3.connect(self.servers_db_path)
+        self.servers_db.row_factory = sqlite3.Row
+        self.servers_db_cursor = self.servers_db.cursor()
+        self.servers_db_cursor.execute(
             '''CREATE TABLE IF NOT EXISTS servers(
                 server_id INTEGER NOT NULL PRIMARY KEY,
                 log_channel_id INTEGER
             )'''
         )
-        self._servers_db.commit()
+        self.servers_db.commit()
         self.load_all_server_dbs()
 
     def is_server_known(self, server_id: int) -> bool:
@@ -51,47 +52,58 @@ class ServerDataManager:
 
     def load_servers_list(self) -> list:
         """Loads IDs of all known servers from the servers database."""
-        self._servers_db_cursor.execute(
+        self.servers_db_cursor.execute(
             'SELECT server_id FROM servers'
         )
-        self.servers['ids'] = [int(server['server_id']) for server in self._servers_db_cursor.fetchall()]
+        self.servers['ids'] = [int(server['server_id']) for server in self.servers_db_cursor.fetchall()]
         return self.servers['ids']
 
     def load_server(self, server_id: int, load_own_db: bool = False) -> dict:
         """Loads the specified server."""
         if not self.is_server_known(server_id):
-            self._servers_db_cursor.execute(
+            self.servers_db_cursor.execute(
                 'INSERT INTO servers(server_id) VALUES(?)',
                 (server_id,)
             )
-            self._servers_db.commit()
+            self.servers_db.commit()
 
         self.servers[server_id] = {}
-        self._servers_db_cursor.execute(
+        self.servers_db_cursor.execute(
             'SELECT * FROM servers WHERE server_id = ?',
             (server_id,)
         )
-        self.servers[server_id].update(self.dict_from_row(self._servers_db_cursor.fetchone()))
+        self.servers[server_id].update(self.dict_from_row(self.servers_db_cursor.fetchone()))
+
         if load_own_db:
-            server_db_path = os.path.join(somsiad.storage_dir_path, f'server_{server_id}.db')
-            self.servers[server_id]['_db'] = sqlite3.connect(server_db_path)
-            self.servers[server_id]['_db'].row_factory = sqlite3.Row
-            self.servers[server_id]['_db_cursor'] = self.servers[server_id]['_db'].cursor()
-            self.servers[server_id]['_db_cursor'].execute(
-                'PRAGMA foreign_keys = ON'
+            self.load_own_server_db(server_id)
+
+        return self.servers[server_id]
+
+    def load_own_server_db(self, server_id: int) -> dict:
+        """Load the specified server's own database."""
+        server_db_path = os.path.join(somsiad.storage_dir_path, f'server_{server_id}.db')
+
+        self.servers[server_id]['db'] = sqlite3.connect(server_db_path)
+        self.servers[server_id]['db'].row_factory = sqlite3.Row
+        self.servers[server_id]['db_cursor'] = self.servers[server_id]['db'].cursor()
+        self.servers[server_id]['db_cursor'].execute(
+            'PRAGMA foreign_keys = ON'
+        )
+        self.servers[server_id]['db'].commit()
+        self.servers[server_id]['db_cursor'].execute(
+            'SELECT name FROM sqlite_master WHERE type = "table"'
+        )
+
+        tables = [table['name'] for table in self.servers[server_id]['db_cursor'].fetchall()]
+
+        for table in tables:
+            self.servers[server_id][table] = {}
+            self.servers[server_id]['db_cursor'].execute(
+                f'SELECT * FROM {table}'
             )
-            self.servers[server_id]['_db'].commit()
-            self.servers[server_id]['_db_cursor'].execute(
-                'SELECT name FROM sqlite_master WHERE type = "table"'
-            )
-            tables = [table['name'] for table in self.servers[server_id]['_db_cursor'].fetchall()]
-            for table in tables:
-                self.servers[server_id][table] = {}
-                self.servers[server_id]['_db_cursor'].execute(
-                    f'SELECT * FROM {table}'
-                )
-                rows = [self.dict_from_row(row) for row in self.servers[server_id]['_db_cursor'].fetchall()]
-                self.servers[server_id][table] = rows
+            rows = [self.dict_from_row(row) for row in self.servers[server_id]['db_cursor'].fetchall()]
+            self.servers[server_id][table] = rows
+
         return self.servers[server_id]
 
     def load_all_server_dbs(self) -> dict:
@@ -100,34 +112,36 @@ class ServerDataManager:
             self.load_server(server_id)
         return self.servers
 
-    def ensure_table_existence_for_server(self, server_id: int, table_name: str, table_columns: list):
+    def ensure_table_existence_for_server(
+            self, server_id: int, table_name: str, table_columns: Union[List[str], Tuple[str]]
+    ):
         """Ensures that a table with the provided name exists in the database assigned to the server.
         If no such table exists, it is created with provided column specs.
         """
         self.load_server(server_id, load_own_db=True)
-        self.servers[server_id]['_db_cursor'].execute(
+        self.servers[server_id]['db_cursor'].execute(
             f'''CREATE TABLE IF NOT EXISTS {table_name}(
                 {', '.join(table_columns)}
             )'''
         )
-        self.servers[server_id]['_db'].commit()
+        self.servers[server_id]['db'].commit()
         self.load_server(server_id, load_own_db=True)
 
     def set_log_channel(self, server_id: int, log_channel_id):
         """Sets the log channel for the specified server."""
         self.load_server(server_id)
-        self._servers_db_cursor.execute(
+        self.servers_db_cursor.execute(
             'UPDATE servers SET log_channel_id = ? WHERE server_id = ?',
             (log_channel_id, server_id)
         )
-        self._servers_db.commit()
+        self.servers_db.commit()
         self.load_server(server_id)
 
     def get_log_channels(self) -> dict:
-        self._servers_db_cursor.execute(
+        self.servers_db_cursor.execute(
             'SELECT server_id, log_channel_id FROM servers WHERE log_channel_id IS NOT NULL'
         )
-        return [self.dict_from_row(server) for server in self._servers_db_cursor.fetchall()]
+        return [self.dict_from_row(server) for server in self.servers_db_cursor.fetchall()]
 
 
 server_data_manager = ServerDataManager()

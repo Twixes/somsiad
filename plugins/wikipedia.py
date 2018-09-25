@@ -16,6 +16,7 @@ import discord
 from somsiad import somsiad
 from utilities import TextFormatter
 
+
 class Wikipedia:
     """Handles Wikipedia search."""
     FOOTER_TEXT = 'Wikipedia'

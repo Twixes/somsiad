@@ -434,7 +434,7 @@ async def stat(ctx):
 )
 @discord.ext.commands.guild_only()
 async def stat_server(ctx):
-    async with ctx.channel.typing():
+    async with ctx.typing():
         report = Report(ctx.author, ctx.guild)
         await report.analyze_subject()
         report.render_activity_chart()
@@ -463,7 +463,7 @@ async def stat_channel(ctx, channel: discord.TextChannel = None):
     if channel is None:
         channel = ctx.channel
 
-    async with ctx.channel.typing():
+    async with ctx.typing():
         report = Report(ctx.author, channel)
         await report.analyze_subject()
         report.render_activity_chart()
@@ -498,7 +498,7 @@ async def stat_member(ctx, member: discord.Member = None):
     if member is None:
         member = ctx.author
 
-    async with ctx.channel.typing():
+    async with ctx.typing():
         report = Report(ctx.author, member)
         await report.analyze_subject()
         report.render_activity_chart()

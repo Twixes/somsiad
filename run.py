@@ -19,11 +19,14 @@ import server_data
 from plugins import *
 
 
-ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8', 'pl_PL')
+ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 
 
 def set_locale(iteration: int = 0):
-    if len(ACCEPTED_LOCALES) > iteration:
+    """Sets the locale.
+    Recursively tries locale after locale until it finds one that the system supports.
+    """
+    if iteration < len(ACCEPTED_LOCALES):
         try:
             locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[iteration])
         except locale.Error:
