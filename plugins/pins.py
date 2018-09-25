@@ -102,6 +102,7 @@ async def pins(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
+@discord.ext.commands.has_permissions(manage_channels=True)
 async def pins_channel(ctx, channel: discord.TextChannel = None):
     """Sets the pin archive channel of the server."""
     if channel is None:
@@ -122,6 +123,7 @@ async def pins_channel(ctx, channel: discord.TextChannel = None):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
+@discord.ext.commands.has_permissions(manage_messages=True)
 async def pins_archive(ctx):
     """Archives pins in the channel where the command was invoked."""
     archive_channel_id = pin_archives_manager.get_archive_channel_id(ctx.guild.id)
@@ -194,6 +196,7 @@ async def pins_archive(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
+@discord.ext.commands.has_permissions(manage_messages=True)
 async def pins_clear(ctx):
     """Unpins all pins in the channel."""
     pins = await ctx.channel.pins()
