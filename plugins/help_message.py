@@ -38,7 +38,7 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8) <pytanie>',
+        name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8, czy) <pytanie>',
         value='Zadaje <pytanie> magicznej kuli.',
         inline=False
     )
@@ -134,6 +134,12 @@ async def help_message(ctx):
         name=f'{somsiad.conf["command_prefix"]}stat <?podkomenda>',
         value='Grupa komend związanych ze statystykami na serwerze. '
         f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy by dowiedzieć się więcej.',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}przypinki <?podkomenda>',
+        value='Grupa komend związanych z przypinkami. '
+        f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy by dowiedzieć się więcej.',
         inline=False
     )
     embed.add_field(
