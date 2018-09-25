@@ -36,7 +36,7 @@ class Ball:
 
 
 
-@somsiad.client.command(aliases=['8ball', '8-ball', '8'])
+@somsiad.client.command(aliases=['8ball', '8-ball', '8', 'czy'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
