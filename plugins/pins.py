@@ -61,6 +61,41 @@ class PinArchivesManager:
         else:
             return archive_channel_id[0]
 
+    @staticmethod
+    async def archive_pin(pin: discord.Message, archive_channel: discord.TextChannel):
+        """Archives the provided message in the provided channel."""
+        pin_embed = discord.Embed(
+            description=pin.content,
+            color=somsiad.color,
+            timestamp=pin.created_at
+        )
+        pin_embed.set_author(
+            name=pin.author.display_name,
+            url=pin.jump_url,
+            icon_url=pin.author.avatar_url
+        )
+        pin_embed.set_footer(text=f'#{pin.channel}')
+
+        files = []
+        for attachment in pin.attachments:
+            filename = attachment.filename
+            fp = io.BytesIO()
+            await attachment.save(fp)
+            file = discord.File(fp, filename)
+            files.append(file)
+
+        if len(files) == 1:
+            if pin.attachments[0].height is not None:
+                pin_embed.set_image(url=f'attachment://{pin.attachments[0].filename}')
+            await archive_channel.send(embed=pin_embed, file=files[0])
+        elif len(files) > 1:
+            await archive_channel.send(embed=pin_embed, files=files)
+        else:
+            url_from_content = TextFormatter.find_url(pin.content)
+            if url_from_content is not None:
+                pin_embed.set_image(url=url_from_content)
+            await archive_channel.send(embed=pin_embed)
+
 
 pin_archives_manager = PinArchivesManager()
 
@@ -137,37 +172,7 @@ async def pins_archive(ctx):
                 async with ctx.typing():
                     reversed_pins = reversed(pins)
                     for pin in reversed_pins:
-                        pin_embed = discord.Embed(
-                            description=pin.content,
-                            color=somsiad.color,
-                            timestamp=pin.created_at
-                        )
-                        pin_embed.set_author(
-                            name=pin.author.display_name,
-                            url=pin.jump_url,
-                            icon_url=pin.author.avatar_url
-                        )
-                        pin_embed.set_footer(text=f'#{pin.channel}')
-
-                        files = []
-                        for attachment in pin.attachments:
-                            filename = attachment.filename
-                            fp = io.BytesIO()
-                            await attachment.save(fp)
-                            file = discord.File(fp, filename)
-                            files.append(file)
-
-                        if len(files) == 1:
-                            if pin.attachments[0].height is not None:
-                                pin_embed.set_image(url=f'attachment://{pin.attachments[0].filename}')
-                            await archive_channel.send(embed=pin_embed, file=files[0])
-                        elif len(files) > 1:
-                            await archive_channel.send(embed=pin_embed, files=files)
-                        else:
-                            url_from_content = TextFormatter.find_url(pin.content)
-                            if url_from_content is not None:
-                                pin_embed.set_image(url=url_from_content)
-                            await archive_channel.send(embed=pin_embed)
+                        await pin_archives_manager.archive_pin(pin, archive_channel)
 
                 result_embed = discord.Embed(
                     title=':white_check_mark: Zarchiwizowano '
