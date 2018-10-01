@@ -15,7 +15,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.client.command(aliases=['r', 'sub'])
+@somsiad.bot.command(aliases=['r', 'sub'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -28,7 +28,7 @@ async def subreddit(ctx, *args):
     await ctx.send(f'{ctx.author.mention}\n{url}')
 
 
-@somsiad.client.command(aliases=['u'])
+@somsiad.bot.command(aliases=['u'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

@@ -33,7 +33,7 @@ class Somsiad:
 
     logger = None
     configurator = None
-    client = None
+    bot = None
     user_converter = None
     member_converter = None
 
@@ -72,19 +72,19 @@ class Somsiad:
             os.makedirs(self.conf_dir_path)
         self.required_settings.extend(additional_required_settings)
         self.configurator = Configurator(self.conf_file_path, self.required_settings)
-        self.client = Bot(
+        self.bot = Bot(
             description='Zawsze pomocny Somsiad',
             command_prefix=self.conf['command_prefix'],
             case_insensitive=True
         )
-        self.client.remove_command('help') # Replaced with the 'help_direct' plugin
+        self.bot.remove_command('help') # Replaced with the 'help_direct' plugin
         self.member_converter = discord.ext.commands.MemberConverter()
         self.user_converter = discord.ext.commands.UserConverter()
 
     def run(self):
         """Launches the bot."""
         try:
-            self.client.run(somsiad.conf['discord_token'])
+            self.bot.run(somsiad.conf['discord_token'])
             self.logger.info('Client started.')
         except discord.errors.ClientException:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
@@ -98,7 +98,7 @@ class Somsiad:
     def invite_url(self):
         """Returns the invitation URL of the bot."""
         try:
-            return discord.utils.oauth_url(self.client.user.id, discord.Permissions(536083543))
+            return discord.utils.oauth_url(self.bot.user.id, discord.Permissions(536083543))
         except discord.errors.ClientException:
             return None
 
@@ -106,7 +106,7 @@ class Somsiad:
         """Generates a list of servers the bot is connected to, including the number of days since joining
         and the number of users.
         """
-        servers = [guild for guild in self.client.guilds if guild.me is not None]
+        servers = [guild for guild in self.bot.guilds if guild.me is not None]
         sorted_servers = sorted(servers, key=lambda server: server.me.joined_at, reverse=True)
         longest_server_name_length = 0
         longest_days_since_joining_info_length = 0
@@ -183,11 +183,11 @@ somsiad = Somsiad(ADDITIONAL_REQUIRED_SETTINGS)
 
 def print_info(first_console_block=True):
     """Prints information about the bot to the console."""
-    number_of_users = len(set(somsiad.client.get_all_members()))
-    number_of_servers = len(somsiad.client.guilds)
+    number_of_users = len(set(somsiad.bot.get_all_members()))
+    number_of_servers = len(somsiad.bot.guilds)
 
     info_lines = [
-        f'Obudzono Somsiada (ID {somsiad.client.user.id}).',
+        f'Obudzono Somsiada (ID {somsiad.bot.user.id}).',
         '',
         f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
         f'{TextFormatter.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
@@ -207,7 +207,7 @@ def print_info(first_console_block=True):
     print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
 
 
-@somsiad.client.command(aliases=['wersja'])
+@somsiad.bot.command(aliases=['wersja'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -216,7 +216,7 @@ async def version(ctx):
     await ctx.send(f'{ctx.author.mention}\n{__version__}')
 
 
-@somsiad.client.command()
+@somsiad.bot.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -225,28 +225,28 @@ async def ping(ctx):
     await ctx.send(f'{ctx.author.mention}\n:ping_pong: Pong!')
 
 
-@somsiad.client.event
+@somsiad.bot.event
 async def on_ready():
     """Does things once the bot comes online."""
     print_info()
-    await somsiad.client.change_presence(
+    await somsiad.bot.change_presence(
         activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy')
     )
 
 
-@somsiad.client.event
+@somsiad.bot.event
 async def on_guild_join(guild):
     """Does things whenever the bot joins a server."""
     print_info(first_console_block=False)
 
 
-@somsiad.client.event
+@somsiad.bot.event
 async def on_guild_remove(guild):
     """Does things whenever the bot leaves a server."""
     print_info(first_console_block=False)
 
 
-@somsiad.client.event
+@somsiad.bot.event
 async def on_command_error(ctx, error):
     """Handles command errors."""
     ignored_errors = (discord.ext.commands.CommandNotFound, discord.ext.commands.BadArgument)

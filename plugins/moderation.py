@@ -16,7 +16,7 @@ from somsiad import somsiad
 from utilities import TextFormatter
 
 
-@somsiad.client.command(aliases=['wyczyść', 'wyczysc'])
+@somsiad.bot.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -70,7 +70,7 @@ async def purge_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
 
 
-@somsiad.client.command(aliases=['zaproś', 'zapros'])
+@somsiad.bot.command(aliases=['zaproś', 'zapros'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

@@ -28,7 +28,7 @@ class OMDb:
                 embed.add_field(name=name, value=res[key], inline=inline)
 
 
-@somsiad.client.command()
+@somsiad.bot.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )

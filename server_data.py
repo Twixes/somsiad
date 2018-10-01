@@ -147,7 +147,7 @@ class ServerDataManager:
 server_data_manager = ServerDataManager()
 
 
-@somsiad.client.command(aliases=['loguj'])
+@somsiad.bot.command(aliases=['loguj'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -166,7 +166,7 @@ async def do_log(ctx, channel: discord.TextChannel = None):
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.client.command(aliases=['nieloguj'])
+@somsiad.bot.command(aliases=['nieloguj'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

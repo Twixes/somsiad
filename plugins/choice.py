@@ -22,7 +22,7 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r'
     choice_answers = json.load(f)
 
 
-@somsiad.client.command(aliases=['choose', 'wybierz'])
+@somsiad.bot.command(aliases=['choose', 'wybierz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

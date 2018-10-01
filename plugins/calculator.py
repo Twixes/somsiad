@@ -19,7 +19,7 @@ from somsiad import somsiad
 parser = Parser()
 
 
-@somsiad.client.command(aliases=['oblicz', 'policz'])
+@somsiad.bot.command(aliases=['oblicz', 'policz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

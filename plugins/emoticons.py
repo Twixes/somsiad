@@ -15,7 +15,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.client.command(aliases=['lenny'])
+@somsiad.bot.command(aliases=['lenny'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -24,7 +24,7 @@ async def lennyface(ctx):
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
 
-@somsiad.client.command(aliases=['lenno'])
+@somsiad.bot.command(aliases=['lenno'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -33,7 +33,7 @@ async def lennoface(ctx):
     await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
 
 
-@somsiad.client.command(aliases=['wywróć'])
+@somsiad.bot.command(aliases=['wywróć'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -42,7 +42,7 @@ async def tableflip(ctx):
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
 
-@somsiad.client.command(aliases=['odstaw'])
+@somsiad.bot.command(aliases=['odstaw'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -51,7 +51,7 @@ async def unflip(ctx):
     await ctx.send('┬─┬ ノ( ゜-゜ノ)')
 
 
-@somsiad.client.command()
+@somsiad.bot.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -60,7 +60,7 @@ async def shrug(ctx):
     await ctx.send(r'¯\_(ツ)_/¯')
 
 
-@somsiad.client.command(aliases=['dej'])
+@somsiad.bot.command(aliases=['dej'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -74,7 +74,7 @@ async def gib(ctx, *args):
         await ctx.send(f'༼ つ ◕_◕ ༽つ {" ".join(args)}')
 
 
-@somsiad.client.command()
+@somsiad.bot.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

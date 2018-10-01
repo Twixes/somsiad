@@ -16,7 +16,7 @@ from somsiad import somsiad
 from version import __version__
 
 
-@somsiad.client.command(aliases=['help', 'pomocy'])
+@somsiad.bot.command(aliases=['help', 'pomocy'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

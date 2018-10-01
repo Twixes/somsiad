@@ -50,7 +50,7 @@ class GoogleCSE:
 google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_search_engine_id'])
 
 
-@somsiad.client.command(aliases=['g', 'gugiel'])
+@somsiad.bot.command(aliases=['g', 'gugiel'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -103,7 +103,7 @@ async def google(ctx, *args):
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.client.command(aliases=['googleimage', 'gi', 'i'])
+@somsiad.bot.command(aliases=['googleimage', 'gi', 'i'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

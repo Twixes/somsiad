@@ -333,7 +333,7 @@ class RedditVerifier:
         discord_user_id: int, reddit_username: str, *, success: bool, personal_reason: str = '',
         log_reason: str = '', thread_server_data_manager: ServerDataManager
     ):
-        discord_user = somsiad.client.get_user(discord_user_id)
+        discord_user = somsiad.bot.get_user(discord_user_id)
 
         if success:
             embed = discord.Embed(
@@ -354,7 +354,7 @@ class RedditVerifier:
         asyncio.ensure_future(discord_user.send(embed=embed))
 
         for row in thread_server_data_manager.get_log_channels():
-            server = somsiad.client.get_guild(row['server_id'])
+            server = somsiad.bot.get_guild(row['server_id'])
             if server.get_member(discord_user_id) is not None:
                 channel = server.get_channel(row['log_channel_id'])
                 if channel is not None:
@@ -380,7 +380,7 @@ class RedditVerifier:
 
     def add_verified_roles_to_discord_user(self, discord_user_id: int):
         for row in self.get_verified_roles():
-            server = somsiad.client.get_guild(row['server_id'])
+            server = somsiad.bot.get_guild(row['server_id'])
             member = server.get_member(discord_user_id)
             if member is not None:
                 for role in server.roles:
@@ -471,7 +471,7 @@ class RedditVerificationMessageScout:
                             # and the user seems to be trustworthy,
                             # assign the Reddit username to the Discord user whose secret phrase this was
                             self._verifier.verify_user(reddit_username, phrase)
-                            discord_user = somsiad.client.get_user(phrase_info['discord_user_id'])
+                            discord_user = somsiad.bot.get_user(phrase_info['discord_user_id'])
                             self._verifier.add_verified_roles_to_discord_user(phrase_info['discord_user_id'])
                             self._verifier.log_verification_result(
                                 phrase_info['discord_user_id'],
@@ -522,7 +522,7 @@ class RedditVerificationMessageScout:
 
             else:
                 discord_user_id = self._verifier.reddit_user_info(reddit_username)['discord_user_id']
-                discord_user = somsiad.client.get_user(discord_user_id)
+                discord_user = somsiad.bot.get_user(discord_user_id)
                 message.reply(
                     f'To konto zostało przypisane do użytkownika Discorda {discord_user} '
                     f'{reddit_user_info["verification_rejection_date"].strftime("%d %b %Y")}.'
@@ -539,7 +539,7 @@ with open(phrase_parts_file_path, 'r') as f:
 
 verifier = RedditVerifier(db_path, phrase_parts)
 
-@somsiad.client.group(aliases=['weryfikacja'], invoke_without_command=True)
+@somsiad.bot.group(aliases=['weryfikacja'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

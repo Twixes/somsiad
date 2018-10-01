@@ -15,7 +15,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.client.command(aliases=['wejdź'])
+@somsiad.bot.command(aliases=['wejdź'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -24,7 +24,7 @@ async def enter(ctx, *args):
     """Generates an invite to the provided server."""
     server_name = ' '.join(args)
     invite = None
-    for server in somsiad.client.guilds:
+    for server in ctx.bot.guilds:
         if server.name == server_name:
             for channel in server.channels:
                 if (
@@ -39,7 +39,7 @@ async def enter(ctx, *args):
         await ctx.send(f'{ctx.author.mention}\n{invite.url}')
 
 
-@somsiad.client.group(aliases=['ogłoś', 'oglos'])
+@somsiad.bot.group(aliases=['ogłoś', 'oglos'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -114,7 +114,7 @@ async def announce_locally(ctx, *args):
                 break
 
 
-@somsiad.client.command(aliases=['wyłącz', 'wylacz'])
+@somsiad.bot.command(aliases=['wyłącz', 'wylacz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -126,5 +126,5 @@ async def shut_down(ctx):
         color=somsiad.color
     )
     await ctx.send(ctx.author.mention, embed=embed)
-    await somsiad.client.close()
+    await ctx.bot.close()
     exit()

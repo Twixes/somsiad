@@ -16,7 +16,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.client.command(aliases=['gif'])
+@somsiad.bot.command(aliases=['gif'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

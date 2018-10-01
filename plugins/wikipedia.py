@@ -162,7 +162,7 @@ class Wikipedia:
         return embed
 
 
-@somsiad.client.command(aliases=['wiki', 'w'])
+@somsiad.bot.command(aliases=['wiki', 'w'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

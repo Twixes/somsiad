@@ -15,7 +15,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.client.command()
+@somsiad.bot.command()
 @discord.ext.commands.cooldown(
     1, int(somsiad.conf['command_cooldown_per_user_in_seconds']) * 10, discord.ext.commands.BucketType.guild
 )
@@ -40,7 +40,7 @@ async def owo(ctx, *args):
     )
 
 
-@somsiad.client.command(aliases=['masztyrozumigodność', 'masztyrozumigodnośćczłowieka'])
+@somsiad.bot.command(aliases=['masztyrozumigodność', 'masztyrozumigodnośćczłowieka'])
 @discord.ext.commands.cooldown(
     1, int(somsiad.conf['command_cooldown_per_user_in_seconds']) * 10, discord.ext.commands.BucketType.guild
 )
@@ -80,7 +80,7 @@ async def rigcz(ctx, *args):
     )
 
 
-@somsiad.client.command(aliases=['oopsie'])
+@somsiad.bot.command(aliases=['oopsie'])
 @discord.ext.commands.cooldown(
     1, int(somsiad.conf['command_cooldown_per_user_in_seconds']) * 10, discord.ext.commands.BucketType.guild
 )
