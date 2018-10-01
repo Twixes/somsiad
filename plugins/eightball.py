@@ -17,6 +17,7 @@ import json
 import discord
 from somsiad import somsiad
 
+
 class Ball:
     with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.json')) as f:
         eightball_answers = json.load(f)
@@ -35,17 +36,15 @@ class Ball:
         return aNSwEr
 
 
-
 @somsiad.bot.command(aliases=['8ball', '8-ball', '8', 'czy'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def eightball(ctx, *args):
+async def eightball(ctx, *, question: discord.ext.commands.clean_content):
     """Returns an 8-Ball answer."""
-    question = ' '.join(args)
-    question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?')
-    if question != '':
-        if 'fccchk' in question.lower():
+    stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?')
+    if stripped_question != '':
+        if 'fccchk' in stripped_question.lower():
             await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {Ball.AsK()}')
         else:
             await ctx.send(f'{ctx.author.mention}\n:8ball: {Ball.ask()}')
