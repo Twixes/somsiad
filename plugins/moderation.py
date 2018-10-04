@@ -16,6 +16,21 @@ from somsiad import somsiad
 from utilities import TextFormatter
 
 
+@somsiad.bot.command(aliases=['nope', 'nie'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+async def no(ctx, number_of_messages_to_delete: int = 1):
+    """Removes the last message sent by the bot in the channel on the requesting user's request."""
+    if number_of_messages_to_delete > 50:
+        number_of_messages_to_delete = 50
+
+    async for message in ctx.history(limit=15):
+        if message.author == ctx.me and ctx.author in message.mentions:
+            await message.delete()
+            break
+
+
 @somsiad.bot.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
