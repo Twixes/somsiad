@@ -37,7 +37,9 @@ async def spotify(ctx):
         youtube_search_result = youtube.search(f'{ctx.author.activity.title} {" ".join(ctx.author.activity.artists)}')
         if youtube_search_result:
             video_id = youtube_search_result[0]['id']['videoId']
+            video_thumbnail_url = youtube_search_result[0]['snippet']['thumbnails']['medium']['url']
             embed.add_field(name='Przesłuchaj na YouTube', value=f'https://www.youtube.com/watch?v={video_id}')
+            embed.set_image(url=video_thumbnail_url)
 
         embed.set_footer(text='Spotify', icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png')
     else:
