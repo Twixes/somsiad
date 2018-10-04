@@ -29,7 +29,7 @@ class YouTube:
             # Call the search.list method to retrieve results matching the specified query term.
             search_response = self._youtube_client.search().list(
                 q=query,
-                part='id',
+                part='snippet',
                 maxResults=max_number_of_results,
                 type=search_type
             ).execute()
