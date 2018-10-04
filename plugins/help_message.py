@@ -153,6 +153,12 @@ async def help_message(ctx):
         inline=False
     )
     embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}zareaguj <?użytkownik Discorda> <reakcje>',
+        value='Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
+        '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).',
+        inline=False
+    )
+    embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}tableflip',
         value='(╯°□°）╯︵ ┻━┻',
         inline=False
@@ -180,6 +186,11 @@ async def help_message(ctx):
     embed.add_field(
         name=f'{somsiad.conf["command_prefix"]}dej (gib) <?rzecz>',
         value='༼ つ ◕_◕ ༽つ <?rzecz>',
+        inline=False
+    )
+    embed.add_field(
+        name=f'{somsiad.conf["command_prefix"]}nie (no, nope)',
+        value='Usuwa ostatnią wiadomość wysłaną przez bota na kanale jako rezultat komendy użytej przez ciebie.',
         inline=False
     )
     embed.add_field(
