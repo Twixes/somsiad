@@ -114,9 +114,18 @@ class TextFormatter:
         return ''.join(combined_information)
 
     @staticmethod
-    def separator(block: str, width: int = os.get_terminal_size()[0]) -> str:
+    def separator(block: str, width: int = None) -> str:
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
+        # If width was not passed try to set it to the terminal's width, if that turns out to be impossible set it to 80
+        if width is None:
+            try:
+                width = os.get_terminal_size()[0]
+            except OSError:
+                width = 80
+
+        # Generate the pattern
         pattern = (block * int(width / len(block)) + block)[:width].strip()
+
         return pattern
 
     @classmethod
