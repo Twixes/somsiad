@@ -34,5 +34,6 @@ def set_locale(iteration: int = 0):
 
 
 if __name__ == '__main__':
+    print('Budzenie Somsiada...')
     set_locale()
     somsiad.somsiad.run()
