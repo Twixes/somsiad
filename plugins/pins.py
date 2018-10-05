@@ -119,7 +119,7 @@ async def pins(ctx):
     )
     embed.add_field(
         name='zarchiwizuj',
-        value='Archiwizuje wiadomości przypięte na kanale na którym użyto komendy poprzez zapisanie ich '
+        value='Archiwizuje wiadomości przypięte na kanale na którym użyto komendy przez zapisanie ich '
         'na kanale archiwum.',
         inline=False
     )
@@ -176,7 +176,7 @@ async def pins_archive(ctx):
 
                 result_embed = discord.Embed(
                     title=':white_check_mark: Zarchiwizowano '
-                    f'{TextFormatter.adjective_variant(len(pins), "przypinkę", "przypinki", "przypinek")}',
+                    f'{TextFormatter.word_number_variant(len(pins), "przypinkę", "przypinki", "przypinek")}',
                     color=somsiad.color
                 )
             else:
@@ -214,7 +214,7 @@ async def pins_clear(ctx):
 
         result_embed = discord.Embed(
             title=':white_check_mark: Odpięto '
-            f'{TextFormatter.adjective_variant(len(pins), "przypinkę", "przypinki", "przypinek")}',
+            f'{TextFormatter.word_number_variant(len(pins), "przypinkę", "przypinki", "przypinek")}',
             color=somsiad.color
         )
     else:

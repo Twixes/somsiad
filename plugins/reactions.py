@@ -54,6 +54,8 @@ class Reactor:
                     and cls.ASCII_CHARACTERS[character][1] not in characters
             ):
                 return cls.ASCII_CHARACTERS[character][1]
+            else:
+                return ''
         else:
             return character
 

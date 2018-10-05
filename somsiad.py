@@ -40,7 +40,7 @@ class Somsiad:
     message_autodestruction_time_in_seconds = 5
     message_autodestruction_notice = (
         'Ta wiadomość ulegnie autodestrukcji w ciągu '
-        f'{TextFormatter.noun_variant(message_autodestruction_time_in_seconds, "sekundy", "sekund")} od wysłania.'
+        f'{TextFormatter.word_number_variant(message_autodestruction_time_in_seconds, "sekundy", "sekund")} od wysłania.'
     )
 
     required_settings = [
@@ -124,7 +124,7 @@ class Somsiad:
             list_of_servers.append(
                 f'{server.name.ljust(longest_server_name_length)} - '
                 f'dołączono {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
-                f'{TextFormatter.noun_variant(server.member_count, "użytkownik", "użytkowników")}'
+                f'{TextFormatter.word_number_variant(server.member_count, "użytkownik", "użytkowników")}'
             )
 
         return list_of_servers
@@ -190,8 +190,8 @@ def print_info(first_console_block=True):
         f'Obudzono Somsiada (ID {somsiad.bot.user.id}).',
         '',
         f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
-        f'{TextFormatter.noun_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
-        f'na {TextFormatter.noun_variant(number_of_servers, "serwerze", "serwerach")}:',
+        f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
+        f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}:',
         *somsiad.list_of_servers(),
         '',
         'Link do zaproszenia bota:',

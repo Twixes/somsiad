@@ -52,21 +52,11 @@ class TextFormatter:
         return 'ze' if 100 <= number < 200 else 'z'
 
     @staticmethod
-    def noun_variant(number: int, singular_form: str, plural_form: str, *, include_number: bool = True) -> str:
-        """Returns the gramatically correct variant of the given noun in Polish."""
-        proper_form = singular_form if number == 1 else plural_form
-
-        if include_number:
-            return f'{number} {proper_form}'
-        else:
-            return proper_form
-
-    @staticmethod
-    def adjective_variant(
-            number: int, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str,
+    def word_number_variant(
+            number: int, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str = None,
             *, include_number: bool = True
     ) -> str:
-        """Returns the gramatically correct variant of the given adjective in Polish."""
+        """Returns the gramatically correct variant of the given word in Polish."""
         if number == 1:
             proper_form = singular_form
         elif (
@@ -75,7 +65,10 @@ class TextFormatter:
         ):
             proper_form = plural_form_2_to_4
         else:
-            proper_form = plural_form_5_to_1
+            if plural_form_5_to_1 is not None:
+                proper_form = plural_form_5_to_1
+            else:
+                proper_form = plural_form_2_to_4
 
         if include_number:
             return f'{number} {proper_form}'
@@ -85,7 +78,7 @@ class TextFormatter:
     @classmethod
     def human_readable_time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days=True) -> str:
         local_datetime = utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone()
-        delta = dt.datetime.now().astimezone() - local_datetime
+        timedelta = dt.datetime.now().astimezone() - local_datetime
 
         combined_information = []
         if date:
@@ -98,13 +91,13 @@ class TextFormatter:
             else:
                 combined_information.append(time_string)
         if days:
-            days_since = delta.days
+            days_since = timedelta.days
             if days_since == 0:
                 days_since_string = 'dzisiaj'
             elif days_since == 1:
                 days_since_string = 'wczoraj'
             else:
-                days_since_string = f'{cls.noun_variant(days_since, "dzień", "dni")} temu'
+                days_since_string = f'{cls.word_number_variant(days_since, "dzień", "dni")} temu'
 
             if date or time:
                 combined_information.append(f', {days_since_string}')
@@ -113,17 +106,20 @@ class TextFormatter:
 
         return ''.join(combined_information)
 
-    @classmethod
-    def minutes_and_seconds(cls, timedelta: dt.timedelta) -> str:
+    @staticmethod
+    def minutes_and_seconds(timedelta: dt.timedelta) -> str:
         information = []
         total_seconds = timedelta.total_seconds()
+
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds - hours * 3600) // 60)
         seconds = int(total_seconds - hours * 3600 - minutes * 60)
+
         if minutes > 0:
             information.append(f'{minutes} min')
         if seconds > 0 or total_seconds == 0:
             information.append(f'{seconds} s')
+
         return ' i '.join(information)
 
     @staticmethod

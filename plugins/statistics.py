@@ -142,9 +142,9 @@ class Report:
         for active_channel in sorted_filtered_active_channels[:5]:
             top_active_channels.append(
                 f'{rank}. {active_channel["channel_object"].mention} – '
-                f'{TextFormatter.noun_variant(active_channel["message_count"], "wiadomość", "wiadomości")}, '
-                f'{TextFormatter.noun_variant(active_channel["word_count"], "słowo", "słów")}, '
-                f'{TextFormatter.noun_variant(active_channel["character_count"], "znak", "znaków")}'
+                f'{TextFormatter.word_number_variant(active_channel["message_count"], "wiadomość", "wiadomości")}, '
+                f'{TextFormatter.word_number_variant(active_channel["word_count"], "słowo", "słowa", "słów")}, '
+                f'{TextFormatter.word_number_variant(active_channel["character_count"], "znak", "znaki", "znaków")}'
             )
             rank += 1
         field_name = 'Najaktywniejszy na kanałach' if self.subject_type == 'member' else 'Najaktywniejsze kanały'
@@ -161,9 +161,9 @@ class Report:
         for active_user in sorted_active_users[:5]:
             top_active_users.append(
                 f'{rank}. {active_user["user_object"].mention} – '
-                f'{TextFormatter.noun_variant(active_user["message_count"], "wiadomość", "wiadomości")}, '
-                f'{TextFormatter.noun_variant(active_user["word_count"], "słowo", "słów")}, '
-                f'{TextFormatter.noun_variant(active_user["character_count"], "znak", "znaków")}'
+                f'{TextFormatter.word_number_variant(active_user["message_count"], "wiadomość", "wiadomości")}, '
+                f'{TextFormatter.word_number_variant(active_user["word_count"], "słowo", "słowa", "słów")}, '
+                f'{TextFormatter.word_number_variant(active_user["character_count"], "znak", "znaki", "znaków")}'
             )
             rank += 1
         top_active_users_string = '\n'.join(top_active_users) if top_active_users else 'Brak'

@@ -45,10 +45,10 @@ async def purge(ctx, number_of_messages_to_delete: int = 1):
 
     await ctx.channel.purge(limit=number_of_messages_to_delete+1)
 
-    last_adjective_variant = TextFormatter.adjective_variant(
+    last_adjective_variant = TextFormatter.word_number_variant(
         number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
     )
-    messages_noun_variant = TextFormatter.noun_variant(
+    messages_noun_variant = TextFormatter.word_number_variant(
         number_of_messages_to_delete, 'wiadomość', 'wiadomości', include_number=False
     )
     embed = discord.Embed(

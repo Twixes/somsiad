@@ -492,7 +492,7 @@ class RedditVerificationMessageScout:
                                 success=False,
                                 personal_reason='twoje konto na Reddicie nie spełnia wymagań. '
                                 f'Do weryfikacji potrzebne jest konto założone co najmniej '
-                                f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
+                                f'{TextFormatter.word_number_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                 f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}',
                                 log_reason='jego konto na Reddicie nie spełniło wymagań',
                                 thread_server_data_manager=self._server_data_manager
@@ -500,7 +500,7 @@ class RedditVerificationMessageScout:
                             message.reply(
                                 'Weryfikacja nie powiodła się. Twoje konto na Reddicie nie spełnia wymagań. '
                                 f'Do weryfikacji potrzebne jest konto założone co najmniej '
-                                f'{TextFormatter.noun_variant(account_min_age_in_days, "dzień", "dni")} temu '
+                                f'{TextFormatter.word_number_variant(account_min_age_in_days, "dzień", "dni")} temu '
                                 f'i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}.'
                             )
 
@@ -613,7 +613,7 @@ async def verification_begin(ctx):
                     name='Weryfikacja nie powiodła się dzisiaj, bo twoje konto na Reddicie nie spełnia wymagań.',
                     value=(
                         'Do weryfikacji potrzebne jest konto założone co najmniej '
-                        f'{TextFormatter.noun_variant(somsiad.conf["reddit_account_min_age_in_days"], "dzień", "dni")} '
+                        f'{TextFormatter.word_number_variant(somsiad.conf["reddit_account_min_age_in_days"], "dzień", "dni")} '
                         f'temu i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}. '
                         'Spróbuj zweryfikować się innego dnia, gdy twoje konto będzie już spełniało te warunki.'
                     )

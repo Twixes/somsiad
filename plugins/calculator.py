@@ -53,7 +53,7 @@ async def calculate(ctx, *args):
             try:
                 result = parsed_expression.evaluate(variables_dict)
                 embed = discord.Embed(
-                    title=':1234: Obliczono wyrażenie',
+                    title=':1234: Obliczono wartość wyrażenia',
                     color=somsiad.color
                 )
                 embed.add_field(name='Wejście', value=input_info_string, inline=False)
@@ -69,7 +69,7 @@ async def calculate(ctx, *args):
                     embed.add_field(name='Wyjście', value=result.replace('*', '\*'), inline=False)
                 except Exception:
                     embed = discord.Embed(
-                        title=':warning: Podano nieprawidłowe zmienne!',
+                        title=':warning: Podano nieprawidłowe wyrażenie lub zmienne!',
                         color=somsiad.color
                     )
         except Exception:
