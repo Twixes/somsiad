@@ -113,6 +113,19 @@ class TextFormatter:
 
         return ''.join(combined_information)
 
+    @classmethod
+    def minutes_and_seconds(cls, timedelta: dt.timedelta) -> str:
+        information = []
+        total_seconds = timedelta.total_seconds()
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds - hours * 3600) // 60)
+        seconds = int(total_seconds - hours * 3600 - minutes * 60)
+        if minutes > 0:
+            information.append(f'{minutes} min')
+        if seconds > 0 or total_seconds == 0:
+            information.append(f'{seconds} s')
+        return ' i '.join(information)
+
     @staticmethod
     def separator(block: str, width: int = None) -> str:
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
