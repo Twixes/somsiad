@@ -11,63 +11,81 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
+from typing import Optional, Union
 import discord
 from somsiad import somsiad
 
 
 class Reactor:
     """Handles reacting to messages."""
-    ASCII_CHARACTERS_EMOJIS = {
-        'a': '🇦', 'b': '🇧', 'c': '🇨', 'd': '🇩', 'e': '🇪', 'f': '🇫', 'g': '🇬', 'h': '🇭', 'i': '🇮', 'j': '🇯',
-        'k': '🇰', 'l': '🇱', 'm': '🇲', 'n': '🇳', 'o': '🇴', 'p': '🇵', 'q': '🇶', 'r': '🇷', 's': '🇸', 't': '🇹',
-        'u': '🇺', 'v': '🇻', 'w': '🇼', 'x': '🇽', 'y': '🇾', 'z': '🇿', '?': '❓', '!': '❗', '^': '⬆'
+    DIACRITIC_CHARACTERS = {
+        'ą': ('regional_indicator_aw', 'a'), 'ć': ('regional_indicator_ci', 'c'),
+        'ę': ('regional_indicator_ew', 'e'), 'ł': ('regional_indicator_el', 'l'),
+        'ó': ('regional_indicator_oo', 'o'), 'ś': ('regional_indicator_si', 's'),
+        'ż': ('regional_indicator_zg', 'z'), 'ź': ('regional_indicator_zi', 'z')
     }
-    NON_ASCII_CHARACTERS_EMOJIS = {
-        'ą': ['regional_indicator_an', '🇦'], 'ć': ['regional_indicator_ci', '🇨'],
-        'ę': ['regional_indicator_en', '🇪'], 'ł': ['regional_indicator_ll', '🇱'],
-        'ó': ['regional_indicator_oo', '🇴'], 'ś': ['regional_indicator_si', '🇸'],
-        'ż': ['regional_indicator_zg', '🇿'], 'ź': ['regional_indicator_zi', '🇿']
+    ASCII_CHARACTERS = {
+        'a': ('🇦', '🅰'), 'b': ('🇧', '🅱'), 'c': ('🇨',), 'd': ('🇩',), 'e': ('🇪',), 'f': ('🇫',), 'g': ('🇬',),
+        'h': ('🇭',), 'i': ('🇮',), 'j': ('🇯',), 'k': ('🇰',), 'l': ('🇱',), 'm': ('🇲',), 'n': ('🇳',),
+        'o': ('🇴', '🅾'), 'p': ('🇵',), 'q': ('🇶',), 'r': ('🇷',), 's': ('🇸',), 't': ('🇹',), 'u': ('🇺',),
+        'v': ('🇻',), 'w': ('🇼',), 'x': ('🇽',), 'y': ('🇾',), 'z': ('🇿',), '?': ('❓',), '!': ('❗',), '^': ('⬆',)
     }
 
     @classmethod
-    def clean_characters(cls, ctx: discord.ext.commands.Context, characters: str):
+    def _convert_diacritic_character(cls, character: str, ctx: discord.ext.commands.Context = None) -> str:
+        """Converts diacritic characters to server emojis or ASCII characters."""
+        if character in cls.DIACRITIC_CHARACTERS:
+            if ctx is not None:
+                for emoji in ctx.guild.emojis:
+                    if emoji.name == cls.DIACRITIC_CHARACTERS[character][0]:
+                        return emoji
+            return cls.DIACRITIC_CHARACTERS[character][1]
+        else:
+            return character
+
+    @classmethod
+    def _convert_ascii_character(cls, character: str, characters: Union[str, list] = '') -> str:
+        """Converts ASCII characters to Unicode emojis."""
+        if isinstance(character, str) and character in cls.ASCII_CHARACTERS:
+            if cls.ASCII_CHARACTERS[character][0] not in characters:
+                return cls.ASCII_CHARACTERS[character][0]
+            elif (
+                    len(cls.ASCII_CHARACTERS[character]) == 2
+                    and cls.ASCII_CHARACTERS[character][1] not in characters
+            ):
+                return cls.ASCII_CHARACTERS[character][1]
+        else:
+            return character
+
+    @classmethod
+    def _clean_characters(cls, ctx: discord.ext.commands.Context, characters: str):
         """Cleans characters so that they are most suitable for use in reactions."""
         # initialization
+        current_pass = 0
         passes = [characters]
-        # first pass: create a list of lowercase characters
+        # first pass: create a tuple of lowercase characters
+        current_pass += 1
         passes.append([])
-        passes[1] = [character.lower() for character in characters]
-        # second pass: convert ASCII characters to Unicode emojis
+        passes[current_pass] = (character.lower() for character in passes[current_pass-1])
+        # second pass: convert diacritic characters to server emojis or ASCII characters
+        current_pass += 1
         passes.append([])
-        for character in passes[1]:
-            if character in cls.ASCII_CHARACTERS_EMOJIS:
-                passes[2].append(cls.ASCII_CHARACTERS_EMOJIS[character])
-            else:
-                passes[2].append(character)
-        # second pass: convert non-ASCII characters to server emojis or Unicode emojis
+        for character in passes[current_pass-1]:
+            passes[current_pass].append(cls._convert_diacritic_character(character, ctx))
+        # third pass: convert ASCII characters to Unicode emojis
+        current_pass += 1
         passes.append([])
-        for character in passes[2]:
-            if character in cls.NON_ASCII_CHARACTERS_EMOJIS:
-                was_matching_emoji_found = False
-                for emoji in ctx.guild.emojis:
-                    if not was_matching_emoji_found and emoji.name == cls.NON_ASCII_CHARACTERS_EMOJIS[character][0]:
-                        passes[3].append(emoji)
-                        was_matching_emoji_found = True
-                if not was_matching_emoji_found:
-                    passes[3].append(cls.NON_ASCII_CHARACTERS_EMOJIS[character][1])
-            else:
-                passes[3].append(character)
+        for character in passes[current_pass-1]:
+            passes[current_pass].append(cls._convert_ascii_character(character, passes[current_pass]))
         # return the final pass
         return passes[-1]
 
     @classmethod
     async def react(cls, ctx: discord.ext.commands.Context, characters: str, member: discord.Member = None):
         """Adds provided emojis to the specified member's last non-command message in the form of reactions.
-        If no member was specified, adds emojis to the last non-command message sent by any non-bot member
-        in the given channel.
+        If no member was specified, adds emojis to the last non-command message sent in the given channel.
         """
-        clean_characters = cls.clean_characters(ctx, characters)
+        clean_characters = cls._clean_characters(ctx, characters)
         history = ctx.history(limit=15)
         if member is not None:
             async for message in history:
@@ -99,7 +117,7 @@ class Reactor:
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def react(ctx, member: Optional[discord.Member], *, characters: discord.ext.commands.clean_content):
+async def react(ctx, member: Optional[discord.Member] = None, *, characters: discord.ext.commands.clean_content = ''):
     """Reacts with the provided characters."""
     await Reactor.react(ctx, characters, member)
 
@@ -109,7 +127,7 @@ async def react(ctx, member: Optional[discord.Member], *, characters: discord.ex
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def helped(ctx, member: Optional[discord.Member]):
+async def helped(ctx, member: discord.Member = None):
     """Reacts with "POMÓGŁ"."""
     await Reactor.react(ctx, 'pomógł', member)
 
@@ -119,6 +137,6 @@ async def helped(ctx, member: Optional[discord.Member]):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def didnothelp(ctx, member: Optional[discord.Member]):
+async def didnothelp(ctx, member: discord.Member = None):
     """Reacts with "NIEPOMÓGŁ"."""
     await Reactor.react(ctx, 'niepomógł', member)
