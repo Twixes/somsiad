@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from difflib import SequenceMatcher
 import discord
 from somsiad import somsiad
 from utilities import TextFormatter
@@ -32,19 +33,32 @@ async def spotify(ctx):
         embed.set_thumbnail(url=ctx.author.activity.album_cover_url)
         embed.add_field(name='Autorstwa', value=', '.join(ctx.author.activity.artists))
         embed.add_field(name='Z albumu', value=ctx.author.activity.album)
-        embed.add_field(name='Przesłuchaj na Spotify', value=f'https://open.spotify.com/track/{ctx.author.activity.track_id}')
+        embed.add_field(name='Długość', value=TextFormatter.minutes_and_seconds(ctx.author.activity.duration))
+        embed.add_field(
+            name='Posłuchaj na Spotify', value=f'https://open.spotify.com/track/{ctx.author.activity.track_id}'
+        )
 
-        youtube_search_result = youtube.search(f'{ctx.author.activity.title} {" ".join(ctx.author.activity.artists)}')
-        if youtube_search_result:
+        # Search for the song on YouTube
+        youtube_search_query = f'{ctx.author.activity.title} {" ".join(ctx.author.activity.artists)}'
+        youtube_search_result = youtube.search(youtube_search_query)
+        # Add a link to a YouTube video if a match was found
+        if (
+                youtube_search_result and
+                SequenceMatcher(None, youtube_search_query, youtube_search_result[0]['snippet']['title']).ratio() > 0.25
+        ):
             video_id = youtube_search_result[0]['id']['videoId']
             video_thumbnail_url = youtube_search_result[0]['snippet']['thumbnails']['medium']['url']
-            embed.add_field(name='Przesłuchaj na YouTube', value=f'https://www.youtube.com/watch?v={video_id}')
+            embed.add_field(name='Posłuchaj na YouTube', value=f'https://www.youtube.com/watch?v={video_id}')
             embed.set_image(url=video_thumbnail_url)
 
-        embed.set_footer(text='Spotify', icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png')
+        embed.set_footer(
+            text='Spotify',
+            icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/'
+            'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
+        )
     else:
         embed = discord.Embed(
-            title=f':stop_button: Obecnie nie słuchasz niczego na Spotify',
+            title=f':stop_button: Nie słuchasz w tym momencie niczego na Spotify',
             color=somsiad.color
         )
 
