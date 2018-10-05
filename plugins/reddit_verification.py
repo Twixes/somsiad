@@ -775,19 +775,18 @@ async def verification_xray_error(ctx, error):
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
-async def verification_role(ctx, *args):
+async def verification_role(ctx, *, provided_role_name=None):
     """Sets the role to be given automatically to verified members."""
-    provided_role_name = ' '.join(args)
     roles_found = []
 
     if ctx.message.role_mentions:
         roles_found.append(ctx.message.role_mentions[0])
     else:
-        for role in ctx.guild.role_hierarchy:
+        for role in ctx.guild.roles:
             if role.name == provided_role_name:
                 roles_found.append(role)
 
-    if args:
+    if provided_role_name is not None:
         if len(roles_found) > 1:
             embed = discord.Embed(
                 title=f':warning: Nie wiadomo którą rolę o nazwie "{provided_role_name}" masz na myśli',

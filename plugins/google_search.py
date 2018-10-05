@@ -55,49 +55,41 @@ google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_s
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def google(ctx, *args):
+async def google(ctx, *, query):
     """Returns first matching website from Google using the provided Custom Search Engine."""
     FOOTER_TEXT = 'Google'
     FOOTER_ICON_URL = 'https://www.google.com/favicon.ico'
 
-    if not args:
+    results = google_cse.search(query, 'pl')
+    if results is None:
         embed = discord.Embed(
             title=':warning: Błąd',
-            description='Nie podano szukanego hasła!',
+            description='Nie udało się połączyć z serwerem wyszukiwania. '
+            'Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
+            color=somsiad.color
+        )
+    elif results == []:
+        embed = discord.Embed(
+            title=':slight_frown: Niepowodzenie',
+            description=f'Brak wyników dla zapytania "{query}".',
             color=somsiad.color
         )
     else:
-        query = ' '.join(args)
-        results = google_cse.search(query, 'pl')
-        if results is None:
-            embed = discord.Embed(
-                title=':warning: Błąd',
-                description='Nie udało się połączyć z serwerem wyszukiwania. '
-                'Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
-                color=somsiad.color
-            )
-        elif results == []:
-            embed = discord.Embed(
-                title=':slight_frown: Niepowodzenie',
-                description=f'Brak wyników dla zapytania "{query}".',
-                color=somsiad.color
-            )
-        else:
-            result = results[0]
-            site_protocol = result['link'].split('://')[0]
-            embed = discord.Embed(
-                title=result['title'],
-                url=result['link'],
-                description=result['snippet'],
-                color=somsiad.color
-            )
-            embed.set_author(
-                name=result['displayLink'],
-                url=f'{site_protocol}://{result["displayLink"]}'
-            )
-            embed.set_image(
-                url=result['pagemap']['cse_image'][0]['src']
-            )
+        result = results[0]
+        site_protocol = result['link'].split('://')[0]
+        embed = discord.Embed(
+            title=result['title'],
+            url=result['link'],
+            description=result['snippet'],
+            color=somsiad.color
+        )
+        embed.set_author(
+            name=result['displayLink'],
+            url=f'{site_protocol}://{result["displayLink"]}'
+        )
+        embed.set_image(
+            url=result['pagemap']['cse_image'][0]['src']
+        )
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)
@@ -108,48 +100,62 @@ async def google(ctx, *args):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def google_image(ctx, *args):
+async def google_image(ctx, *, query):
     """Returns first matching image from Google using the provided Custom Search Engine."""
     FOOTER_TEXT = 'Google'
     FOOTER_ICON_URL = 'https://www.google.com/favicon.ico'
 
-    if not args:
+    results = google_cse.search(query, 'pl', search_type='image')
+    if results is None:
+        embed = discord.Embed(
+            title=':warning: Błąd',
+            description='Nie udało się połączyć z serwerem wyszukiwania. '
+            'Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
+            color=somsiad.color
+        )
+    elif results == []:
+        embed = discord.Embed(
+            title=':slight_frown: Niepowodzenie',
+            description=f'Brak wyników dla zapytania "{query}".',
+            color=somsiad.color
+        )
+    else:
+        result = results[0]
+        site_protocol = result['link'].split('://')[0]
+        embed = discord.Embed(
+            title=result['title'],
+            url=result['image']['contextLink'],
+            color=somsiad.color
+        )
+        embed.set_author(
+            name=result['displayLink'],
+            url=f'{site_protocol}://{result["displayLink"]}'
+        )
+        embed.set_image(
+            url=result['link']
+        )
+
+    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@google.error
+async def google_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Błąd',
             description='Nie podano szukanego hasła!',
             color=somsiad.color
         )
-    else:
-        query = ' '.join(args)
-        results = google_cse.search(query, 'pl', search_type='image')
-        if results is None:
-            embed = discord.Embed(
-                title=':warning: Błąd',
-                description='Nie udało się połączyć z serwerem wyszukiwania. '
-                'Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
-                color=somsiad.color
-            )
-        elif results == []:
-            embed = discord.Embed(
-                title=':slight_frown: Niepowodzenie',
-                description=f'Brak wyników dla zapytania "{query}".',
-                color=somsiad.color
-            )
-        else:
-            result = results[0]
-            site_protocol = result['link'].split('://')[0]
-            embed = discord.Embed(
-                title=result['title'],
-                url=result['image']['contextLink'],
-                color=somsiad.color
-            )
-            embed.set_author(
-                name=result['displayLink'],
-                url=f'{site_protocol}://{result["displayLink"]}'
-            )
-            embed.set_image(
-                url=result['link']
-            )
+        await ctx.send(ctx.author.mention, embed=embed)
 
-    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-    await ctx.send(ctx.author.mention, embed=embed)
+
+@google_image.error
+async def google_image_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        embed = discord.Embed(
+            title=':warning: Błąd',
+            description='Nie podano szukanego hasła!',
+            color=somsiad.color
+        )
+        await ctx.send(ctx.author.mention, embed=embed)

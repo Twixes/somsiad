@@ -20,51 +20,54 @@ from somsiad import somsiad
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def giphy(ctx, *args):
+async def giphy(ctx, *, query):
     """Giphy search. Responds with the first GIF matching the query."""
     FOOTER_TEXT = 'Giphy'
 
-    if not args:
+    api_search_url = 'https://api.giphy.com/v1/gifs/search'
+    headers = {'User-Agent': somsiad.user_agent}
+    params = {
+        'api_key': somsiad.conf["giphy_key"],
+        'q': query,
+        'limit': 1,
+        'offset': 0,
+        'rating': 'PG-13'
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.get(api_search_url, headers=headers, params=params) as response:
+            if response.status == 200:
+                response_data = await response.json()
+                response_data = response_data['data']
+                if response_data == []:
+                    embed = discord.Embed(
+                        title=':slight_frown: Niepowodzenie',
+                        description=f'Brak wyników dla zapytania "{query}".',
+                        color=somsiad.color
+                    )
+                else:
+                    gif_url = response_data[0]['images']['original']['url']
+                    embed = discord.Embed(
+                        title=query,
+                        color=somsiad.color
+                    )
+                    embed.set_image(url=gif_url)
+            else:
+                embed = discord.Embed(
+                    title=':warning: Błąd',
+                    description='Nie można połączyć się z serwisem!',
+                    color=somsiad.color
+                )
+
+    embed.set_footer(text=FOOTER_TEXT)
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@giphy.error
+async def giphy_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Błąd',
             description='Nie podano szukanego hasła!',
             color=somsiad.color
         )
-    else:
-        query = ' '.join(args)
-        api_search_url = 'https://api.giphy.com/v1/gifs/search'
-        headers = {'User-Agent': somsiad.user_agent}
-        params = {
-            'api_key': somsiad.conf["giphy_key"],
-            'q': query,
-            'limit': 1,
-            'offset': 0,
-            'rating': 'PG-13'
-        }
-        async with aiohttp.ClientSession() as session:
-            async with session.get(api_search_url, headers=headers, params=params) as response:
-                if response.status == 200:
-                    response_data = await response.json()
-                    response_data = response_data['data']
-                    if response_data == []:
-                        embed = discord.Embed(
-                            title=':slight_frown: Niepowodzenie',
-                            description=f'Brak wyników dla zapytania "{query}".',
-                            color=somsiad.color
-                        )
-                    else:
-                        gif_url = response_data[0]['images']['original']['url']
-                        embed = discord.Embed(
-                            title=query,
-                            color=somsiad.color
-                        )
-                        embed.set_image(url=gif_url)
-                else:
-                    embed = discord.Embed(
-                        title=':warning: Błąd',
-                        description='Nie można połączyć się z serwisem!',
-                        color=somsiad.color
-                    )
-
-    embed.set_footer(text=FOOTER_TEXT)
-    await ctx.send(ctx.author.mention, embed=embed)
+        await ctx.send(ctx.author.mention, embed=embed)

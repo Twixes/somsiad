@@ -64,14 +64,14 @@ async def shrug(ctx):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def gib(ctx, *args):
+async def gib(ctx, *, thing = None):
     """༼ つ ◕_◕ ༽つ"""
-    if not args:
+    if thing is None:
         await ctx.send('༼ つ ◕_◕ ༽つ')
-    elif 'fccchk' in ' '.join(args):
-        await ctx.send(f'༼ つ :japanese_goblin: ༽つ {" ".join(args)}')
+    elif 'fccchk' in thing:
+        await ctx.send(f'༼ つ :japanese_goblin: ༽つ {thing}')
     else:
-        await ctx.send(f'༼ つ ◕_◕ ༽つ {" ".join(args)}')
+        await ctx.send(f'༼ つ ◕_◕ ༽つ {thing}')
 
 
 @somsiad.bot.command()

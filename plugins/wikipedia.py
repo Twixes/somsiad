@@ -166,9 +166,8 @@ class Wikipedia:
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def wikipedia(ctx, language: str, *args):
+async def wikipedia(ctx, language, *, title = 'Wikipedia'):
     """The Wikipedia search command."""
-    title = '_'.join(args) if args else 'Wikipedia'
     embed = await Wikipedia.embed_search_result(language, title)
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -177,7 +176,7 @@ async def wikipedia_error(ctx, error):
     if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Błąd',
-            description='Nie podano wersji językowej Wikipedii ani hasła do sprawdzenia!',
+            description='Nie podano wersji językowej Wikipedii!',
             color=somsiad.color
         )
         embed.set_footer(

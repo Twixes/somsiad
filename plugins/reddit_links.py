@@ -19,12 +19,12 @@ from somsiad import somsiad
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def subreddit(ctx, *args):
+async def subreddit(ctx, *, subreddit=None):
     """Responds with the URL of the given subreddit."""
-    if not args:
+    if subreddit is None:
         url = 'https://reddit.com/r/all'
     else:
-        url = f'https://reddit.com/r/{"_".join(args)}'
+        url = f'https://reddit.com/r/{subreddit.replace(" ", "_")}'
     await ctx.send(f'{ctx.author.mention}\n{url}')
 
 
@@ -32,10 +32,10 @@ async def subreddit(ctx, *args):
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def reddit_user(ctx, *args):
+async def reddit_user(ctx, *, username=None):
     """Responds with the URL of the given Reddit user."""
-    if not args:
+    if username is None:
         url = f'https://reddit.com/u/{somsiad.conf["reddit_username"]}'
     else:
-        url = f'https://reddit.com/u/{"_".join(args)}'
+        url = f'https://reddit.com/u/{username.replace(" ", "_")}'
     await ctx.send(f'{ctx.author.mention}\n{url}')

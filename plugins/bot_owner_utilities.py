@@ -20,9 +20,8 @@ from somsiad import somsiad
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
-async def enter(ctx, *args):
+async def enter(ctx, *, server_name):
     """Generates an invite to the provided server."""
-    server_name = ' '.join(args)
     invite = None
     for server in ctx.bot.guilds:
         if server.name == server_name:
@@ -47,14 +46,15 @@ async def enter(ctx, *args):
 async def announce(ctx):
     pass
 
+
 @announce.command(aliases=['globalnie'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
-async def announce_globally(ctx, *args):
+async def announce_globally(ctx, *, raw_announcement):
     """Makes an announcement on all servers smaller than 10000 members not containing "bot" in their name."""
-    announcement = ' '.join(args).replace('\\n','\n').split(';')
+    announcement = raw_announcement.replace('\\n','\n').strip(';').split(';')
     if announcement[0].startswith('!'):
         description = announcement[0].lstrip('!').strip()
         announcement = announcement[1:]
@@ -87,9 +87,9 @@ async def announce_globally(ctx, *args):
 )
 @discord.ext.commands.is_owner()
 @discord.ext.commands.guild_only()
-async def announce_locally(ctx, *args):
+async def announce_locally(ctx, *, raw_announcement):
     """Makes an announcement only on the server where the command was invoked."""
-    announcement = ' '.join(args).replace('\\n','\n').split(';')
+    announcement = raw_announcement.replace('\\n','\n').strip(';').split(';')
     if announcement[0].startswith('!'):
         description = announcement[0].lstrip('!').strip()
         announcement = announcement[1:]

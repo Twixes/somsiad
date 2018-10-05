@@ -15,61 +15,69 @@ import re
 import aiohttp
 import discord
 from somsiad import somsiad
+from utilities import TextFormatter
 
 
 @somsiad.bot.command(aliases=['urbandictionary', 'urban'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def urban_dictionary(ctx, *args):
+async def urban_dictionary(ctx, *, query):
     """Returns Urban Dictionary word definition."""
     FOOTER_TEXT = 'Urban Dictionary'
-    if not args:
-        await ctx.send(f'{ctx.author.mention}\n:warning: Musisz podać termin do sprawdzenia!')
-    else:
-        query = ' '.join(args)
-        api_url = 'https://api.urbandictionary.com/v0/define'
-        headers = {'User-Agent': somsiad.user_agent}
-        params = {'term': query}
-        async with aiohttp.ClientSession() as session:
-            async with session.get(api_url, headers=headers, params=params) as r:
-                if r.status == 200:
-                    resp = await r.json()
-                    bra_pat = re.compile(r'[\[\]]')
-                    if resp['list']:
-                        top_def = resp['list'][0] # Get top definition
-                        word = top_def['word']
-                        definition = top_def['definition']
-                        definition = bra_pat.sub(r'', definition)
-                        if len(definition) > 500:
-                            definition = definition[:500] + '...' # Reduce output lenght
-                        link = top_def['permalink']
-                        example = top_def['example']
-                        example = bra_pat.sub(r'', example)
-                        if len(example) > 400:
-                            example = example[:400] + '...' # Reduce output lenght
-                        t_up = top_def['thumbs_up']
-                        t_down = top_def['thumbs_down']
-                        # Output results
-                        embed = discord.Embed(
-                            title=word,
-                            url=link,
-                            description=definition,
-                            color=somsiad.color
-                        )
-                        embed.add_field(name=':thumbsup:', value=t_up)
-                        embed.add_field(name=':thumbsdown:', value=t_down)
-                    else:
-                        embed = discord.Embed(
-                            title=':slight_frown: Niepowodzenie',
-                            description=f'Brak wyników dla terminu "{query}".',
-                            color=somsiad.color
-                        )
-                else:
+
+    api_url = 'https://api.urbandictionary.com/v0/define'
+    headers = {'User-Agent': somsiad.user_agent}
+    params = {'term': query}
+    async with aiohttp.ClientSession() as session:
+        async with session.get(api_url, headers=headers, params=params) as r:
+            if r.status == 200:
+                resp = await r.json()
+                bra_pat = re.compile(r'[\[\]]')
+                if resp['list']:
+                    top_def = resp['list'][0] # Get top definition
+                    word = top_def['word']
+                    definition = top_def['definition']
+                    definition = bra_pat.sub(r'', definition)
+                    definition = TextFormatter.limit_text_length(definition, 500)
+                    link = top_def['permalink']
+                    example = top_def['example']
+                    example = bra_pat.sub(r'', example)
+                    example = TextFormatter.limit_text_length(example, 400)
+                    t_up = top_def['thumbs_up']
+                    t_down = top_def['thumbs_down']
+                    # Output results
                     embed = discord.Embed(
-                        title=':warning: Błąd',
-                        description='Nie można połączyć się z serwisem!',
+                        title=word,
+                        url=link,
+                        description=definition,
                         color=somsiad.color
                     )
+                    embed.add_field(name=':thumbsup:', value=t_up)
+                    embed.add_field(name=':thumbsdown:', value=t_down)
+                else:
+                    embed = discord.Embed(
+                        title=f':slight_frown: Brak wyników dla terminu "{query}"',
+                        color=somsiad.color
+                    )
+            else:
+                embed = discord.Embed(
+                    title=':warning: Nie można połączyć się z serwisem!',
+                    color=somsiad.color
+                )
     embed.set_footer(text=FOOTER_TEXT)
+
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@urban_dictionary.error
+async def urban_dictionary_error(ctx, error):
+    FOOTER_TEXT = 'Urban Dictionary'
+
+    embed = discord.Embed(
+        title=':warning: Musisz podać termin do sprawdzenia!',
+        color=somsiad.color
+    )
+    embed.set_footer(text=FOOTER_TEXT)
+
     await ctx.send(ctx.author.mention, embed=embed)

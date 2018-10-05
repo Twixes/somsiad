@@ -26,14 +26,14 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r'
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def random_choice(ctx, *args):
+async def random_choice(ctx, *, raw_options = ''):
     """Randomly chooses one of provided options."""
     options_words = []
-    for arg in args:
-        if arg.lower() in ('or', 'czy', 'albo', 'lub'):
+    for word in raw_options.split():
+        if word.lower() in ('or', 'czy', 'albo', 'lub'):
             options_words.append(',')
         else:
-            options_words.append(arg)
+            options_words.append(word)
 
     options = [option.strip() for option in ' '.join(options_words).split(',') if option.strip() != '']
     if len(options) >= 2:

@@ -49,10 +49,8 @@ youtube = YouTube(somsiad.conf['google_key'])
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def youtube_search(ctx, *args):
+async def youtube_search(ctx, *, query = ''):
     """Returns first matching result from YouTube."""
-    query = ' '.join(args)
-
     result = youtube.search(query)
 
     if result:
