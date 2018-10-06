@@ -91,7 +91,7 @@ class SchoolYear:
             return False
 
 
-@somsiad.bot.command(aliases=['rokszkolny', 'ilejeszcze'])
+@somsiad.bot.group(aliases=['rokszkolny', 'ilejeszcze'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
