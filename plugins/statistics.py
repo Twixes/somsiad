@@ -177,14 +177,17 @@ class Report:
         # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
         message_limit_left = self.message_limit
         for channel in self.subject.text_channels:
-            async for message in channel.history(limit=message_limit_left):
-                message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-                message_word_count = len(message.clean_content.split())
-                message_character_count = len(message.clean_content)
+            try:
+                async for message in channel.history(limit=message_limit_left):
+                    message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
+                    message_word_count = len(message.clean_content.split())
+                    message_character_count = len(message.clean_content)
 
-                self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
-                self._update_active_channels(channel, message_word_count, message_character_count)
-                self._update_active_users(message.author, message_word_count, message_character_count)
+                    self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
+                    self._update_active_channels(channel, message_word_count, message_character_count)
+                    self._update_active_users(message.author, message_word_count, message_character_count)
+            except discord.Forbidden:
+                pass
 
             message_limit_left = self.message_limit - self.total_message_count
 
@@ -236,13 +239,16 @@ class Report:
         # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
         message_limit_left = self.message_limit
         for channel in self.subject.guild.text_channels:
-            async for message in channel.history(limit=message_limit_left).filter(self._is_message_by_subject):
-                message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-                message_word_count = len(message.clean_content.split())
-                message_character_count = len(message.clean_content)
-                self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
-                self._update_active_channels(message.channel, message_word_count, message_character_count)
-            message_limit_left = self.message_limit - self.total_message_count
+            try:
+                async for message in channel.history(limit=message_limit_left).filter(self._is_message_by_subject):
+                    message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
+                    message_word_count = len(message.clean_content.split())
+                    message_character_count = len(message.clean_content)
+                    self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
+                    self._update_active_channels(message.channel, message_word_count, message_character_count)
+                message_limit_left = self.message_limit - self.total_message_count
+            except discord.Forbidden:
+                pass
 
         member_account_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
         member_server_joining_datetime_information = TextFormatter.time_ago(self.subject.joined_at)
