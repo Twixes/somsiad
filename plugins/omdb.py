@@ -11,10 +11,12 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import locale
 import aiohttp
 import re
 import discord
 from somsiad import somsiad
+from utilities import TextFormatter
 
 
 class OMDb:
@@ -22,7 +24,7 @@ class OMDb:
     FOOTER_TEXT = 'OMDb (CC BY-NC 4.0)'
 
     @staticmethod
-    def smart_add_info_field_to_embed(embed: discord.Embed, name: str, res: list, key: str, inline: bool = True):
+    def smart_add_info_field_to_embed(embed: discord.Embed, name: str, res: list, key: str, *, inline: bool = True):
         if key in res:
             if res[key] != 'N/A':
                 embed.add_field(name=name, value=res[key], inline=inline)
@@ -112,11 +114,15 @@ async def omdb(ctx, *args):
 
                             if 'imdbRating' in res:
                                 if res['imdbRating'] != 'N/A':
-                                    msg = res['imdbRating'] + '/10'
+                                    imdb_rating = locale.str(float(res['imdbRating']))
+                                    imdb_votes = float(res["imdbVotes"].replace(',', ''))
+                                    imdb_votes_string = (
+                                        TextFormatter.word_number_variant(imdb_votes, 'głos', 'głosy', 'głosów')
+                                    )
                                     if 'imdbVotes' in res:
                                         if res['imdbVotes'] != 'N/A':
-                                            msg = f'{msg} ({res["imdbVotes"]} głosów)'
-                                    embed.add_field(name='IMDb', value=msg)
+                                            msg = f'{imdb_rating}/10 ({imdb_votes_string})'
+                                    embed.add_field(name='Ocena na IMDb', value=msg)
 
                             OMDb.smart_add_info_field_to_embed(embed, 'Liczba sezonów', res, 'totalSeasons')
 
@@ -124,12 +130,12 @@ async def omdb(ctx, *args):
                                 for i in res['Ratings']:
                                     if i['Source'] == 'Rotten Tomatoes':
                                         embed.add_field(
-                                            name='Rotten Tomatoes',
+                                            name='Ocena na Rotten Tomatoes',
                                             value=i['Value']
                                         )
 
                             OMDb.smart_add_info_field_to_embed(embed, 'Metascore', res, 'Metascore')
-                            OMDb.smart_add_info_field_to_embed(embed, 'Fabuła', res, 'Plot', False)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Fabuła', res, 'Plot', inline=False)
                             OMDb.smart_add_info_field_to_embed(embed, 'Produkcja', res, 'Production')
 
                             if res['Type'] == 'movie':
@@ -145,8 +151,8 @@ async def omdb(ctx, *args):
                                     if res['Writer'] != 'N/A':
                                         embed.add_field(name='Twórcy', value=res['Writer'], inline=False)
 
-                            OMDb.smart_add_info_field_to_embed(embed, 'Występują', res, 'Actors', False)
-                            OMDb.smart_add_info_field_to_embed(embed, 'Nagrody', res, 'Awards', False)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Występują', res, 'Actors', inline=False)
+                            OMDb.smart_add_info_field_to_embed(embed, 'Nagrody', res, 'Awards', inline=False)
 
                             if 'BoxOffice' in res:
                                 if res['BoxOffice'] != 'N/A':
