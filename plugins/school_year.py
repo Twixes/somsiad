@@ -128,7 +128,7 @@ async def school_year(ctx):
             description=description,
             color=somsiad.color
         )
-    embed.add_field(name='Data rozpoczęcia', value=SchoolYear.start_date().strftime('%d %B %Y'))
-    embed.add_field(name='Data zakończenia', value=SchoolYear.end_date().strftime('%d %B %Y'))
+    embed.add_field(name='Data rozpoczęcia', value=SchoolYear.start_date().strftime('%-d %B %Y'))
+    embed.add_field(name='Data zakończenia', value=SchoolYear.end_date().strftime('%-d %B %Y'))
 
     await ctx.send(ctx.author.mention, embed=embed)

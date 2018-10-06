@@ -83,7 +83,7 @@ class TextFormatter:
 
         combined_information = []
         if date:
-            date_string = local_datetime.strftime('%d.%m.%Y')
+            date_string = local_datetime.strftime('%-d.%m.%Y')
             combined_information.append(date_string)
         if time:
             time_string = local_datetime.strftime('%H:%M')

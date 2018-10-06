@@ -342,7 +342,7 @@ class Report:
 
         year_formatter = mdates.DateFormatter('%Y')
         month_formatter = mdates.DateFormatter('%b %Y')
-        day_formatter = mdates.DateFormatter('%d %b %Y')
+        day_formatter = mdates.DateFormatter('%-d %b %Y')
 
         if month_difference > 48:
             ax.xaxis.set_major_locator(year_locator)
