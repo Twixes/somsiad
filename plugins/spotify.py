@@ -23,26 +23,29 @@ from plugins.youtube import youtube
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def spotify(ctx):
-    """Shares the song currently played on Spotify."""
-    if isinstance(ctx.author.activity, discord.activity.Spotify):
+async def spotify(ctx, member: discord.Member = None):
+    """Shares the song currently played on Spotify by the provided user (or if not provided, by the invoking user)."""
+    if member is None:
+        member = ctx.author
+
+    if isinstance(member.activity, discord.activity.Spotify):
         embed = discord.Embed(
-            title=f':arrow_forward: {ctx.author.activity.title}',
+            title=f':arrow_forward: {member.activity.title}',
             color=somsiad.color
         )
-        embed.set_thumbnail(url=ctx.author.activity.album_cover_url)
-        embed.add_field(name='Autorstwa', value=', '.join(ctx.author.activity.artists))
-        embed.add_field(name='Z albumu', value=ctx.author.activity.album)
+        embed.set_thumbnail(url=member.activity.album_cover_url)
+        embed.add_field(name='Autorstwa', value=', '.join(member.activity.artists))
+        embed.add_field(name='Z albumu', value=member.activity.album)
         embed.add_field(
-            name='Długość', value=TextFormatter.minutes_and_seconds(ctx.author.activity.duration.total_seconds())
+            name='Długość', value=TextFormatter.minutes_and_seconds(member.activity.duration.total_seconds())
         )
         embed.add_field(
-            name='Posłuchaj na Spotify', value=f'https://open.spotify.com/track/{ctx.author.activity.track_id}',
+            name='Posłuchaj na Spotify', value=f'https://open.spotify.com/track/{member.activity.track_id}',
             inline=False
         )
 
         # Search for the song on YouTube
-        youtube_search_query = f'{ctx.author.activity.title} {" ".join(ctx.author.activity.artists)}'
+        youtube_search_query = f'{member.activity.title} {" ".join(member.activity.artists)}'
         youtube_search_result = youtube.search(youtube_search_query)
         # Add a link to a YouTube video if a match was found
         if (
@@ -62,9 +65,15 @@ async def spotify(ctx):
             'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
         )
     else:
-        embed = discord.Embed(
-            title=f':stop_button: Nie słuchasz w tym momencie niczego na Spotify',
-            color=somsiad.color
-        )
+        if member == ctx.author:
+            embed = discord.Embed(
+                title=f':stop_button: Nie słuchasz w tym momencie niczego na Spotify',
+                color=somsiad.color
+            )
+        else:
+            embed = discord.Embed(
+                title=f':stop_button: {member.display_name} nie słucha w tym momencie niczego na Spotify',
+                color=somsiad.color
+            )
 
     await ctx.send(f'{ctx.author.mention}', embed=embed)
