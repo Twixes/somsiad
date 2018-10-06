@@ -525,7 +525,7 @@ class RedditVerificationMessageScout:
                 discord_user = somsiad.bot.get_user(discord_user_id)
                 message.reply(
                     f'To konto zostało przypisane do użytkownika Discorda {discord_user} '
-                    f'{reddit_user_info["verification_rejection_date"].strftime("%d %b %Y")}.'
+                    f'{reddit_user_info["verification_rejection_date"].strftime("%-d %b %Y")}.'
                 )
 
         message.mark_read()
@@ -639,7 +639,7 @@ async def verification_begin(ctx):
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
         embed.add_field(
             name=f'Twoje konto na Reddicie to /u/{discord_user_info["reddit_username"]}.',
-            value=f'Zweryfikowano {discord_user_info["verification_rejection_date"].strftime("%d %b %Y")}.'
+            value=f'Zweryfikowano {discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")}.'
         )
     else:
         embed = discord.Embed(
@@ -713,7 +713,7 @@ async def verification_xray(ctx, *args):
         else:
             if discord_user_info['verification_status'] == 'VERIFIED':
                 if ctx.channel.permissions_for(ctx.author).manage_roles:
-                    more_info = (f' {discord_user_info["verification_rejection_date"].strftime("%d %b %Y")} jako [/u/{discord_user_info["reddit_username"]}]'
+                    more_info = (f' {discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")} jako [/u/{discord_user_info["reddit_username"]}]'
                     f'(https://www.reddit.com/user/{discord_user_info["reddit_username"]})')
                 else:
                     more_info = ''
@@ -726,23 +726,23 @@ async def verification_xray(ctx, *args):
                 embed = discord.Embed(
                     title=':red_circle: Niezweryfikowany',
                     description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
-                    f'{discord_user_info["phrase_gen_date"].strftime("%d %b %Y")} i spróbował się zweryfikować '
-                    f'{discord_user_info["verification_rejection_date"].strftime("%d %b %Y")}, lecz jego konto nie spełniało wymagań.',
+                    f'{discord_user_info["phrase_gen_date"].strftime("%-d %b %Y")} i spróbował się zweryfikować '
+                    f'{discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")}, lecz jego konto nie spełniało wymagań.',
                     color=somsiad.color
                 )
             elif str(discord_user_info['verification_status']) == 'REJECTED_PHRASE_EXPIRED':
                 embed = discord.Embed(
                     title=':red_circle: Niezweryfikowany',
                     description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
-                    f'{discord_user_info["phrase_gen_date"].strftime("%d %b %Y")}, ale nie dokończył jej na Reddicie w wyznaczonym czasie '
-                    f'- wysłał wiadomość {discord_user_info["verification_rejection_date"].strftime("%d %b %Y")}.',
+                    f'{discord_user_info["phrase_gen_date"].strftime("%-d %b %Y")}, ale nie dokończył jej na Reddicie w wyznaczonym czasie '
+                    f'- wysłał wiadomość {discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")}.',
                     color=somsiad.color
                 )
             elif str(discord_user_info['verification_status']) == 'AWAITING_MESSAGE':
                 embed = discord.Embed(
                     title=':red_circle: Niezweryfikowany',
                     description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
-                    f'{discord_user_info["phrase_gen_date"].strftime("%d %b %Y")}, ale nie dokończył jej na Reddicie.',
+                    f'{discord_user_info["phrase_gen_date"].strftime("%-d %b %Y")}, ale nie dokończył jej na Reddicie.',
                     color=somsiad.color
                 )
             else:
