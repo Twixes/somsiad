@@ -13,6 +13,7 @@
 
 import io
 import datetime as dt
+import calendar
 from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -38,8 +39,9 @@ class Report:
         self.total_message_count = 0
         self.total_word_count = 0
         self.total_character_count = 0
-        self.messages_over_date = {}
         self.messages_over_hour = [0 for hour in range(24)]
+        self.messages_over_weekday = [0 for weekday in range(7)]
+        self.messages_over_date = {}
         self.active_users = {}
         self.active_channels = {}
         self.embed = None
@@ -81,11 +83,12 @@ class Report:
         self.total_message_count += 1
         self.total_word_count += message_word_count
         self.total_character_count += message_character_count
+        self.messages_over_hour[message_sent_datetime.hour] += 1
+        self.messages_over_weekday[message_sent_datetime.weekday()] += 1
         try:
             self.messages_over_date[message_sent_datetime.date().isoformat()] += 1
         except KeyError:
             pass
-        self.messages_over_hour[message_sent_datetime.hour] += 1
 
     def _update_active_channels(
             self, channel: discord.TextChannel, message_word_count: int, message_character_count: int
@@ -185,7 +188,7 @@ class Report:
 
             message_limit_left = self.message_limit - self.total_message_count
 
-        server_creation_datetime_information = TextFormatter.human_readable_time_ago(self.subject.created_at)
+        server_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o serwerze {self.subject}',
@@ -211,7 +214,7 @@ class Report:
             self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
             self._update_active_users(message.author, message_word_count, message_character_count)
 
-        channel_creation_datetime_information = TextFormatter.human_readable_time_ago(self.subject.created_at)
+        channel_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
         channel_category_name = self.subject.category.name if self.subject.category is not None else 'Brak'
 
         self.embed = discord.Embed(
@@ -241,8 +244,8 @@ class Report:
                 self._update_active_channels(message.channel, message_word_count, message_character_count)
             message_limit_left = self.message_limit - self.total_message_count
 
-        member_account_creation_datetime_information = TextFormatter.human_readable_time_ago(self.subject.created_at)
-        member_server_joining_datetime_information = TextFormatter.human_readable_time_ago(self.subject.joined_at)
+        member_account_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
+        member_server_joining_datetime_information = TextFormatter.time_ago(self.subject.joined_at)
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o użytkowniku {self.subject}',
@@ -276,8 +279,33 @@ class Report:
         # Make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Godzina', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+
+        return ax
+
+    def _plot_activity_by_weekday(self, ax):
+        # Plot the chart
+        ax.bar(
+            calendar.day_abbr,
+            self.messages_over_weekday,
+            color=self.BACKGROUND_COLOR,
+            facecolor=self.FOREGROUND_COLOR,
+            width=1
+        )
+
+        # Set proper X axis formatting
+        ax.set_xlim(-0.5, 6.5)
+        ax.set_xticklabels(calendar.day_abbr, rotation=30, ha='right')
+
+        # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
+        if max(self.messages_over_weekday) >= 10:
+            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
+
+        # Make it look nice
+        ax.set_facecolor(self.BACKGROUND_COLOR)
+        ax.set_xlabel('Dzień tygodnia', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
         ax.set_ylabel(
-            'Liczba wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
+            'Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
         )
 
         return ax
@@ -347,9 +375,6 @@ class Report:
         # Make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Data', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
-        ax.set_ylabel(
-            'Liczba wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
-        )
 
         return ax
 
@@ -372,7 +397,7 @@ class Report:
             title = f'Aktywność użytkownika {self.subject}'
 
         # Initialize the chart
-        fig, [ax_by_hour, ax_by_date] = plt.subplots(2)
+        fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3)
 
         # Make it look nice
         fig.set_tight_layout(True)
@@ -380,6 +405,7 @@ class Report:
 
         # Plot
         ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
+        ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
         ax_by_date = self._plot_activity_by_date(ax_by_date)
 
         # Save as bytes
@@ -447,7 +473,7 @@ async def stat_server_error(ctx, error):
     if isinstance(error, discord.ext.commands.CommandOnCooldown):
         embed = discord.Embed(
             title=':warning: Dopiero co poproszono na tym kanale o wygenerowanie raportu o serwerze!',
-            description=f'Spróbuj ponownie za {round(error.retry_after, 2)} s. '
+            description=f'Spróbuj ponownie za {round(error.retry_after, 1)} s. '
             'Wtedy też ta wiadomość ulegnie autodestrukcji.',
             color=somsiad.color
         )
@@ -482,7 +508,7 @@ async def stat_channel_error(ctx, error):
     elif isinstance(error, discord.ext.commands.CommandOnCooldown):
         embed = discord.Embed(
             title=':warning: Dopiero co poprosiłeś o wygenerowanie raportu o kanale!',
-            description=f'Spróbuj ponownie za {round(error.retry_after, 2)} s. '
+            description=f'Spróbuj ponownie za {round(error.retry_after, 1)} s. '
             'Wtedy też ta wiadomość ulegnie autodestrukcji.',
             color=somsiad.color
         )
@@ -517,7 +543,7 @@ async def stat_member_error(ctx, error):
     elif isinstance(error, discord.ext.commands.CommandOnCooldown):
         embed = discord.Embed(
             title=':warning: Dopiero co poprosiłeś o wygenerowanie raportu o użytkowniku!',
-            description=f'Spróbuj ponownie za {round(error.retry_after, 2)} s. '
+            description=f'Spróbuj ponownie za {round(error.retry_after, 1)} s. '
             'Wtedy też ta wiadomość ulegnie autodestrukcji.',
             color=somsiad.color
         )
