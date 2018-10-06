@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import locale
+import calendar
 import somsiad
 import server_data
 from plugins import *
@@ -26,14 +27,16 @@ def set_locale(iteration: int = 0):
     """Sets the locale.
     Recursively tries locale after locale until it finds one that the system supports.
     """
-    if iteration < len(ACCEPTED_LOCALES):
-        try:
-            locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[iteration])
-        except locale.Error:
-            set_locale(iteration + 1)
+    try:
+        return locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[iteration])
+    except locale.Error:
+        return set_locale(iteration + 1)
+    except IndexError:
+        return None
 
 
 if __name__ == '__main__':
     print('Budzenie Somsiada...')
     set_locale()
+    calendar.setfirstweekday(calendar.MONDAY)
     somsiad.somsiad.run()
