@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import locale
 import re
 import json
 import os
@@ -71,12 +72,12 @@ class TextFormatter:
                 proper_form = plural_form_2_to_4
 
         if include_number:
-            return f'{number} {proper_form}'
+            return f'{locale.str(number)} {proper_form}'
         else:
             return proper_form
 
     @classmethod
-    def human_readable_time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days=True) -> str:
+    def time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days=True) -> str:
         local_datetime = utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone()
         timedelta = dt.datetime.now().astimezone() - local_datetime
 
@@ -107,9 +108,8 @@ class TextFormatter:
         return ''.join(combined_information)
 
     @staticmethod
-    def minutes_and_seconds(timedelta: dt.timedelta) -> str:
+    def minutes_and_seconds(total_seconds: int) -> str:
         information = []
-        total_seconds = timedelta.total_seconds()
 
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds - hours * 3600) // 60)

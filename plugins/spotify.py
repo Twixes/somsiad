@@ -33,9 +33,12 @@ async def spotify(ctx):
         embed.set_thumbnail(url=ctx.author.activity.album_cover_url)
         embed.add_field(name='Autorstwa', value=', '.join(ctx.author.activity.artists))
         embed.add_field(name='Z albumu', value=ctx.author.activity.album)
-        embed.add_field(name='Długość', value=TextFormatter.minutes_and_seconds(ctx.author.activity.duration))
         embed.add_field(
-            name='Posłuchaj na Spotify', value=f'https://open.spotify.com/track/{ctx.author.activity.track_id}'
+            name='Długość', value=TextFormatter.minutes_and_seconds(ctx.author.activity.duration.total_seconds())
+        )
+        embed.add_field(
+            name='Posłuchaj na Spotify', value=f'https://open.spotify.com/track/{ctx.author.activity.track_id}',
+            inline=False
         )
 
         # Search for the song on YouTube
@@ -48,7 +51,9 @@ async def spotify(ctx):
         ):
             video_id = youtube_search_result[0]['id']['videoId']
             video_thumbnail_url = youtube_search_result[0]['snippet']['thumbnails']['medium']['url']
-            embed.add_field(name='Posłuchaj na YouTube', value=f'https://www.youtube.com/watch?v={video_id}')
+            embed.add_field(
+                name='Posłuchaj na YouTube', value=f'https://www.youtube.com/watch?v={video_id}', inline=False
+            )
             embed.set_image(url=video_thumbnail_url)
 
         embed.set_footer(
