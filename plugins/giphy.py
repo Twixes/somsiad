@@ -40,8 +40,7 @@ async def giphy(ctx, *, query):
                 response_data = response_data['data']
                 if response_data == []:
                     embed = discord.Embed(
-                        title=':slight_frown: Niepowodzenie',
-                        description=f'Brak wyników dla zapytania "{query}".',
+                        title=f':slight_frown: Brak wyników dla zapytania "{query}"',
                         color=somsiad.color
                     )
                 else:
@@ -53,8 +52,7 @@ async def giphy(ctx, *, query):
                     embed.set_image(url=gif_url)
             else:
                 embed = discord.Embed(
-                    title=':warning: Błąd',
-                    description='Nie można połączyć się z serwisem!',
+                    title=':warning: Nie można połączyć się z serwisem!',
                     color=somsiad.color
                 )
 
@@ -66,8 +64,7 @@ async def giphy(ctx, *, query):
 async def giphy_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
-            title=':warning: Błąd',
-            description='Nie podano szukanego hasła!',
+            title=':warning: Nie podano szukanego hasła!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)

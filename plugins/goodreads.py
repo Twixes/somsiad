@@ -42,8 +42,7 @@ async def goodreads(ctx, *, query):
                 node = tree.find('.//total-results')
                 if node.text == '0':
                     embed = discord.Embed(
-                        title=':slight_frown: Niepowodzenie',
-                        description=f'Brak wyników dla zapytania "{query}".',
+                        title=f':slight_frown: Brak wyników dla zapytania "{query}"',
                         color=somsiad.color
                     )
                 else:
@@ -90,7 +89,7 @@ async def goodreads(ctx, *, query):
                         embed.add_field(name='Pozostałe trafienia', value=sec_results_str, inline=False)
             else:
                 embed = discord.Embed(
-                    title=':warning: Błąd', description='Nie można połączyć się z serwisem!', color=somsiad.color)
+                    title=':warning: Nie można połączyć się z serwisem!', color=somsiad.color)
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)
@@ -100,8 +99,7 @@ async def goodreads(ctx, *, query):
 async def goodreads_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
-            title=':warning: Błąd',
-            description='Nie podano szukanego hasła!',
+            title=':warning: Nie podano szukanego hasła!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)

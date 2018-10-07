@@ -19,6 +19,12 @@ from somsiad import somsiad
 
 
 class YouTube:
+    FOOTER_TEXT = 'YouTube'
+    FOOTER_ICON_URL = (
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/'
+        'YouTube_full-color_icon_%282017%29.svg/60px-YouTube_full-color_icon_%282017%29.svg.png'
+    )
+
     _youtube_client = None
 
     def __init__(self, developer_key):
@@ -58,7 +64,12 @@ async def youtube_search(ctx, *, query = ''):
         video_url = f'https://www.youtube.com/watch?v={video_id}'
         await ctx.send(f'{ctx.author.mention}\n{video_url}')
     else:
-        await ctx.send(f'{ctx.author.mention}\nBrak wyników dla zapytania **{query}**.')
+        embed = discord.Embed(
+            title=f':slight_frown: Brak wyników dla zapytania "{query}"',
+            color=somsiad.color
+        )
+        embed.set_footer(icon_url=YouTube.FOOTER_ICON_URL, text=YouTube.FOOTER_TEXT)
+        await ctx.send(ctx.author.mention, embed=embed)
 
 
 @somsiad.bot.group(invoke_without_command=True)

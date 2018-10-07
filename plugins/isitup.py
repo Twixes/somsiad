@@ -58,14 +58,12 @@ async def isitup(ctx, *, query):
                 # Wrong URL
                 elif res['status_code'] == 3:
                     embed = discord.Embed(
-                        title=':warning: Błąd',
-                        description='Podany adres jest niepoprawny.',
+                        title=':warning: Podany adres jest niepoprawny!',
                         color=somsiad.color
                     )
             else:
                 embed = discord.Embed(
-                    title=':warning: Błąd',
-                    description='Nie udało się połączyć z serwerem sprawdzania statusu stron!',
+                    title=':warning: Nie udało się połączyć z serwerem sprawdzania statusu stron!',
                     color=somsiad.color
                 )
 
@@ -77,8 +75,7 @@ async def isitup(ctx, *, query):
 async def isitup_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
-            title=f':warning: Błąd',
-            description='Nie podano adresu strony do sprawdzenia!',
+            title=f':warning: Nie podano adresu strony do sprawdzenia!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)

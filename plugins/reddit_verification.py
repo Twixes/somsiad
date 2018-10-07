@@ -760,8 +760,7 @@ async def verification_xray_error(ctx, error):
     """Handles errors in the verification_xrays command."""
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Błąd',
-            description=f'Podany użytkownik nie znajduje się na tym serwerze.',
+            title=':warning: Podany użytkownik nie znajduje się na tym serwerze!',
             color=somsiad.color
         )
         embed.set_footer(text=verifier.FOOTER_TEXT)

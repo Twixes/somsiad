@@ -116,8 +116,7 @@ class Wikipedia:
         search_result = await cls.search(language, title)
         if search_result.status is None:
             embed = discord.Embed(
-                title=':warning: Błąd',
-                description=f'Nie istnieje wersja językowa Wikipedii o kodzie "{language.upper()}"!',
+                title=f':warning: Nie istnieje wersja językowa Wikipedii o kodzie "{language.upper()}"!',
                 color=somsiad.color
             )
         elif search_result.status == 200:
@@ -143,15 +142,13 @@ class Wikipedia:
                     embed.set_thumbnail(url=search_result.articles[0]['thumbnail_url'])
             else:
                 embed = discord.Embed(
-                    title=':slight_frown: Niepowodzenie',
-                    description=f'Brak wyników dla hasła "{title}".',
+                    title=f':slight_frown: Brak wyników dla hasła "{title}"',
                     color=somsiad.color
                 )
 
         else:
             embed = discord.Embed(
-                title=':warning: Błąd',
-                description='Nie udało się połączyć z serwisem!',
+                title=':warning: Nie udało się połączyć z Wikipedią!',
                 color=somsiad.color
             )
 
@@ -175,8 +172,7 @@ async def wikipedia(ctx, language, *, title = 'Wikipedia'):
 async def wikipedia_error(ctx, error):
     if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
         embed = discord.Embed(
-            title=':warning: Błąd',
-            description='Nie podano wersji językowej Wikipedii!',
+            title=':warning: Nie podano wersji językowej Wikipedii!',
             color=somsiad.color
         )
         embed.set_footer(

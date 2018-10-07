@@ -50,7 +50,7 @@ async def omdb(ctx, *args):
             )
     ):
         embed = discord.Embed(
-            title=':warning: Błąd', description='Nie podano tytułu szukanego dzieła!', color=somsiad.color
+            title=':warning: Nie podano tytułu szukanej produkcji!', color=somsiad.color
         )
     else:
         if re.match(r's\d\de\d\d', args[1].lower() if args[0].lower() in ('tv', 'serial') else args[0].lower()):
@@ -59,7 +59,7 @@ async def omdb(ctx, *args):
 
             if len(args) == (2 if args[0].lower() in ('tv', 'serial') else 1):
                 embed = discord.Embed(
-                    title=':warning: Błąd', description='Nie podano tytułu szukanego dzieła!', color=somsiad.color
+                    title=':warning: Nie podano tytułu szukanej produkcji!', color=somsiad.color
                 )
             else:
                 query = ' '.join(args[1:])
@@ -168,14 +168,12 @@ async def omdb(ctx, *args):
                                 embed.set_thumbnail(url=res['Poster'])
                     elif res['Response'] == 'False':
                         embed = discord.Embed(
-                            title=':slight_frown: Niepowodzenie',
-                            description=f'Brak wyników dla tytułu "{query}".',
+                            title=f':slight_frown: Brak wyników dla tytułu "{query}"',
                             color=somsiad.color
                         )
                 else:
                     embed = discord.Embed(
-                        title=':warning: Błąd',
-                        description='Nie można połączyć się z serwisem!',
+                        title=':warning: Nie udało się połączyć z OMDb!',
                         color=somsiad.color
                     )
     embed.set_footer(text=OMDb.FOOTER_TEXT)
