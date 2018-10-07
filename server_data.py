@@ -25,7 +25,10 @@ class ServerDataManager:
     @staticmethod
     def dict_from_row(row: sqlite3.Row) -> dict:
         """Unpacks an sqlite3.Row object into a dictionary."""
-        return dict(zip(row.keys(), row))
+        if row is None:
+            return None
+        else:
+            return dict(zip(row.keys(), row))
 
     def __init__(self):
         """Connects to the servers database. Creates it if it doesn't exist yet.
