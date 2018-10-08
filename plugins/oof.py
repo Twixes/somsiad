@@ -96,12 +96,21 @@ async def oof(ctx):
     await ctx.send('Oof!')
 
 
-@oof.command(aliases=['user', 'member', 'użytkownik', 'członek'])
+@oof.group(aliases=['ile'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def oof_user(ctx, user: discord.User = None):
+async def oof_how_many(ctx, user: discord.User = None):
+    await ctx.invoke(oof_how_many_user, user)
+
+
+@oof_how_many.command(aliases=['user', 'member', 'użytkownik', 'członek'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def oof_how_many_user(ctx, user: discord.User = None):
     if user is None:
         user = ctx.author
 
@@ -124,8 +133,8 @@ async def oof_user(ctx, user: discord.User = None):
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@oof_user.error
-async def oof_user_error(ctx, error):
+@oof_how_many_user.error
+async def oof_how_many_user_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono podanego użytkownika!',
@@ -134,12 +143,12 @@ async def oof_user_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@oof.command(aliases=['server', 'serwer'])
+@oof_how_many.command(aliases=['server', 'serwer'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def oof_server(ctx):
+async def oof_how_many_server(ctx):
     oofers = Oof.get_oofers(ctx.guild)
     total_oofs = Oof.get_oofs(ctx.guild)
 
