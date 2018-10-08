@@ -20,12 +20,16 @@ from utilities import TextFormatter
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def no(ctx):
+async def no(ctx, member: discord.Member = None):
     """Removes the last message sent by the bot in the channel on the requesting user's request."""
-    async for message in ctx.history(limit=15):
-        if message.author == ctx.me and ctx.author in message.mentions:
-            await message.delete()
-            break
+    if member is None:
+        member = ctx.author
+
+    if member == ctx.author or ctx.author.permissions_in(ctx.channel).manage_messages:
+        async for message in ctx.history(limit=15):
+            if message.author == ctx.me and member in message.mentions:
+                await message.delete()
+                break
 
 
 @somsiad.bot.command(aliases=['wyczyść', 'wyczysc'])
@@ -87,16 +91,14 @@ async def purge_error(ctx, error):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def invite(ctx, *args):
+async def invite(ctx, *, argument = ''):
     is_user_permitted_to_invite = False
-    for current_channel in ctx.guild.channels:
-        if current_channel.permissions_for(ctx.author).create_instant_invite:
+    for channel in ctx.guild.channels:
+        if channel.permissions_for(ctx.author).create_instant_invite:
             is_user_permitted_to_invite = True
             break
 
-    argument = ' '.join(args).lower()
-
-    if 'somsi' in argument or str(ctx.me.id) in argument:
+    if 'somsiad' in argument or ctx.me in ctx.message.mentions:
         embed = discord.Embed(
             title=':house: Zapraszam do Somsiad Labs – mojego domu',
             description='http://discord.gg/xRCpDs7',
@@ -106,19 +108,20 @@ async def invite(ctx, *args):
 
     elif is_user_permitted_to_invite:
         max_uses = 0
-        unique = True
+        unique = False
 
-        if args:
-            for arg in args:
-                if 'recykl' in arg.lower():
-                    unique = False
-                if 'jednorazow' in arg.lower():
-                    max_uses = 1
-                elif arg.isnumeric():
-                    max_uses = int(arg)
+        for word in argument.split():
+            if 'now' in word.lower() or 'twórz' in word.lower() or 'tworz' in word.lower():
+                unique = True
+            if 'jednoraz' in word.lower():
+                max_uses = 1
+            else:
+                try:
+                    max_uses = abs(int(word))
+                except ValueError:
+                    pass
 
         channel = None
-        invite = None
         if ctx.channel.permissions_for(ctx.me).create_instant_invite:
             channel = ctx.channel
         else:
@@ -151,7 +154,7 @@ async def invite(ctx, *args):
             else:
                 max_uses_info = f' o {max_uses} użyciach'
             embed = discord.Embed(
-                title=f':white_check_mark: {"Utworzono" if unique else "Zrecyklowano (jeśli się dało)"}'
+                title=f':white_check_mark: Utworzono'
                 f'{max_uses_info if max_uses == 1 else ""} zaproszenie na kanał '
                 f'{"#" if isinstance(channel, discord.TextChannel) else ""}{channel}'
                 f'{max_uses_info if max_uses != 1 else ""}',
