@@ -26,12 +26,12 @@ class Oof:
     )
 
     @classmethod
-    def get_oofs(cls, server: discord.Guild, member: Union[discord.User, discord.Member] = None) -> Union[int, None]:
+    def get_oofs(cls, server: discord.Guild, user: Union[discord.User, discord.Member] = None) -> Union[int, None]:
         """Returns the number of times the provided user oofed on the provided server.
         If not provided a user, returns the total number of oofs on the server.
         """
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
-        if member is None:
+        if user is None:
             server_data_manager.servers[server.id]['db_cursor'].execute(
                 'SELECT oofs FROM oof',
             )
@@ -45,43 +45,43 @@ class Oof:
         else:
             server_data_manager.servers[server.id]['db_cursor'].execute(
                 'SELECT oofs FROM oof WHERE user_id = ?',
-                (member.id,)
+                (user.id,)
             )
             result = server_data_manager.servers[server.id]['db_cursor'].fetchone()
             oofs = None if result is None else result['oofs']
         return oofs
 
     @classmethod
-    def get_oofers(cls, server: discord.Guild) -> List[list]:
-        """Returns a list of users who have oofed on the provided server, sorted by the number of oofs, descending."""
+    def get_oofers(cls, server: discord.Guild) -> List[dict]:
+        """Returns a tuple of users who have oofed on the provided server, sorted by the number of oofs, descending."""
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
         server_data_manager.servers[server.id]['db_cursor'].execute(
             'SELECT user_id, oofs FROM oof'
         )
-        rows = [
+        rows = (
             server_data_manager.dict_from_row(row)
             for row in server_data_manager.servers[server.id]['db_cursor'].fetchall()
-        ]
+        )
         sorted_rows = sorted(rows, key=lambda row: row['oofs'], reverse=True)
         return sorted_rows
 
     @classmethod
-    def ensure_user_registration(cls, server: discord.Guild, member: Union[discord.User, discord.Member]):
+    def ensure_user_registration(cls, server: discord.Guild, user: Union[discord.User, discord.Member]):
         """Ensure that the provided user is a registered oofer on the provided server."""
-        if cls.get_oofs(server, member) is None:
+        if cls.get_oofs(server, user) is None:
             server_data_manager.servers[server.id]['db_cursor'].execute(
                 'INSERT INTO oof(user_id) VALUES(?)',
-                (member.id,)
+                (user.id,)
             )
             server_data_manager.servers[server.id]['db'].commit()
 
     @classmethod
-    def increment(cls, server: discord.Guild, member: Union[discord.User, discord.Member]):
+    def increment(cls, server: discord.Guild, user: Union[discord.User, discord.Member]):
         """Increments the number of oofs by 1 for the provided user on the provided server."""
-        cls.ensure_user_registration(server, member)
+        cls.ensure_user_registration(server, user)
         server_data_manager.servers[server.id]['db_cursor'].execute(
             'UPDATE oof SET oofs = oofs + 1 WHERE user_id = ?',
-            (member.id,)
+            (user.id,)
         )
         server_data_manager.servers[server.id]['db'].commit()
 
