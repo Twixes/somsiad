@@ -85,10 +85,7 @@ class SchoolYear:
     @classmethod
     def is_ongoing(cls) -> bool:
         timedelta = cls.start_date() - dt.datetime.today()
-        if timedelta.days < 0:
-            return True
-        else:
-            return False
+        return bool(timedelta.days < 0)
 
 
 @somsiad.bot.group(aliases=['rokszkolny', 'ilejeszcze'], invoke_without_command=True)
