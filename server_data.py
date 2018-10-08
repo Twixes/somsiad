@@ -97,15 +97,15 @@ class ServerDataManager:
             'SELECT name FROM sqlite_master WHERE type = "table"'
         )
 
-        tables = [table['name'] for table in self.servers[server_id]['db_cursor'].fetchall()]
+        # tables = [table['name'] for table in self.servers[server_id]['db_cursor'].fetchall()]
 
-        for table in tables:
-            self.servers[server_id][table] = {}
-            self.servers[server_id]['db_cursor'].execute(
-                f'SELECT * FROM {table}'
-            )
-            rows = [self.dict_from_row(row) for row in self.servers[server_id]['db_cursor'].fetchall()]
-            self.servers[server_id][table] = rows
+        # for table in tables:
+        #     self.servers[server_id][table] = {}
+        #     self.servers[server_id]['db_cursor'].execute(
+        #         f'SELECT * FROM {table}'
+        #     )
+        #     rows = [self.dict_from_row(row) for row in self.servers[server_id]['db_cursor'].fetchall()]
+        #     self.servers[server_id][table] = rows
 
         return self.servers[server_id]
 
@@ -123,9 +123,7 @@ class ServerDataManager:
         """
         self.load_server(server_id, load_own_db=True)
         self.servers[server_id]['db_cursor'].execute(
-            f'''CREATE TABLE IF NOT EXISTS {table_name}(
-                {', '.join(table_columns)}
-            )'''
+            f'CREATE TABLE IF NOT EXISTS {table_name}({", ".join(table_columns)})'
         )
         self.servers[server_id]['db'].commit()
         self.load_server(server_id, load_own_db=True)
