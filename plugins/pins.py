@@ -11,9 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import io
-import sqlite3
 import discord
 from somsiad import somsiad
 from server_data import server_data_manager
