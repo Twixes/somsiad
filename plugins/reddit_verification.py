@@ -774,48 +774,36 @@ async def verification_xray_error(ctx, error):
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_roles=True)
-async def verification_role(ctx, *, provided_role_name=None):
+async def verification_role(ctx, *, role: discord.Role = None):
     """Sets the role to be given automatically to verified members."""
-    roles_found = []
-
-    if ctx.message.role_mentions:
-        roles_found.append(ctx.message.role_mentions[0])
-    else:
-        for role in ctx.guild.roles:
-            if role.name == provided_role_name:
-                roles_found.append(role)
-
-    if provided_role_name is not None:
-        if len(roles_found) > 1:
-            embed = discord.Embed(
-                title=f':warning: Nie wiadomo którą rolę o nazwie "{provided_role_name}" masz na myśli',
-                description=f'Upewnij się, że na serwerze jest tylko jedna rola o takiej nazwie. '
-                'Możesz też po prostu użyć @wzmianki roli zamiast nazwy.',
-                color=somsiad.color
-            )
-        elif len(roles_found) == 1:
-            verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', roles_found[0].id)
-            await verifier.add_verified_role_to_members_of_discord_server(ctx.guild)
-            embed = discord.Embed(
-                title=f':white_check_mark: Ustawiono {roles_found[0]} jako rolę weryfikacji',
-                description=f'Rola została właśnie przyznana już zweryfikowanym użytkownikom. Reszcie zostanie '
-                'przyznana automatycznie, jeśli zweryfikują się.',
-                color=somsiad.color
-            )
-        else:
-            embed = discord.Embed(
-                title=f':warning: Nie znaleziono na serwerze roli o nazwie "{provided_role_name}"',
-                color=somsiad.color
-            )
-    else:
-        verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', 'NULL')
+    if role is None:
+        verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', None)
         embed = discord.Embed(
-            title=f':white_check_mark: Wyłączono przyznawanie roli zweryfikowanym użytkownikom',
+            title=':white_check_mark: Wyłączono przyznawanie roli zweryfikowanym użytkownikom',
+            color=somsiad.color
+        )
+    else:
+        verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', role.id)
+        await verifier.add_verified_role_to_members_of_discord_server(ctx.guild)
+        embed = discord.Embed(
+            title=f':white_check_mark: Ustawiono {role} jako rolę weryfikacji',
+            description='Rola została właśnie przyznana już zweryfikowanym użytkownikom. Reszcie zostanie '
+            'przyznana automatycznie, jeśli zweryfikują się.',
             color=somsiad.color
         )
 
     embed.set_footer(text=verifier.FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)
+
+
+@verification_role.error
+async def verification_role_error(ctx, error):
+    if isinstance(error, discord.ext.commands.BadArgument):
+        embed = discord.Embed(
+            title=':warning: Nie znaleziono na serwerze podanej roli',
+            color=somsiad.color
+        )
+        await ctx.send(ctx.author.mention, embed=embed)
 
 
 reddit_verification_message_scout = RedditVerificationMessageScout(db_path)
