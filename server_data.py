@@ -175,7 +175,7 @@ async def do_log(ctx, channel: discord.TextChannel = None):
 @discord.ext.commands.has_permissions(administrator=True)
 async def do_not_log(ctx):
     """Unsets the bot's log channel for the server."""
-    server_data_manager.set_log_channel(ctx.guild.id, 'NULL')
+    server_data_manager.set_log_channel(ctx.guild.id, None)
     embed = discord.Embed(
         title=f':white_check_mark: Wyłączono logi na tym serwerze',
         color=somsiad.color
