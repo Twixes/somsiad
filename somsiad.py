@@ -207,6 +207,22 @@ def print_info(first_console_block=True):
     print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
 
 
+@somsiad.bot.command(aliases=['nope', 'nie'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+async def no(ctx, member: discord.Member = None):
+    """Removes the last message sent by the bot in the channel on the requesting user's request."""
+    if member is None:
+        member = ctx.author
+
+    if member == ctx.author or ctx.author.permissions_in(ctx.channel).manage_messages:
+        async for message in ctx.history(limit=10):
+            if message.author == ctx.me and member in message.mentions:
+                await message.delete()
+                break
+
+
 @somsiad.bot.command(aliases=['wersja'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
@@ -235,13 +251,13 @@ async def on_ready():
 
 
 @somsiad.bot.event
-async def on_guild_join(guild):
+async def on_guild_join(server):
     """Does things whenever the bot joins a server."""
     print_info(first_console_block=False)
 
 
 @somsiad.bot.event
-async def on_guild_remove(guild):
+async def on_guild_remove(server):
     """Does things whenever the bot leaves a server."""
     print_info(first_console_block=False)
 
