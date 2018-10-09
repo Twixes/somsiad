@@ -16,45 +16,42 @@ import io
 import sqlite3
 import discord
 from somsiad import somsiad
+from server_data import server_data_manager
 from utilities import TextFormatter
 
 
 class PinArchivesManager:
-    DB_PATH = os.path.join(somsiad.storage_dir_path, 'pins.db')
-
     def __init__(self):
-        """Connects to the database. Creates it if it doesn't exist yet. Sets up tables."""
-        self._db = sqlite3.connect(self.DB_PATH)
-        self._db_cursor = self._db.cursor()
-        self._db_cursor.execute(
+        """Sets up the table in the database."""
+        server_data_manager.servers_db_cursor.execute(
             '''CREATE TABLE IF NOT EXISTS pin_archive_channels(
                 server_id INTEGER NOT NULL PRIMARY KEY,
                 channel_id INTEGER NOT NULL
             )'''
         )
-        self._db.commit()
+        server_data_manager.servers_db.commit()
 
     def set_archive_channel_id(self, server_id: int, channel_id: int):
         """Sets the ID of the server's pin archive channel."""
         if self.get_archive_channel_id(server_id) is None:
-            self._db_cursor.execute(
+            server_data_manager.servers_db_cursor.execute(
                 'INSERT INTO pin_archive_channels(server_id, channel_id) VALUES(?, ?)',
                 (server_id, channel_id)
             )
         else:
-            self._db_cursor.execute(
+            server_data_manager.servers_db_cursor.execute(
                 'UPDATE pin_archive_channels SET channel_id = ? WHERE server_id = ?',
                 (channel_id, server_id)
             )
-        self._db.commit()
+        server_data_manager.servers_db.commit()
 
     def get_archive_channel_id(self, server_id: int) -> int:
         """Gets the ID of the server's pin archive channel."""
-        self._db_cursor.execute(
+        server_data_manager.servers_db_cursor.execute(
             'SELECT channel_id FROM pin_archive_channels WHERE server_id = ?',
             (server_id,)
         )
-        archive_channel_id = self._db_cursor.fetchone()
+        archive_channel_id = server_data_manager.servers_db_cursor.fetchone()
 
         if archive_channel_id is None:
             return None
