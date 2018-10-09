@@ -101,23 +101,23 @@ async def oof(ctx):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def oof_how_many(ctx, user: discord.User = None):
-    await ctx.invoke(oof_how_many_user, user)
+async def oof_how_many(ctx, member: discord.Member = None):
+    await ctx.invoke(oof_how_many_member, member)
 
 
-@oof_how_many.command(aliases=['user', 'member', 'użytkownik', 'członek'])
+@oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def oof_how_many_user(ctx, user: discord.User = None):
-    if user is None:
-        user = ctx.author
+async def oof_how_many_member(ctx, member: discord.Member = None):
+    if member is None:
+        member = ctx.author
 
-    oofs = Oof.get_oofs(ctx.guild, user)
+    oofs = Oof.get_oofs(ctx.guild, member)
     oofs = 0 if oofs is None else oofs
 
-    if user == ctx.author:
+    if member == ctx.author:
         embed = discord.Embed(
             title='Masz na koncie '
             f'{TextFormatter.word_number_variant(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
@@ -125,7 +125,7 @@ async def oof_how_many_user(ctx, user: discord.User = None):
         )
     else:
         embed = discord.Embed(
-            title=f'{user.display_name} ma na koncie '
+            title=f'{member.display_name} ma na koncie '
             f'{TextFormatter.word_number_variant(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
             color=somsiad.color
         )
@@ -133,11 +133,11 @@ async def oof_how_many_user(ctx, user: discord.User = None):
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@oof_how_many_user.error
-async def oof_how_many_user_error(ctx, error):
+@oof_how_many_member.error
+async def oof_how_many_member_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono podanego użytkownika!',
+            title=':warning: Nie znaleziono na serwerze podanego użytkownika!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
