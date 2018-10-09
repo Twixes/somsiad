@@ -77,21 +77,24 @@ class TextFormatter:
             return proper_form
 
     @classmethod
-    def time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days=True) -> str:
+    def time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days_ago=True, name_month=False) -> str:
         local_datetime = utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone()
         timedelta = dt.datetime.now().astimezone() - local_datetime
 
-        combined_information = []
+        time_ago_information = []
         if date:
-            date_string = local_datetime.strftime('%-d.%m.%Y')
-            combined_information.append(date_string)
+            if name_month:
+                date_string = local_datetime.strftime('%-d %B %Y')
+            else:
+                date_string = local_datetime.strftime('%-d.%m.%Y')
+            time_ago_information.append(date_string)
         if time:
             time_string = local_datetime.strftime('%H:%M')
             if date:
-                combined_information.append(f' o {time_string}')
+                time_ago_information.append(f' o {time_string}')
             else:
-                combined_information.append(time_string)
-        if days:
+                time_ago_information.append(time_string)
+        if days_ago:
             days_since = timedelta.days
             if days_since == 0:
                 days_since_string = 'dzisiaj'
@@ -101,11 +104,11 @@ class TextFormatter:
                 days_since_string = f'{cls.word_number_variant(days_since, "dzień", "dni")} temu'
 
             if date or time:
-                combined_information.append(f', {days_since_string}')
+                time_ago_information.append(f', {days_since_string}')
             else:
-                combined_information.append(days_since_string)
+                time_ago_information.append(days_since_string)
 
-        return ''.join(combined_information)
+        return ''.join(time_ago_information)
 
     @staticmethod
     def minutes_and_seconds(total_seconds: int) -> str:
@@ -333,7 +336,7 @@ class Setting:
             else:
                 return f'{self.input_instruction} {self._unit})'
 
-    def as_dict(self) -> str:
+    def to_dict(self) -> str:
         return {
             'name': self._name,
             'description': self._description,
