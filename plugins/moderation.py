@@ -167,7 +167,7 @@ async def on_member_remove(member):
 
 @somsiad.bot.event
 async def on_member_unban(server, member):
-    """Adds the removal event to the member's folder."""
+    """Adds the unban event to the member's folder."""
     Folder.add_event(
         event_type='unbanned', server=server,
         subject_user=member
@@ -180,16 +180,16 @@ async def on_member_unban(server, member):
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(kick_members=True)
-async def warn(ctx, subject_user_member: discord.Member, *, reason):
+async def warn(ctx, subject_user: discord.Member, *, reason):
     """Warns the specified member."""
     Folder.add_event(
         event_type='warned', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
-        subject_user=subject_user_member, reason=reason
+        subject_user=subject_user, reason=reason
     )
-    warnings = Folder.get_events(server=ctx.guild, event_type='warned', subject_user=subject_user_member)
+    warnings = Folder.get_events(server=ctx.guild, event_type='warned', subject_user=subject_user)
 
     embed = discord.Embed(
-        title=f':white_check_mark: Ostrzeżono {subject_user_member} po raz {len(warnings)}.',
+        title=f':white_check_mark: Ostrzeżono {subject_user} po raz {len(warnings)}.',
         color=somsiad.color
     )
 
@@ -199,7 +199,7 @@ async def warn(ctx, subject_user_member: discord.Member, *, reason):
 @warn.error
 async def warn_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        if error.param.name == 'subject_user_member':
+        if error.param.name == 'subject_user':
             embed = discord.Embed(
                 title=f':warning: Musisz podać którego użytkownika chcesz ostrzec!',
                 color=somsiad.color
@@ -224,10 +224,10 @@ async def warn_error(ctx, error):
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(kick_members=True)
-async def kick(ctx, subject_user_member: discord.Member, *, reason):
+async def kick(ctx, subject_user: discord.Member, *, reason):
     """Kicks the specified member."""
     try:
-        await subject_user_member.kick(reason=reason)
+        await subject_user.kick(reason=reason)
     except discord.Forbidden:
         embed = discord.Embed(
             title=f':warning: Bot nie ma uprawnień do wyrzucenia tego użytkownika!',
@@ -237,11 +237,11 @@ async def kick(ctx, subject_user_member: discord.Member, *, reason):
 
     Folder.add_event(
         event_type='kicked', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
-        subject_user=subject_user_member, reason=reason
+        subject_user=subject_user, reason=reason
     )
 
     embed = discord.Embed(
-        title=f':white_check_mark: Wyrzucono {subject_user_member}',
+        title=f':white_check_mark: Wyrzucono {subject_user}',
         color=somsiad.color
     )
 
@@ -251,7 +251,7 @@ async def kick(ctx, subject_user_member: discord.Member, *, reason):
 @kick.error
 async def kick_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        if error.param.name == 'subject_user_member':
+        if error.param.name == 'subject_user':
             embed = discord.Embed(
                 title=f':warning: Musisz podać którego użytkownika chcesz wyrzucić!',
                 color=somsiad.color
@@ -275,11 +275,11 @@ async def kick_error(ctx, error):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(kick_members=True)
-async def ban(ctx, subject_user_member: discord.Member, *, reason):
+@discord.ext.commands.has_permissions(ban_members=True)
+async def ban(ctx, subject_user: discord.Member, *, reason):
     """Bans the specified member."""
     try:
-        await subject_user_member.ban(reason=reason)
+        await subject_user.ban(reason=reason)
     except discord.Forbidden:
         embed = discord.Embed(
             title=f':warning: Bot nie ma uprawnień do zbanowania tego użytkownika!',
@@ -289,11 +289,11 @@ async def ban(ctx, subject_user_member: discord.Member, *, reason):
 
     Folder.add_event(
         event_type='banned', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
-        subject_user=subject_user_member, reason=reason
+        subject_user=subject_user, reason=reason
     )
 
     embed = discord.Embed(
-        title=f':white_check_mark: Wyrzucono {subject_user_member}',
+        title=f':white_check_mark: Wyrzucono {subject_user}',
         color=somsiad.color
     )
 
@@ -303,7 +303,7 @@ async def ban(ctx, subject_user_member: discord.Member, *, reason):
 @ban.error
 async def ban_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        if error.param.name == 'subject_user_member':
+        if error.param.name == 'subject_user':
             embed = discord.Embed(
                 title=f':warning: Musisz podać którego użytkownika chcesz zbanować!',
                 color=somsiad.color
