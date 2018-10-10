@@ -69,6 +69,8 @@ class Folder:
                 return 'wyrzucenie'
             elif self.event_type == 'banned':
                 return 'ban'
+            elif self.event_type == 'unbanned':
+                return 'unban'
             elif self.event_type == 'joined':
                 return 'dołączenie'
             elif self.event_type == 'left':
@@ -159,6 +161,15 @@ async def on_member_remove(member):
     """Adds the removal event to the member's folder."""
     Folder.add_event(
         event_type='left', server=member.guild,
+        subject_user=member
+    )
+
+
+@somsiad.bot.event
+async def on_member_unban(server, member):
+    """Adds the removal event to the member's folder."""
+    Folder.add_event(
+        event_type='unbanned', server=server,
         subject_user=member
     )
 
