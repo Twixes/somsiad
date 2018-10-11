@@ -171,22 +171,22 @@ async def pins_archive(ctx):
 
                 result_embed = discord.Embed(
                     title=':white_check_mark: Zarchiwizowano '
-                    f'{TextFormatter.word_number_variant(len(pins), "przypinkę", "przypinki", "przypinek")}',
+                    f'{TextFormatter.word_number_variant(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
                     color=somsiad.color
                 )
             else:
                 result_embed = discord.Embed(
-                    title=':red_circle: Brak przypinek do zarchiwizowania',
+                    title=':red_circle: Brak przypiętych wiadomości do zarchiwizowania',
                     color=somsiad.color
                 )
         else:
             result_embed = discord.Embed(
-                title=f':warning: Ustawiony kanał archiwum przypinek już nie istnieje!',
+                title=f':warning: Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje!',
                 color=somsiad.color
             )
     else:
         result_embed = discord.Embed(
-            title=f':warning: Nie ustawiono na serwerze kanału archiwum przypinek!',
+            title=f':warning: Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości!',
             color=somsiad.color
         )
 
@@ -209,12 +209,12 @@ async def pins_clear(ctx):
 
         result_embed = discord.Embed(
             title=':white_check_mark: Odpięto '
-            f'{TextFormatter.word_number_variant(len(pins), "przypinkę", "przypinki", "przypinek")}',
+            f'{TextFormatter.word_number_variant(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
             color=somsiad.color
         )
     else:
         result_embed = discord.Embed(
-            title=':red_circle: Brak przypinek do odpięcia',
+            title=':red_circle: Brak przypiętych wiadomości do odpięcia',
             color=somsiad.color
         )
 
