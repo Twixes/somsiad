@@ -151,6 +151,7 @@ async def oof_how_many_member_error(ctx, error):
 async def oof_how_many_server(ctx):
     oofers = Oof.get_oofers(ctx.guild)
     total_oofs = Oof.get_oofs(ctx.guild)
+    total_oofs = 0 if total_oofs is None else total_oofs
 
     top_oofers = []
     rank = 1
