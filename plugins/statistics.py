@@ -25,10 +25,7 @@ from utilities import TextFormatter
 
 class Report:
     """A statistics report. Can generate server, channel or member statistics."""
-    COOLDOWN = (
-        15 if int(somsiad.conf['command_cooldown_per_user_in_seconds']) < 15
-        else somsiad.conf['command_cooldown_per_user_in_seconds']
-    )
+    COOLDOWN = max(int(somsiad.conf['command_cooldown_per_user_in_seconds']), 15)
     BACKGROUND_COLOR = '#32363c'
     FOREGROUND_COLOR = '#ffffff'
 

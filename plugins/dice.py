@@ -46,11 +46,9 @@ async def roll_dice(ctx, *args):
 
     if number_of_sides_on_a_die > 1:
         # Limit the number of dice to 100 or less
-        if number_of_dice > 100:
-            number_of_dice = 100
+        number_of_dice = min(number_of_dice, 100)
         # Limit the number of sides on a die to 100 million or less
-        if number_of_sides_on_a_die > 100000000:
-            number_of_sides_on_a_die = 100000000
+        number_of_sides_on_a_die = min(number_of_sides_on_a_die, 100000000)
         # Generate random results
         results = []
         for _ in range(number_of_dice):
