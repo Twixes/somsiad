@@ -115,7 +115,6 @@ class Report:
                     break
                 else:
                     self.statistics_cache[channel.guild.id][channel.id].append(message_tuple)
-                    print(message_tuple)
         except discord.Forbidden:
             pass
 
