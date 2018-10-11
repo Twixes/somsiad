@@ -137,7 +137,7 @@ async def oof_how_many_member(ctx, member: discord.Member = None):
 async def oof_how_many_member_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze podanego użytkownika!',
+            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)

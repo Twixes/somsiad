@@ -52,9 +52,8 @@ class Folder:
             self.executing_user_id = executing_user_id
             self.executing_user = None if executing_user_id is None else somsiad.bot.get_user(executing_user_id)
             self.subject_user_id = subject_user_id
-            if self.server is not None:
-                self.subject_user = self.server.get_member(subject_user_id)
-            else:
+            self.subject_user = self.server.get_member(subject_user_id)
+            if self.subject_user is None:
                 self.subject_user = somsiad.bot.get_user(subject_user_id)
             self.posix_timestamp = posix_timestamp
             self.local_datetime = (
@@ -212,7 +211,7 @@ async def warn_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze podanego użytkownika!',
+            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
@@ -264,7 +263,7 @@ async def kick_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze podanego użytkownika!',
+            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
@@ -316,7 +315,7 @@ async def ban_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze podanego użytkownika!',
+            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
@@ -367,7 +366,7 @@ async def folder(ctx, member: discord.Member = None):
 async def folder_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze podanego użytkownika!',
+            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)

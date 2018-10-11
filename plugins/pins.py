@@ -102,7 +102,7 @@ pin_archives_manager = PinArchivesManager()
 async def pins(ctx):
     """A group of pin-related commands."""
     embed = discord.Embed(
-        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
+        title=f'Podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
         description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
         color=somsiad.color
     )

@@ -545,7 +545,7 @@ verifier = RedditVerifier(db_path, phrase_parts)
 )
 async def verification(ctx):
     embed = discord.Embed(
-        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
+        title=f'Podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
         description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
         color=somsiad.color
     )
@@ -800,7 +800,7 @@ async def verification_role(ctx, *, role: discord.Role = None):
 async def verification_role_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze podanej roli',
+            title=':warning: Nie znaleziono na serwerze pasującej roli!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
