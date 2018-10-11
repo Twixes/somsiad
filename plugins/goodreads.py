@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import locale
 import xml.etree.ElementTree as ET
 import aiohttp
 import discord
