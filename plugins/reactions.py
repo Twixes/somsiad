@@ -91,10 +91,7 @@ class Reactor:
         history = ctx.history(limit=15)
         if member is not None:
             async for message in history:
-                if (
-                    message.author == member
-                    and not message.content.startswith(somsiad.conf['command_prefix'])
-                ):
+                if message.author == member:
                     for reaction in clean_characters:
                         try:
                             await message.add_reaction(reaction)
@@ -103,9 +100,7 @@ class Reactor:
                     break
         else:
             async for message in history:
-                if (
-                    not message.content.startswith(somsiad.conf['command_prefix'])
-                ):
+                if message.author != ctx.author:
                     for reaction in clean_characters:
                         try:
                             await message.add_reaction(reaction)
