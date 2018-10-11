@@ -194,7 +194,7 @@ class Report:
         server_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
 
         self.embed = discord.Embed(
-            title=f':white_check_mark: Przygotowano raport o serwerze {self.subject}',
+            title=f':white_check_mark: Przygotowano raport o serwerze',
             color=somsiad.color
         )
         self.embed.add_field(name='Utworzono', value=server_creation_datetime_information)
@@ -203,10 +203,12 @@ class Report:
         self.embed.add_field(name='Emoji', value=len(self.subject.emojis))
         self.embed.add_field(name='Kanałów tekstowych', value=len(self.subject.text_channels))
         self.embed.add_field(name='Kanałów głosowych', value=len(self.subject.voice_channels))
-        self.embed.add_field(name='Członków', value=len(self.subject.members), inline=False)
+        self.embed.add_field(name='Członków', value=self.subject.member_count, inline=False)
         self._embed_message_stats()
         self._embed_top_active_channels()
         self._embed_top_active_users()
+        if self.subject.icon_url != '':
+            self.embed.set_thumbnail(url=self.subject.icon_url)
 
     async def _analyze_channel(self):
         """Analyzes the subject as a channel."""
@@ -217,15 +219,13 @@ class Report:
             self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
             self._update_active_users(message.author, message_word_count, message_character_count)
 
-        channel_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
-        channel_category_name = self.subject.category.name if self.subject.category is not None else 'Brak'
-
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o kanale #{self.subject}',
             color=somsiad.color
         )
-        self.embed.add_field(name='Utworzono', value=channel_creation_datetime_information, inline=False)
-        self.embed.add_field(name='Kategoria', value=channel_category_name, inline=False)
+        self.embed.add_field(name='Utworzono', value=TextFormatter.time_ago(self.subject.created_at), inline=False)
+        if self.subject.category is not None:
+            self.embed.add_field(name='Kategoria', value=self.subject.category.name, inline=False)
         self.embed.add_field(name='Członków', value=len(self.subject.members), inline=False)
         self._embed_message_stats()
         self._embed_top_active_users()
@@ -250,23 +250,23 @@ class Report:
             except discord.Forbidden:
                 pass
 
-        member_account_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
-        member_server_joining_datetime_information = TextFormatter.time_ago(self.subject.joined_at)
-
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o użytkowniku {self.subject}',
             color=somsiad.color
         )
-        self.embed.add_field(name='Utworzył konto', value=member_account_creation_datetime_information, inline=False)
-        self.embed.add_field(name='Dołączył do serwera', value=member_server_joining_datetime_information, inline=False)
+        self.embed.add_field(name='Utworzył konto', value=TextFormatter.time_ago(self.subject.created_at), inline=False)
+        self.embed.add_field(
+            name='Dołączył do serwera', value=TextFormatter.time_ago(self.subject.joined_at), inline=False
+        )
         self._embed_message_stats()
         self._embed_top_active_channels()
+        self.embed.set_thumbnail(url=self.subject.avatar_url)
 
     def _plot_activity_by_hour(self, ax):
         # Plot the chart
         ax.bar(
-            [f'{hour}:00'.zfill(5) for hour in range(24)],
-            self.messages_over_hour,
+            [f'{hour}:00'.zfill(5) for hour in list(range(6, 24)) + list(range(0, 6))],
+            self.messages_over_hour[6:] + self.messages_over_hour[:6],
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1,
@@ -275,7 +275,9 @@ class Report:
 
         # Set proper X axis formatting
         ax.set_xlim(0, 24)
-        ax.set_xticklabels([f'{hour}:00'.zfill(5) for hour in range(24)], rotation=30, ha='right')
+        ax.set_xticklabels(
+            [f'{hour}:00'.zfill(5) for hour in list(range(6, 24)) + list(range(0, 6))], rotation=30, ha='right'
+        )
 
         # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
@@ -373,6 +375,9 @@ class Report:
             tick.set_rotation(30)
             tick.set_horizontalalignment('right')
 
+        one_day = dt.timedelta(days=1)
+        ax.set_xlim((start_date - one_day, end_date + one_day))
+
         # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
         if max(messages_over_date) >= 10:
@@ -435,29 +440,37 @@ class Report:
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def stat(ctx):
-    embed = discord.Embed(
-        title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
-        description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
-        color=somsiad.color
-    )
-    embed.add_field(
-        name=f'serwer',
-        value='Wysyła raport o serwerze.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'kanał <?kanał>',
-        value='Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'użytkownik <?użytkownik>',
-        value='Wysyła raport o użytkowniku. Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.',
-        inline=False
-    )
+async def stat(ctx, subject: Union[discord.Member, discord.TextChannel] = None):
+    if subject is None:
+        embed = discord.Embed(
+            title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
+            description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
+            color=somsiad.color
+        )
+        embed.add_field(
+            name=f'serwer',
+            value='Wysyła raport o serwerze.',
+            inline=False
+        )
+        embed.add_field(
+            name=f'kanał <?kanał>',
+            value='Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.',
+            inline=False
+        )
+        embed.add_field(
+            name=f'użytkownik <?użytkownik>',
+            value='Wysyła raport o użytkowniku. '
+            'Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.',
+            inline=False
+        )
+        await ctx.send(ctx.author.mention, embed=embed)
+    else:
+        report = Report(ctx.author, subject)
+        await report.analyze_subject()
+        report.render_activity_chart()
 
-    await ctx.send(ctx.author.mention, embed=embed)
+        await ctx.send(ctx.author.mention, embed=report.embed, file=report.activity_chart_file)
+
 
 
 @stat.command(aliases=['server', 'serwer'])
