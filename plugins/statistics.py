@@ -207,8 +207,6 @@ class Report:
         self._embed_message_stats()
         self._embed_top_active_channels()
         self._embed_top_active_users()
-        if self.subject.icon_url != '':
-            self.embed.set_thumbnail(url=self.subject.icon_url)
 
     async def _analyze_channel(self):
         """Analyzes the subject as a channel."""
@@ -260,7 +258,6 @@ class Report:
         )
         self._embed_message_stats()
         self._embed_top_active_channels()
-        self.embed.set_thumbnail(url=self.subject.avatar_url)
 
     def _plot_activity_by_hour(self, ax):
         # Plot the chart
