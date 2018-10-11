@@ -204,6 +204,5 @@ commands = (
 )
 async def help_message(ctx):
     embeds = Helper.generate_general_embed(commands)
-    print(embeds)
     for embed in embeds:
         await ctx.author.send(embed=embed)
