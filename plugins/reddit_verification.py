@@ -591,11 +591,11 @@ async def verification_begin(ctx):
 
         embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
         embed.add_field(
-            name='Wygenerowano tajną frazę.',
+            name='Wygenerowano tajną frazę',
             value=f'By zweryfikować się wyślij /u/{somsiad.conf["reddit_username"]} wiadomość o temacie '
             f'"Weryfikacja" i treści "{phrase}". Fraza ważna jest do końca dnia.'
         )
-        embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
+        embed.add_field(name='Najlepiej skorzystaj z linku', value=message_url)
 
     elif (discord_user_info['verification_status'] == 'AWAITING_MESSAGE'
             or discord_user_info['verification_status'] == 'REJECTED_NOT_TRUSTWORTHY'):
@@ -605,12 +605,12 @@ async def verification_begin(ctx):
             if discord_user_info['verification_status'] == 'AWAITING_MESSAGE':
                 embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
                 embed.add_field(
-                    name='Sprawdź historię wiadomości.', value='Wygenerowana fraza ważna jest do końca dnia.'
+                    name='Sprawdź historię wiadomości', value='Wygenerowana fraza ważna jest do końca dnia.'
                 )
             elif discord_user_info['verification_status'] == 'REJECTED_NOT_TRUSTWORTHY':
                 embed = discord.Embed(title='Już zażądałeś dziś weryfikacji', color=somsiad.color)
                 embed.add_field(
-                    name='Weryfikacja nie powiodła się dzisiaj, bo twoje konto na Reddicie nie spełnia wymagań.',
+                    name='Weryfikacja nie powiodła się dzisiaj, bo twoje konto na Reddicie nie spełnia wymagań',
                     value=(
                         'Do weryfikacji potrzebne jest konto założone co najmniej '
                         f'{TextFormatter.word_number_variant(somsiad.conf["reddit_account_min_age_in_days"], "dzień", "dni")} '
@@ -628,17 +628,17 @@ async def verification_begin(ctx):
 
             embed = discord.Embed(title='Dokończ weryfikację na Reddicie', color=somsiad.color)
             embed.add_field(
-                name='Wygenerowano tajną frazę.',
+                name='Wygenerowano tajną frazę',
                 value=f'By zweryfikować się wyślij [/u/{somsiad.conf["reddit_username"]}]'
                 f'(https://www.reddit.com/user/{somsiad.conf["reddit_username"]}) wiadomość o temacie '
                 f'"Weryfikacja" i treści "{phrase}". Fraza ważna jest do końca dnia.'
             )
-            embed.add_field(name='Najlepiej skorzystaj z linku:', value=message_url)
+            embed.add_field(name='Najlepiej skorzystaj z linku', value=message_url)
 
     elif discord_user_info['verification_status'] == 'VERIFIED':
         embed = discord.Embed(title='Już jesteś zweryfikowany', color=somsiad.color)
         embed.add_field(
-            name=f'Twoje konto na Reddicie to /u/{discord_user_info["reddit_username"]}.',
+            name=f'Twoje konto na Reddicie to /u/{discord_user_info["reddit_username"]}',
             value=f'Zweryfikowano {discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")}.'
         )
     else:
