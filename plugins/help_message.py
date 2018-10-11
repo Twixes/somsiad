@@ -11,9 +11,191 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from collections import namedtuple
+from typing import Union, List
 import discord
 from somsiad import somsiad
 from version import __version__
+
+
+class Helper:
+    """Handles generation of the help message."""
+    Command = namedtuple('Command', ('aliases', 'arguments', 'description'))
+
+    @staticmethod
+    def _add_command_field_to_embed(embed: discord.Embed, command):
+        if isinstance(command.aliases, (tuple, list)):
+            name_string = command.aliases[0]
+        else:
+            name_string = command.aliases
+
+        if isinstance(command.aliases, (tuple, list)) and command.aliases[1:]:
+            aliases_string = f' ({", ".join(command.aliases[1:])})'
+        else:
+            aliases_string = ''
+
+        if isinstance(command.arguments, (tuple, list)) and command.arguments:
+            arguments_string = (
+                f' {" ".join(f"<{argument}>" for argument in command.arguments)}' if command.arguments else ''
+            )
+        elif command.arguments:
+            arguments_string = f' <{command.arguments}>'
+        else:
+            arguments_string = ''
+
+        embed.add_field(
+            name=f'{somsiad.conf["command_prefix"]}{name_string}{aliases_string}{arguments_string}',
+            value=command.description,
+            inline=False
+        )
+
+    @classmethod
+    def generate_general_embed(cls, commands: Union[list, tuple], embeds: List[discord.Embed] = None) -> discord.Embed:
+        if embeds is None:
+            embeds = []
+            embeds.append(discord.Embed(title='Lecem na ratunek!', color=somsiad.color))
+            embeds[0].add_field(
+                name='Dobry!',
+                value='Somsiad jestem. Na co dzień pomagam ludziom w różnych kwestiach. '
+                'By skorzystać z mojej pomocy wystarczy wysłać komendę w miejscu, w którym będę mógł ją zobaczyć. '
+                'Lista komend wraz z ich opisami znajduje się poniżej.\n'
+                'W nawiasach okrągłych podane są alternatywne nazwy komend – tak dla różnorodności.\n'
+                'W nawiasach ostrokątnych podane są argumenty komend. Jeśli na początku nazwy argumentu jest pytajnik, '
+                'oznacza to, że jest to argument opcjonalny.',
+                inline=False
+            )
+        else:
+            embeds.append(discord.Embed(color=somsiad.color))
+
+        for command in commands[:25 * len(embeds)]:
+            cls._add_command_field_to_embed(embeds[-1], command)
+
+        if commands[25 * len(embeds):]:
+            return cls.generate_general_embed(commands[25 * len(embeds):], embeds)
+        else:
+            return embeds
+
+    @classmethod
+    def generate_subcommands_embed(cls, command_name: str, subcommands: Union[list, tuple]) -> discord.Embed:
+        embed = discord.Embed(
+            title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{command_name}',
+            description=f'Użycie: {somsiad.conf["command_prefix"]}{command_name} <podkomenda>',
+            color=somsiad.color
+        )
+
+        for subcommand in subcommands:
+            cls._add_command_field_to_embed(embed, subcommand)
+
+        return embed
+
+
+commands = (
+    Helper.Command(('pomocy', 'help'), '', 'Wysyła ci tę wiadomość.'),
+    Helper.Command(('8-ball', '8ball', 'eightball', '8', 'czy'), 'pytanie', 'Zadaje <pytanie> magicznej kuli.'),
+    Helper.Command(
+        ('wybierz',), ('opcje',), 'Wybiera opcję z oddzielonych przecinkami, "lub", "albo" lub "czy" <opcji>.'
+    ),
+    Helper.Command(('rzuć', 'rzuc'), ('?liczba kości', '?liczba ścianek kości'), 'Rzuca kością/koścmi.'),
+    Helper.Command(
+        ('oblicz', 'policz'), ('wyrażenie', '?zmienne'),
+        'Oblicza wartość podanego wyrażenia. '
+        'Przyjmuje również oddzielone średnikami zmienne, np. "x ^ 2 + y + 4; x = 3; y = 5". '
+        'Jeśli podane dane nie są wystarczające do obliczenia wartości równania, próbuje je uprościć.'
+    ),
+    Helper.Command(
+        ('google', 'gugiel', 'g'), 'zapytanie',
+        'Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasującą stronę.'
+    ),
+    Helper.Command(
+        ('googleimage', 'gi', 'i'), 'zapytanie',
+        'Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasujący obrazek.'
+    ),
+    Helper.Command(
+        ('youtube', 'yt', 'tuba'), 'zapytanie',
+        'Zwraca z [YouTube](https://www.youtube.com) najlepiej pasujące do <zapytania> wideo.'
+    ),
+    Helper.Command(
+        ('giphy', 'gif'), 'zapytanie',
+        'Zwraca z [Giphy](https://giphy.com) najlepiej pasującego do <zapytania> gifa.'
+    ),
+    Helper.Command(
+        ('wikipedia', 'wiki', 'w'), ('dwuliterowy kod języka', 'hasło'),
+        'Sprawdza znaczenie <hasła> w danej wersji językowej [Wikipedii](https://www.wikipedia.org/).'
+    ),
+    Helper.Command(
+        'omdb', ('?sezon i odcinek', 'tytuł'),
+        'Zwraca z [OMDb](https://www.omdbapi.com/) informacje na temat filmu lub serialu najlepiej pasującego '
+        'do <tytułu>. Jeśli chcesz znaleźć informacje na temat konkretnego odcinka serialu, podaj przed tytułem '
+        '<?sezon i odcinek> w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".'
+    ),
+    Helper.Command(
+        ('goodreads', 'gr'), 'tytuł/autor',
+        'Zwraca z [goodreads](https://www.goodreads.com) informacje na temat książki najlepiej pasującej do '
+        '<tytułu/autora>.'
+    ),
+    Helper.Command(
+        ('urbandictionary', 'urban'), 'wyrażenie',
+        'Sprawdza znaczenie <wyrażenia> w [Urban Dictionary](https://www.urbandictionary.com).'
+    ),
+    Helper.Command(
+        ('kantor', 'kurs'), ('?liczba', 'trzyliterowy kod waluty początkowej', 'trzyliterowy kod waluty docelowej'),
+        'Konwertuje waluty za pomocą serwisu [CryptoCompare](https://www.cryptocompare.com).'
+    ),
+    Helper.Command(
+        'isitup', 'url', 'Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.'
+    ),
+    Helper.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca URL <subreddita>.'),
+    Helper.Command(
+        ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
+    ),
+    Helper.Command(
+        'weryfikacja', 'podkomenda',
+        'Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
+        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy by dowiedzieć się więcej.',
+    ),
+    Helper.Command(
+        'stat', 'podkomenda',
+        'Grupa komend związanych ze statystykami na serwerze. '
+        f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy by dowiedzieć się więcej.',
+    ),
+    Helper.Command(
+        'przypinki', 'podkomenda',
+        'Grupa komend związanych z archiwizacją przypiętych widadomości. '
+        f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy by dowiedzieć się więcej.',
+    ),
+    Helper.Command(('pomógł', 'pomogl'), '?użytkownik Discorda', 'Oznacza pomocną wiadomość za pomocą reakcji.'),
+    Helper.Command(
+        ('niepomógł', 'niepomogl'), '?użytkownik Discorda', 'Oznacza niepomocną wiadomość za pomocą reakcji.'
+    ),
+    Helper.Command(
+        'zareaguj', ('?użytkownik Discorda', 'reakcje'),
+        'Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
+        '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).'
+    ),
+    Helper.Command('tableflip', '', '(╯°□°）╯︵ ┻━┻'),
+    Helper.Command('unflip', '', '┬─┬ ノ( ゜-゜ノ)'),
+    Helper.Command('shrug', '', r'¯\_(ツ)_/¯'),
+    Helper.Command(('lenny', 'lennyface'), '', '( ͡° ͜ʖ ͡°)'),
+    Helper.Command(('lenno', 'lennoface'), '', '( ͡ʘ ͜ʖ ͡ʘ)'),
+    Helper.Command(('dej', 'gib'), '?rzecz', '༼ つ ◕_◕ ༽つ <?rzecz>'),
+    Helper.Command(
+        ('nie', 'nope', 'no'), '',
+        'Usuwa ostatnią wiadomość wysłaną przez bota na kanale jako rezultat użytej przez ciebie komendy.'
+    ),
+    Helper.Command(
+        ('wyczyść', 'wyczysc'), '?liczba',
+        'Usuwa <?liczbę> ostatnich wiadomości lub, jeśli nie podano <?liczby>, jedną ostatnią wiadomość z kanału '
+        'na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienie do zarządzania wiadomościami '
+        'na kanale.'
+    ),
+    Helper.Command('loguj', '?kanał',
+        'Ustawia <?kanał> jako kanał logów serwera. Jeśli nie podano <?kanału> przyjmuje kanał na którym użyto '
+        'komendy. Działa tylko dla administratorów serwera.'
+    ),
+    Helper.Command('nieloguj', '', 'Wyłącza kanał logów serwera. Działa tylko dla administratorów serwera.'),
+    Helper.Command('ping', '', ':ping_pong: Pong!'),
+    Helper.Command('wersja', '', __version__)
+)
 
 
 @somsiad.bot.command(aliases=['help', 'pomocy'])
@@ -21,204 +203,7 @@ from version import __version__
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def help_message(ctx):
-    embed = discord.Embed(title='Lecem na ratunek!' , color=somsiad.color)
-    embed.add_field(
-        name='Dobry!',
-        value='Somsiad jestem. Na co dzień pomagam ludziom w różnych kwestiach. '
-        'By skorzystać z mojej pomocy wystarczy wysłać komendę w miejscu, w którym będę mógł ją zobaczyć. '
-        'Lista komend wraz z ich opisami znajduje się poniżej.\n'
-        'W nawiasach okrągłych podane są alternatywne nazwy komend – tak dla różnorodności.\n'
-        'W nawiasach ostrokątnych podane są argumenty komend. Jeśli na początku nazwy argumentu jest pytajnik, '
-        'oznacza to, że jest to argument opcjonalny.\n',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}pomocy (help)',
-        value='Wysyła ci tę wiadomość.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}8-ball (8ball, eightball, 8, czy) <pytanie>',
-        value='Zadaje <pytanie> magicznej kuli.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}wybierz <opcje>',
-        value='Wybiera opcję z oddzielonych przecinkami, "lub", "albo" lub "czy" <opcji>.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}rzuć (rzuc) <?liczba kości> <?liczba ścianek kości>',
-        value='Rzuca kością/kośćmi.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}oblicz (policz) <wyrażenie> <?zmienne>',
-        value='Liczy podane wyrażenie. Przyjmuje również oddzielone średnikami zmienne, '
-        'np. "x ^ 2 + y + 4; x = 3; y = 5". Jeśli podane dane nie są wystarczające do obliczenia równania, '
-        'próbuje je uprościć.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}google (gugiel, g) <zapytanie>',
-        value='Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasującą stronę.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}googleimage (gi, i) <zapytanie>',
-        value='Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasujący obrazek.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}youtube (yt, tuba) <zapytanie>',
-        value='Zwraca z [YouTube](https://www.youtube.com) najlepiej pasujące do <zapytania> wideo.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}giphy (gif) <zapytanie>',
-        value='Zwraca z [Giphy](https://giphy.com) najlepiej pasującego do <zapytania> gifa.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}wikipedia (wiki, w) <dwuliterowy kod języka> <hasło>',
-        value='Sprawdza znaczenie <hasła> w danej wersji językowej [Wikipedii]'
-        '(https://www.wikipedia.org/).',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}omdb <?sezon i odcinek> <tytuł>',
-        value='Zwraca z [OMDb](https://www.omdbapi.com/) informacje na temat filmu lub serialu najlepiej pasującego '
-        'do <tytułu>. Jeśli chcesz znaleźć informacje na temat konkretnego odcinka serialu, podaj przed tytułem '
-        '<?sezon i odcinek> w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}goodreads (gr) <tytuł/autor>',
-        value='Zwraca z [goodreads](https://www.goodreads.com) informacje na temat książki najlepiej pasującej do '
-        '<tytułu/autora>.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}urbandictionary (urban) <wyrażenie>',
-        value='Sprawdza znaczenie <wyrażenia> w [Urban Dictionary](https://www.urbandictionary.com).',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}kantor (kurs) <?liczba> '
-        '<trzyliterowy kod waluty początkowej> <?trzyliterowy kod waluty docelowej>',
-        value='Konwertuje waluty za pomocą serwisu [CryptoCompare](https://www.cryptocompare.com).',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}isitup <url>',
-        value='Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}subreddit (sub, r) <subreddit>',
-        value='Zwraca URL subreddita <subreddit>.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}user (u) <użytkownik Reddita>',
-        value='Zwraca URL profilu użytkownika Reddita <użytkownik Reddita>.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}weryfikacja <?podkomenda>',
-        value='Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
-        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy by dowiedzieć się więcej.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}stat <?podkomenda>',
-        value='Grupa komend związanych ze statystykami na serwerze. '
-        f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy by dowiedzieć się więcej.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}przypinki <?podkomenda>',
-        value='Grupa komend związanych z przypinkami. '
-        f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy by dowiedzieć się więcej.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}pomógł (pomogl) <?użytkownik Discorda>',
-        value='Oznacza pomocną wiadomość za pomocą reakcji.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}niepomógł (niepomogl) <?użytkownik Discorda>',
-        value='Oznacza niepomocną wiadomość za pomocą reakcji.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}zareaguj <?użytkownik Discorda> <reakcje>',
-        value='Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
-        '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}tableflip',
-        value='(╯°□°）╯︵ ┻━┻',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}unflip',
-        value='┬─┬ ノ( ゜-゜ノ)',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}shrug',
-        value=r'¯\_(ツ)_/¯',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}lenny (lennyface)',
-        value='( ͡° ͜ʖ ͡°)',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}lenno (lennoface)',
-        value='( ͡ʘ ͜ʖ ͡ʘ)',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}dej (gib) <?rzecz>',
-        value='༼ つ ◕_◕ ༽つ <?rzecz>',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}nie (no, nope)',
-        value='Usuwa ostatnią wiadomość wysłaną przez bota na kanale jako rezultat komendy użytej przez ciebie.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}wyczyść (wyczysc) <?liczba>',
-        value='Usuwa <?liczbę> ostatnich wiadomości lub, jeśli nie podano liczby, jedną ostatnią wiadomość z kanału '
-        'na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienie do zarządzania wiadomościami '
-        'na kanale.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}loguj <?kanał>',
-        value='Ustawia <?kanał> jako kanał logów bota. Jeśli nie podano <?kanału> przyjmuje kanał na którym użyto '
-        'komendy. Działa tylko dla administratorów serwera.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}nieloguj',
-        value='Wyłącza logi dla serwera. Działa tylko dla administratorów serwera.',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}ping',
-        value=':ping_pong: Pong!',
-        inline=False
-    )
-    embed.add_field(
-        name=f'{somsiad.conf["command_prefix"]}wersja',
-        value=__version__,
-        inline=False
-    )
-    await ctx.author.send(embed=embed)
+    embeds = Helper.generate_general_embed(commands)
+    print(embeds)
+    for embed in embeds:
+        await ctx.author.send(embed=embed)
