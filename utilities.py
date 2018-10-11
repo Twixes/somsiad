@@ -77,38 +77,36 @@ class TextFormatter:
             return proper_form
 
     @classmethod
-    def time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days_ago=True, name_month=False) -> str:
+    def time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days_ago=True, name_month=True) -> str:
         local_datetime = utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone()
         timedelta = dt.datetime.now().astimezone() - local_datetime
 
-        time_ago_information = []
+        time_ago_elements = []
         if date:
             if name_month:
-                date_string = local_datetime.strftime('%-d %B %Y')
+                time_ago_elements.append(local_datetime.strftime('%-d %B %Y'))
             else:
-                date_string = local_datetime.strftime('%-d.%m.%Y')
-            time_ago_information.append(date_string)
+                time_ago_elements.append(local_datetime.strftime('%-d.%m.%Y'))
         if time:
-            time_string = local_datetime.strftime('%H:%M')
             if date:
-                time_ago_information.append(f' o {time_string}')
+                time_ago_elements.append(local_datetime.strftime(' o %H:%M'))
             else:
-                time_ago_information.append(time_string)
+                time_ago_elements.append(local_datetime.strftime('%H:%M'))
         if days_ago:
-            days_since = timedelta.days
-            if days_since == 0:
-                days_since_string = 'dzisiaj'
-            elif days_since == 1:
-                days_since_string = 'wczoraj'
+            days_ago_number = timedelta.days
+            if days_ago_number == 0:
+                days_ago_string = 'dzisiaj'
+            elif days_ago_number == 1:
+                days_ago_string = 'wczoraj'
             else:
-                days_since_string = f'{cls.word_number_variant(days_since, "dzień", "dni")} temu'
+                days_ago_string = f'{cls.word_number_variant(days_ago_number, "dzień", "dni")} temu'
 
             if date or time:
-                time_ago_information.append(f', {days_since_string}')
+                time_ago_elements.append(f', {days_ago_string}')
             else:
-                time_ago_information.append(days_since_string)
+                time_ago_elements.append(days_ago_string)
 
-        return ''.join(time_ago_information)
+        return ''.join(time_ago_elements)
 
     @staticmethod
     def minutes_and_seconds(total_seconds: int) -> str:
