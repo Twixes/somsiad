@@ -22,9 +22,9 @@ from somsiad import somsiad
 async def subreddit(ctx, *, subreddit=None):
     """Responds with the URL of the given subreddit."""
     if subreddit is None:
-        url = 'https://reddit.com/r/all'
+        url = 'https://www.reddit.com/r/all'
     else:
-        url = f'https://reddit.com/r/{subreddit.replace(" ", "_")}'
+        url = f'https://www.reddit.com/r/{subreddit.replace(" ", "_")}'
     await ctx.send(f'{ctx.author.mention}\n{url}')
 
 
@@ -35,7 +35,7 @@ async def subreddit(ctx, *, subreddit=None):
 async def reddit_user(ctx, *, username=None):
     """Responds with the URL of the given Reddit user."""
     if username is None:
-        url = f'https://reddit.com/u/{somsiad.conf["reddit_username"]}'
+        url = f'https://www.reddit.com/u/{somsiad.conf["reddit_username"]}'
     else:
-        url = f'https://reddit.com/u/{username.replace(" ", "_")}'
+        url = f'https://www.reddit.com/u/{username.replace(" ", "_")}'
     await ctx.send(f'{ctx.author.mention}\n{url}')
