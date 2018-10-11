@@ -14,6 +14,7 @@
 import io
 import datetime as dt
 import calendar
+from collections import namedtuple
 from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -29,10 +30,15 @@ class Report:
     BACKGROUND_COLOR = '#32363c'
     FOREGROUND_COLOR = '#ffffff'
 
+    statistics_cache = {}
+
     plt.style.use('dark_background')
 
-    def __init__(self, requesting_user: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
-        self.message_limit = 50000
+    Message = namedtuple(
+        'Message', ('message_id', 'author', 'channel_id', 'local_datetime', 'word_count', 'character_count')
+    )
+
+    def __init__(self, requesting_member: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
         self.total_message_count = 0
         self.total_word_count = 0
         self.total_character_count = 0
@@ -43,26 +49,50 @@ class Report:
         self.active_channels = {}
         self.embed = None
         self.activity_chart_file = None
-
         self.datetime = dt.datetime.now()
-        self.requesting_user = requesting_user
+        self.requesting_member = requesting_member
         self.subject = subject
 
         if isinstance(subject, discord.Guild):
-            self.subject_type = 'server'
+            self._prepare_statistics_cache(self.subject)
+            self._prepare_active_channels(self.subject)
             self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.TextChannel):
-            self.subject_type = 'channel'
-            if not self.subject.permissions_for(self.requesting_user).read_messages:
+            # Raise a BadArgument exception if the requesting user doesn't have access to the channel
+            if not self.subject.permissions_for(self.requesting_member).read_messages:
                 raise discord.ext.commands.BadArgument
+            self._prepare_statistics_cache(self.subject.guild, self.subject)
+            self._prepare_active_channels(self.subject.guild, self.subject)
             self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.Member):
-            self.subject_type = 'member'
+            self._prepare_statistics_cache(self.subject.guild)
+            self._prepare_active_channels(self.subject.guild)
             self._prepare_messages_over_date(self.subject.joined_at)
-            self.message_limit = 10000
+
+    def _prepare_statistics_cache(self, server: discord.Guild, channel: discord.TextChannel = None):
+        """Prepares the statistics cache."""
+        if server.id not in self.statistics_cache:
+            self.statistics_cache[server.id] = {}
+        if channel is None:
+            for server_channel in server.text_channels:
+                if server_channel.id not in self.statistics_cache[server.id]:
+                    self.statistics_cache[server.id][server_channel.id] = []
+        elif channel.id not in self.statistics_cache[server.id]:
+            self.statistics_cache[server.id][channel.id] = []
+
+    def _prepare_active_channels(self, server: discord.Guild, channel: discord.TextChannel = None):
+        if channel is None:
+            for server_channel in server.text_channels:
+                self.active_channels[server_channel.id] = {
+                    'channel': server_channel, 'message_count': 0, 'word_count': 0, 'character_count': 0
+                }
+        else:
+            self.active_channels[channel.id] = {
+                'channel': channel, 'message_count': 0, 'word_count': 0, 'character_count': 0
+            }
 
     def _prepare_messages_over_date(self, start_utc_datetime: dt.datetime):
-        """Updates the dictionary of messages over date."""
+        """Prepares the dictionary of messages over date."""
         subject_creation_date = start_utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone().date()
         subject_existence_day_count = (dt.date.today() - subject_creation_date).days + 1
         subject_existence_days = [
@@ -73,52 +103,64 @@ class Report:
         for date in subject_existence_days:
             self.messages_over_date[date.isoformat()] = 0
 
-    def _update_message_stats(
-            self, message_sent_datetime: dt.datetime, message_word_count: int, message_character_count: int
-    ):
+    async def _update_statistics_cache_for_channel(self, channel: discord.TextChannel):
+        try:
+            async for message in channel.history(limit=None):
+                message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
+                message_tuple = self.Message(
+                    message.id, message.author, message.channel.id, message_local_datetime,
+                    len(message.clean_content.split()), len(message.clean_content)
+                )
+                if message_tuple in self.statistics_cache[channel.guild.id][channel.id]:
+                    break
+                else:
+                    self.statistics_cache[channel.guild.id][channel.id].append(message_tuple)
+                    print(message_tuple)
+        except discord.Forbidden:
+            pass
+
+    async def _update_statistics_cache(self, server: discord.Guild, channel: discord.TextChannel = None):
+        """Updates the statistics cache."""
+        self._prepare_statistics_cache(server, channel)
+        if channel is None:
+            for server_channel in server.text_channels:
+                await self._update_statistics_cache_for_channel(server_channel)
+        else:
+            await self._update_statistics_cache_for_channel(channel)
+
+    def _update_message_stats(self, message: namedtuple):
         """Updates message statistics."""
         self.total_message_count += 1
-        self.total_word_count += message_word_count
-        self.total_character_count += message_character_count
-        self.messages_over_hour[message_sent_datetime.hour] += 1
-        self.messages_over_weekday[message_sent_datetime.weekday()] += 1
+        self.total_word_count += message.word_count
+        self.total_character_count += message.character_count
+        self.messages_over_hour[message.local_datetime.hour] += 1
+        self.messages_over_weekday[message.local_datetime.weekday()] += 1
         try:
-            self.messages_over_date[message_sent_datetime.date().isoformat()] += 1
+            self.messages_over_date[message.local_datetime.date().isoformat()] += 1
         except KeyError:
             pass
 
-    def _update_active_channels(
-            self, channel: discord.TextChannel, message_word_count: int, message_character_count: int
-    ):
+    def _update_active_channels(self, message: namedtuple):
         """Updates the dictionary of active channels."""
-        if channel.id not in self.active_channels:
-            self.active_channels[channel.id] = {
-                'channel_object': channel, 'message_count': 0, 'word_count': 0, 'character_count': 0
-            }
-        self.active_channels[channel.id]['message_count'] += 1
-        self.active_channels[channel.id]['word_count'] += message_word_count
-        self.active_channels[channel.id]['character_count'] += message_character_count
+        self.active_channels[message.channel_id]['message_count'] += 1
+        self.active_channels[message.channel_id]['word_count'] += message.word_count
+        self.active_channels[message.channel_id]['character_count'] += message.character_count
 
-    def _update_active_users(
-            self, user: Union[discord.Member, discord.User], message_word_count: int, message_character_count: int
-    ):
+    def _update_active_users(self, message: namedtuple):
         """Updates the dictionary of active users."""
-        if user.id not in self.active_users:
-            self.active_users[user.id] = {
-                'user_object': user, 'message_count': 0, 'word_count': 0, 'character_count': 0
+        if message.author.id not in self.active_users:
+            self.active_users[message.author.id] = {
+                'user_object': message.author, 'message_count': 0, 'word_count': 0, 'character_count': 0
             }
-        self.active_users[user.id]['message_count'] += 1
-        self.active_users[user.id]['word_count'] += message_word_count
-        self.active_users[user.id]['character_count'] += message_character_count
+        self.active_users[message.author.id]['message_count'] += 1
+        self.active_users[message.author.id]['word_count'] += message.word_count
+        self.active_users[message.author.id]['character_count'] += message.character_count
 
     def _embed_message_stats(self):
         """Adds the usual message statistics to the report embed."""
         self.embed.add_field(
             name='Wysłanych wiadomości',
-            value=(
-                f'{self.total_message_count} (osiągnięto limit)' if self.total_message_count == self.message_limit
-                else self.total_message_count
-            )
+            value=self.total_message_count
         )
         self.embed.add_field(name='Wysłanych słów', value=self.total_word_count)
         self.embed.add_field(name='Wysłanych znaków', value=self.total_character_count)
@@ -132,24 +174,28 @@ class Report:
             list(self.active_channels.values()), key=lambda active_channel: active_channel['message_count'],
             reverse=True
         )
-        sorted_filtered_active_channels = [
+        filtered_sorted_active_channels = [
             channel for channel in sorted_active_channels
-            if channel['channel_object'].permissions_for(self.requesting_user).read_messages
+            if channel['channel'].permissions_for(self.requesting_member).read_messages
         ]
+
         top_active_channels = []
         rank = 1
-
-        for active_channel in sorted_filtered_active_channels[:5]:
-            top_active_channels.append(
-                f'{rank}. {active_channel["channel_object"].mention} – '
-                f'{TextFormatter.word_number_variant(active_channel["message_count"], "wiadomość", "wiadomości")}, '
-                f'{TextFormatter.word_number_variant(active_channel["word_count"], "słowo", "słowa", "słów")}, '
-                f'{TextFormatter.word_number_variant(active_channel["character_count"], "znak", "znaki", "znaków")}'
+        for channel in filtered_sorted_active_channels[:5]:
+            if channel['message_count'] > 0:
+                top_active_channels.append(
+                    f'{rank}. {active_channel["channel"].mention} – '
+                    f'{TextFormatter.word_number_variant(active_channel["message_count"], "wiadomość", "wiadomości")}, '
+                    f'{TextFormatter.word_number_variant(active_channel["word_count"], "słowo", "słowa", "słów")}, '
+                    f'{TextFormatter.word_number_variant(active_channel["character_count"], "znak", "znaki", "znaków")}'
+                )
+                rank += 1
+        if top_active_channels:
+            field_name = (
+                'Najaktywniejszy na kanałach' if isinstance(self.subject, discord.Member) else 'Najaktywniejsze kanały'
             )
-            rank += 1
-        field_name = 'Najaktywniejszy na kanałach' if self.subject_type == 'member' else 'Najaktywniejsze kanały'
-        top_active_channels_string = '\n'.join(top_active_channels) if top_active_channels else 'Brak'
-        self.embed.add_field(name=field_name, value=top_active_channels_string, inline=False)
+            top_active_channels_string = '\n'.join(top_active_channels)
+            self.embed.add_field(name=field_name, value=top_active_channels_string, inline=False)
 
     def _embed_top_active_users(self):
         """Adds the list of top active users to the report embed."""
@@ -171,22 +217,12 @@ class Report:
 
     async def _analyze_server(self):
         """Analyzes the subject as a server."""
-        # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
-        message_limit_left = self.message_limit
-        for channel in self.subject.text_channels:
-            try:
-                async for message in channel.history(limit=message_limit_left):
-                    message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-                    message_word_count = len(message.clean_content.split())
-                    message_character_count = len(message.clean_content)
-
-                    self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
-                    self._update_active_channels(channel, message_word_count, message_character_count)
-                    self._update_active_users(message.author, message_word_count, message_character_count)
-            except discord.Forbidden:
-                pass
-
-            message_limit_left = self.message_limit - self.total_message_count
+        await self._update_statistics_cache(self.subject)
+        for channel in self.statistics_cache[self.subject.id].values():
+            for message in channel:
+                self._update_message_stats(message)
+                self._update_active_channels(message)
+                self._update_active_users(message)
 
         server_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
 
@@ -207,12 +243,11 @@ class Report:
 
     async def _analyze_channel(self):
         """Analyzes the subject as a channel."""
-        async for message in self.subject.history(limit=self.message_limit):
-            message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-            message_word_count = len(message.clean_content.split())
-            message_character_count = len(message.clean_content)
-            self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
-            self._update_active_users(message.author, message_word_count, message_character_count)
+        await self._update_statistics_cache(self.subject.guild, self.subject)
+        for message in self.statistics_cache[self.subject.guild.id][self.subject.id]:
+            self._update_message_stats(message)
+            self._update_active_channels(message)
+            self._update_active_users(message)
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o kanale #{self.subject}',
@@ -231,19 +266,13 @@ class Report:
 
     async def _analyze_member(self):
         """Analyzes the subject as a member."""
-        # Ensure that no more than message_limit messages will be downloaded by reducing the limit after each channel
-        message_limit_left = self.message_limit
-        for channel in self.subject.guild.text_channels:
-            try:
-                async for message in channel.history(limit=message_limit_left).filter(self._is_message_by_subject):
-                    message_sent_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-                    message_word_count = len(message.clean_content.split())
-                    message_character_count = len(message.clean_content)
-                    self._update_message_stats(message_sent_datetime, message_word_count, message_character_count)
-                    self._update_active_channels(message.channel, message_word_count, message_character_count)
-                message_limit_left = self.message_limit - self.total_message_count
-            except discord.Forbidden:
-                pass
+        await self._update_statistics_cache(self.subject.guild)
+        for channel in self.statistics_cache[self.subject.guild.id].values():
+            for message in channel:
+                if message.author == self.subject:
+                    self._update_message_stats(message)
+                    self._update_active_channels(message)
+                    self._update_active_users(message)
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o użytkowniku {self.subject}',
@@ -385,20 +414,20 @@ class Report:
 
     async def analyze_subject(self):
         """Selects the right type of analysis depending on the subject."""
-        if self.subject_type == 'server':
+        if isinstance(self.subject, discord.Guild):
             await self._analyze_server()
-        elif self.subject_type == 'channel':
+        elif isinstance(self.subject, discord.TextChannel):
             await self._analyze_channel()
-        elif self.subject_type == 'member':
+        elif isinstance(self.subject, discord.Member):
             await self._analyze_member()
 
     def render_activity_chart(self) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
-        if self.subject_type == 'server':
+        if isinstance(self.subject, discord.Guild):
             title = f'Aktywność na serwerze {self.subject}'
-        elif self.subject_type == 'channel':
+        elif isinstance(self.subject, discord.TextChannel):
             title = f'Aktywność na kanale #{self.subject.name}'
-        elif self.subject_type == 'member':
+        elif isinstance(self.subject, discord.Member):
             title = f'Aktywność użytkownika {self.subject}'
 
         # Initialize the chart
@@ -438,7 +467,8 @@ async def stat(ctx, subject: Union[discord.Member, discord.TextChannel] = None):
     if subject is None:
         embed = discord.Embed(
             title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
-            description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
+            description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda> lub '
+            f'{somsiad.conf["command_prefix"]}{ctx.invoked_with} <użytkownik/kanał>',
             color=somsiad.color
         )
         embed.add_field(
@@ -459,12 +489,22 @@ async def stat(ctx, subject: Union[discord.Member, discord.TextChannel] = None):
         )
         await ctx.send(ctx.author.mention, embed=embed)
     else:
-        report = Report(ctx.author, subject)
-        await report.analyze_subject()
-        report.render_activity_chart()
+        async with ctx.typing():
+            report = Report(ctx.author, subject)
+            await report.analyze_subject()
+            report.render_activity_chart()
 
         await ctx.send(ctx.author.mention, embed=report.embed, file=report.activity_chart_file)
 
+
+@stat.error
+async def stat_error(ctx, error):
+    if isinstance(error, discord.ext.commands.BadUnionArgument):
+        embed = discord.Embed(
+            title=f':warning: Nie znaleziono pasującego użytkownika ani kanału!',
+            color=somsiad.color
+        )
+        await ctx.send(ctx.author.mention, embed=embed)
 
 
 @stat.command(aliases=['server', 'serwer'])
@@ -479,18 +519,6 @@ async def stat_server(ctx):
         report.render_activity_chart()
 
     await ctx.send(ctx.author.mention, embed=report.embed, file=report.activity_chart_file)
-
-
-@stat_server.error
-async def stat_server_error(ctx, error):
-    if isinstance(error, discord.ext.commands.CommandOnCooldown):
-        embed = discord.Embed(
-            title=':warning: Dopiero co poproszono na tym kanale o wygenerowanie raportu o serwerze!',
-            description=f'Spróbuj ponownie za {round(error.retry_after, 1)} s. '
-            'Wtedy też ta wiadomość ulegnie autodestrukcji.',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=error.retry_after)
 
 
 @stat.command(aliases=['channel', 'kanał', 'kanal'])
@@ -514,18 +542,10 @@ async def stat_channel(ctx, channel: discord.TextChannel = None):
 async def stat_channel_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=f':warning: Nie znaleziono podanego kanału na serwerze!',
+            title=f':warning: Nie znaleziono pasującego kanału!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
-    elif isinstance(error, discord.ext.commands.CommandOnCooldown):
-        embed = discord.Embed(
-            title=':warning: Dopiero co poprosiłeś o wygenerowanie raportu o kanale!',
-            description=f'Spróbuj ponownie za {round(error.retry_after, 1)} s. '
-            'Wtedy też ta wiadomość ulegnie autodestrukcji.',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=error.retry_after)
 
 
 @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
@@ -549,15 +569,7 @@ async def stat_member(ctx, member: discord.Member = None):
 async def stat_member_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=':warning: Nie znaleziono podanego użytkownika na serwerze!',
+            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
-    elif isinstance(error, discord.ext.commands.CommandOnCooldown):
-        embed = discord.Embed(
-            title=':warning: Dopiero co poprosiłeś o wygenerowanie raportu o użytkowniku!',
-            description=f'Spróbuj ponownie za {round(error.retry_after, 1)} s. '
-            'Wtedy też ta wiadomość ulegnie autodestrukcji.',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=error.retry_after)
