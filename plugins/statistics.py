@@ -211,8 +211,9 @@ class Report:
                 f'{TextFormatter.word_number_variant(active_user["character_count"], "znak", "znaki", "znaków")}'
             )
             rank += 1
-        top_active_users_string = '\n'.join(top_active_users) if top_active_users else 'Brak'
-        self.embed.add_field(name='Najaktywniejsi użytkownicy', value=top_active_users_string, inline=False)
+        if top_active_users:
+            top_active_users_string = '\n'.join(top_active_users)
+            self.embed.add_field(name='Najaktywniejsi użytkownicy', value=top_active_users_string, inline=False)
 
     async def _analyze_server(self):
         """Analyzes the subject as a server."""
