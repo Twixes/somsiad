@@ -12,16 +12,16 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
-from typing import Union
+from typing import Union, Optional
 import discord
 from somsiad import somsiad
 from server_data import server_data_manager
 from utilities import TextFormatter
 
 
-class Folder:
+class Files:
     """Handles logging user-related events on the server."""
-    TABLE_NAME = 'folder'
+    TABLE_NAME = 'files'
     TABLE_COLUMNS = (
         'event_id INTEGER NOT NULL PRIMARY KEY',
         'event_type TEXT NOT NULL',
@@ -33,7 +33,7 @@ class Folder:
     )
 
     class Event:
-        """A folder event."""
+        """A files event."""
         __slots__ = (
             'event_id', 'event_type', 'server_id', 'server', 'channel_id', 'channel', 'executing_user_id',
             'executing_user', 'subject_user_id', 'subject_user', 'posix_timestamp', 'local_datetime', 'reason'
@@ -64,15 +64,15 @@ class Folder:
         def __str__(self):
             if self.event_type == 'warned':
                 return 'ostrzeżenie'
-            elif self.event_type == 'kicked':
+            if self.event_type == 'kicked':
                 return 'wyrzucenie'
-            elif self.event_type == 'banned':
+            if self.event_type == 'banned':
                 return 'ban'
-            elif self.event_type == 'unbanned':
+            if self.event_type == 'unbanned':
                 return 'unban'
-            elif self.event_type == 'joined':
+            if self.event_type == 'joined':
                 return 'dołączenie'
-            elif self.event_type == 'left':
+            if self.event_type == 'left':
                 return 'opuszczenie'
             else:
                 return 'zdarzenie'
@@ -103,19 +103,44 @@ class Folder:
         )
         server_data_manager.servers[server.id]['db'].commit()
 
+    @staticmethod
+    def comprehend_event_types(raw_event_types: str) -> list:
+        event_types = []
+        if 'warn' in raw_event_types or 'ostrzeż' in raw_event_types or 'ostrzez' in raw_event_types:
+            event_types.append('warned')
+        if 'kick' in raw_event_types or 'wyrzuć' in raw_event_types or 'wyrzuc' in raw_event_types:
+            event_types.append('kicked')
+        elif 'unban' in raw_event_types or 'odban' in raw_event_types:
+            event_types.append('unbanned')
+        elif 'ban' in raw_event_types or 'wygnan' in raw_event_types:
+            event_types.append('banned')
+        elif 'join' in raw_event_types or 'dołącz' in raw_event_types or 'dolacz' in raw_event_types:
+            event_types.append('joined')
+        elif (
+                'leave' in raw_event_types or 'left' in raw_event_types or 'odejście' in raw_event_types or
+                'odejscie' in raw_event_types or 'odszed' in raw_event_types or 'odesz' in raw_event_types
+        ):
+            event_types.append('left')
+
+        return event_types
+
     @classmethod
     def get_events(
-            cls, *, server: discord.Guild, event_type: str = None, channel: discord.TextChannel = None,
-            subject_user: Union[discord.Guild, discord.TextChannel, discord.VoiceChannel, discord.Member,
-            discord.Message] = None
+            cls, *, server: discord.Guild, event_types: Union[str, tuple, list] = None,
+            channel: discord.TextChannel = None, subject_user: Union[
+                discord.Guild, discord.TextChannel, discord.VoiceChannel, discord.Member, discord.Message
+            ] = None
     ) -> tuple:
         """Returns a list of events on the provided server."""
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
         condition_strings = []
         condition_variables = []
-        if event_type is not None:
+        if isinstance(event_types, str):
             condition_strings.append('event_type = ?')
-            condition_variables.append(event_type)
+            condition_variables.append(event_types)
+        elif isinstance(event_types, (tuple, list)) and event_types:
+            condition_strings.append(f'({" OR ".join(["event_type = ?" for _ in event_types])})')
+            condition_variables.extend(event_types)
         if channel is not None:
             condition_strings.append('channel_id = ?')
             condition_variables.append(channel.id)
@@ -149,28 +174,25 @@ class Folder:
 @somsiad.bot.event
 async def on_member_join(member):
     """Adds the joining event to the member's folder."""
-    Folder.add_event(
-        event_type='joined', server=member.guild,
-        subject_user=member
-    )
+    Files.add_event(event_type='joined', server=member.guild, subject_user=member)
 
 
 @somsiad.bot.event
 async def on_member_remove(member):
     """Adds the removal event to the member's folder."""
-    Folder.add_event(
-        event_type='left', server=member.guild,
-        subject_user=member
-    )
+    Files.add_event(event_type='left', server=member.guild,subject_user=member)
+
+
+@somsiad.bot.event
+async def on_member_ban(server, member):
+    """Adds the unban event to the member's folder."""
+    Files.add_event(event_type='banned', server=server, subject_user=member)
 
 
 @somsiad.bot.event
 async def on_member_unban(server, member):
     """Adds the unban event to the member's folder."""
-    Folder.add_event(
-        event_type='unbanned', server=server,
-        subject_user=member
-    )
+    Files.add_event(event_type='unbanned', server=server, subject_user=member)
 
 
 @somsiad.bot.command(aliases=['ostrzeż', 'ostrzez'])
@@ -181,11 +203,11 @@ async def on_member_unban(server, member):
 @discord.ext.commands.has_permissions(kick_members=True)
 async def warn(ctx, subject_user: discord.Member, *, reason):
     """Warns the specified member."""
-    Folder.add_event(
+    Files.add_event(
         event_type='warned', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
         subject_user=subject_user, reason=reason
     )
-    warnings = Folder.get_events(server=ctx.guild, event_type='warned', subject_user=subject_user)
+    warnings = Files.get_events(server=ctx.guild, event_types='warned', subject_user=subject_user)
 
     embed = discord.Embed(
         title=f':white_check_mark: Ostrzeżono {subject_user} po raz {len(warnings)}.',
@@ -234,7 +256,7 @@ async def kick(ctx, subject_user: discord.Member, *, reason):
         )
         return await ctx.send(ctx.author.mention, embed=embed)
 
-    Folder.add_event(
+    Files.add_event(
         event_type='kicked', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
         subject_user=subject_user, reason=reason
     )
@@ -286,13 +308,8 @@ async def ban(ctx, subject_user: discord.Member, *, reason):
         )
         return await ctx.send(ctx.author.mention, embed=embed)
 
-    Folder.add_event(
-        event_type='banned', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
-        subject_user=subject_user, reason=reason
-    )
-
     embed = discord.Embed(
-        title=f':white_check_mark: Wyrzucono {subject_user}',
+        title=f':white_check_mark: Zbanowano {subject_user}',
         color=somsiad.color
     )
 
@@ -326,19 +343,25 @@ async def ban_error(ctx, error):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def folder(ctx, member: discord.Member = None):
-    """Responds with a list of the user's folder entries on the server."""
+async def folder(ctx, member: Optional[discord.Member] = None, *, raw_event_types: str = None):
+    """Responds with a list of the user's files entries on the server."""
     if member is None:
         member = ctx.author
 
-    entries = Folder.get_events(server=ctx.guild, subject_user=member)
+    if raw_event_types is None:
+        event_types = None
+    else:
+        event_types = Files.comprehend_event_types(raw_event_types)
+
+    entries = Files.get_events(server=ctx.guild, subject_user=member, event_types=event_types)
 
     if entries:
         number_of_entries = len(entries)
         embed = discord.Embed(
             title=f':open_file_folder: W {"twojej kartotece" if member == ctx.author else f"kartotece {member}"} '
             f'{TextFormatter.word_number_variant(number_of_entries, "jest", "są", "jest", include_number=False)} '
-            f'{TextFormatter.word_number_variant(number_of_entries, "zdarzenie", "zdarzenia", "zdarzeń")}',
+            f'{TextFormatter.word_number_variant(number_of_entries, "zdarzenie", "zdarzenia", "zdarzeń")}'
+            f'{"" if event_types is None else " podanego typu"}',
             color=somsiad.color
         )
         for entry in entries:
@@ -353,11 +376,18 @@ async def folder(ctx, member: discord.Member = None):
                 inline=False
                 )
     else:
-        embed = discord.Embed(
-            title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
-            'jest pusta',
-            color=somsiad.color
-        )
+        if event_types is None:
+            embed = discord.Embed(
+                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
+                'jest pusta',
+                color=somsiad.color
+            )
+        else:
+            embed = discord.Embed(
+                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
+                'nie zawiera zdarzeń podanego typu',
+                color=somsiad.color
+            )
 
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -381,8 +411,8 @@ async def folder_error(ctx, error):
 @discord.ext.commands.bot_has_permissions(manage_messages=True)
 async def purge(ctx, number_of_messages_to_delete: int = 1):
     """Removes last number_of_messages_to_delete messages from the channel."""
-    if number_of_messages_to_delete > 50:
-        number_of_messages_to_delete = 50
+    # limit the number of messages to delete to 100
+    number_of_messages_to_delete = min(number_of_messages_to_delete, 100)
 
     await ctx.channel.purge(limit=number_of_messages_to_delete+1)
 
