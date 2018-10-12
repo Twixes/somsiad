@@ -71,7 +71,7 @@ class Helper:
             cls._add_command_field_to_embed(embeds[-1], command)
 
         if commands[25 * len(embeds):]:
-            return cls.generate_general_embed(commands[25 * len(embeds):], embeds)
+            return cls.generate_general_embed(commands[25 * len(embeds) - 1:], embeds)
         else:
             return embeds
 
@@ -144,6 +144,7 @@ commands = (
     Helper.Command(
         'isitup', 'url', 'Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.'
     ),
+    Helper.Command(('rokszkolny', 'ilejeszcze'), '', 'Zwraca ile jeszcze zostało do końca roku szkolnego.'),
     Helper.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca URL <subreddita>.'),
     Helper.Command(
         ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
@@ -172,6 +173,12 @@ commands = (
         'Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
         '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).'
     ),
+    Helper.Command('oof', '', 'Oof!'),
+    Helper.Command(
+        'oof ile', '?użytkownik Discorda',
+        'Zlicza oofnięcia dla <?użytkownika Discorda> lub, jeśli nie podano <?użytkownika Discorda>, dla ciebie. '
+        'Jeśli zamiast <?użytkownika Discorda> podano "serwer", zlicza oofnięcia na serwerze i generuje ranking.'
+    ),
     Helper.Command('tableflip', '', '(╯°□°）╯︵ ┻━┻'),
     Helper.Command('unflip', '', '┬─┬ ノ( ゜-゜ノ)'),
     Helper.Command('shrug', '', r'¯\_(ツ)_/¯'),
@@ -183,10 +190,28 @@ commands = (
         'Usuwa ostatnią wiadomość wysłaną przez bota na kanale jako rezultat użytej przez ciebie komendy.'
     ),
     Helper.Command(
+        ('warn', 'ostrzeż', 'ostrzez'), ('użytkownik Discorda', 'powód'),
+        'Ostrzega <użytkownika Discorda>. Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.'
+    ),
+    Helper.Command(
+        ('kick', 'wyrzuć', 'wyrzuc'), ('użytkownik Discorda', 'powód'),
+        'Wyrzuca <użytkownika Discorda>. Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.'
+    ),
+    Helper.Command(
+        ('ban', 'zbanuj'), ('użytkownik Discorda', 'powód'),
+        'Banuje <użytkownika Discorda>. Działa tylko dla członków serwera mających uprawnienia do banowania innych.'
+    ),
+    Helper.Command(
+        'kartoteka', ('?użytkownik Discorda', '?typy zdarzeń'),
+        'Sprawdza kartotekę <?użytkownika Discorda> pod kątem <?typów zdarzeń>. '
+        'Jeśli nie podano <?użytkownika Discorda>, przyjmuje ciebie. '
+        'Jeśli nie podano typu <?typów zdarzeń>, zwraca wszystkie zdarzenia.'
+    ),
+    Helper.Command(
         ('wyczyść', 'wyczysc'), '?liczba',
-        'Usuwa <?liczbę> ostatnich wiadomości lub, jeśli nie podano <?liczby>, jedną ostatnią wiadomość z kanału '
-        'na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienie do zarządzania wiadomościami '
-        'na kanale.'
+        'Usuwa <?liczbę> ostatnich wiadomości z kanału lub, jeśli nie podano <?liczby>, jedną ostatnią wiadomość '
+        'z kanału na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienia '
+        'do zarządzania wiadomościami na kanale.'
     ),
     Helper.Command('loguj', '?kanał',
         'Ustawia <?kanał> jako kanał logów serwera. Jeśli nie podano <?kanału> przyjmuje kanał na którym użyto '
