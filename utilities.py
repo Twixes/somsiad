@@ -172,15 +172,6 @@ class Configurator:
         if os.path.exists(self.configuration_file_path):
             with open(self.configuration_file_path, 'r') as configuration_file:
                 self.configuration = json.load(configuration_file)
-        # LEGACY; FOR REMOVAL
-        else:
-            with open(os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf'), 'r') as configuration_file:
-                for line in configuration_file.readlines():
-                    if not line.strip().startswith('#'):
-                        line = line.strip().split('=', 1)
-                        self.configuration[line[0].strip()] = line[1]
-            with open(self.configuration_file_path, 'w') as configuration_file:
-                json.dump(self.configuration, configuration_file, indent=4, ensure_ascii=False)
 
         return self.configuration
 
@@ -193,11 +184,6 @@ class Configurator:
         """Writes a key-value pair to the configuration file."""
         self.configuration[setting.name] = setting.value
 
-        # LEGACY; FOR REMOVAL
-        with open(os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf'), 'a') as configuration_file:
-            configuration_file.write(f'{setting.name}={self.configuration[setting.name]}\n')
-
-        # FUTURE
         with open(self.configuration_file_path, 'w') as configuration_file:
             json.dump(self.configuration, configuration_file, indent=4, ensure_ascii=False)
 
@@ -209,9 +195,7 @@ class Configurator:
         was_configuration_changed = False
         step_number = 1
 
-        # LEGACY; FOR CHANGE
-        if os.path.exists(os.path.join(os.path.expanduser('~'), '.config', 'somsiad.conf')):
-            self.load()
+        self.load()
 
         if self.required_settings is not None:
             if not self.configuration:
