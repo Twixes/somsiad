@@ -173,25 +173,25 @@ class Files:
 
 @somsiad.bot.event
 async def on_member_join(member):
-    """Adds the joining event to the member's folder."""
+    """Adds the joining event to the member's file."""
     Files.add_event(event_type='joined', server=member.guild, subject_user=member)
 
 
 @somsiad.bot.event
 async def on_member_remove(member):
-    """Adds the removal event to the member's folder."""
+    """Adds the removal event to the member's file."""
     Files.add_event(event_type='left', server=member.guild,subject_user=member)
 
 
 @somsiad.bot.event
 async def on_member_ban(server, member):
-    """Adds the unban event to the member's folder."""
+    """Adds the unban event to the member's file."""
     Files.add_event(event_type='banned', server=server, subject_user=member)
 
 
 @somsiad.bot.event
 async def on_member_unban(server, member):
-    """Adds the unban event to the member's folder."""
+    """Adds the unban event to the member's file."""
     Files.add_event(event_type='unbanned', server=server, subject_user=member)
 
 
@@ -343,7 +343,7 @@ async def ban_error(ctx, error):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def folder(ctx, member: Optional[discord.Member] = None, *, raw_event_types: str = None):
+async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types: str = None):
     """Responds with a list of the user's files entries on the server."""
     if member is None:
         member = ctx.author
@@ -358,7 +358,7 @@ async def folder(ctx, member: Optional[discord.Member] = None, *, raw_event_type
     if entries:
         number_of_entries = len(entries)
         embed = discord.Embed(
-            title=f':open_file_folder: W {"twojej kartotece" if member == ctx.author else f"kartotece {member}"} '
+            title=f':open_file_file: W {"twojej kartotece" if member == ctx.author else f"kartotece {member}"} '
             f'{TextFormatter.word_number_variant(number_of_entries, "jest", "są", "jest", include_number=False)} '
             f'{TextFormatter.word_number_variant(number_of_entries, "zdarzenie", "zdarzenia", "zdarzeń")}'
             f'{"" if event_types is None else " podanego typu"}',
@@ -378,13 +378,13 @@ async def folder(ctx, member: Optional[discord.Member] = None, *, raw_event_type
     else:
         if event_types is None:
             embed = discord.Embed(
-                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
+                title=f':open_file_file: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
                 'jest pusta',
                 color=somsiad.color
             )
         else:
             embed = discord.Embed(
-                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
+                title=f':open_file_file: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
                 'nie zawiera zdarzeń podanego typu',
                 color=somsiad.color
             )
@@ -392,8 +392,8 @@ async def folder(ctx, member: Optional[discord.Member] = None, *, raw_event_type
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@folder.error
-async def folder_error(ctx, error):
+@file.error
+async def file_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
