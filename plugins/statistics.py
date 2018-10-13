@@ -35,7 +35,7 @@ class Report:
     plt.style.use('dark_background')
 
     Message = namedtuple(
-        'Message', ('message_id', 'author', 'channel_id', 'local_datetime', 'word_count', 'character_count')
+        'Message', ('message_id', 'author_id', 'channel_id', 'local_datetime', 'word_count', 'character_count')
     )
 
     def __init__(self, requesting_member: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
@@ -108,7 +108,7 @@ class Report:
             async for message in channel.history(limit=None):
                 message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
                 message_tuple = self.Message(
-                    message.id, message.author, message.channel.id, message_local_datetime,
+                    message.id, message.author.id, message.channel.id, message_local_datetime,
                     len(message.clean_content.split()), len(message.clean_content)
                 )
                 if message_tuple in self.statistics_cache[channel.guild.id][channel.id]:
@@ -147,13 +147,13 @@ class Report:
 
     def _update_active_users(self, message: namedtuple):
         """Updates the dictionary of active users."""
-        if message.author.id not in self.active_users:
-            self.active_users[message.author.id] = {
-                'user_object': message.author, 'message_count': 0, 'word_count': 0, 'character_count': 0
+        if message.author_id not in self.active_users:
+            self.active_users[message.author_id] = {
+                'author_id': message.author_id, 'message_count': 0, 'word_count': 0, 'character_count': 0
             }
-        self.active_users[message.author.id]['message_count'] += 1
-        self.active_users[message.author.id]['word_count'] += message.word_count
-        self.active_users[message.author.id]['character_count'] += message.character_count
+        self.active_users[message.author_id]['message_count'] += 1
+        self.active_users[message.author_id]['word_count'] += message.word_count
+        self.active_users[message.author_id]['character_count'] += message.character_count
 
     def _embed_message_stats(self):
         """Adds the usual message statistics to the report embed."""
@@ -205,7 +205,7 @@ class Report:
         rank = 1
         for active_user in sorted_active_users[:5]:
             top_active_users.append(
-                f'{rank}. {active_user["user_object"].mention} – '
+                f'{rank}. <@{active_user["author_id"]}> – '
                 f'{TextFormatter.word_number_variant(active_user["message_count"], "wiadomość", "wiadomości")}, '
                 f'{TextFormatter.word_number_variant(active_user["word_count"], "słowo", "słowa", "słów")}, '
                 f'{TextFormatter.word_number_variant(active_user["character_count"], "znak", "znaki", "znaków")}'
@@ -398,8 +398,8 @@ class Report:
             tick.set_rotation(30)
             tick.set_horizontalalignment('right')
 
-        one_day = dt.timedelta(days=1)
-        ax.set_xlim((start_date - one_day, end_date + one_day))
+        half_day = dt.timedelta(hours=12)
+        ax.set_xlim((start_date - half_day, end_date + half_day))
 
         # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
