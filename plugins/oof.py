@@ -149,6 +149,15 @@ async def oof_how_many_member_error(ctx, error):
 )
 @discord.ext.commands.guild_only()
 async def oof_how_many_server(ctx):
+    await ctx.invoke(oof_server)
+
+
+@oof.command(aliases=['server', 'serwer'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def oof_server(ctx):
     oofers = Oof.get_oofers(ctx.guild)
     total_oofs = Oof.get_oofs(ctx.guild)
     total_oofs = 0 if total_oofs is None else total_oofs
