@@ -93,7 +93,8 @@ commands = (
     Helper.Command(('pomocy', 'help'), '', 'Wysyła ci tę wiadomość.'),
     Helper.Command(('8-ball', '8ball', 'eightball', '8', 'czy'), 'pytanie', 'Zadaje <pytanie> magicznej kuli.'),
     Helper.Command(
-        ('wybierz',), ('opcje',), 'Wybiera opcję z oddzielonych przecinkami, "lub", "albo" lub "czy" <opcji>.'
+        ('wybierz',), ('opcje',),
+        'Wybiera opcję z oddzielonych przecinkami, średnikami, "lub", "albo" lub "czy" <opcji>.'
     ),
     Helper.Command(('rzuć', 'rzuc'), ('?liczba kości', '?liczba ścianek kości'), 'Rzuca kością/koścmi.'),
     Helper.Command(
@@ -150,14 +151,19 @@ commands = (
         ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
     ),
     Helper.Command(
-        'weryfikacja', 'podkomenda',
-        'Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
-        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy by dowiedzieć się więcej.',
-    ),
-    Helper.Command(
         'stat', 'podkomenda',
         'Grupa komend związanych ze statystykami na serwerze. '
         f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy by dowiedzieć się więcej.',
+    ),
+    Helper.Command(
+        'urodziny', 'podkomenda',
+        'Grupa komend związanych z datami urodzin. '
+        f'Użyj {somsiad.conf["command_prefix"]}urodziny bez podkomendy by dowiedzieć się więcej.',
+    ),
+    Helper.Command(
+        'weryfikacja', 'podkomenda',
+        'Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
+        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy by dowiedzieć się więcej.',
     ),
     Helper.Command(
         'przypinki', 'podkomenda',
