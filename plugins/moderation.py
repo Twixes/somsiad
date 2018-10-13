@@ -98,7 +98,7 @@ class Files:
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
         server_data_manager.servers[server.id]['db_cursor'].execute(
             f'''INSERT INTO {cls.TABLE_NAME}(event_type, channel_id, executing_user_id, subject_user_id,
-            posix_timestamp, reason) VALUES(?, ?, ?, ?, ?, ?)''',
+            posix_timestamp, reason) VALUES (?, ?, ?, ?, ?, ?)''',
             (event_type, channel_id, executing_user_id, subject_user.id, posix_timestamp, reason)
         )
         server_data_manager.servers[server.id]['db'].commit()
@@ -358,7 +358,7 @@ async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types:
     if entries:
         number_of_entries = len(entries)
         embed = discord.Embed(
-            title=f':open_file_file: W {"twojej kartotece" if member == ctx.author else f"kartotece {member}"} '
+            title=f':open_file_folder: W {"twojej kartotece" if member == ctx.author else f"kartotece {member}"} '
             f'{TextFormatter.word_number_variant(number_of_entries, "jest", "są", "jest", include_number=False)} '
             f'{TextFormatter.word_number_variant(number_of_entries, "zdarzenie", "zdarzenia", "zdarzeń")}'
             f'{"" if event_types is None else " podanego typu"}',
@@ -378,13 +378,13 @@ async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types:
     else:
         if event_types is None:
             embed = discord.Embed(
-                title=f':open_file_file: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
+                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
                 'jest pusta',
                 color=somsiad.color
             )
         else:
             embed = discord.Embed(
-                title=f':open_file_file: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
+                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
                 'nie zawiera zdarzeń podanego typu',
                 color=somsiad.color
             )
