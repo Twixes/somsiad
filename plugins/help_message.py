@@ -177,7 +177,10 @@ commands = (
     Helper.Command(
         'oof ile', '?użytkownik Discorda',
         'Zlicza oofnięcia dla <?użytkownika Discorda> lub, jeśli nie podano <?użytkownika Discorda>, dla ciebie. '
-        'Jeśli zamiast <?użytkownika Discorda> podano "serwer", zlicza oofnięcia na serwerze i generuje ranking.'
+    ),
+    Helper.Command(
+        'oof serwer', '?użytkownik Discorda',
+        'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'
     ),
     Helper.Command('tableflip', '', '(╯°□°）╯︵ ┻━┻'),
     Helper.Command('unflip', '', '┬─┬ ノ( ゜-゜ノ)'),
