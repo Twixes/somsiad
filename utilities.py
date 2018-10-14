@@ -109,19 +109,21 @@ class TextFormatter:
         return ''.join(time_ago_elements)
 
     @staticmethod
-    def minutes_and_seconds(total_seconds: int) -> str:
+    def hours_minutes_seconds(total_seconds: int) -> str:
         information = []
 
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds - hours * 3600) // 60)
         seconds = int(total_seconds - hours * 3600 - minutes * 60)
 
+        if hours > 0:
+            information.append(f'{hours} h')
         if minutes > 0:
             information.append(f'{minutes} min')
         if seconds > 0 or total_seconds == 0:
             information.append(f'{seconds} s')
 
-        return ' i '.join(information)
+        return ' '.join(information)
 
     @staticmethod
     def separator(block: str, width: int = None) -> str:

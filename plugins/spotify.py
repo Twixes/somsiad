@@ -37,7 +37,7 @@ async def spotify(ctx, member: discord.Member = None):
         embed.add_field(name='Autorstwa', value=', '.join(member.activity.artists))
         embed.add_field(name='Z albumu', value=member.activity.album)
         embed.add_field(
-            name='Długość', value=TextFormatter.minutes_and_seconds(member.activity.duration.total_seconds())
+            name='Długość', value=TextFormatter.hours_minutes_seconds(member.activity.duration.total_seconds())
         )
         embed.add_field(
             name='Posłuchaj na Spotify', value=f'https://open.spotify.com/track/{member.activity.track_id}',
