@@ -38,7 +38,7 @@ class Helper:
             arguments_string = (
                 f' {" ".join(f"<{argument}>" for argument in command.arguments)}' if command.arguments else ''
             )
-        elif command.arguments:
+        elif command.arguments is not None:
             arguments_string = f' <{command.arguments}>'
         else:
             arguments_string = ''
@@ -90,7 +90,7 @@ class Helper:
 
 
 commands = (
-    Helper.Command(('pomocy', 'help'), '', 'Wysyła ci tę wiadomość.'),
+    Helper.Command(('pomocy', 'help'), None, 'Wysyła ci tę wiadomość.'),
     Helper.Command(('8-ball', '8ball', 'eightball', '8', 'czy'), 'pytanie', 'Zadaje <pytanie> magicznej kuli.'),
     Helper.Command(
         ('wybierz',), ('opcje',),
@@ -130,6 +130,15 @@ commands = (
         '<?sezon i odcinek> w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".'
     ),
     Helper.Command(
+        'spotify', '?użytkownik Discorda',
+        'Zwraca informacje na temat utworu obecnie słuchanego przez <?użytkownika Discorda> na Spotify. '
+        'Jeśli nie podano <?użytkownika Discorda>, przyjmuje ciebie.'
+    ),
+    Helper.Command(
+        ('last.fm', 'lastfm', 'last', 'fm'), 'użytkownik Last.fm',
+        'Zwraca z Last.fm informacje na temat utworu obecnie słuchanego przez <użytkownika Last.fm>.'
+    ),
+    Helper.Command(
         ('goodreads', 'gr'), 'tytuł/autor',
         'Zwraca z [goodreads](https://www.goodreads.com) informacje na temat książki najlepiej pasującej do '
         '<tytułu/autora>.'
@@ -145,7 +154,7 @@ commands = (
     Helper.Command(
         'isitup', 'url', 'Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.'
     ),
-    Helper.Command(('rokszkolny', 'ilejeszcze'), '', 'Zwraca ile jeszcze zostało do końca roku szkolnego.'),
+    Helper.Command(('rokszkolny', 'ilejeszcze'), None, 'Zwraca ile jeszcze zostało do końca roku szkolnego.'),
     Helper.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca URL <subreddita>.'),
     Helper.Command(
         ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
@@ -179,7 +188,7 @@ commands = (
         'Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
         '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).'
     ),
-    Helper.Command('oof', '', 'Oof!'),
+    Helper.Command('oof', None, 'Oof!'),
     Helper.Command(
         'oof ile', '?użytkownik Discorda',
         'Zlicza oofnięcia dla <?użytkownika Discorda> lub, jeśli nie podano <?użytkownika Discorda>, dla ciebie. '
@@ -188,14 +197,14 @@ commands = (
         'oof serwer', '?użytkownik Discorda',
         'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'
     ),
-    Helper.Command('tableflip', '', '(╯°□°）╯︵ ┻━┻'),
-    Helper.Command('unflip', '', '┬─┬ ノ( ゜-゜ノ)'),
-    Helper.Command('shrug', '', r'¯\_(ツ)_/¯'),
-    Helper.Command(('lenny', 'lennyface'), '', '( ͡° ͜ʖ ͡°)'),
-    Helper.Command(('lenno', 'lennoface'), '', '( ͡ʘ ͜ʖ ͡ʘ)'),
+    Helper.Command('tableflip', None, '(╯°□°）╯︵ ┻━┻'),
+    Helper.Command('unflip', None, '┬─┬ ノ( ゜-゜ノ)'),
+    Helper.Command('shrug', None, r'¯\_(ツ)_/¯'),
+    Helper.Command(('lenny', 'lennyface'), None, '( ͡° ͜ʖ ͡°)'),
+    Helper.Command(('lenno', 'lennoface'), None, '( ͡ʘ ͜ʖ ͡ʘ)'),
     Helper.Command(('dej', 'gib'), '?rzecz', '༼ つ ◕_◕ ༽つ <?rzecz>'),
     Helper.Command(
-        ('nie', 'nope', 'no'), '',
+        ('nie', 'nope', 'no'), None,
         'Usuwa ostatnią wiadomość wysłaną przez bota na kanale jako rezultat użytej przez ciebie komendy.'
     ),
     Helper.Command(
@@ -226,9 +235,9 @@ commands = (
         'Ustawia <?kanał> jako kanał logów serwera. Jeśli nie podano <?kanału> przyjmuje kanał na którym użyto '
         'komendy. Działa tylko dla administratorów serwera.'
     ),
-    Helper.Command('nieloguj', '', 'Wyłącza kanał logów serwera. Działa tylko dla administratorów serwera.'),
-    Helper.Command('ping', '', ':ping_pong: Pong!'),
-    Helper.Command('wersja', '', __version__)
+    Helper.Command('nieloguj', None, 'Wyłącza kanał logów serwera. Działa tylko dla administratorów serwera.'),
+    Helper.Command('ping', None, ':ping_pong: Pong!'),
+    Helper.Command('wersja', None, __version__)
 )
 
 
