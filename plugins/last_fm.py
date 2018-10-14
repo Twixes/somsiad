@@ -81,7 +81,7 @@ class LastFM:
 last_fm_api = LastFM(somsiad.conf['last_fm_key'])
 
 
-@somsiad.bot.group(aliases=['lastfm', 'last', 'fm'], invoke_without_command=True)
+@somsiad.bot.group(aliases=['last.fm', 'lastfm', 'last', 'fm'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -93,7 +93,7 @@ async def last_fm(ctx, *, user):
         user_recent_tracks = await last_fm_api.get_user_recent_tracks(user)
         if user_recent_tracks:
             current_state_emoji = (
-                ':stop_button:' if '@attr' in user_recent_tracks[0] and user_recent_tracks[0]['@attr']['nowplaying']
+                ':rewind:' if '@attr' in user_recent_tracks[0] and user_recent_tracks[0]['@attr']['nowplaying']
                 else ':pause_button:'
             )
             embed = discord.Embed(
