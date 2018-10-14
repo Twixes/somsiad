@@ -31,6 +31,7 @@ async def spotify(ctx, member: discord.Member = None):
     if isinstance(member.activity, discord.activity.Spotify):
         embed = discord.Embed(
             title=f':arrow_forward: {member.activity.title}',
+            url=f'https://open.spotify.com/track/{member.activity.track_id}',
             color=somsiad.color
         )
         embed.set_thumbnail(url=member.activity.album_cover_url)
@@ -38,10 +39,6 @@ async def spotify(ctx, member: discord.Member = None):
         embed.add_field(name='Z albumu', value=member.activity.album)
         embed.add_field(
             name='Długość', value=TextFormatter.hours_minutes_seconds(member.activity.duration.total_seconds())
-        )
-        embed.add_field(
-            name='Posłuchaj na Spotify', value=f'https://open.spotify.com/track/{member.activity.track_id}',
-            inline=False
         )
 
         # Search for the song on YouTube
