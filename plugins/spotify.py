@@ -62,15 +62,10 @@ async def spotify(ctx, member: discord.Member = None):
             'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
         )
     else:
-        if member == ctx.author:
-            embed = discord.Embed(
-                title=f':stop_button: Nie słuchasz w tym momencie niczego na Spotify',
-                color=somsiad.color
-            )
-        else:
-            embed = discord.Embed(
-                title=f':stop_button: {member.display_name} nie słucha w tym momencie niczego na Spotify',
-                color=somsiad.color
-            )
+        embed = discord.Embed(
+            title=':stop_button: W tym momencie '
+            f'{"nie słuchasz" if member == ctx.author else f"{member.display_name} nie słucha"} niczego na Spotify',
+            color=somsiad.color
+        )
 
     await ctx.send(f'{ctx.author.mention}', embed=embed)
