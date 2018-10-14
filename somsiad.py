@@ -150,6 +150,9 @@ ADDITIONAL_REQUIRED_SETTINGS = (
         'omdb_key', description='Klucz API OMDb', input_instruction='Wprowadź klucz API OMDb', value_type='str'
     ),
     Setting(
+        'last_fm_key', description='Klucz API Last.fm', input_instruction='Wprowadź klucz API Last.fm', value_type='str'
+    ),
+    Setting(
         'reddit_id', description='ID aplikacji redditowej', input_instruction='Wprowadź ID aplikacji redditowej',
         value_type='str'
     ),
