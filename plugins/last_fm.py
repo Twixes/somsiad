@@ -22,7 +22,7 @@ from plugins.youtube import youtube
 class LastFM:
     """Handles Wikipedia search."""
     FOOTER_TEXT = 'Last.fm'
-    FOOTER_ICON_URL = 'https://www.last.fm/static/images/favicon.ico'
+    FOOTER_ICON_URL = 'https://www.last.fm/static/images/lastfm_avatar_twitter.png'
     API_URL = 'https://ws.audioscrobbler.com/2.0/'
     headers = {'User-Agent': somsiad.user_agent}
 
@@ -93,8 +93,8 @@ async def last_fm(ctx, *, user):
         user_recent_tracks = await last_fm_api.get_user_recent_tracks(user)
         if user_recent_tracks:
             current_state_emoji = (
-                ':rewind:' if '@attr' in user_recent_tracks[0] and user_recent_tracks[0]['@attr']['nowplaying']
-                else ':pause_button:'
+                ':arrow_forward:' if '@attr' in user_recent_tracks[0] and user_recent_tracks[0]['@attr']['nowplaying']
+                else ':rewind:'
             )
             embed = discord.Embed(
                 title=f'{current_state_emoji} {user_recent_tracks[0]["name"]}',
