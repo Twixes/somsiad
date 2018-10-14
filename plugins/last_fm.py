@@ -93,7 +93,7 @@ async def last_fm(ctx, *, user):
         user_recent_tracks = await last_fm_api.get_user_recent_tracks(user)
         if user_recent_tracks:
             current_state_emoji = (
-                ':arrow_forward:' if '@attr' in user_recent_tracks[0] and user_recent_tracks[0]['@attr']['nowplaying']
+                ':stop_button:' if '@attr' in user_recent_tracks[0] and user_recent_tracks[0]['@attr']['nowplaying']
                 else ':rewind:'
             )
             embed = discord.Embed(
