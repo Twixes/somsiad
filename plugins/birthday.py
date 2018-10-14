@@ -407,7 +407,7 @@ async def birthday_month(ctx, *, month_string = None):
 
     if members:
         embed = discord.Embed(
-            title=f':calendar_spiral: W podanym miesiącu urodziny ma '
+            title=f':calendar_spiral: W tym miesiącu urodziny ma '
             f'{TextFormatter.word_number_variant(len(members), "użytkownik", "użytkowników")}',
             description='\n'.join(
                 (f'<@{member["user_id"]}>' for member in members if ctx.guild.get_member(member["user_id"]) is not None)
