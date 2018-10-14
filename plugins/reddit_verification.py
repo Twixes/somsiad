@@ -152,7 +152,9 @@ class RedditVerifier:
             discord_first_contact_date = dt.datetime.strptime(discord_user_info[2], '%Y-%m-%d').date()
             reddit_first_contact_date = None
             phrase_gen_date = dt.datetime.strptime(discord_user_info[3], '%Y-%m-%d').date()
-            verification_rejection_date = dt.datetime.strptime(discord_user_info[4], '%Y-%m-%d').date()
+            verification_rejection_date = (
+                None if discord_user_info[4] is None else dt.datetime.strptime(discord_user_info[4], '%Y-%m-%d').date()
+            )
             if reddit_username is not None:
                 self._db_cursor.execute(
                     'SELECT reddit_first_contact_date FROM reddit_users WHERE reddit_username = ?',
@@ -201,7 +203,9 @@ class RedditVerifier:
             discord_user_id = int(reddit_user_info[0]) if reddit_user_info[0] is not None else None
             verification_status = reddit_user_info[1]
             discord_first_contact_date = dt.datetime.strptime(reddit_user_info[2], '%Y-%m-%d').date()
-            verification_rejection_date = dt.datetime.strptime(reddit_user_info[3], '%Y-%m-%d').date()
+            verification_rejection_date = (
+                None if reddit_user_info[3] is None else dt.datetime.strptime(reddit_user_info[3], '%Y-%m-%d').date()
+            )
         else:
             discord_user_id = None
             verification_status = None
@@ -707,7 +711,7 @@ async def verification_xray(ctx, *args):
         if discord_user_info['verification_status'] is None:
             embed = discord.Embed(
                 title=':red_circle: Niezweryfikowany',
-                description=f'Użytkownik {discord_user} nigdy nie zażądał weryfikacji.',
+                description=f'Użytkownik {discord_user.mention} nigdy nie zażądał weryfikacji.',
                 color=somsiad.color
             )
         else:
@@ -719,13 +723,13 @@ async def verification_xray(ctx, *args):
                     more_info = ''
                 embed = discord.Embed(
                     title=':white_check_mark: Zweryfikowany',
-                    description=f'Użytkownik {discord_user} został zweryfikowany{more_info}.',
+                    description=f'Użytkownik {discord_user.mention} został zweryfikowany{more_info}.',
                     color=somsiad.color
                 )
             elif str(discord_user_info['verification_status']) == 'REJECTED_NOT_TRUSTWORTHY':
                 embed = discord.Embed(
                     title=':red_circle: Niezweryfikowany',
-                    description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
+                    description=f'Użytkownik {discord_user.mention} zażądał ostatnio weryfikacji '
                     f'{discord_user_info["phrase_gen_date"].strftime("%-d %b %Y")} i spróbował się zweryfikować '
                     f'{discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")}, lecz jego konto nie spełniało wymagań.',
                     color=somsiad.color
@@ -733,15 +737,16 @@ async def verification_xray(ctx, *args):
             elif str(discord_user_info['verification_status']) == 'REJECTED_PHRASE_EXPIRED':
                 embed = discord.Embed(
                     title=':red_circle: Niezweryfikowany',
-                    description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
-                    f'{discord_user_info["phrase_gen_date"].strftime("%-d %b %Y")}, ale nie dokończył jej na Reddicie w wyznaczonym czasie '
-                    f'- wysłał wiadomość {discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")}.',
+                    description=f'Użytkownik {discord_user.mention} zażądał ostatnio weryfikacji '
+                    f'{discord_user_info["phrase_gen_date"].strftime("%-d %b %Y")}, ale nie dokończył jej na Reddicie '
+                    'w wyznaczonym czasie - wysłał wiadomość '
+                    f'{discord_user_info["verification_rejection_date"].strftime("%-d %b %Y")}.',
                     color=somsiad.color
                 )
             elif str(discord_user_info['verification_status']) == 'AWAITING_MESSAGE':
                 embed = discord.Embed(
                     title=':red_circle: Niezweryfikowany',
-                    description=f'Użytkownik {discord_user} zażądał ostatnio weryfikacji '
+                    description=f'Użytkownik {discord_user.mention} zażądał ostatnio weryfikacji '
                     f'{discord_user_info["phrase_gen_date"].strftime("%-d %b %Y")}, ale nie dokończył jej na Reddicie.',
                     color=somsiad.color
                 )
