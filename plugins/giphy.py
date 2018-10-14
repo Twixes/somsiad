@@ -27,7 +27,7 @@ async def giphy(ctx, *, query):
     api_search_url = 'https://api.giphy.com/v1/gifs/search'
     headers = {'User-Agent': somsiad.user_agent}
     params = {
-        'api_key': somsiad.conf["giphy_key"],
+        'api_key': somsiad.conf['giphy_key'],
         'q': query,
         'limit': 1,
         'offset': 0,
