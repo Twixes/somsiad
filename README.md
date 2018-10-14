@@ -8,17 +8,25 @@ Polski bot discordowy. Napisany w Pythonie.
 * Magic 8-Ball  
 * wybieranie jednej z podanych opcji
 * rzucanie kośćmi do gry  
+* reagowanie na wiadomości podanymi znakami  
+* liczenie oofnięć  
+* odliczanie do końca roku szkolnego (w Polsce)  
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
 * wyszukiwanie gifów na [Giphy](https://giphy.com/)  
-* wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku
-* wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
+* wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku  
 * wyszukiwanie filmów i seriali w [OMDb](https://www.omdbapi.com/)  
+* wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
+* udostępnianie obecnie słuchanego na Spotify utworu  
+* udostępnianie obecnie lub ostatnio słuchanego przez Last.fm utworu  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
 * wymiana walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
 * sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
-* weryfikacja konta na [Reddicie](https://www.reddit.com/)   
+* weryfikacja konta na [Reddicie](https://www.reddit.com/)  
+* zapamiętywanie urodzin użytkowników serwera  
 * statystyki serwera/kanału/użytkownika (wraz z generowaniem wykresu aktywności)  
+* funkcje moderacyjne: ostrzeganie, wyrzucanie, banowanie  
+* archiwizacja przypiętych wiadomości  
 
 ## Wymagania  
 
@@ -43,6 +51,9 @@ https://www.goodreads.com/api
 
 * Klucz API OMDb:  
 https://www.omdbapi.com/apikey.aspx  
+
+* Klucz API Last.fm:  
+https://www.last.fm/api/account/create  
 
 * Nazwa użytkownika i hasło konta na Reddicie, a także ID i szyfr aplikacji redditowej typu skrypt:  
 https://www.reddit.com/prefs/apps  
@@ -91,18 +102,26 @@ The Polish Discord bot. Written in Python.
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
 * Magic 8-Ball  
 * choosing one of provided options
-* rolling dice  
+* dice rolling  
+* reacting to messages with given characters  
+* oof counting  
+* counting down to the end of the school year (in Poland)  
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
 * [Giphy](https://giphy.com/) gif search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
-* [goodreads](https://www.goodreads.com) book search  
 * [OMDb](https://www.omdbapi.com/) movie and TV show search  
+* [goodreads](https://www.goodreads.com) book search  
+* sharing the song currently played on Spotify  
+* sharing the song currently or recently played with Last.fm  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
 * currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
 * website status check powered by [isitup.org](https://isitup.org)  
 * [Reddit](https://www.reddit.com/) account verification  
+* remembering birthdays of server members  
 * server/channel/user statistics (with activity chart generation)  
+* moderation commands: warn, kick, ban  
+* archivization of pinned messages  
 
 ## Prerequisites  
 
@@ -126,7 +145,10 @@ https://developers.giphy.com/
 https://www.goodreads.com/api  
 
 * An OMDb API key:  
-https://www.omdbapi.com/apikey.aspx 
+https://www.omdbapi.com/apikey.aspx  
+
+* A Last.fm API key:  
+https://www.last.fm/api/account/create  
 
 * Reddit username and password, and also Reddit script application ID and secret:  
 https://www.reddit.com/prefs/apps  
