@@ -104,15 +104,15 @@ async def last_fm(ctx, *, user):
             embed.set_thumbnail(url=user_recent_tracks[0]['image'][2]['#text'])
             embed.add_field(
                 name='Autorstwa',
-                value=f'[{user_recent_tracks[0]["artist"]["#text"]}]'
-                f'(https://www.last.fm/music/{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+")})'
+                value=f'[{user_recent_tracks[0]["artist"]["#text"]}](https://www.last.fm/music/'
+                f'{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+").replace("/", "%2F")})'
             )
             if user_recent_tracks[0]["album"]["#text"] != '':
                 embed.add_field(
                     name='Z albumu',
-                    value=f'[{user_recent_tracks[0]["album"]["#text"]}]'
-                    f'(https://www.last.fm/music/{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+")}/'
-                    f'{user_recent_tracks[0]["album"]["#text"].replace(" ", "+")})'
+                    value=f'[{user_recent_tracks[0]["album"]["#text"]}](https://www.last.fm/music/'
+                    f'{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+").replace("/", "%2F")}/'
+                    f'{user_recent_tracks[0]["album"]["#text"].replace(" ", "+").replace("/", "%2F")})'
                 )
 
             # Search for the song on YouTube
