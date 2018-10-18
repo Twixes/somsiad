@@ -106,15 +106,16 @@ class Report:
     async def _update_statistics_cache_for_channel(self, channel: discord.TextChannel):
         try:
             async for message in channel.history(limit=None):
-                message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-                message_tuple = self.Message(
-                    message.id, message.author.id, message.channel.id, message_local_datetime,
-                    len(message.clean_content.split()), len(message.clean_content)
-                )
-                if message_tuple in self.statistics_cache[channel.guild.id][channel.id]:
-                    break
-                else:
-                    self.statistics_cache[channel.guild.id][channel.id].append(message_tuple)
+                if message.type == discord.MessageType.default:
+                    message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
+                    message_tuple = self.Message(
+                        message.id, message.author.id, message.channel.id, message_local_datetime,
+                        len(message.clean_content.split()), len(message.clean_content)
+                    )
+                    if message_tuple in self.statistics_cache[channel.guild.id][channel.id]:
+                        break
+                    else:
+                        self.statistics_cache[channel.guild.id][channel.id].append(message_tuple)
         except discord.Forbidden:
             pass
 
