@@ -15,7 +15,6 @@ from difflib import SequenceMatcher
 import aiohttp
 import discord
 from somsiad import somsiad
-from utilities import TextFormatter
 from plugins.youtube import youtube
 
 
