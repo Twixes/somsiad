@@ -270,7 +270,7 @@ class Report:
         await self._update_statistics_cache(self.subject.guild)
         for channel in self.statistics_cache[self.subject.guild.id].values():
             for message in channel:
-                if message.author == self.subject:
+                if message.author_id == self.subject.id:
                     self._update_message_stats(message)
                     self._update_active_channels(message)
                     self._update_active_users(message)
@@ -464,7 +464,7 @@ class Report:
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def stat(ctx, subject: Union[discord.Member, discord.TextChannel] = None):
+async def stat(ctx, *, subject: Union[discord.Member, discord.TextChannel] = None):
     if subject is None:
         embed = discord.Embed(
             title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
@@ -527,7 +527,7 @@ async def stat_server(ctx):
     1, Report.COOLDOWN, discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def stat_channel(ctx, channel: discord.TextChannel = None):
+async def stat_channel(ctx, *, channel: discord.TextChannel = None):
     if channel is None:
         channel = ctx.channel
 
@@ -554,7 +554,7 @@ async def stat_channel_error(ctx, error):
     1, Report.COOLDOWN, discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def stat_member(ctx, member: discord.Member = None):
+async def stat_member(ctx, *, member: discord.Member = None):
     if member is None:
         member = ctx.author
 
