@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil, Twixes
+# Copyright 2018 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,9 +11,15 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = [
-    'birthday', 'bot_owner_utilities', 'calculator', 'choice', 'currency', 'dice', 'eightball', 'emoticons', 'giphy',
-    'goodreads', 'google_search', 'help_message', 'inviting', 'isitup', 'last_fm', 'moderation', 'oof', 'omdb', 'pins',
-    'reactions', 'reddit_links', 'reddit_verification', 'rimshot', 'school_year', 'spotify', 'statistics',
-    'urban_dictionary', 'wikipedia', 'youtube'
-]
+import discord
+from somsiad import somsiad
+
+
+@somsiad.bot.command(aliases=['badum', 'badumtss'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+async def rimshot(ctx):
+    """Ba dum tss!"""
+    file = discord.File(fp='./data/BA-DUM-TSS.mp3')
+    await ctx.send(file=file)
