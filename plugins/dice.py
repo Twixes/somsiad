@@ -25,12 +25,18 @@ async def roll_dice(ctx, *args):
     number_of_sides_on_a_die = 6
     try:
         if len(args) == 1:
-            # Handle the argument if only either number_of_dice or number_of_sides_on_a_die were given
             argument = args[0].lower()
-            if argument.startswith('d'):
-                number_of_sides_on_a_die = abs(int(argument.strip('d')))
+            if len(args[0].lower().split('d')) >= 2 and args[0].lower().split('d')[0] != '':
+                # Handle the argument if it's in the format {number_of_dice}d{number_of_sides_on_a_die}
+                argument = args[0].lower().split('d')
+                number_of_dice = int(argument[0])
+                number_of_sides_on_a_die = int(argument[1])
             else:
-                number_of_dice = abs(int(argument))
+                # Handle the argument if only either number_of_dice or number_of_sides_on_a_die were given
+                if argument.startswith('d'):
+                    number_of_sides_on_a_die = abs(int(argument.strip('d')))
+                else:
+                    number_of_dice = abs(int(argument))
         elif len(args) >= 2:
             # Handle the arguments if there's 2 or more of them
             first_argument = args[0].lower()
