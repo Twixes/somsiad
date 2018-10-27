@@ -58,12 +58,11 @@ class TextFormatter:
             *, include_number: bool = True
     ) -> str:
         """Returns the gramatically correct variant of the given word in Polish."""
+        number_modulo_10 = number % 10
+        number_modulo_100 = number % 100
         if number == 1:
             proper_form = singular_form
-        elif (
-                (str(number)[-1] == '2' or str(number)[-1] == '3' or str(number)[-1] == '4')
-                and number not in (12, 13, 14)
-        ):
+        elif number_modulo_10 in (2, 3, 4) and number_modulo_100 not in (12, 13, 14):
             proper_form = plural_form_2_to_4
         else:
             if plural_form_5_to_1 is not None:
