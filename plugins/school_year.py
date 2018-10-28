@@ -97,17 +97,17 @@ async def school_year(ctx):
     days_passed = SchoolYear.days_passed()
     days_left = SchoolYear.days_left()
 
-    if days_left // 7 == 0:
-        description = None
-    elif days_left % 7 == 0:
-        description = f'To {TextFormatter.word_number_variant(days_left // 7, "tydzień", "tygodnie", "tygodni")}.'
-    else:
-        description = (
-            f'To {TextFormatter.word_number_variant(days_left // 7, "tydzień", "tygodnie", "tygodni")} '
-            f'i {TextFormatter.word_number_variant(days_left % 7, "dzień", "dni")}.'
-        )
-
     if SchoolYear.is_ongoing():
+        if days_left // 7 == 0:
+            description = None
+        elif days_left % 7 == 0:
+            description = f'To {TextFormatter.word_number_variant(days_left // 7, "tydzień", "tygodnie", "tygodni")}.'
+        else:
+            description = (
+                f'To {TextFormatter.word_number_variant(days_left // 7, "tydzień", "tygodnie", "tygodni")} '
+                f'i {TextFormatter.word_number_variant(days_left % 7, "dzień", "dni")}.'
+            )
+
         embed = discord.Embed(
             title=':books: Do końca roku szkolnego '
             f'{TextFormatter.word_number_variant(days_left, "został", "zostały", "zostało", include_number=False)} '
@@ -115,16 +115,27 @@ async def school_year(ctx):
             description=description,
             color=somsiad.color
         )
-        embed.add_field(
-            name='Postęp', value=f'{locale.str(round(SchoolYear.fraction_passed() * 100, 1))}%', inline=False
-        )
+        embed.add_field(name='Postęp', value=f'{locale.str(round(SchoolYear.fraction_passed() * 100, 1))}%')
     else:
+        if -days_passed // 7 == 0:
+            description = None
+        elif -days_passed % 7 == 0:
+            description = (
+                f'To {TextFormatter.word_number_variant(-days_passed // 7, "tydzień", "tygodnie", "tygodni")}.'
+            )
+        else:
+            description = (
+                f'To {TextFormatter.word_number_variant(-days_passed // 7, "tydzień", "tygodnie", "tygodni")} '
+                f'i {TextFormatter.word_number_variant(-days_passed % 7, "dzień", "dni")}.'
+            )
+
         embed = discord.Embed(
             title=':beach: Rok szkolny zacznie się za '
             f'{TextFormatter.word_number_variant(-days_passed, "dzień", "dni")}',
             description=description,
             color=somsiad.color
         )
+
     embed.add_field(name='Data rozpoczęcia', value=SchoolYear.start_date().strftime('%-d %B %Y'))
     embed.add_field(name='Data zakończenia', value=SchoolYear.end_date().strftime('%-d %B %Y'))
 
