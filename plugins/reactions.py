@@ -28,7 +28,8 @@ class Reactor:
         'a': ('🇦', '🅰'), 'b': ('🇧', '🅱'), 'c': ('🇨',), 'd': ('🇩',), 'e': ('🇪',), 'f': ('🇫',), 'g': ('🇬',),
         'h': ('🇭',), 'i': ('🇮',), 'j': ('🇯',), 'k': ('🇰',), 'l': ('🇱',), 'm': ('🇲',), 'n': ('🇳',),
         'o': ('🇴', '🅾'), 'p': ('🇵',), 'q': ('🇶',), 'r': ('🇷',), 's': ('🇸',), 't': ('🇹',), 'u': ('🇺',),
-        'v': ('🇻',), 'w': ('🇼',), 'x': ('🇽',), 'y': ('🇾',), 'z': ('🇿',), '?': ('❓',), '!': ('❗',), '^': ('⬆',)
+        'v': ('🇻',), 'w': ('🇼',), 'x': ('🇽',), 'y': ('🇾',), 'z': ('🇿',), '?': ('❓',), '!': ('❗',), '^': ('⬆',),
+        '>': ('▶',), '<': ('◀',)
     }
 
     @classmethod
@@ -63,22 +64,18 @@ class Reactor:
     def _clean_characters(cls, ctx: discord.ext.commands.Context, characters: str):
         """Cleans characters so that they are most suitable for use in reactions."""
         # initialization
-        current_pass = 0
-        passes = [characters]
+        passes = []
         # first pass: create a tuple of lowercase characters
-        current_pass += 1
         passes.append([])
-        passes[current_pass] = (character.lower() for character in passes[current_pass-1])
+        passes[-1] = (character.lower() for character in characters if character != ' ')
         # second pass: convert diacritic characters to server emojis or ASCII characters
-        current_pass += 1
         passes.append([])
-        for character in passes[current_pass-1]:
-            passes[current_pass].append(cls._convert_diacritic_character(character, ctx))
+        for character in passes[-2]:
+            passes[-1].append(cls._convert_diacritic_character(character, ctx))
         # third pass: convert ASCII characters to Unicode emojis
-        current_pass += 1
         passes.append([])
-        for character in passes[current_pass-1]:
-            passes[current_pass].append(cls._convert_ascii_character(character, passes[current_pass]))
+        for character in passes[-2]:
+            passes[-1].append(cls._convert_ascii_character(character, passes[-1]))
         # return the final pass
         return passes[-1]
 
@@ -109,12 +106,15 @@ class Reactor:
                     break
 
 
-@somsiad.bot.command(aliases=['zareaguj'])
+@somsiad.bot.command(aliases=['zareaguj', 'x'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def react(ctx, member: Optional[discord.Member] = None, *, characters: discord.ext.commands.clean_content = ''):
+async def react(
+    ctx, member: Optional[discord.Member] = None, *,
+    characters: discord.ext.commands.clean_content(fix_channel_mentions=True) = ''
+):
     """Reacts with the provided characters."""
     await Reactor.react(ctx, characters, member)
 
@@ -137,3 +137,23 @@ async def helped(ctx, member: discord.Member = None):
 async def didnothelp(ctx, member: discord.Member = None):
     """Reacts with "NIEPOMÓGŁ"."""
     await Reactor.react(ctx, 'niepomógł', member)
+
+
+@somsiad.bot.command(aliases=['^'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def upvote(ctx, member: discord.Member = None):
+    """Reacts with "⬆"."""
+    await Reactor.react(ctx, '⬆', member)
+
+
+@somsiad.bot.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', '🤔'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def thinking(ctx, member: discord.Member = None):
+    """Reacts with "🤔"."""
+    await Reactor.react(ctx, '🤔', member)
