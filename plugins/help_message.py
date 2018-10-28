@@ -179,12 +179,18 @@ commands = (
         'Grupa komend związanych z archiwizacją przypiętych widadomości. '
         f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy by dowiedzieć się więcej.',
     ),
+    Helper.Command(
+        ('głosowanie', 'glosowanie'), ('?liczba sekund do ogłoszenia wyniku', 'sprawa'),
+        'Przeprowadza głosowanie za/przeciw dotyczące <sprawy>. '
+        'Ogłasza wynik po upłynięciu <?liczby sekund do ogłoszenia wyniku>, '
+        'jeśli ją podano i jest ona większa niż 0 i jednocześnie oznacza nie więcej niż tydzień.'
+    ),
     Helper.Command(('pomógł', 'pomogl'), '?użytkownik Discorda', 'Oznacza pomocną wiadomość za pomocą reakcji.'),
     Helper.Command(
         ('niepomógł', 'niepomogl'), '?użytkownik Discorda', 'Oznacza niepomocną wiadomość za pomocą reakcji.'
     ),
     Helper.Command(
-        'zareaguj', ('?użytkownik Discorda', 'reakcje'),
+        ('zareaguj', 'x'), ('?użytkownik Discorda', 'reakcje'),
         'Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
         '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).'
     ),
