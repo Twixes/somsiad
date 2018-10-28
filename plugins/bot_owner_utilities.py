@@ -119,10 +119,10 @@ async def announce_locally(ctx, *, raw_announcement):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
-async def shut_down(ctx):
+async def shutdown(ctx):
     """Shuts down the bot."""
     embed = discord.Embed(
-        title=':stop_button: Zatrzymywanie bota...',
+        title=':stop_button: Wyłączanie bota...',
         color=somsiad.color
     )
     await ctx.send(ctx.author.mention, embed=embed)
