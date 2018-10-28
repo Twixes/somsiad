@@ -12,11 +12,29 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
+import locale
 import datetime as dt
-from typing import Optional
+from typing import Union, Optional
 import discord
 from somsiad import somsiad
 from utilities import TextFormatter
+
+
+def str_to_datetime(argument):
+    try:
+        datetime = dt.datetime.strptime(argument, '%d.%mT%H:%M')
+        now_datetime = dt.datetime.now()
+        datetime = datetime.replace(year=now_datetime.year)
+    except ValueError:
+        try:
+            datetime = dt.datetime.strptime(argument, '%dT%H:%M')
+            now_datetime = dt.datetime.now()
+            datetime = datetime.replace(year=now_datetime.year, month=now_datetime.month)
+        except ValueError:
+            datetime = dt.datetime.strptime(argument, '%H:%M')
+            now_datetime = dt.datetime.now()
+            datetime = datetime.replace(year=now_datetime.year, month=now_datetime.month, day=now_datetime.day)
+    return datetime.astimezone()
 
 
 @somsiad.bot.command(aliases=['głosowanie', 'glosowanie'])
@@ -24,20 +42,37 @@ from utilities import TextFormatter
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def vote(ctx, seconds: Optional[int] = 0, *, statement):
+async def vote(ctx, duration: Optional[Union[float, locale.atof, str_to_datetime]] = None, *, statement):
     """Holds a vote."""
-    hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
-    if 0 < seconds <= 604800:
+    now_datetime = dt.datetime.now().astimezone()
+    if isinstance(duration, dt.datetime) and now_datetime < duration <= now_datetime + dt.timedelta(days=7):
+        seconds = (duration - now_datetime).seconds
+        results_datetime = duration
+        hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
             description=(
                 'Zagłosuj w tej sprawie przy użyciu reakcji.\n'
-                f'Wynik zostanie ogłoszony po {hours_minutes_seconds} od rozpoczęcia głosowania.'
+                f'Wynik zostanie ogłoszony {duration.strftime("%-d %B %Y o %H:%M")}.'
             ),
-            timestamp=dt.datetime.now().astimezone()+dt.timedelta(seconds=seconds),
+            timestamp=results_datetime,
+            color=somsiad.color
+        )
+    elif isinstance(duration, float) and 0.0 < duration <= 10080.0:
+        seconds = duration * 60.0
+        results_datetime = now_datetime + dt.timedelta(seconds=seconds)
+        hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
+        embed = discord.Embed(
+            title=f':ballot_box: {statement}',
+            description=(
+                'Zagłosuj w tej sprawie przy użyciu reakcji.\n'
+                f'Wynik zostanie ogłoszony po {TextFormatter.hours_minutes_seconds(seconds)} od rozpoczęcia głosowania.'
+            ),
+            timestamp=results_datetime,
             color=somsiad.color
         )
     else:
+        seconds = None
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
             description='Zagłosuj w tej sprawie przy użyciu reakcji.',
@@ -48,7 +83,7 @@ async def vote(ctx, seconds: Optional[int] = 0, *, statement):
     await message.add_reaction('✅')
     await message.add_reaction('🔴')
 
-    if 0 < seconds <= 604800:
+    if seconds is not None:
         await asyncio.sleep(seconds)
 
         try:
@@ -68,7 +103,7 @@ async def vote(ctx, seconds: Optional[int] = 0, *, statement):
                 description=(
                     f'Głosowanie zostało zakończone po {hours_minutes_seconds} od rozpoczęcia.'
                 ),
-                timestamp=dt.datetime.now().astimezone(),
+                timestamp=results_datetime,
                 color=somsiad.color
             )
             embed_results.add_field(name='Za', value=results['✅']-1)
@@ -78,3 +113,12 @@ async def vote(ctx, seconds: Optional[int] = 0, *, statement):
             await ctx.send(ctx.author.mention, embed=embed_results)
         except discord.NotFound:
             pass
+
+@vote.error
+async def vote_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        embed = discord.Embed(
+            title=f':warning: Nie podano sprawy w jakiej ma się odbyć głosowanie!',
+            color=somsiad.color
+        )
+        await ctx.send(ctx.author.mention, embed=embed)
