@@ -15,5 +15,5 @@ __all__ = [
     'birthday', 'bot_owner_utilities', 'calculator', 'choice', 'currency', 'dice', 'eightball', 'emoticons', 'giphy',
     'goodreads', 'google_search', 'help_message', 'inviting', 'isitup', 'last_fm', 'moderation', 'oof', 'omdb', 'pins',
     'reactions', 'reddit_links', 'reddit_verification', 'rimshot', 'school_year', 'spotify', 'statistics',
-    'urban_dictionary', 'wikipedia', 'youtube'
+    'urban_dictionary', 'vote', 'wikipedia', 'youtube'
 ]
