@@ -57,11 +57,11 @@ async def vote(ctx, seconds: Optional[int] = 0, *, statement):
             results = {reaction.emoji: reaction.count for reaction in message_final.reactions}
 
             if results["✅"] > results["🔴"]:
-                results_emoji = ":white_check_mark:"
+                results_emoji = ':white_check_mark:'
             elif results["✅"] < results["🔴"]:
-                results_emoji = ":red_circle:"
+                results_emoji = ':red_circle:'
             else:
-                results_emoji = ":question:"
+                results_emoji = ':question:'
 
             embed_results = discord.Embed(
                 title=f'{results_emoji} {statement}',
