@@ -124,7 +124,7 @@ commands = (
         'Sprawdza znaczenie <hasła> w danej wersji językowej [Wikipedii](https://www.wikipedia.org/).'
     ),
     Helper.Command(
-        'omdb', ('?sezon i odcinek', 'tytuł'),
+        ('omdb', 'film'), ('?sezon i odcinek', 'tytuł'),
         'Zwraca z [OMDb](https://www.omdbapi.com/) informacje na temat filmu lub serialu najlepiej pasującego '
         'do <tytułu>. Jeśli chcesz znaleźć informacje na temat konkretnego odcinka serialu, podaj przed tytułem '
         '<?sezon i odcinek> w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".'
@@ -139,7 +139,7 @@ commands = (
         'Zwraca z Last.fm informacje na temat utworu obecnie słuchanego przez <użytkownika Last.fm>.'
     ),
     Helper.Command(
-        ('goodreads', 'gr'), 'tytuł/autor',
+        ('goodreads', 'gr', 'książka', 'ksiazka'), 'tytuł/autor',
         'Zwraca z [goodreads](https://www.goodreads.com) informacje na temat książki najlepiej pasującej do '
         '<tytułu/autora>.'
     ),
@@ -180,10 +180,11 @@ commands = (
         f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy by dowiedzieć się więcej.',
     ),
     Helper.Command(
-        ('głosowanie', 'glosowanie'), ('?liczba sekund do ogłoszenia wyniku', 'sprawa'),
+        ('głosowanie', 'glosowanie'), ('?liczba minut do ogłoszenia wyniku/godzina', 'sprawa'),
         'Przeprowadza głosowanie za/przeciw dotyczące <sprawy>. '
-        'Ogłasza wynik po upłynięciu <?liczby sekund do ogłoszenia wyniku>, '
-        'jeśli ją podano i jest ona większa niż 0 i jednocześnie oznacza nie więcej niż tydzień.'
+        'Ogłasza wynik po upłynięciu <?liczby sekund do ogłoszenia wyniku> lub o <?godzinie>, '
+        'jeśli podano którąś z nich i jeśli oznacza to zakończenie głosowania w przyszłości odległej maksymalnie '
+        'o tydzień.'
     ),
     Helper.Command(('pomógł', 'pomogl'), '?użytkownik Discorda', 'Oznacza pomocną wiadomość za pomocą reakcji.'),
     Helper.Command(
