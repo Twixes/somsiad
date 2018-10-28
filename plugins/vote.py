@@ -40,6 +40,7 @@ async def vote(ctx, seconds: Optional[int] = 0, *, statement):
     else:
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
+            description='Zagłosuj w tej sprawie przy użyciu reakcji.',
             color=somsiad.color
         )
 
@@ -74,6 +75,6 @@ async def vote(ctx, seconds: Optional[int] = 0, *, statement):
             embed_results.add_field(name='Przeciw', value=results['🔴']-1)
 
             await message_final.edit(embed=embed_results)
-            await ctx.send(embed=embed_results)
+            await ctx.send(ctx.author.mention, embed=embed_results)
         except discord.NotFound:
             pass
