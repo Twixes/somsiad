@@ -258,12 +258,12 @@ class Setting:
         self._input_instruction = str(input_instruction)
         self._description = str(description)
         self._value_type = value_type
-        self._default_value = None if default_value is None else self._convert_to_value_type(default_value)
+        self._default_value = None if default_value is None else self._convert_value_to_type(default_value)
         if unit is None:
             self._unit = None
         else:
             self._unit = tuple(map(str, unit)) if isinstance(unit, (list, tuple)) else str(unit)
-        self._value = self._convert_to_value_type(value)
+        self._value = self._convert_value_to_type(value)
 
     def __repr__(self) -> str:
         return f'Setting(\'{self._name}\')'
@@ -330,14 +330,17 @@ class Setting:
             'value': self._value
         }
 
-    def _convert_to_value_type(self, value):
+    def _convert_value_to_type(self, value):
         if value is not None:
             if self._value_type == 'str':
                 return str(value)
             elif self._value_type == 'int':
                 return int(value)
             elif self._value_type == 'float':
-                return float(value)
+                try:
+                    return float(value)
+                except ValueError:
+                    return locale.atof(value)
             else:
                 return value
         else:
@@ -347,7 +350,7 @@ class Setting:
         if value is None:
             self._value = self._default_value
         else:
-            self._value = self._convert_to_value_type(value)
+            self._value = self._convert_value_to_type(value)
 
         return self._value
 
