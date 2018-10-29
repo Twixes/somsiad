@@ -37,7 +37,14 @@ async def random_choice(ctx, *, raw_options = ''):
 
     options = [option.strip() for option in ' '.join(options_words).split(',') if option.strip() != '']
     if len(options) >= 2:
-        chosen_option = random.choice(options)
+        if 'trebuchet' in options:
+            chosen_option = 'trebuchet'
+        elif 'trebusz' in options:
+            chosen_option = 'trebusz'
+        elif 'trebuszet' in options:
+            chosen_option = 'trebuszet'
+        else:
+            chosen_option = random.choice(options)
         answer = random.choice(choice_answers).format(chosen_option)
         await ctx.send(f'{ctx.author.mention}\n:point_right: {answer}')
     else:
