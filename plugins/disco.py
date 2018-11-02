@@ -13,7 +13,7 @@
 
 import os
 import locale
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 import discord
 import youtube_dl
 from somsiad import somsiad
@@ -57,68 +57,119 @@ class DiscoManager:
         self._youtube_dl = youtube_dl.YoutubeDL(self._YOUTUBE_DL_OPTIONS)
         self.servers = {}
 
-    def ensure_server_registration(self, server: discord.Guild) -> dict:
+    def ensure_server_registration(self, server: discord.Guild) -> Dict[str, Any]:
         if server.id not in self.servers:
             self.servers[server.id] = {}
             self.servers[server.id]['volume'] = 1.0
-            self.servers[server.id]['song_embed'] = None
+            self.servers[server.id]['song_url'] = None
             self.servers[server.id]['song_audio'] = None
 
         return self.servers[server.id]
 
-    @classmethod
-    async def channel_connect(cls, voice_channel: discord.VoiceChannel) -> discord.VoiceChannel:
+    @staticmethod
+    async def channel_connect(voice_channel: discord.VoiceChannel):
         if voice_channel.guild.me.voice is None:
             await voice_channel.connect()
         elif voice_channel.guild.me.voice.channel != voice_channel:
             await voice_channel.guild.voice_client.move_to(voice_channel)
-        return voice_channel
 
     @staticmethod
     async def server_disconnect(server: discord.Guild) -> Optional[discord.VoiceChannel]:
         if server.me.voice is None:
             return None
         else:
-            voice_channel = server.voice_client.channel
+            voice_channel = server.me.voice.channel
             await server.voice_client.disconnect()
             return voice_channel
 
-    def server_play_song(self, server: discord.Guild, query: str) -> Optional[dict]:
+    async def channel_play_song(self, voice_channel: discord.VoiceChannel, query: str) -> Optional[dict]:
+        await self.channel_connect(voice_channel)
         try:
             song_info = self._youtube_dl.extract_info(query, download=False)
+
+            if 'search' in song_info['extractor']:
+                song_filename = f'{song_info["entries"][0]["id"]}.mp3'
+            else:
+                song_filename = f'{song_info["id"]}.mp3'
+
+            song_path = os.path.join(self._CACHE_DIR_PATH, song_filename)
+            if not os.path.isfile(song_path):
+                with self._youtube_dl:
+                    self._youtube_dl.download([query])
+
+            voice_channel.guild.voice_client.stop()
+
+            song_audio = discord.PCMVolumeTransformer(
+                discord.FFmpegPCMAudio(song_path), self.servers[voice_channel.guild.id]['volume']
+            )
+            self.servers[voice_channel.guild.id]['song_audio'] = song_audio
+
+            def after(error):
+                song_audio.cleanup()
+
+            voice_channel.guild.voice_client.play(self.servers[voice_channel.guild.id]['song_audio'], after=after)
         except youtube_dl.utils.DownloadError:
-            return None
+            song_info = None
 
-        if 'search' in song_info['extractor']:
-            song_filename = f'{song_info["entries"][0]["id"]}.mp3'
-        else:
-            song_filename = f'{song_info["id"]}.mp3'
-
-        song_path = os.path.join(self._CACHE_DIR_PATH, song_filename)
-        if not os.path.isfile(song_path):
-            with self._youtube_dl:
-                self._youtube_dl.download([query])
-
-        if server.voice_client is not None:
-            server.voice_client.stop()
-
-        song_audio = discord.PCMVolumeTransformer(
-            discord.FFmpegPCMAudio(song_path), self.servers[server.id]['volume']
+        embed = self._generate_song_embed(
+            voice_channel, query, song_info
         )
-        self.servers[server.id]['song_audio'] = song_audio
+        disco_manager.servers[voice_channel.guild.id]['song_url'] = embed.url
 
-        def after(error):
-            song_audio.cleanup()
-
-        server.voice_client.play(self.servers[server.id]['song_audio'], after=after)
-
-        return song_info
+        return embed
 
     def server_change_volume(self, server: discord.Guild, volume: float):
         self.servers[server.id]['volume'] = float(volume)
 
         if self.servers[server.id]['song_audio']:
             self.servers[server.id]['song_audio'].volume = volume
+
+    def _generate_song_embed(self, voice_channel: discord.VoiceChannel, query: str, song_info: dict) -> discord.Embed:
+        if song_info is None:
+            embed = discord.Embed(
+                title=f':slight_frown: Brak wyników dla zapytania "{query}"',
+                color=somsiad.color
+            )
+        else:
+            extractor = song_info['extractor']
+
+            if extractor.endswith(':search'):
+                song_info = song_info['entries'][0]
+
+            if extractor.startswith('soundcloud'):
+                uploader_url = '/'.join(song_info['webpage_url'].split('/')[:-1])
+            else:
+                try:
+                    uploader_url = song_info['uploader_url']
+                except KeyError:
+                    uploader_url = None
+
+            embed = discord.Embed(
+                title=f':arrow_forward: {song_info["title"]}',
+                url=song_info['webpage_url'],
+                color=somsiad.color
+            )
+            embed.set_author(name=song_info['uploader'], url=uploader_url)
+            embed.set_image(url=song_info['thumbnail'])
+            embed.add_field(name='Długość', value=TextFormatter.hours_minutes_seconds(song_info['duration']))
+            embed.add_field(
+                name='Kanał', value=voice_channel.name
+            )
+
+            if extractor.startswith('youtube'):
+                embed.set_footer(
+                    icon_url=disco_manager.FOOTER_ICON_URL_YOUTUBE, text=disco_manager.FOOTER_TEXT_YOUTUBE
+                )
+            elif extractor.startswith('soundcloud'):
+                embed.set_footer(
+                    icon_url=disco_manager.FOOTER_ICON_URL_SOUNDCLOUD, text=disco_manager.FOOTER_TEXT_SOUNDCLOUD
+                    )
+            elif extractor.startswith('vimeo'):
+                embed.set_footer(
+                    icon_url=disco_manager.FOOTER_ICON_URL_VIMEO, text=disco_manager.FOOTER_TEXT_VIMEO
+                )
+
+        return embed
 
 
 disco_manager = DiscoManager()
@@ -165,53 +216,9 @@ async def disco_play(ctx, *, query):
         )
     else:
         async with ctx.typing():
-            voice_channel = await disco_manager.channel_connect(ctx.author.voice.channel)
-            song_info = disco_manager.server_play_song(ctx.guild, query)
-            if song_info is None:
-                embed = discord.Embed(
-                    title=f':slight_frown: Brak wyników dla zapytania "{query}"',
-                    color=somsiad.color
-                )
-            else:
-                extractor = song_info['extractor']
-
-                if song_info['extractor'].endswith(':search'):
-                    song_info = song_info['entries'][0]
-
-                if extractor.startswith('soundcloud'):
-                    uploader_url = '/'.join(song_info['webpage_url'].split('/')[:-1])
-                else:
-                    try:
-                        uploader_url = song_info['uploader_url']
-                    except KeyError:
-                        uploader_url = None
-
-                embed = discord.Embed(
-                    title=f':arrow_forward: {song_info["title"]}',
-                    url=song_info['webpage_url'],
-                    color=somsiad.color
-                )
-                embed.set_author(name=song_info['uploader'], url=uploader_url)
-                embed.set_thumbnail(url=song_info['thumbnail'])
-                embed.add_field(name='Długość', value=TextFormatter.hours_minutes_seconds(song_info['duration']))
-                embed.add_field(
-                    name='Kanał', value=voice_channel.name
-                )
-
-                if extractor.startswith('youtube'):
-                    embed.set_footer(
-                        icon_url=disco_manager.FOOTER_ICON_URL_YOUTUBE, text=disco_manager.FOOTER_TEXT_YOUTUBE
-                    )
-                elif extractor.startswith('soundcloud'):
-                    embed.set_footer(
-                        icon_url=disco_manager.FOOTER_ICON_URL_SOUNDCLOUD, text=disco_manager.FOOTER_TEXT_SOUNDCLOUD
-                        )
-                elif extractor.startswith('vimeo'):
-                    embed.set_footer(
-                        icon_url=disco_manager.FOOTER_ICON_URL_VIMEO, text=disco_manager.FOOTER_TEXT_VIMEO
-                    )
-
-                disco_manager.servers[ctx.guild.id]['song_embed'] = embed
+            embed = await disco_manager.channel_play_song(
+                ctx.author.voice.channel, query
+            )
 
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -240,20 +247,15 @@ async def disco_again(ctx):
             title=':warning: Nie powtórzono utworu, bo nie jesteś połączony z żadnym kanałem głosowym!',
             color=somsiad.color
         )
-    elif disco_manager.servers[ctx.guild.id]['song_embed'] is None:
+    elif disco_manager.servers[ctx.guild.id]['song_url'] is None:
         embed = discord.Embed(
             title=':red_circle: Nie powtórzono utworu, bo nie ma żadnego do powtórzenia',
             color=somsiad.color
         )
     else:
         async with ctx.typing():
-            voice_channel = await disco_manager.channel_connect(ctx.author.voice.channel)
-            disco_manager.server_play_song(ctx.guild, disco_manager.servers[ctx.guild.id]['song_embed'].url)
-
-            embed = disco_manager.servers[ctx.guild.id]['song_embed']
-
-            embed.set_field_at(
-                -1, name='Kanał', value=voice_channel.name
+            embed = await disco_manager.channel_play_song(
+                ctx.author.voice.channel, disco_manager.servers[ctx.guild.id]['song_url']
             )
 
     await ctx.send(ctx.author.mention, embed=embed)
@@ -268,7 +270,7 @@ async def disco_pause(ctx):
     """Pauses the currently played song."""
     if ctx.voice_client is None:
         embed = discord.Embed(
-            title=':red_circle: Nie spauzowano utworu, bo nie jestem połączony z żadnym kanałem głosowym',
+            title=':red_circle: Nie spauzowano utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
             color=somsiad.color
         )
     elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
@@ -304,7 +306,7 @@ async def disco_resume(ctx):
     """Resumes playing song."""
     if ctx.voice_client is None:
         embed = discord.Embed(
-            title=':red_circle: Nie wznowiono odtwarzania utworu, bo nie jestem połączony z żadnym kanałem głosowym',
+            title=':red_circle: Nie wznowiono odtwarzania utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
             color=somsiad.color
         )
     elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
@@ -340,7 +342,7 @@ async def disco_skip(ctx):
     """Skips the currently played song."""
     if ctx.voice_client is None:
         embed = discord.Embed(
-            title=':red_circle: Nie pominięto utworu, bo nie jestem połączony z żadnym kanałem głosowym',
+            title=':red_circle: Nie pominięto utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
             color=somsiad.color
         )
     elif not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
@@ -366,7 +368,7 @@ async def disco_disconnect(ctx):
     """Disconnects from the server."""
     if ctx.voice_client is None:
         embed = discord.Embed(
-            title=':warning: Nie rozłączono z kanałem głosowym, bo nie jestem połączony z żadnym!',
+            title=':warning: Nie rozłączono z kanałem głosowym, bo bot nie jest połączony z żadnym!',
             color=somsiad.color
         )
     elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
