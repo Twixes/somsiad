@@ -150,7 +150,7 @@ class DiscoManager:
                 color=somsiad.color
             )
             embed.set_author(name=song_info['uploader'], url=uploader_url)
-            embed.set_image(url=song_info['thumbnail'])
+            embed.set_thumbnail(url=song_info['thumbnail'])
             embed.add_field(name='Długość', value=TextFormatter.hours_minutes_seconds(song_info['duration']))
             embed.add_field(
                 name='Kanał', value=voice_channel.name
