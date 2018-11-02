@@ -108,12 +108,12 @@ class TextFormatter:
         return ''.join(time_ago_elements)
 
     @staticmethod
-    def hours_minutes_seconds(total_seconds: int) -> str:
+    def hours_minutes_seconds(total_seconds: Union[int, float]) -> str:
         information = []
 
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds - hours * 3600) // 60)
-        seconds = int(total_seconds - hours * 3600 - minutes * 60)
+        seconds = int(round(total_seconds - hours * 3600 - minutes * 60))
 
         if hours > 0:
             information.append(f'{hours} h')
@@ -135,7 +135,7 @@ class TextFormatter:
                 width = 80
 
         # Generate the pattern
-        pattern = (block * int(width / len(block)) + block)[:width].strip()
+        pattern = (width // len(block) * block + block)[:width].strip()
 
         return pattern
 
@@ -233,7 +233,7 @@ class Configurator:
                     line = f'{setting}: {self.configuration[setting.name]}'
                 elif isinstance(setting.unit, tuple) and len(setting.unit) == 2:
                     unit_variant = (
-                        setting.unit[0] if int(self.configuration[setting.name]) == 1 else setting.unit[1]
+                        setting.unit[0] if float(self.configuration[setting.name]) == 1.0 else setting.unit[1]
                     )
                     line = f'{setting}: {self.configuration[setting.name]} {unit_variant}'
                 else:

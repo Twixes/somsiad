@@ -26,7 +26,7 @@ from utilities import TextFormatter
 
 class Report:
     """A statistics report. Can generate server, channel or member statistics."""
-    COOLDOWN = max(int(somsiad.conf['command_cooldown_per_user_in_seconds']), 15)
+    COOLDOWN = max(float(somsiad.conf['command_cooldown_per_user_in_seconds']), 15.0)
     BACKGROUND_COLOR = '#32363c'
     FOREGROUND_COLOR = '#ffffff'
 
@@ -165,7 +165,8 @@ class Report:
         self.embed.add_field(name='Wysłanych słów', value=self.total_word_count)
         self.embed.add_field(name='Wysłanych znaków', value=self.total_character_count)
         self.embed.add_field(
-            name='Średnio wiadomości dziennie', value=int(self.total_message_count / len(self.messages_over_date))
+            name='Średnio wiadomości dziennie',
+            value=int(round(self.total_message_count / len(self.messages_over_date)))
         )
 
     def _embed_top_active_channels(self):

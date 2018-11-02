@@ -21,8 +21,8 @@ from somsiad import somsiad
 @somsiad.bot.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
 @discord.ext.commands.cooldown(
     1,
-    int(somsiad.conf['command_cooldown_per_user_in_seconds'])
-    if int(somsiad.conf['command_cooldown_per_user_in_seconds']) > 1 else 1
+    somsiad.conf['command_cooldown_per_user_in_seconds']
+    if float(somsiad.conf['command_cooldown_per_user_in_seconds']) > 1.0 else 1.0
 )
 @discord.ext.commands.guild_only()
 async def goodreads(ctx, *, query):
