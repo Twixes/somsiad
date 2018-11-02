@@ -137,7 +137,7 @@ commands = (
         'Jeśli nie podano <?użytkownika Discorda>, przyjmuje ciebie.'
     ),
     Helper.Command(
-        ('last.fm', 'lastfm', 'last', 'fm'), 'użytkownik Last.fm',
+        ('lastfm', 'last', 'fm', 'lfm'), 'użytkownik Last.fm',
         'Zwraca z Last.fm informacje na temat utworu obecnie słuchanego przez <użytkownika Last.fm>.'
     ),
     Helper.Command(
@@ -160,6 +160,11 @@ commands = (
     Helper.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca URL <subreddita>.'),
     Helper.Command(
         ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
+    ),
+    Helper.Command(
+        ('disco', 'd'), 'podkomenda',
+        'Grupa komend związanych z odtwarzaniem muzyki na kanale głosowym. '
+        f'Użyj {somsiad.conf["command_prefix"]}disco (d) bez podkomendy by dowiedzieć się więcej.',
     ),
     Helper.Command(
         'stat', 'podkomenda',
