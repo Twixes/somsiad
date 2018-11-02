@@ -27,9 +27,10 @@ class Somsiad:
     user_agent = f'SomsiadBot/{__version__}'
 
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
     conf_file_path = os.path.join(conf_dir_path, 'somsiad.json')
+    storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
+    cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
 
     logger = None
     configurator = None
@@ -66,10 +67,12 @@ class Somsiad:
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
-        if not os.path.exists(self.storage_dir_path):
-            os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.conf_dir_path):
             os.makedirs(self.conf_dir_path)
+        if not os.path.exists(self.storage_dir_path):
+            os.makedirs(self.storage_dir_path)
+        if not os.path.exists(self.cache_dir_path):
+            os.makedirs(self.cache_dir_path)
         self.required_settings.extend(additional_required_settings)
         self.configurator = Configurator(self.conf_file_path, self.required_settings)
         self.bot = Bot(

@@ -23,7 +23,7 @@ class Helper:
     Command = namedtuple('Command', ('aliases', 'arguments', 'description'))
 
     @staticmethod
-    def _add_command_field_to_embed(embed: discord.Embed, command):
+    def _add_command_field_to_embed(embed: discord.Embed, command, is_subcommand: bool = False):
         if isinstance(command.aliases, (tuple, list)):
             name_string = command.aliases[0]
         else:
@@ -43,8 +43,10 @@ class Helper:
         else:
             arguments_string = ''
 
+        prefix = '' if is_subcommand else somsiad.conf["command_prefix"]
+
         embed.add_field(
-            name=f'{somsiad.conf["command_prefix"]}{name_string}{aliases_string}{arguments_string}',
+            name=f'{prefix}{name_string}{aliases_string}{arguments_string}',
             value=command.description,
             inline=False
         )
@@ -84,7 +86,7 @@ class Helper:
         )
 
         for subcommand in subcommands:
-            cls._add_command_field_to_embed(embed, subcommand)
+            cls._add_command_field_to_embed(embed, subcommand, is_subcommand=True)
 
         return embed
 
