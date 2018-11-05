@@ -232,7 +232,7 @@ class Configurator:
                 # Handle the unit
                 if setting.unit is None:
                     line = f'{setting}: {self.configuration[setting.name]}'
-                elif isinstance(setting.unit, tuple) and len(setting.unit) == 2:
+                elif isinstance(setting.unit, (list, tuple)) and len(setting.unit) == 2:
                     unit_variant = (
                         setting.unit[0] if float(self.configuration[setting.name]) == 1.0 else setting.unit[1]
                     )
