@@ -124,7 +124,8 @@ class DiscoManager:
         if self.servers[server.id]['song_audio']:
             self.servers[server.id]['song_audio'].volume = volume
 
-    def _generate_song_embed(self, voice_channel: discord.VoiceChannel, query: str, song_info: dict) -> discord.Embed:
+    @staticmethod
+    def _generate_song_embed(voice_channel: discord.VoiceChannel, query: str, song_info: dict) -> discord.Embed:
         if song_info is None:
             embed = discord.Embed(
                 title=f':slight_frown: Brak wyników dla zapytania "{query}"',
