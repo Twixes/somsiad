@@ -54,18 +54,15 @@ class Report:
         self.subject = subject
 
         if isinstance(subject, discord.Guild):
-            self._prepare_statistics_cache(self.subject)
             self._prepare_active_channels(self.subject)
             self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.TextChannel):
             # Raise a BadArgument exception if the requesting user doesn't have access to the channel
             if not self.subject.permissions_for(self.requesting_member).read_messages:
                 raise discord.ext.commands.BadArgument
-            self._prepare_statistics_cache(self.subject.guild, self.subject)
             self._prepare_active_channels(self.subject.guild, self.subject)
             self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.Member):
-            self._prepare_statistics_cache(self.subject.guild)
             self._prepare_active_channels(self.subject.guild)
             self._prepare_messages_over_date(self.subject.joined_at)
 
@@ -73,10 +70,20 @@ class Report:
         """Prepares the statistics cache."""
         if server.id not in self.statistics_cache:
             self.statistics_cache[server.id] = {}
+
         if channel is None:
+            # if no channel was specified prepare for caching all channels
             for server_channel in server.text_channels:
                 if server_channel.id not in self.statistics_cache[server.id]:
                     self.statistics_cache[server.id][server_channel.id] = []
+            # remove nonexistent channels from the cache
+            existent_channels = map(lambda channel: channel.id, server.text_channels)
+            nonexistent_channels = []
+            for cached_channel in self.statistics_cache[server.id]:
+                if cached_channel not in existent_channels:
+                    nonexistent_channels.append(cached_channel)
+            for nonexistent_channel in nonexistent_channels:
+                self.statistics_cache[server.id].pop(nonexistent_channel)
         elif channel.id not in self.statistics_cache[server.id]:
             self.statistics_cache[server.id][channel.id] = []
 
