@@ -34,19 +34,15 @@ class DiscoManager:
 
     _CACHE_DIR_PATH = os.path.join(somsiad.cache_dir_path, 'disco')
     _YOUTUBE_DL_OPTIONS = {
-        'format': 'bestaudio/best',
+        'format': 'bestaudio[ext=mp3]/bestaudio[ext=m4a]',
         'extractaudio': True,
         'nocheckcertificate': True,
         'ignoreerrors': False,
         'quiet': True,
         'no_warnings': True,
-        'outtmpl': os.path.join(_CACHE_DIR_PATH, '%(id)s.%(ext)s'),
-        'default_search': 'auto',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '96',
-        }]
+        'max_filesize': 16777216,
+        'outtmpl': os.path.join(_CACHE_DIR_PATH, '%(id)s'),
+        'default_search': 'auto'
     }
 
     def __init__(self):
@@ -88,26 +84,30 @@ class DiscoManager:
             song_info = self._youtube_dl.extract_info(query, download=False)
 
             if 'search' in song_info['extractor']:
-                song_filename = f'{song_info["entries"][0]["id"]}.mp3'
+                song_filename = song_info["entries"][0]["id"]
             else:
-                song_filename = f'{song_info["id"]}.mp3'
+                song_filename = song_info["id"]
 
-            song_path = os.path.join(self._CACHE_DIR_PATH, song_filename)
-            if not os.path.isfile(song_path):
+            if not os.path.isfile(os.path.join(self._CACHE_DIR_PATH, song_filename)):
                 with self._youtube_dl:
                     self._youtube_dl.download([query])
 
-            voice_channel.guild.voice_client.stop()
+            if os.path.isfile(os.path.join(self._CACHE_DIR_PATH, song_filename)):
+                song_path = os.path.join(self._CACHE_DIR_PATH, song_filename)
 
-            song_audio = discord.PCMVolumeTransformer(
-                discord.FFmpegPCMAudio(song_path), self.servers[voice_channel.guild.id]['volume']
-            )
-            self.servers[voice_channel.guild.id]['song_audio'] = song_audio
+                voice_channel.guild.voice_client.stop()
 
-            def after(error):
-                song_audio.cleanup()
+                song_audio = discord.PCMVolumeTransformer(
+                    discord.FFmpegPCMAudio(song_path), self.servers[voice_channel.guild.id]['volume']
+                )
+                self.servers[voice_channel.guild.id]['song_audio'] = song_audio
 
-            voice_channel.guild.voice_client.play(self.servers[voice_channel.guild.id]['song_audio'], after=after)
+                def after(error):
+                    song_audio.cleanup()
+
+                voice_channel.guild.voice_client.play(self.servers[voice_channel.guild.id]['song_audio'], after=after)
+            else:
+                song_info = []
         except youtube_dl.utils.DownloadError:
             song_info = None
 
@@ -129,6 +129,11 @@ class DiscoManager:
         if song_info is None:
             embed = discord.Embed(
                 title=f':slight_frown: Brak wyników dla zapytania "{query}"',
+                color=somsiad.color
+            )
+        elif not song_info:
+            embed = discord.Embed(
+                title=f':slight_frown: Znaleziony plik jest zbyt duży',
                 color=somsiad.color
             )
         else:
