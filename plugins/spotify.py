@@ -35,7 +35,7 @@ async def spotify(ctx, member: discord.Member = None):
             color=somsiad.color
         )
         embed.set_thumbnail(url=member.activity.album_cover_url)
-        embed.add_field(name='Autorstwa', value=', '.join(member.activity.artists))
+        embed.add_field(name='W wykonaniu', value=', '.join(member.activity.artists))
         embed.add_field(name='Z albumu', value=member.activity.album)
         embed.add_field(
             name='Długość', value=TextFormatter.hours_minutes_seconds(member.activity.duration.total_seconds())

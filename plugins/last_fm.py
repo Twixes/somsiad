@@ -102,7 +102,7 @@ async def last_fm(ctx, *, user):
             )
             embed.set_thumbnail(url=user_recent_tracks[0]['image'][2]['#text'])
             embed.add_field(
-                name='Autorstwa',
+                name='W wykonaniu',
                 value=f'[{user_recent_tracks[0]["artist"]["#text"]}](https://www.last.fm/music/'
                 f'{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+").replace("/", "%2F")})'
             )
