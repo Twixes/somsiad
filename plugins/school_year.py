@@ -28,39 +28,19 @@ class SchoolYear:
         else:
             self.start_date = self._find_start_date(self.for_date.year)
             self.end_date = self._find_end_date(self.for_date.year+1)
-
-    def days_passed(self) -> int:
-        timedelta = self.for_date - self.start_date
-        return timedelta.days
-
-    def days_left(self) -> int:
-        timedelta = self.end_date - self.for_date
-        return timedelta.days
-
-    def length(self) -> int:
-        timedelta = self.end_date - self.start_date
-        return timedelta.days
-
-    def fraction_passed(self) -> float:
-        fraction = self.days_passed() / self.length()
-        return fraction
-
-    def fraction_left(self) -> float:
-        fraction = self.days_left() / self.length()
-        return fraction
-
-    def is_ongoing(self) -> bool:
-        timedelta = self.start_date - self.for_date
-        return timedelta.days < 0
+        self.length = self._length()
+        self.days_passed = self._days_passed()
+        self.days_left = self._days_left()
+        self.fraction_left = self._fraction_left()
+        self.fraction_passed = self._fraction_passed()
+        self.is_ongoing = self._is_ongoing()
 
     def _find_start_date(self, start_year: int) -> dt.date:
         day = 1
         date = dt.date(year=start_year, month=9, day=day)
-
         while date.isoweekday() >= 5:
             day +=1
             date = dt.date(year=start_year, month=9, day=day)
-
         return date
 
     def _find_end_date(self, end_year: int) -> dt.date:
@@ -69,8 +49,29 @@ class SchoolYear:
         while date.isoweekday() != 5:
             day += 1
             date = dt.date(year=end_year, month=6, day=day)
-
         return date
+
+    def _length(self) -> int:
+        timedelta = self.end_date - self.start_date
+        return timedelta.days
+
+    def _days_passed(self) -> int:
+        timedelta = self.for_date - self.start_date
+        return timedelta.days
+
+    def _days_left(self) -> int:
+        timedelta = self.end_date - self.for_date
+        return timedelta.days
+
+    def _fraction_passed(self) -> float:
+        return self.days_passed / self.length
+
+    def _fraction_left(self) -> float:
+        return self.days_left / self.length
+
+    def _is_ongoing(self) -> bool:
+        timedelta = self.start_date - self.for_date
+        return timedelta.days < 0
 
 
 def present_days_as_weeks(number_of_days: int):
@@ -92,11 +93,8 @@ def present_days_as_weeks(number_of_days: int):
 async def school_year(ctx):
     """Says how much of the school year is left."""
     school_year = SchoolYear()
-    print(school_year.days_left())
-    print(school_year.days_passed())
-    if school_year.is_ongoing():
-        days_left = school_year.days_left()
-        if days_left == 0:
+    if school_year.is_ongoing:
+        if school_year.days_left == 0:
             embed = discord.Embed(
                 title=':tada: Dziś zakończenie roku szkolnego',
                 color=somsiad.color
@@ -104,15 +102,14 @@ async def school_year(ctx):
         else:
             embed = discord.Embed(
                 title=':books: Do końca roku szkolnego '
-                f'{TextFormatter.word_number_variant(days_left, "został", "zostały", "zostało", include_number=False)} '
-                f'{TextFormatter.word_number_variant(days_left, "dzień", "dni")}',
-                description=present_days_as_weeks(days_left),
+                f'{TextFormatter.word_number_variant(school_year.days_left, "został", "zostały", "zostało", include_number=False)} '
+                f'{TextFormatter.word_number_variant(school_year.days_left, "dzień", "dni")}',
+                description=present_days_as_weeks(school_year.days_left),
                 color=somsiad.color
             )
-            embed.add_field(name='Postęp', value=f'{locale.str(round(school_year.fraction_passed() * 100, 1))}%')
+            embed.add_field(name='Postęp', value=f'{locale.str(round(school_year.fraction_passed * 100, 1))}%')
     else:
-        days_passed = school_year.days_passed()
-        if days_passed == 0:
+        if school_year.days_passed == 0:
             embed = discord.Embed(
                 title=':chains: Dziś rozpoczęcie roku szkolnego',
                 color=somsiad.color
@@ -120,8 +117,8 @@ async def school_year(ctx):
         else:
             embed = discord.Embed(
                 title=':beach: Rok szkolny zacznie się za '
-                f'{TextFormatter.word_number_variant(-days_passed, "dzień", "dni")}',
-                description=present_days_as_weeks(-days_passed),
+                f'{TextFormatter.word_number_variant(-school_year.days_passed, "dzień", "dni")}',
+                description=present_days_as_weeks(-school_year.days_passed),
                 color=somsiad.color
             )
 
