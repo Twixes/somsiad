@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, List
+from typing import List, Dict, Union, Optional
 import discord
 from somsiad import somsiad
 from server_data import server_data_manager
@@ -26,7 +26,7 @@ class Oof:
     )
 
     @classmethod
-    def get_oofs(cls, server: discord.Guild, user: Union[discord.User, discord.Member] = None) -> Union[int, None]:
+    def get_oofs(cls, server: discord.Guild, user: Union[discord.User, discord.Member] = None) -> Optional[int]:
         """Returns the number of times the provided user oofed on the provided server.
         If not provided a user, returns the total number of oofs on the server.
         """
@@ -52,7 +52,7 @@ class Oof:
         return oofs
 
     @classmethod
-    def get_oofers(cls, server: discord.Guild) -> List[dict]:
+    def get_oofers(cls, server: discord.Guild) -> List[Dict[str, int]]:
         """Returns a tuple of users who have oofed on the provided server, sorted by the number of oofs, descending."""
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
         server_data_manager.servers[server.id]['db_cursor'].execute(
