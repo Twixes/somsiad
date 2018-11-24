@@ -20,7 +20,7 @@ from somsiad import somsiad
 from utilities import TextFormatter
 
 
-def str_to_datetime(argument):
+def str_to_datetime(argument: str) -> dt.datetime:
     try:
         datetime = dt.datetime.strptime(argument, '%d.%mT%H:%M')
         now_datetime = dt.datetime.now()
@@ -52,7 +52,6 @@ async def vote(
         results_datetime = duration
         results_and_now_timedelta = results_datetime - now_datetime
         seconds = results_and_now_timedelta.days * 86400 + results_and_now_timedelta.seconds
-        print(seconds)
         hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
