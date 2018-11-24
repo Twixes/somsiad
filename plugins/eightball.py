@@ -40,7 +40,7 @@ class Ball:
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def eightball(ctx, *, question: discord.ext.commands.clean_content):
+async def eightball(ctx, *, question: discord.ext.commands.clean_content(fix_channel_mentions=True)):
     """Returns an 8-Ball answer."""
     stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?')
     if stripped_question != '':
