@@ -357,11 +357,16 @@ async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types:
 
     if entries:
         number_of_entries = len(entries)
+        if event_types is None:
+            event_types_description = ""
+        elif len(event_types) == 1:
+            event_types_description = " podanego typu"
+        elif len(event_types) > 1:
+            event_types_description = " podanych typów"
         embed = discord.Embed(
-            title=f':open_file_folder: W {"twojej kartotece" if member == ctx.author else f"kartotece {member}"} '
-            f'{TextFormatter.word_number_variant(number_of_entries, "jest", "są", "jest", include_number=False)} '
-            f'{TextFormatter.word_number_variant(number_of_entries, "zdarzenie", "zdarzenia", "zdarzeń")}'
-            f'{"" if event_types is None else " podanego typu"}',
+            title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
+            f'zawiera {TextFormatter.word_number_variant(number_of_entries, "zdarzenie", "zdarzenia", "zdarzeń")}'
+            f'{event_types_description}',
             color=somsiad.color
         )
         for entry in entries:
