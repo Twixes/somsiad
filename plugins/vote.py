@@ -42,12 +42,17 @@ def str_to_datetime(argument):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def vote(ctx, duration: Optional[Union[float, locale.atof, str_to_datetime]] = None, *, statement):
+async def vote(
+        ctx, duration: Optional[Union[float, locale.atof, str_to_datetime]] = None,
+        *, statement: discord.ext.commands.clean_content(fix_channel_mentions=True)
+    ):
     """Holds a vote."""
     now_datetime = dt.datetime.now().astimezone()
     if isinstance(duration, dt.datetime) and now_datetime < duration <= now_datetime + dt.timedelta(days=7):
-        seconds = (duration - now_datetime).seconds
         results_datetime = duration
+        results_and_now_timedelta = results_datetime - now_datetime
+        seconds = results_and_now_timedelta.days * 86400 + results_and_now_timedelta.seconds
+        print(seconds)
         hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
@@ -113,6 +118,7 @@ async def vote(ctx, duration: Optional[Union[float, locale.atof, str_to_datetime
             await ctx.send(ctx.author.mention, embed=embed_results)
         except discord.NotFound:
             pass
+
 
 @vote.error
 async def vote_error(ctx, error):
