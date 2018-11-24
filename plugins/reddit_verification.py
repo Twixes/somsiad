@@ -43,8 +43,7 @@ class RedditVerifier:
         self._db_cursor.execute(
             '''CREATE TABLE IF NOT EXISTS discord_servers(
                 server_id INTEGER NOT NULL PRIMARY KEY,
-                verified_role_id INTEGER,
-                verification_messages_channel_id INTEGER
+                verified_role_id INTEGER
             )'''
         )
         self._db_cursor.execute(
@@ -93,23 +92,20 @@ class RedditVerifier:
     def discord_server_info(self, server_id: int):
         """Returns information from the database about the given Discord server."""
         self._db_cursor.execute(
-            'SELECT verified_role_id, verification_messages_channel_id FROM discord_servers WHERE server_id = ?',
+            'SELECT verified_role_id FROM discord_servers WHERE server_id = ?',
             (server_id,)
         )
         discord_server_info = self._db_cursor.fetchone()
         if discord_server_info is not None:
             was_found = True
             verified_role_id = discord_server_info[0]
-            verification_messages_channel_id = discord_server_info[1]
         else:
             was_found = False
             verified_role_id = None
-            verification_messages_channel_id = None
 
         return {
             'was_found': was_found,
-            'verified_role_id': verified_role_id,
-            'verification_messages_channel_id': verification_messages_channel_id
+            'verified_role_id': verified_role_id
         }
 
     def phrase_info(self, phrase: str):
