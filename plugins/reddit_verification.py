@@ -539,7 +539,7 @@ with open(phrase_parts_file_path, 'r') as f:
 
 verifier = RedditVerifier(db_path, phrase_parts)
 
-@somsiad.bot.group(aliases=['weryfikacja'], invoke_without_command=True)
+@somsiad.bot.group(aliases=['weryfikacja'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

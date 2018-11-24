@@ -38,7 +38,7 @@ async def enter(ctx, *, server_name):
         await ctx.send(f'{ctx.author.mention}\n{invite.url}')
 
 
-@somsiad.bot.group(aliases=['ogłoś', 'oglos'])
+@somsiad.bot.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

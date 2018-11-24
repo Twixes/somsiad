@@ -86,7 +86,7 @@ class Oof:
         server_data_manager.servers[server.id]['db'].commit()
 
 
-@somsiad.bot.group(invoke_without_command=True)
+@somsiad.bot.group(invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -96,7 +96,7 @@ async def oof(ctx):
     await ctx.send('Oof!')
 
 
-@oof.group(aliases=['ile'], invoke_without_command=True)
+@oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
