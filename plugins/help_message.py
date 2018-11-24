@@ -189,7 +189,7 @@ commands = (
     Helper.Command(
         ('głosowanie', 'glosowanie'), ('?liczba minut do ogłoszenia wyniku/godzina', 'sprawa'),
         'Przeprowadza głosowanie za/przeciw dotyczące <sprawy>. '
-        'Ogłasza wynik po upłynięciu <?liczby sekund do ogłoszenia wyniku> lub o <?godzinie>, '
+        'Ogłasza wynik po upłynięciu <?liczby minut do ogłoszenia wyniku> lub o <?godzinie>, '
         'jeśli podano którąś z nich i jeśli oznacza to zakończenie głosowania w przyszłości odległej maksymalnie '
         'o tydzień.'
     ),
