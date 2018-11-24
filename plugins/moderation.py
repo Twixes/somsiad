@@ -64,21 +64,21 @@ class Files:
         def __str__(self):
             if self.event_type == 'warned':
                 return 'ostrzeżenie'
-            if self.event_type == 'kicked':
+            elif self.event_type == 'kicked':
                 return 'wyrzucenie'
-            if self.event_type == 'banned':
+            elif self.event_type == 'banned':
                 return 'ban'
-            if self.event_type == 'unbanned':
+            elif self.event_type == 'unbanned':
                 return 'unban'
-            if self.event_type == 'joined':
+            elif self.event_type == 'joined':
                 return 'dołączenie'
-            if self.event_type == 'left':
+            elif self.event_type == 'left':
                 return 'opuszczenie'
             else:
-                return 'zdarzenie'
+                return '?'
 
         def __hash__(self):
-            return hash(10 ** 18 * self.event_id + self.server_id)
+            return hash(100000 * self.server_id + self.event_id)
 
         def __eq__(self, other):
             return self.server_id == other.server_id and self.event_id == other.event_id
@@ -110,13 +110,13 @@ class Files:
             event_types.append('warned')
         if 'kick' in raw_event_types or 'wyrzuć' in raw_event_types or 'wyrzuc' in raw_event_types:
             event_types.append('kicked')
-        elif 'unban' in raw_event_types or 'odban' in raw_event_types:
+        if 'unban' in raw_event_types or 'odban' in raw_event_types:
             event_types.append('unbanned')
-        elif 'ban' in raw_event_types or 'wygnan' in raw_event_types:
+        if 'ban' in raw_event_types or 'wygnan' in raw_event_types:
             event_types.append('banned')
-        elif 'join' in raw_event_types or 'dołącz' in raw_event_types or 'dolacz' in raw_event_types:
+        if 'join' in raw_event_types or 'dołącz' in raw_event_types or 'dolacz' in raw_event_types:
             event_types.append('joined')
-        elif (
+        if (
                 'leave' in raw_event_types or 'left' in raw_event_types or 'odejście' in raw_event_types or
                 'odejscie' in raw_event_types or 'odszed' in raw_event_types or 'odesz' in raw_event_types
         ):
