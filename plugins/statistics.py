@@ -34,9 +34,9 @@ class Report:
 
     plt.style.use('dark_background')
 
-    Message = namedtuple(
-        'Message', ('message_id', 'author_id', 'channel_id', 'local_datetime', 'word_count', 'character_count')
-    )
+    Message = namedtuple('Message', (
+        'message_id', 'author_id', 'channel_id', 'naive_datetime', 'local_datetime', 'word_count', 'character_count'
+    ))
 
     def __init__(self, requesting_member: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
         self.total_message_count = 0
@@ -77,11 +77,10 @@ class Report:
                 if server_channel.id not in self.statistics_cache[server.id]:
                     self.statistics_cache[server.id][server_channel.id] = []
             # remove nonexistent channels from the cache
-            existent_channels = map(lambda channel: channel.id, server.text_channels)
-            nonexistent_channels = []
-            for cached_channel in self.statistics_cache[server.id]:
-                if cached_channel not in existent_channels:
-                    nonexistent_channels.append(cached_channel)
+            existent_channels = tuple(map(lambda channel: channel.id, server.text_channels))
+            nonexistent_channels = [
+                server_id for server_id in self.statistics_cache[server.id].keys() if server_id not in existent_channels
+            ]
             for nonexistent_channel in nonexistent_channels:
                 self.statistics_cache[server.id].pop(nonexistent_channel)
         elif channel.id not in self.statistics_cache[server.id]:
@@ -112,17 +111,20 @@ class Report:
 
     async def _update_statistics_cache_for_channel(self, channel: discord.TextChannel):
         try:
-            async for message in channel.history(limit=None):
+            if self.statistics_cache[channel.guild.id][channel.id]:
+                after = self.statistics_cache[channel.guild.id][channel.id][-1].naive_datetime
+            else:
+                after = None
+            cache_update = []
+            async for message in channel.history(limit=None, after=after):
                 if message.type == discord.MessageType.default:
                     message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
                     message_tuple = self.Message(
-                        message.id, message.author.id, message.channel.id, message_local_datetime,
-                        len(message.clean_content.split()), len(message.clean_content)
+                        message.id, message.author.id, message.channel.id, message.created_at,
+                        message_local_datetime, len(message.clean_content.split()), len(message.clean_content)
                     )
-                    if message_tuple in self.statistics_cache[channel.guild.id][channel.id]:
-                        break
-                    else:
-                        self.statistics_cache[channel.guild.id][channel.id].append(message_tuple)
+                    cache_update.append(message_tuple)
+            self.statistics_cache[channel.guild.id][channel.id] += reversed(cache_update)
         except discord.Forbidden:
             pass
 
