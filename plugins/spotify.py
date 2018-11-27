@@ -28,7 +28,19 @@ async def spotify(ctx, member: discord.Member = None):
     if member is None:
         member = ctx.author
 
-    if isinstance(member.activity, discord.activity.Spotify):
+    spotify_activity = None
+    for activity in member.activities:
+        if isinstance(activity, discord.activity.Spotify):
+            spotify_activity = activity
+            break
+
+    if spotify_activity is None:
+        embed = discord.Embed(
+            title=':stop_button: W tym momencie '
+            f'{"nie słuchasz" if member == ctx.author else f"{member.display_name} nie słucha"} niczego na Spotify',
+            color=somsiad.color
+        )
+    else:
         embed = discord.Embed(
             title=f':arrow_forward: {member.activity.title}',
             url=f'https://open.spotify.com/track/{member.activity.track_id}',
@@ -60,12 +72,6 @@ async def spotify(ctx, member: discord.Member = None):
             text='Spotify',
             icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/'
             'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
-        )
-    else:
-        embed = discord.Embed(
-            title=':stop_button: W tym momencie '
-            f'{"nie słuchasz" if member == ctx.author else f"{member.display_name} nie słucha"} niczego na Spotify',
-            color=somsiad.color
         )
 
     await ctx.send(f'{ctx.author.mention}', embed=embed)
