@@ -51,7 +51,7 @@ async def vote(
     if isinstance(duration, dt.datetime) and now_datetime < duration <= now_datetime + dt.timedelta(days=7):
         results_datetime = duration
         results_and_now_timedelta = results_datetime - now_datetime
-        seconds = results_and_now_timedelta.days * 86400 + results_and_now_timedelta.seconds
+        seconds = results_and_now_timedelta.total_seconds()
         hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
