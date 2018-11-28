@@ -271,28 +271,29 @@ async def on_guild_remove(server):
 @somsiad.bot.event
 async def on_command_error(ctx, error):
     """Handles command errors."""
-    ignored_errors = (discord.ext.commands.CommandNotFound, discord.ext.commands.BadArgument)
-
-    if ctx.command is not None:
-        command_with_prefix = f'{somsiad.conf["command_prefix"]}{ctx.command.qualified_name}'
+    ignored_errors = (
+        discord.ext.commands.CommandNotFound,
+        discord.ext.commands.MissingRequiredArgument,
+        discord.ext.commands.BadArgument
+    )
 
     if isinstance(error, ignored_errors):
         pass
     elif isinstance(error, discord.ext.commands.NoPrivateMessage):
         embed = discord.Embed(
-            title=f':warning: Komenda {command_with_prefix} nie może być użyta '
-            'w prywatnych wiadomościach',
+            title=f':warning: Ta komenda nie może być użyta w prywatnych wiadomościach!',
             color=somsiad.color
         )
         await ctx.send(embed=embed)
     elif isinstance(error, discord.ext.commands.DisabledCommand):
         embed = discord.Embed(
-            title=f':warning: Komenda jest wyłączona',
+            title=f':warning: Ta komenda jest wyłączona!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
     else:
+        prefixed_command_qualified_name = f'{somsiad.conf["command_prefix"]}{ctx.command.qualified_name}'
         somsiad.logger.error(
-            f'Ignoring an exception of type {type(error)} in the {command_with_prefix} command used by {ctx.author} '
-            f'on server {ctx.guild}: {error}'
+            f'Ignoring {type(error).__name__} type exception in {prefixed_command_qualified_name} command '
+            f'used by {ctx.author} (ID {ctx.author.id}) on server {ctx.guild} (ID {ctx.guild.id}): "{error}"'
         )
