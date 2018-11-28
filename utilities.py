@@ -16,6 +16,7 @@ import re
 import json
 import os
 import datetime as dt
+from numbers import Number
 from typing import Union, Dict
 
 
@@ -109,18 +110,18 @@ class TextFormatter:
         return ''.join(time_ago_elements)
 
     @staticmethod
-    def hours_minutes_seconds(total_seconds: Union[int, float]) -> str:
+    def hours_minutes_seconds(total_seconds: Number) -> str:
         information = []
 
         hours = int(total_seconds // 3600)
         minutes = int((total_seconds - hours * 3600) // 60)
         seconds = int(round(total_seconds - hours * 3600 - minutes * 60))
 
-        if hours > 0:
+        if hours >= 1:
             information.append(f'{hours} h')
-        if minutes > 0:
+        if minutes >= 1:
             information.append(f'{minutes} min')
-        if seconds > 0 or total_seconds == 0:
+        if seconds >= 1 or total_seconds == 0:
             information.append(f'{seconds} s')
 
         return ' '.join(information)

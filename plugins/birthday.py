@@ -13,7 +13,7 @@
 
 import datetime as dt
 import discord
-from typing import Union
+from typing import Union, Optional, Sequence, Tuple, Dict
 from somsiad import somsiad
 from server_data import server_data_manager
 from utilities import TextFormatter
@@ -30,7 +30,7 @@ class BirthdayCalendar:
     MONTH_FORMATS = ('%m', '%B', '%b')
 
     @classmethod
-    def _comprehend_date(cls, date_string: str, formats: Union[tuple, list], iteration: int = 0) -> dt.date:
+    def _comprehend_date(cls, date_string: str, formats: Sequence[str], iteration: int = 0) -> dt.date:
         try:
             date_string_elements = date_string.replace('-', ' ').replace('.', ' ').replace('/', ' ').split()
             date = dt.datetime.strptime(" ".join(date_string_elements), formats[iteration]).date()
@@ -72,7 +72,7 @@ class BirthdayCalendar:
         return is_member_registered
 
     @classmethod
-    def get_birthday_date(cls, server: discord.Guild, member: discord.Member) -> Union[dt.date, None]:
+    def get_birthday_date(cls, server: discord.Guild, member: discord.Member) -> Optional[dt.date]:
         """Returns the provided member's birthday or None if the member hasn't set their birthday."""
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
 
@@ -91,7 +91,7 @@ class BirthdayCalendar:
     @classmethod
     def get_members_with_birthday(
             cls, server: discord.Guild, *, year: int = None, month: int = None, day: int = None
-    ) -> list:
+    ) -> Tuple[Dict[str, Union[int, dt.date]]]:
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
 
         condition_strings = []
@@ -116,12 +116,12 @@ class BirthdayCalendar:
             {'user_id': row['user_id'], 'birthday_date': dt.datetime.strptime(row['birthday_date'], '%Y-%m-%d').date()}
             for row in server_data_manager.servers[server.id]['db_cursor'].fetchall()
         )
-        sorted_rows = sorted(rows, key=lambda row: row['birthday_date'])
+        sorted_rows = tuple(sorted(rows, key=lambda row: row['birthday_date']))
 
         return sorted_rows
 
     @classmethod
-    def set_birthday(cls, server: discord.Guild, member: discord.Member, birthday_date: Union[dt.date, None]):
+    def set_birthday(cls, server: discord.Guild, member: discord.Member, birthday_date: Optional[dt.date]):
         if cls.is_member_registered(server, member):
             server_data_manager.servers[server.id]['db_cursor'].execute(
                 'UPDATE birthday SET birthday_date = ? WHERE user_id = ?',
