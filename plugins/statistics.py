@@ -14,8 +14,8 @@
 import io
 import datetime as dt
 import calendar
-from collections import namedtuple
-from typing import Union
+import locale
+from typing import Union, Sequence
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
@@ -34,11 +34,24 @@ class Report:
 
     plt.style.use('dark_background')
 
-    Message = namedtuple('Message', (
-        'message_id', 'author_id', 'channel_id', 'naive_datetime', 'local_datetime', 'word_count', 'character_count'
-    ))
+    class Message:
+        def __init__(
+                self, message_id: int, author_id: int, channel_id: int, local_datetime: dt.datetime, word_count: int,
+                character_count: int
+        ):
+            self.message_id = message_id
+            self.author_id = author_id
+            self.channel_id = channel_id
+            self.local_datetime = local_datetime
+            self.word_count = word_count
+            self.character_count = character_count
+
+        def __eq__(self, other):
+            return self.message_id == other.message_id
+
 
     def __init__(self, requesting_member: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
+        self.messages_cached = 0
         self.total_message_count = 0
         self.total_word_count = 0
         self.total_character_count = 0
@@ -49,10 +62,9 @@ class Report:
         self.active_channels = {}
         self.embed = None
         self.activity_chart_file = None
-        self.datetime = dt.datetime.now()
+        self.init_datetime = dt.datetime.now().astimezone()
         self.requesting_member = requesting_member
         self.subject = subject
-
         if isinstance(subject, discord.Guild):
             self._prepare_active_channels(self.subject)
             self._prepare_messages_over_date(self.subject.created_at)
@@ -66,8 +78,55 @@ class Report:
             self._prepare_active_channels(self.subject.guild)
             self._prepare_messages_over_date(self.subject.joined_at)
 
+    async def analyze_subject(self) -> discord.Embed:
+        """Selects the right type of analysis depending on the subject."""
+        if isinstance(self.subject, discord.Guild):
+            await self._analyze_server()
+        elif isinstance(self.subject, discord.TextChannel):
+            await self._analyze_channel()
+        elif isinstance(self.subject, discord.Member):
+            await self._analyze_member()
+        self._embed_analysis_metastatistics()
+        return self.embed
+
+    def render_activity_chart(self) -> discord.File:
+        """Renders a graph presenting activity of or in the subject over time."""
+        if isinstance(self.subject, discord.Guild):
+            title = f'Aktywność na serwerze {self.subject}'
+        elif isinstance(self.subject, discord.TextChannel):
+            title = f'Aktywność na kanale #{self.subject.name}'
+        elif isinstance(self.subject, discord.Member):
+            title = f'Aktywność użytkownika {self.subject}'
+
+        # Initialize the chart
+        fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3)
+
+        # Make it look nice
+        fig.set_tight_layout(True)
+        ax_by_hour.set_title(title, color=self.FOREGROUND_COLOR, fontsize=13, fontweight='bold', y=1.04)
+
+        # Plot
+        ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
+        ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
+        ax_by_date = self._plot_activity_by_date(ax_by_date)
+
+        # Save as bytes
+        chart_bytes = io.BytesIO()
+        fig.savefig(chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
+        plt.close(fig)
+        chart_bytes.seek(0)
+
+        # Create a Discord file and embed it
+        filename = f'activity-{self.init_datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
+        self.activity_chart_file = discord.File(
+            fp=chart_bytes,
+            filename=filename
+        )
+        self.embed.set_image(url=f'attachment://{filename}')
+
+        return self.activity_chart_file
+
     def _prepare_statistics_cache(self, server: discord.Guild, channel: discord.TextChannel = None):
-        """Prepares the statistics cache."""
         if server.id not in self.statistics_cache:
             self.statistics_cache[server.id] = {}
 
@@ -111,20 +170,18 @@ class Report:
 
     async def _update_statistics_cache_for_channel(self, channel: discord.TextChannel):
         try:
-            if self.statistics_cache[channel.guild.id][channel.id]:
-                after = self.statistics_cache[channel.guild.id][channel.id][-1].naive_datetime
-            else:
-                after = None
-            cache_update = []
-            async for message in channel.history(limit=None, after=after):
+            async for message in channel.history(limit=None):
                 if message.type == discord.MessageType.default:
                     message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-                    message_tuple = self.Message(
-                        message.id, message.author.id, message.channel.id, message.created_at,
-                        message_local_datetime, len(message.clean_content.split()), len(message.clean_content)
+                    message_object = self.Message(
+                        message.id, message.author.id, message.channel.id, message_local_datetime,
+                        len(message.clean_content.split()), len(message.clean_content)
                     )
-                    cache_update.append(message_tuple)
-            self.statistics_cache[channel.guild.id][channel.id] += reversed(cache_update)
+                    if message_object in self.statistics_cache[channel.guild.id][channel.id]:
+                        break
+                    else:
+                        self.statistics_cache[channel.guild.id][channel.id].append(message_object)
+                        self.messages_cached += 1
         except discord.Forbidden:
             pass
 
@@ -137,7 +194,7 @@ class Report:
         else:
             await self._update_statistics_cache_for_channel(channel)
 
-    def _update_message_stats(self, message: namedtuple):
+    def _update_message_stats(self, message: Message):
         """Updates message statistics."""
         self.total_message_count += 1
         self.total_word_count += message.word_count
@@ -145,17 +202,17 @@ class Report:
         self.messages_over_hour[message.local_datetime.hour] += 1
         self.messages_over_weekday[message.local_datetime.weekday()] += 1
         try:
-            self.messages_over_date[message.local_datetime.date().isoformat()] += 1
+            self.messages_over_date[message.local_datetime.strftime('%Y-%m-%d')] += 1
         except KeyError:
             pass
 
-    def _update_active_channels(self, message: namedtuple):
+    def _update_active_channels(self, message: Message):
         """Updates the dictionary of active channels."""
         self.active_channels[message.channel_id]['message_count'] += 1
         self.active_channels[message.channel_id]['word_count'] += message.word_count
         self.active_channels[message.channel_id]['character_count'] += message.character_count
 
-    def _update_active_users(self, message: namedtuple):
+    def _update_active_users(self, message: Message):
         """Updates the dictionary of active users."""
         if message.author_id not in self.active_users:
             self.active_users[message.author_id] = {
@@ -190,16 +247,14 @@ class Report:
         ]
 
         top_active_channels = []
-        rank = 1
-        for channel in filtered_sorted_active_channels[:5]:
-            if channel['message_count'] > 0:
+        for channel in enumerate(filtered_sorted_active_channels[:5]):
+            if channel[1]['message_count'] > 0:
                 top_active_channels.append(
-                    f'{rank}. {channel["channel"].mention} – '
-                    f'{TextFormatter.word_number_variant(channel["message_count"], "wiadomość", "wiadomości")}, '
-                    f'{TextFormatter.word_number_variant(channel["word_count"], "słowo", "słowa", "słów")}, '
-                    f'{TextFormatter.word_number_variant(channel["character_count"], "znak", "znaki", "znaków")}'
+                    f'{channel[0]+1}. {channel[1]["channel"].mention} – '
+                    f'{TextFormatter.word_number_variant(channel[1]["message_count"], "wiadomość", "wiadomości")}, '
+                    f'{TextFormatter.word_number_variant(channel[1]["word_count"], "słowo", "słowa", "słów")}, '
+                    f'{TextFormatter.word_number_variant(channel[1]["character_count"], "znak", "znaki", "znaków")}'
                 )
-                rank += 1
         if top_active_channels:
             field_name = (
                 'Najaktywniejszy na kanałach' if isinstance(self.subject, discord.Member) else 'Najaktywniejsze kanały'
@@ -213,15 +268,13 @@ class Report:
             list(self.active_users.values()), key=lambda active_user: active_user['message_count'], reverse=True
         )
         top_active_users = []
-        rank = 1
-        for active_user in sorted_active_users[:5]:
+        for active_user in enumerate(sorted_active_users[:5]):
             top_active_users.append(
-                f'{rank}. <@{active_user["author_id"]}> – '
-                f'{TextFormatter.word_number_variant(active_user["message_count"], "wiadomość", "wiadomości")}, '
-                f'{TextFormatter.word_number_variant(active_user["word_count"], "słowo", "słowa", "słów")}, '
-                f'{TextFormatter.word_number_variant(active_user["character_count"], "znak", "znaki", "znaków")}'
+                f'{active_user[0]+1}. <@{active_user[1]["author_id"]}> – '
+                f'{TextFormatter.word_number_variant(active_user[1]["message_count"], "wiadomość", "wiadomości")}, '
+                f'{TextFormatter.word_number_variant(active_user[1]["word_count"], "słowo", "słowa", "słów")}, '
+                f'{TextFormatter.word_number_variant(active_user[1]["character_count"], "znak", "znaki", "znaków")}'
             )
-            rank += 1
         if top_active_users:
             top_active_users_string = '\n'.join(top_active_users)
             self.embed.add_field(name='Najaktywniejsi użytkownicy', value=top_active_users_string, inline=False)
@@ -271,10 +324,6 @@ class Report:
         self._embed_message_stats()
         self._embed_top_active_users()
 
-    async def _is_message_by_subject(self, message: discord.Message) -> bool:
-        """Channel history filter predicate. Used for filtering out messages sent by users that are not our subject."""
-        return message.author == self.subject
-
     async def _analyze_member(self):
         """Analyzes the subject as a member."""
         await self._update_statistics_cache(self.subject.guild)
@@ -295,6 +344,15 @@ class Report:
         )
         self._embed_message_stats()
         self._embed_top_active_channels()
+
+    def _embed_analysis_metastatistics(self):
+        analysis_time = dt.datetime.now().astimezone() - self.init_datetime
+        self.embed.set_footer(
+            text=f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s. Zbuforowano '
+            f'''{TextFormatter.word_number_variant(
+                self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
+            )}.'''
+        )
 
     def _plot_activity_by_hour(self, ax):
         # Plot the chart
@@ -422,52 +480,6 @@ class Report:
         ax.set_xlabel('Data', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
         return ax
-
-    async def analyze_subject(self):
-        """Selects the right type of analysis depending on the subject."""
-        if isinstance(self.subject, discord.Guild):
-            await self._analyze_server()
-        elif isinstance(self.subject, discord.TextChannel):
-            await self._analyze_channel()
-        elif isinstance(self.subject, discord.Member):
-            await self._analyze_member()
-
-    def render_activity_chart(self) -> discord.File:
-        """Renders a graph presenting activity of or in the subject over time."""
-        if isinstance(self.subject, discord.Guild):
-            title = f'Aktywność na serwerze {self.subject}'
-        elif isinstance(self.subject, discord.TextChannel):
-            title = f'Aktywność na kanale #{self.subject.name}'
-        elif isinstance(self.subject, discord.Member):
-            title = f'Aktywność użytkownika {self.subject}'
-
-        # Initialize the chart
-        fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3)
-
-        # Make it look nice
-        fig.set_tight_layout(True)
-        ax_by_hour.set_title(title, color=self.FOREGROUND_COLOR, fontsize=13, fontweight='bold', y=1.04)
-
-        # Plot
-        ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
-        ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
-        ax_by_date = self._plot_activity_by_date(ax_by_date)
-
-        # Save as bytes
-        chart_bytes = io.BytesIO()
-        fig.savefig(chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
-        plt.close(fig)
-        chart_bytes.seek(0)
-
-        # Create a Discord file and embed it
-        filename = f'activity-{self.datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
-        self.activity_chart_file = discord.File(
-            fp=chart_bytes,
-            filename=filename
-        )
-        self.embed.set_image(url=f'attachment://{filename}')
-
-        return self.activity_chart_file
 
 
 @somsiad.bot.group(invoke_without_command=True, case_insensitive=True)
