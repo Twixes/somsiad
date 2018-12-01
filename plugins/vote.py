@@ -92,7 +92,9 @@ async def vote(
 
         try:
             message_final = await ctx.channel.get_message(message.id)
-
+        except discord.NotFound:
+            pass
+        else:
             results = {reaction.emoji: reaction.count for reaction in message_final.reactions}
 
             if results["✅"] > results["🔴"]:
@@ -115,8 +117,6 @@ async def vote(
 
             await message_final.edit(embed=embed_results)
             await ctx.send(ctx.author.mention, embed=embed_results)
-        except discord.NotFound:
-            pass
 
 
 @vote.error

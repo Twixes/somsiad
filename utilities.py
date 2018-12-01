@@ -373,9 +373,10 @@ class Setting:
             else:
                 try:
                     self.set_value(input_buffer)
-                    break
                 except ValueError:
                     print(f'Podana wartość nie pasuje do typu {self._value_type}!')
                     continue
+                else:
+                    break
 
         return self.value

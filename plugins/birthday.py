@@ -31,14 +31,15 @@ class BirthdayCalendar:
 
     @classmethod
     def _comprehend_date(cls, date_string: str, formats: Sequence[str], iteration: int = 0) -> dt.date:
+        date_string_elements = date_string.replace('-', ' ').replace('.', ' ').replace('/', ' ').split()
         try:
-            date_string_elements = date_string.replace('-', ' ').replace('.', ' ').replace('/', ' ').split()
             date = dt.datetime.strptime(" ".join(date_string_elements), formats[iteration]).date()
-            return date
         except ValueError:
             return cls._comprehend_date(date_string, formats, iteration+1)
         except IndexError:
             raise ValueError
+        else:
+            return date
 
     @staticmethod
     def calculate_age(birthday_date: dt.date):
@@ -202,10 +203,13 @@ async def birthday_error(ctx, error):
 @discord.ext.commands.guild_only()
 async def birthday_remember(ctx, *, raw_date_string):
     try:
+        date = BirthdayCalendar.comprehend_date_without_year(raw_date_string)
+    except ValueError:
         try:
-            date = BirthdayCalendar.comprehend_date_without_year(raw_date_string)
-        except ValueError:
             date = BirthdayCalendar.comprehend_date_with_year(raw_date_string)
+        except ValueError:
+            raise discord.ext.commands.BadArgument
+        else:
             if date.year <= 1900:
                 embed = discord.Embed(
                     title=f':warning: Podaj współczesną datę urodzin!',
@@ -219,22 +223,19 @@ async def birthday_remember(ctx, *, raw_date_string):
                 )
                 return await ctx.send(ctx.author.mention, embed=embed)
 
+    BirthdayCalendar.set_birthday(ctx.guild, ctx.author, date)
 
-        BirthdayCalendar.set_birthday(ctx.guild, ctx.author, date)
+    if date.year == 1900:
+        date_string = date.strftime('%-d %B')
+    else:
+        date_string = date.strftime('%-d %B %Y')
 
-        if date.year == 1900:
-            date_string = date.strftime('%-d %B')
-        else:
-            date_string = date.strftime('%-d %B %Y')
+    embed = discord.Embed(
+        title=f':white_check_mark: Ustawiono twoją datę urodzin na {date_string}',
+        color=somsiad.color
+    )
 
-        embed = discord.Embed(
-            title=f':white_check_mark: Ustawiono twoją datę urodzin na {date_string}',
-            color=somsiad.color
-        )
-
-        return await ctx.send(ctx.author.mention, embed=embed)
-    except ValueError:
-        raise discord.ext.commands.BadArgument
+    return await ctx.send(ctx.author.mention, embed=embed)
 
 
 @birthday_remember.error
