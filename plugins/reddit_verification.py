@@ -782,7 +782,7 @@ async def verification_role(ctx, *, role: discord.Role = None):
     if role is None:
         verifier.set_discord_server_setting(ctx.guild.id, 'verified_role_id', None)
         embed = discord.Embed(
-            title=':white_check_mark: Wyłączono przyznawanie roli zweryfikowanym użytkownikom',
+            title=':red_circle: Wyłączono przyznawanie roli zweryfikowanym użytkownikom',
             color=somsiad.color
         )
     else:
