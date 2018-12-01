@@ -163,14 +163,11 @@ async def oof_server(ctx):
     total_oofs = 0 if total_oofs is None else total_oofs
 
     top_oofers = []
-    rank = 1
-    for oofer in oofers[:5]:
-        oofer_user = ctx.bot.get_user(oofer['user_id'])
+    for oofer in enumerate(oofers[:5]):
         top_oofers.append(
-            f'{rank}. {oofer_user.mention} – '
-            f'{TextFormatter.word_number_variant(oofer["oofs"], "oofnięcie", "oofnięcia", "oofnięć")}'
+            f'{oofer[0]+1}. <@{oofer[1]["user_id"]}> – '
+            f'{TextFormatter.word_number_variant(oofer[1]["oofs"], "oofnięcie", "oofnięcia", "oofnięć")}'
         )
-        rank += 1
     top_oofers_string = '\n'.join(top_oofers)
 
     embed = discord.Embed(
