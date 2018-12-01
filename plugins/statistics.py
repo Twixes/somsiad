@@ -15,7 +15,7 @@ import io
 import datetime as dt
 import calendar
 import locale
-from typing import Union, Sequence
+from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
@@ -47,7 +47,10 @@ class Report:
             self.character_count = character_count
 
         def __eq__(self, other):
-            return self.message_id == other.message_id
+            try:
+                return self.message_id == other.message_id
+            except AttributeError:
+                return False
 
 
     def __init__(self, requesting_member: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
@@ -348,7 +351,7 @@ class Report:
     def _embed_analysis_metastatistics(self):
         analysis_time = dt.datetime.now().astimezone() - self.init_datetime
         self.embed.set_footer(
-            text=f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s. Zbuforowano '
+            text=f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s buforując '
             f'''{TextFormatter.word_number_variant(
                 self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
             )}.'''
