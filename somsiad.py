@@ -32,12 +32,6 @@ class Somsiad:
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
 
-    logger = None
-    configurator = None
-    bot = None
-    user_converter = None
-    member_converter = None
-
     message_autodestruction_time_in_seconds = 5
     message_autodestruction_notice = (
         'Ta wiadomość ulegnie autodestrukcji w ciągu '
@@ -82,7 +76,6 @@ class Somsiad:
         )
         self.bot.remove_command('help') # Replaced with the 'help_direct' plugin
         self.member_converter = discord.ext.commands.MemberConverter()
-        self.user_converter = discord.ext.commands.UserConverter()
 
     def run(self):
         """Launches the bot."""
