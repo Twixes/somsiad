@@ -94,7 +94,7 @@ class Somsiad:
     def invite_url(self):
         """Returns the invitation URL of the bot."""
         try:
-            return discord.utils.oauth_url(self.bot.user.id, discord.Permissions(536083543))
+            return discord.utils.oauth_url(self.bot.user.id, discord.Permissions(305392727))
         except discord.errors.ClientException:
             return None
 
