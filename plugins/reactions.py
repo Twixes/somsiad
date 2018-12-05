@@ -157,3 +157,13 @@ async def upvote(ctx, member: discord.Member = None):
 async def thinking(ctx, member: discord.Member = None):
     """Reacts with "🤔"."""
     await Reactor.react(ctx, '🤔', member)
+
+
+@somsiad.bot.command()
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def f(ctx, member: discord.Member = None):
+    """Reacts with "F"."""
+    await Reactor.react(ctx, 'f', member)
