@@ -58,12 +58,13 @@ class Helper:
             embeds.append(discord.Embed(title='Lecem na ratunek!', color=somsiad.color))
             embeds[0].add_field(
                 name='Dobry!',
-                value='Somsiad jestem. Na co dzień pomagam ludziom w różnych kwestiach. '
+                value='Somsiad jestem. Pomagam ludziom w różnych kwestiach. '
                 'By skorzystać z mojej pomocy wystarczy wysłać komendę w miejscu, w którym będę mógł ją zobaczyć. '
                 'Lista komend wraz z ich opisami znajduje się poniżej.\n'
-                'W nawiasach okrągłych podane są alternatywne nazwy komend – tak dla różnorodności.\n'
-                'W nawiasach ostrokątnych podane są argumenty komend. Jeśli na początku nazwy argumentu jest pytajnik, '
-                'oznacza to, że jest to argument opcjonalny.',
+                'W nawiasach okrągłych podane są alternatywne nazwy komend.\n'
+                'W nawiasach ostrokątnych podane są argumenty komend. Jeśli przed nazwą argumentu jest pytajnik, '
+                'oznacza to, że jest to argument opcjonalny.\n'
+                'Gdybyś chciał dowiedzieć się o mnie więcej, wejdź na https://somsiad.twixes.com/.',
                 inline=False
             )
         else:
