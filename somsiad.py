@@ -222,7 +222,7 @@ async def no(ctx, member: discord.Member = None):
                 break
 
 
-@somsiad.bot.command(aliases=['wersja'])
+@somsiad.bot.command(aliases=['wersja', 'v'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
