@@ -18,8 +18,8 @@ then
     if ! test -d $(dirname "$BASH_SOURCE")/somsiad_env
     then
         echo Tworzenie środowiska wirtualnego...
-        python3 -m venv $(dirname "$BASH_SOURCE")/somsiad_env
     fi
+    python3 -m venv $(dirname "$BASH_SOURCE")/somsiad_env
     source $(dirname "$BASH_SOURCE")/somsiad_env/bin/activate
     echo Spełnianie zależności...
     pip3 install -q -U pip
