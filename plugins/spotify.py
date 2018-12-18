@@ -43,7 +43,7 @@ async def spotify(ctx, member: discord.Member = None):
     else:
         embed = discord.Embed(
             title=f':arrow_forward: {member.activity.title}',
-            url=f'https://open.spotify.com/track/{member.activity.track_id}',
+            url=f'https://open.spotify.com/go?uri=spotify:track:{member.activity.track_id}',
             color=somsiad.color
         )
         embed.set_thumbnail(url=member.activity.album_cover_url)
