@@ -55,7 +55,7 @@ class Helper:
     def generate_general_embed(cls, commands: Union[list, tuple], embeds: List[discord.Embed] = None) -> discord.Embed:
         if embeds is None:
             embeds = []
-            embeds.append(discord.Embed(title='Lecem na ratunek!', color=somsiad.color))
+            embeds.append(discord.Embed(color=somsiad.color))
             embeds[0].add_field(
                 name='Dobry!',
                 value='Somsiad jestem. Pomagam ludziom w różnych kwestiach. '
@@ -198,6 +198,12 @@ commands = (
     Helper.Command(
         ('niepomógł', 'niepomogl'), '?użytkownik Discorda', 'Oznacza niepomocną wiadomość za pomocą reakcji.'
     ),
+    Helper.Command(
+        ('hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', 'thinking', '🤔'),
+        '?użytkownik Discorda', '🤔'
+    ),
+    Helper.Command(('^', 'to', 'this', 'up', 'upvote'), '?użytkownik Discorda', '⬆'),
+    Helper.Command('f', '?użytkownik Discorda', 'F'),
     Helper.Command(
         ('zareaguj', 'x'), ('?użytkownik Discorda', 'reakcje'),
         'Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
