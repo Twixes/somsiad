@@ -136,17 +136,17 @@ async def didnothelp(ctx, member: discord.Member = None):
     await Reactor.react(ctx, 'niepomógł', member)
 
 
-@somsiad.bot.command(aliases=['^'])
+@somsiad.bot.command(aliases=['^', 'to', 'up', 'upvote'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def upvote(ctx, member: discord.Member = None):
+async def this(ctx, member: discord.Member = None):
     """Reacts with "⬆"."""
     await Reactor.react(ctx, '⬆', member)
 
 
-@somsiad.bot.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', '🤔'])
+@somsiad.bot.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
