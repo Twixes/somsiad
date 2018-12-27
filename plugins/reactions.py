@@ -85,9 +85,8 @@ class Reactor:
         If no member was specified, adds emojis to the last non-command message sent in the given channel.
         """
         clean_characters = cls._clean_characters(ctx, characters)
-        history = ctx.history(limit=15)
-        if member is not None:
-            async for message in history:
+        if member is not None and member != ctx.author:
+            async for message in ctx.history(limit=15):
                 if message.author == member:
                     for reaction in clean_characters:
                         try:
@@ -96,14 +95,12 @@ class Reactor:
                             pass
                     break
         else:
-            async for message in history:
-                if message.author != ctx.author:
-                    for reaction in clean_characters:
-                        try:
-                            await message.add_reaction(reaction)
-                        except discord.HTTPException:
-                            pass
-                    break
+            messages = await ctx.history(limit=2).flatten()
+            for reaction in clean_characters:
+                try:
+                    await messages[1].add_reaction(reaction)
+                except discord.HTTPException:
+                    pass
 
 
 @somsiad.bot.command(aliases=['zareaguj', 'x'])
