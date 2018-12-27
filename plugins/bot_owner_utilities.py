@@ -126,5 +126,6 @@ async def shutdown(ctx):
         color=somsiad.color
     )
     await ctx.send(ctx.author.mention, embed=embed)
+    print(f'Zatrzymuję działanie programu na żądanie {ctx.author}...')
     await ctx.bot.close()
     exit()
