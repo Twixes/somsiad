@@ -372,7 +372,7 @@ async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types:
             entry_info = [str(entry).capitalize(), entry.local_datetime.strftime("%-d %B %Y o %H:%M")]
             if entry.channel is not None:
                 entry_info.append(f'#{entry.channel}')
-            if entry.executing_user is not None and entry.executing_user != entry.subject_user:
+            if entry.executing_user is not None:
                 entry_info.append(str(entry.executing_user))
             embed.add_field(
                 name=" – ".join(entry_info),
