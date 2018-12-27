@@ -4,6 +4,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Funkcje  
 
+* odtwarzanie muzyki na czacie głosowym
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
 * Magic 8-Ball  
 * wybieranie jednej z podanych opcji
@@ -23,10 +24,13 @@ Polski bot discordowy. Napisany w Pythonie.
 * wymiana walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
 * sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
 * weryfikacja konta na [Reddicie](https://www.reddit.com/)  
+* rozpoczynanie głosowań z opcją opublikowania wyników po określonym czasie
+* obliczanie wartości wyrażeń matematycznych  
 * zapamiętywanie urodzin użytkowników serwera  
 * statystyki serwera/kanału/użytkownika (wraz z generowaniem wykresu aktywności)  
 * funkcje moderacyjne: ostrzeganie, wyrzucanie, banowanie  
-* archiwizacja przypiętych wiadomości  
+* rejestrowanie zdarzeń związanych z członkami serwera (ostrzeżenia, wyrzucenia, bany, dołączenia, opuszczenia)  
+* archiwizacja przypiętych wiadomości do wyznaczego kanału  
 
 ## Wymagania  
 
@@ -101,6 +105,7 @@ The Polish Discord bot. Written in Python.
 
 ## Features  
 
+* music playback over voice chat
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
 * Magic 8-Ball  
 * choosing one of provided options
@@ -115,15 +120,18 @@ The Polish Discord bot. Written in Python.
 * [OMDb](https://www.omdbapi.com/) movie and TV show search  
 * [goodreads](https://www.goodreads.com) book search  
 * sharing the song currently played on Spotify  
-* sharing the song currently or recently played with Last.fm  
+* sharing the song currently or previously played with Last.fm  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
 * currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
 * website status check powered by [isitup.org](https://isitup.org)  
 * [Reddit](https://www.reddit.com/) account verification  
+* vote commencement with optional publication of results after a specified amount of time
+* calculation of mathematical expressions  
 * remembering birthdays of server members  
 * server/channel/user statistics (with activity chart generation)  
 * moderation commands: warn, kick, ban  
-* archivization of pinned messages  
+* recording of server member events (warnings, kicks, bans, joinings, leavings)  
+* archivization of pinned messages to a specified channel  
 
 ## Prerequisites  
 
