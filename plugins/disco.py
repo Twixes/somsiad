@@ -14,6 +14,7 @@
 import os
 import locale
 from typing import Optional, Union, Dict, Any
+from numbers import Number
 import discord
 import youtube_dl
 from somsiad import somsiad
@@ -118,11 +119,12 @@ class DiscoManager:
 
         return embed
 
-    def server_change_volume(self, server: discord.Guild, volume: float):
-        self.servers[server.id]['volume'] = float(volume)
+    def server_change_volume(self, server: discord.Guild, volume_percentage: Number):
+        volume_float = abs(float(volume_percentage)) / 100
+        self.servers[server.id]['volume'] = volume_float
 
         if self.servers[server.id]['song_audio']:
-            self.servers[server.id]['song_audio'].volume = volume
+            self.servers[server.id]['song_audio'].volume = volume_float
 
     @staticmethod
     def _generate_song_embed(voice_channel: discord.VoiceChannel, query: str, song_info: dict) -> discord.Embed:
@@ -197,7 +199,7 @@ async def disco(ctx):
         Helper.Command(('wznów', 'wznow'), None, 'Wznawia odtwarzanie utworu.'),
         Helper.Command(('pomiń', 'pomin'), None, 'Pomija obecnie odtwarzany utwór.'),
         Helper.Command(
-            ('głośność', 'glosnosc', 'volume', 'vol'), '?nowa głośność, gdzie 1 to 100%',
+            ('głośność', 'glosnosc', 'volume', 'vol'), '?nowa głośność w procentach',
             'Sprawdza głośność odtwarzania lub, jeśli podano <?nową głośność>, ustawia ją.'
         ),
         Helper.Command(('rozłącz', 'rozlacz', 'stop'), None, 'Rozłącza z kanału głosowego.'),
@@ -396,14 +398,14 @@ async def disco_disconnect(ctx):
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
-async def disco_volume(ctx, volume: Union[float, locale.atof] = None):
+async def disco_volume(ctx, volume_percentage: Union[int, locale.atoi] = None):
     """Sets the volume."""
     disco_manager.ensure_server_registration(ctx.guild)
 
-    if volume is None:
+    if volume_percentage is None:
         embed = discord.Embed(
             title=':level_slider: Głośność ustawiona jest na '
-            f'{round(abs(disco_manager.servers[ctx.guild.id]["volume"] * 100))}%',
+            f'{int(disco_manager.servers[ctx.guild.id]["volume"] * 100)}%',
             color=somsiad.color
         )
     else:
@@ -416,9 +418,10 @@ async def disco_volume(ctx, volume: Union[float, locale.atof] = None):
                 color=somsiad.color
             )
         else:
-            disco_manager.server_change_volume(ctx.guild, abs(round(volume, 2)))
+            disco_manager.server_change_volume(ctx.guild, volume_percentage)
             embed = discord.Embed(
-                title=f':level_slider: Ustawiono głośność na {round(abs(volume * 100))}%',
+                title=':level_slider: Ustawiono głośność na '
+                f'{int(disco_manager.servers[ctx.guild.id]["volume"] * 100)}%',
                 color=somsiad.color
             )
     await ctx.send(ctx.author.mention, embed=embed)
@@ -426,9 +429,9 @@ async def disco_volume(ctx, volume: Union[float, locale.atof] = None):
 
 @disco_volume.error
 async def disco_volume_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
+    if isinstance(error, discord.ext.commands.BadUnionArgument):
         embed = discord.Embed(
-            title=f':warning: Podana wartość nie jest liczbą!',
+            title=f':warning: Podana wartość nie jest liczbą całkowitą!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
