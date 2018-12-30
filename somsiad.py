@@ -166,13 +166,17 @@ ADDITIONAL_REQUIRED_SETTINGS = (
     ),
     Setting(
         'reddit_account_min_age_in_days', description='Minimalny wiek weryfikowanego konta na Reddicie',
-        input_instruction='Wprowadź minimalny wiek weryfikowanego konta na Reddicie w dniach',
-        unit=('dzień', 'dni'), value_type='int', default_value=14
+        input_instruction='Wprowadź minimalny wiek weryfikowanego konta na Reddicie w dniach', unit=('dzień', 'dni'),
+        value_type='int', default_value=14
     ),
     Setting(
         'reddit_account_min_karma', description='Minimalna karma weryfikowanego konta na Reddicie',
-        input_instruction='Wprowadź minimalną karmę weryfikowanego konta na Reddicie', value_type='int',
-        default_value=0
+        input_instruction='Wprowadź minimalną karmę weryfikowanego konta na Reddicie', value_type='int', default_value=0
+    ),
+    Setting(
+        'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco',
+        input_instruction='Wprowadź maksymalny rozmiar pliku utworu disco', unit='MiB', value_type='int',
+        default_value=16
     )
 )
 

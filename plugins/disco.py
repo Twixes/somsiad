@@ -38,10 +38,10 @@ class DiscoManager:
         'format': 'bestaudio[ext=mp3]/bestaudio[ext=m4a]',
         'extractaudio': True,
         'nocheckcertificate': True,
-        'ignoreerrors': False,
+        'ignoreerrors': True,
         'quiet': True,
         'no_warnings': True,
-        'max_filesize': 16777216,
+        'max_filesize': somsiad.conf['disco_max_file_size_in_mib'] * 2 ** 20,
         'outtmpl': os.path.join(_CACHE_DIR_PATH, '%(id)s'),
         'default_search': 'auto'
     }
@@ -81,8 +81,9 @@ class DiscoManager:
 
     async def channel_play_song(self, voice_channel: discord.VoiceChannel, query: str) -> Optional[dict]:
         await self.channel_connect(voice_channel)
-        try:
-            song_info = self._youtube_dl.extract_info(query, download=False)
+        song_info = self._youtube_dl.extract_info(query, download=False)
+
+        if song_info is not None:
 
             if 'search' in song_info['extractor']:
                 song_filename = song_info["entries"][0]["id"]
@@ -107,13 +108,15 @@ class DiscoManager:
                     song_audio.cleanup()
 
                 voice_channel.guild.voice_client.play(self.servers[voice_channel.guild.id]['song_audio'], after=after)
+
+                song_status = 2 # means that song can be played
             else:
-                song_info = []
-        except youtube_dl.utils.DownloadError:
-            song_info = None
+                song_status = 1 # means that file size limit was exceeded
+        else:
+            song_status = 0 # means that no song was found
 
         embed = self._generate_song_embed(
-            voice_channel, query, song_info
+            voice_channel, query, song_status, song_info
         )
         disco_manager.servers[voice_channel.guild.id]['song_url'] = embed.url
 
@@ -127,15 +130,18 @@ class DiscoManager:
             self.servers[server.id]['song_audio'].volume = volume_float
 
     @staticmethod
-    def _generate_song_embed(voice_channel: discord.VoiceChannel, query: str, song_info: dict) -> discord.Embed:
-        if song_info is None:
+    def _generate_song_embed(
+            voice_channel: discord.VoiceChannel, query: str, song_status: int, song_info: dict
+    ) -> discord.Embed:
+        if song_status == 0:
             embed = discord.Embed(
                 title=f':slight_frown: Brak wyników dla zapytania "{query}"',
                 color=somsiad.color
             )
-        elif not song_info:
+        elif song_status == 1:
             embed = discord.Embed(
-                title=f':slight_frown: Znaleziony plik jest zbyt duży',
+                title=':slight_frown: Znaleziony utwór przekracza limit rozmiaru wynoszący '
+                f'{somsiad.conf["disco_max_file_size_in_mib"]} MiB',
                 color=somsiad.color
             )
         else:
