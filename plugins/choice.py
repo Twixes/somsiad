@@ -30,7 +30,7 @@ async def random_choice(ctx, *, raw_options = ''):
     """Randomly chooses one of provided options."""
     options_words = []
     for word in raw_options.strip('?').split():
-        if word.lower() in (';', 'or', 'czy', 'albo', 'lub'):
+        if word.lower() in (';', '|', 'or', 'czy', 'albo', 'lub'):
             options_words.append(',')
         else:
             options_words.append(word)
@@ -46,7 +46,7 @@ async def random_choice(ctx, *, raw_options = ''):
         else:
             chosen_option = random.choice(options)
         answer = random.choice(choice_answers).format(chosen_option)
-        await ctx.send(f'{ctx.author.mention}\n:point_right: {answer}')
+        await ctx.send(f'{ctx.author.mention}\n{answer}')
     else:
         await ctx.send(
             f'{ctx.author.mention}\nChętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych '
