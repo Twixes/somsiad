@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union
+from typing import Optional, Sequence
 import discord
 from somsiad import somsiad
 
@@ -45,7 +45,7 @@ class Reactor:
             return character
 
     @classmethod
-    def _convert_ascii_character(cls, character: str, characters: Union[str, list] = '') -> str:
+    def _convert_ascii_character(cls, character: str, characters: Sequence[str] = '') -> str:
         """Converts ASCII characters to Unicode emojis."""
         if isinstance(character, str) and character in cls.ASCII_CHARACTERS:
             if cls.ASCII_CHARACTERS[character][0] not in characters:
@@ -81,14 +81,19 @@ class Reactor:
 
     @classmethod
     async def react(cls, ctx: discord.ext.commands.Context, characters: str, member: discord.Member = None):
+        """Converts the provided string to emojis and reacts with them."""
+        clean_characters = cls._clean_characters(ctx, characters)
+        await cls.raw_react(ctx, clean_characters, member)
+
+    @classmethod
+    async def raw_react(cls, ctx: discord.ext.commands.Context, characters: str, member: discord.Member = None):
         """Adds provided emojis to the specified member's last non-command message in the form of reactions.
         If no member was specified, adds emojis to the last non-command message sent in the given channel.
         """
-        clean_characters = cls._clean_characters(ctx, characters)
         if member is not None and member != ctx.author:
             async for message in ctx.history(limit=15):
                 if message.author == member:
-                    for reaction in clean_characters:
+                    for reaction in characters:
                         try:
                             await message.add_reaction(reaction)
                         except discord.HTTPException:
@@ -96,7 +101,7 @@ class Reactor:
                     break
         else:
             messages = await ctx.history(limit=2).flatten()
-            for reaction in clean_characters:
+            for reaction in characters:
                 try:
                     await messages[1].add_reaction(reaction)
                 except discord.HTTPException:
@@ -143,7 +148,7 @@ async def didnothelp(ctx, member: discord.Member = None):
 @discord.ext.commands.guild_only()
 async def this(ctx, member: discord.Member = None):
     """Reacts with "⬆"."""
-    await Reactor.react(ctx, '⬆', member)
+    await Reactor.raw_react(ctx, '⬆', member)
 
 
 @somsiad.bot.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
@@ -153,7 +158,7 @@ async def this(ctx, member: discord.Member = None):
 @discord.ext.commands.guild_only()
 async def thinking(ctx, member: discord.Member = None):
     """Reacts with "🤔"."""
-    await Reactor.react(ctx, '🤔', member)
+    await Reactor.raw_react(ctx, '🤔', member)
 
 
 @somsiad.bot.command()
@@ -163,4 +168,13 @@ async def thinking(ctx, member: discord.Member = None):
 @discord.ext.commands.guild_only()
 async def f(ctx, member: discord.Member = None):
     """Reacts with "F"."""
-    await Reactor.react(ctx, 'f', member)
+    await Reactor.raw_react(ctx, '🇫', member)
+
+@somsiad.bot.command(aliases=['chlip', '😢'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+async def sob(ctx, member: discord.Member = None):
+    """Reacts with "😢"."""
+    await Reactor.raw_react(ctx, '😢', member)
