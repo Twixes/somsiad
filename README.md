@@ -57,6 +57,9 @@ https://www.goodreads.com/api
 * Klucz API OMDb:  
 https://www.omdbapi.com/apikey.aspx  
 
+* Klucz API Yandex Translate:  
+https://translate.yandex.com/developers/keys  
+
 * Klucz API Last.fm:  
 https://www.last.fm/api/account/create  
 
@@ -158,6 +161,9 @@ https://www.goodreads.com/api
 
 * An OMDb API key:  
 https://www.omdbapi.com/apikey.aspx  
+
+* A Yandex Translate API key:  
+https://translate.yandex.com/developers/keys  
 
 * A Last.fm API key:  
 https://www.last.fm/api/account/create  
