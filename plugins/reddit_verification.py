@@ -615,7 +615,7 @@ async def verification_begin(ctx):
                         'Do weryfikacji potrzebne jest konto założone co najmniej '
                         f'{TextFormatter.word_number_variant(somsiad.conf["reddit_account_min_age_in_days"], "dzień", "dni")} '
                         f'temu i o karmie nie niższej niż {somsiad.conf["reddit_account_min_karma"]}. '
-                        'Spróbuj zweryfikować się innego dnia, gdy twoje konto będzie już spełniało te warunki.'
+                        'Spróbuj zweryfikować się, gdy twoje konto będzie już spełniało te warunki.'
                     )
                 )
 
