@@ -112,7 +112,7 @@ commands = (
     ),
     Helper.Command(
         ('googleimage', 'gi', 'i'), 'zapytanie',
-        'Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasujący obrazek.'
+        'Wysyła <zapytanie> do [Google](https://www.google.pl/imghp) i zwraca najlepiej pasujący obrazek.'
     ),
     Helper.Command(
         ('youtube', 'yt', 'tuba'), 'zapytanie',
@@ -131,6 +131,11 @@ commands = (
         'Zwraca z [OMDb](https://www.omdbapi.com/) informacje na temat filmu lub serialu najlepiej pasującego '
         'do <tytułu>. Jeśli chcesz znaleźć informacje na temat konkretnego odcinka serialu, podaj przed tytułem '
         '<?sezon i odcinek> w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".'
+    ),
+    Helper.Command(
+        ('tłumacz', 'tlumacz', 'translator'), ('kod języka źródłowego', 'kod języka docelowego', 'tekst'),
+        'Tłumaczy tekst z [Yandex](https://translate.yandex.com/). '
+        'Wpisanie znaku zapytania w miejscu kodu języka źródłowego spowoduje wykrycie języka źródłowego.'
     ),
     Helper.Command(
         'spotify', '?użytkownik Discorda',

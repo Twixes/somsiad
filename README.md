@@ -18,6 +18,7 @@ Polski bot discordowy. Napisany w Pythonie.
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku  
 * wyszukiwanie filmów i seriali w [OMDb](https://www.omdbapi.com/)  
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
+* tłumaczenie tekstu z [Yandex](https://translate.yandex.com/)  
 * udostępnianie obecnie słuchanego na Spotify utworu  
 * udostępnianie obecnie lub ostatnio słuchanego przez Last.fm utworu  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
@@ -119,6 +120,7 @@ The Polish Discord bot. Written in Python.
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
 * [OMDb](https://www.omdbapi.com/) movie and TV show search  
 * [goodreads](https://www.goodreads.com) book search  
+* text translation powered by [Yandex](https://translate.yandex.com/)  
 * sharing the song currently played on Spotify  
 * sharing the song currently or previously played with Last.fm  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  

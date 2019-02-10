@@ -149,6 +149,10 @@ ADDITIONAL_REQUIRED_SETTINGS = (
         'last_fm_key', description='Klucz API Last.fm', input_instruction='Wprowadź klucz API Last.fm', value_type='str'
     ),
     Setting(
+        'yandex_translate_key', description='Klucz API Yandex Translate',
+        input_instruction='Wprowadź klucz API Yandex Translate', value_type='str'
+    ),
+    Setting(
         'reddit_id', description='ID aplikacji redditowej', input_instruction='Wprowadź ID aplikacji redditowej',
         value_type='str'
     ),
