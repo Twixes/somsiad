@@ -27,7 +27,7 @@ async def calculate(ctx, *, data):
     """Calculates the provided expressions and sends the results.
     If calculation is not possible with available data, simplifies the expression.
     """
-    input_data = data.strip(';').split(';')
+    input_data = data.replace('\\', '').strip(';').split(';')
     expression = input_data[0].strip()
     variables_list = input_data[1:]
     variables_dict = {}
@@ -70,15 +70,15 @@ async def calculate(ctx, *, data):
                     title=':1234: Uproszczono wyrażenie',
                     color=somsiad.color
                 )
-                embed.add_field(name='Wejście', value=input_info_string, inline=False)
+                embed.add_field(name='Wejście', value=input_info_string.replace('*', '\*'), inline=False)
                 embed.add_field(name='Wyjście', value=result.replace('*', '\*'), inline=False)
         else:
             embed = discord.Embed(
                 title=':1234: Obliczono wartość wyrażenia',
                 color=somsiad.color
             )
-            embed.add_field(name='Wejście', value=input_info_string, inline=False)
-            embed.add_field(name='Wyjście', value=str(result), inline=False)
+            embed.add_field(name='Wejście', value=input_info_string.replace('*', '\*'), inline=False)
+            embed.add_field(name='Wyjście', value=result, inline=False)
 
     return await ctx.send(ctx.author.mention, embed=embed)
 
