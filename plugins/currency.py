@@ -41,6 +41,7 @@ async def currency(ctx, *, query):
         (((\s)?([a-zA-Z]{2,4}))*)   # optional 'target' value
     ''', re.VERBOSE)
     mo = query_regex.search(query)
+    num = 1
     if mo is not None:
         if mo.group(1) is not None:
             num = mo.group(1)
@@ -64,16 +65,16 @@ async def currency(ctx, *, query):
                 if response.status == 200:
                     response_data = await response.json()
                     if 'Response' in response_data:
-                        if response_data['Response'] == 'Error' and response_data['Type'] == 1:
-                            embed = discord.Embed(
-                                title=':warning: Błąd', description=ERROR_NOTICE, color=somsiad.color)
-                        else:
-                            embed = discord.Embed(
-                                title=':warning: Błąd', description='Niewłaściwie skonstruowane zapytanie!',
-                                color=somsiad.color)
+                        # if response_data['Response'] == 'Error' and response_data['Type'] == 1: <- what is this for?
+                        embed = discord.Embed(
+                            title=':warning: Niewłaściwie skonstruowane zapytanie!',
+                            description='Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 WALUTA3 ...", '
+                            'gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody walut ISO 4217]'
+                            '(https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody kryptowalut. '
+                            'Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.',
+                            color=somsiad.color
+                        )
                     else:
-                        if 'num' not in locals():
-                            num = 1
                         currency_values = [
                             f'{str(num * value)} {currency}' for currency, value in response_data.items()
                         ]
@@ -85,12 +86,18 @@ async def currency(ctx, *, query):
                         )
                 else:
                     embed = discord.Embed(
-                        title=':warning: Błąd',
-                        description='Nie udało się połączyć z serwerem przelicznika walut!',
+                        title=':warning: Nie udało się połączyć z serwerem przelicznika walut!',
                         color=somsiad.color
                     )
     else:
-        embed = discord.Embed(title=':warning: Błąd', description=ERROR_NOTICE, color=somsiad.color)
+        embed = discord.Embed(
+            title=':warning: Niewłaściwie skonstruowane zapytanie!',
+            description='Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 WALUTA3 ...", '
+            'gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody walut ISO 4217]'
+            '(https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody kryptowalut. '
+            'Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.',
+            color=somsiad.color
+        )
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)
