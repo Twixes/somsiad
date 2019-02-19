@@ -111,12 +111,12 @@ class Somsiad:
         for server in sorted_servers:
             if len(server.name) > longest_server_name_length:
                 longest_server_name_length = len(server.name)
-            days_since_joining_info = TextFormatter.time_ago(server.me.joined_at, name_month=False)
+            days_since_joining_info = TextFormatter.time_difference(server.me.joined_at, name_month=False)
             if len(days_since_joining_info) > longest_days_since_joining_info_length:
                 longest_days_since_joining_info_length = len(days_since_joining_info)
 
         for server in sorted_servers:
-            days_since_joining_info = TextFormatter.time_ago(server.me.joined_at, name_month=False)
+            days_since_joining_info = TextFormatter.time_difference(server.me.joined_at, name_month=False)
             list_of_servers.append(
                 f'{server.name.ljust(longest_server_name_length)} - '
                 f'dołączono {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '

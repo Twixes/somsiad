@@ -78,36 +78,46 @@ class TextFormatter:
             return proper_form
 
     @classmethod
-    def time_ago(cls, utc_datetime: dt.datetime, *, date=True, time=True, days_ago=True, name_month=True) -> str:
+    def time_difference(
+            cls, utc_datetime: dt.datetime, *, date=True, time=True, days_difference=True, name_month=True
+    ) -> str:
         local_datetime = utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone()
         timedelta = dt.datetime.now().astimezone() - local_datetime
 
-        time_ago_elements = []
+        time_difference_elements = []
         if date:
             if name_month:
-                time_ago_elements.append(local_datetime.strftime('%-d %B %Y'))
+                time_difference_elements.append(local_datetime.strftime('%-d %B %Y'))
             else:
-                time_ago_elements.append(local_datetime.strftime('%-d.%m.%Y'))
+                time_difference_elements.append(local_datetime.strftime('%-d.%m.%Y'))
         if time:
             if date:
-                time_ago_elements.append(local_datetime.strftime(' o %H:%M'))
+                time_difference_elements.append(local_datetime.strftime(' o %H:%M'))
             else:
-                time_ago_elements.append(local_datetime.strftime('%H:%M'))
-        if days_ago:
-            days_ago_number = timedelta.days
-            if days_ago_number == 0:
-                days_ago_string = 'dzisiaj'
-            elif days_ago_number == 1:
-                days_ago_string = 'wczoraj'
+                time_difference_elements.append(local_datetime.strftime('%H:%M'))
+        if days_difference:
+            days_difference_number = timedelta.days
+            if days_difference_number == -2:
+                days_difference_string = 'pojutrze'
+            elif days_difference_number == -1:
+                days_difference_string = 'jutro'
+            elif days_difference_number == 0:
+                days_difference_string = 'dzisiaj'
+            elif days_difference_number == 1:
+                days_difference_string = 'wczoraj'
+            elif days_difference_number == 2:
+                days_difference_string = 'przedwczoraj'
+            elif days_difference_number > 0:
+                days_difference_string = f'{cls.word_number_variant(days_difference_number, "dzień", "dni")} temu'
             else:
-                days_ago_string = f'{cls.word_number_variant(days_ago_number, "dzień", "dni")} temu'
+                days_difference_string = f'za {cls.word_number_variant(-days_difference_number, "dzień", "dni")}'
 
             if date or time:
-                time_ago_elements.append(f', {days_ago_string}')
+                time_difference_elements.append(f', {days_difference_string}')
             else:
-                time_ago_elements.append(days_ago_string)
+                time_difference_elements.append(days_difference_string)
 
-        return ''.join(time_ago_elements)
+        return ''.join(time_difference_elements)
 
     @staticmethod
     def hours_minutes_seconds(total_seconds: Number) -> str:

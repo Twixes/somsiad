@@ -291,7 +291,7 @@ class Report:
                 self._update_active_channels(message)
                 self._update_active_users(message)
 
-        server_creation_datetime_information = TextFormatter.time_ago(self.subject.created_at)
+        server_creation_datetime_information = TextFormatter.time_difference(self.subject.created_at)
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o serwerze',
@@ -320,7 +320,9 @@ class Report:
             title=f':white_check_mark: Przygotowano raport o kanale #{self.subject}',
             color=somsiad.color
         )
-        self.embed.add_field(name='Utworzono', value=TextFormatter.time_ago(self.subject.created_at), inline=False)
+        self.embed.add_field(
+            name='Utworzono', value=TextFormatter.time_difference(self.subject.created_at), inline=False
+        )
         if self.subject.category is not None:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name, inline=False)
         self.embed.add_field(name='Członków', value=len(self.subject.members), inline=False)
@@ -341,9 +343,11 @@ class Report:
             title=f':white_check_mark: Przygotowano raport o użytkowniku {self.subject}',
             color=somsiad.color
         )
-        self.embed.add_field(name='Utworzył konto', value=TextFormatter.time_ago(self.subject.created_at), inline=False)
         self.embed.add_field(
-            name='Dołączył do serwera', value=TextFormatter.time_ago(self.subject.joined_at), inline=False
+            name='Utworzył konto', value=TextFormatter.time_difference(self.subject.created_at), inline=False
+        )
+        self.embed.add_field(
+            name='Dołączył do serwera', value=TextFormatter.time_difference(self.subject.joined_at), inline=False
         )
         self._embed_message_stats()
         self._embed_top_active_channels()
