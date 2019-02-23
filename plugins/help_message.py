@@ -183,6 +183,11 @@ commands = (
         f'Użyj {somsiad.conf["command_prefix"]}urodziny bez podkomendy by dowiedzieć się więcej.',
     ),
     Helper.Command(
+        ('spal', 'burn'),
+        ('?liczba sekund do/godzina usunięcia wiadomości', 'treść (może być załącznik)'),
+        'Usuwa wiadomość po podanej liczbie sekund lub o podanym czasie.'
+    ),
+    Helper.Command(
         'weryfikacja', 'podkomenda',
         'Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
         f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy by dowiedzieć się więcej.',
