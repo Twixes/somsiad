@@ -79,9 +79,10 @@ class TextFormatter:
 
     @classmethod
     def time_difference(
-            cls, utc_datetime: dt.datetime, *, date=True, time=True, days_difference=True, name_month=True
+            cls, datetime: dt.datetime, *, naive=True, date=True, time=True, days_difference=True,
+            name_month=True
     ) -> str:
-        local_datetime = utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone()
+        local_datetime = datetime.replace(tzinfo=dt.timezone.utc).astimezone() if naive else datetime.astimezone()
         timedelta = dt.datetime.now().astimezone() - local_datetime
 
         time_difference_elements = []
@@ -120,19 +121,27 @@ class TextFormatter:
         return ''.join(time_difference_elements)
 
     @staticmethod
-    def hours_minutes_seconds(total_seconds: Number) -> str:
+    def human_readable_time(total_seconds: Number) -> str:
         information = []
 
-        hours = int(total_seconds // 3600)
-        minutes = int((total_seconds - hours * 3600) // 60)
-        seconds = int(round(total_seconds - hours * 3600 - minutes * 60))
-
-        if hours >= 1:
-            information.append(f'{hours} h')
-        if minutes >= 1:
-            information.append(f'{minutes} min')
-        if seconds >= 1 or total_seconds == 0:
-            information.append(f'{seconds} s')
+        if total_seconds == 0.0:
+            information.append(f'0 s')
+        else:
+            days = int(total_seconds // 86400)
+            total_seconds -= days * 86400
+            hours = int(total_seconds // 3600)
+            total_seconds -= hours * 3600
+            minutes = int(total_seconds // 60)
+            total_seconds -= minutes * 60
+            seconds = int(round(total_seconds))
+            if days >= 1:
+                information.append(f'{days} d')
+            if hours >= 1:
+                information.append(f'{hours} h')
+            if minutes >= 1:
+                information.append(f'{minutes} min')
+            if seconds >= 1:
+                information.append(f'{seconds} s')
 
         return ' '.join(information)
 
@@ -390,3 +399,25 @@ class Setting:
                     break
 
         return self.value
+
+
+def interpret_str_as_datetime(argument: str) -> dt.datetime:
+    argument = argument.replace('-', '.').replace('/', '.').replace(':', '.')
+    now = dt.datetime.now()
+    try:
+        datetime = dt.datetime.strptime(argument, '%d.%m.%YT%H.%M')
+    except ValueError:
+        try:
+            datetime = dt.datetime.strptime(argument, '%d.%m.%yT%H.%M')
+        except ValueError:
+            try:
+                datetime = dt.datetime.strptime(argument, '%d.%mT%H.%M')
+                datetime = datetime.replace(year=now.year)
+            except ValueError:
+                try:
+                    datetime = dt.datetime.strptime(argument, '%dT%H.%M')
+                    datetime = datetime.replace(year=now.year, month=now.month)
+                except ValueError:
+                    datetime = dt.datetime.strptime(argument, '%H.%M')
+                    datetime = datetime.replace(year=now.year, month=now.month, day=now.day)
+    return datetime.astimezone()

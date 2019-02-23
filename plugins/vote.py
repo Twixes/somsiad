@@ -17,24 +17,7 @@ import datetime as dt
 from typing import Union, Optional
 import discord
 from somsiad import somsiad
-from utilities import TextFormatter
-
-
-def str_to_datetime(argument: str) -> dt.datetime:
-    try:
-        datetime = dt.datetime.strptime(argument, '%d.%mT%H:%M')
-        now_datetime = dt.datetime.now()
-        datetime = datetime.replace(year=now_datetime.year)
-    except ValueError:
-        try:
-            datetime = dt.datetime.strptime(argument, '%dT%H:%M')
-            now_datetime = dt.datetime.now()
-            datetime = datetime.replace(year=now_datetime.year, month=now_datetime.month)
-        except ValueError:
-            datetime = dt.datetime.strptime(argument, '%H:%M')
-            now_datetime = dt.datetime.now()
-            datetime = datetime.replace(year=now_datetime.year, month=now_datetime.month, day=now_datetime.day)
-    return datetime.astimezone()
+from utilities import TextFormatter, interpret_str_as_datetime
 
 
 @somsiad.bot.command(aliases=['głosowanie', 'glosowanie'])
@@ -43,7 +26,7 @@ def str_to_datetime(argument: str) -> dt.datetime:
 )
 @discord.ext.commands.guild_only()
 async def vote(
-        ctx, duration: Optional[Union[float, locale.atof, str_to_datetime]] = None,
+        ctx, duration: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = None,
         *, statement: discord.ext.commands.clean_content(fix_channel_mentions=True)
     ):
     """Holds a vote."""
@@ -52,7 +35,7 @@ async def vote(
         results_datetime = duration
         results_and_now_timedelta = results_datetime - now_datetime
         seconds = results_and_now_timedelta.total_seconds()
-        hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
+        human_readable_time = TextFormatter.human_readable_time(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
             description=(
@@ -65,12 +48,12 @@ async def vote(
     elif isinstance(duration, float) and 0.0 < duration <= 10080.0:
         seconds = duration * 60.0
         results_datetime = now_datetime + dt.timedelta(seconds=seconds)
-        hours_minutes_seconds = TextFormatter.hours_minutes_seconds(seconds)
+        human_readable_time = TextFormatter.human_readable_time(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
             description=(
                 'Zagłosuj w tej sprawie przy użyciu reakcji.\n'
-                f'Wynik zostanie ogłoszony po {TextFormatter.hours_minutes_seconds(seconds)} od rozpoczęcia głosowania.'
+                f'Wynik zostanie ogłoszony po {TextFormatter.human_readable_time(seconds)} od rozpoczęcia głosowania.'
             ),
             timestamp=results_datetime,
             color=somsiad.color
@@ -107,7 +90,7 @@ async def vote(
             embed_results = discord.Embed(
                 title=f'{results_emoji} {statement}',
                 description=(
-                    f'Głosowanie zostało zakończone po {hours_minutes_seconds} od rozpoczęcia.'
+                    f'Głosowanie zostało zakończone po {human_readable_time} od rozpoczęcia.'
                 ),
                 timestamp=results_datetime,
                 color=somsiad.color

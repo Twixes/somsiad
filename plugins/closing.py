@@ -18,7 +18,7 @@ from numbers import Number
 from typing import Optional, Union
 import discord
 from somsiad import somsiad
-from utilities import TextFormatter
+from utilities import TextFormatter, interpret_str_as_datetime
 
 
 class Closing:
@@ -50,7 +50,7 @@ class Closing:
     async def timeout_handler(self):
         embed = discord.Embed(
             title=':bomb: Kanał zostanie zamknięty za '
-            f'{TextFormatter.hours_minutes_seconds(self.countdown_seconds)}',
+            f'{TextFormatter.human_readable_time(self.countdown_seconds)}',
             description='Napisz STOP by zatrzymać odliczanie.',
             timestamp=self.closing_datetime,
             color=somsiad.color
@@ -73,7 +73,7 @@ class Closing:
             closing_defusal_timedelta = self.closing_datetime - dt.datetime.now().astimezone()
             embed = discord.Embed(
                 title=':raised_hand: Odliczanie zostało zatrzymane '
-                f'{TextFormatter.hours_minutes_seconds(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
+                f'{TextFormatter.human_readable_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
                 timestamp=self.closing_datetime,
                 color=somsiad.color
             )
@@ -91,7 +91,7 @@ class Closing:
             if self.countdown_active:
                 embed = discord.Embed(
                     title=':bomb: Kanał zostanie zamknięty za '
-                    f'{TextFormatter.hours_minutes_seconds(self.STEPS[step_index])}',
+                    f'{TextFormatter.human_readable_time(self.STEPS[step_index])}',
                     description='Napisz STOP by zatrzymać odliczanie.',
                     timestamp=self.closing_datetime,
                     color=somsiad.color
@@ -108,23 +108,6 @@ class Closing:
         return step_index
 
 
-def str_to_datetime(argument: str) -> dt.datetime:
-    try:
-        datetime = dt.datetime.strptime(argument, '%d.%mT%H:%M')
-        now_datetime = dt.datetime.now()
-        datetime = datetime.replace(year=now_datetime.year)
-    except ValueError:
-        try:
-            datetime = dt.datetime.strptime(argument, '%dT%H:%M')
-            now_datetime = dt.datetime.now()
-            datetime = datetime.replace(year=now_datetime.year, month=now_datetime.month)
-        except ValueError:
-            datetime = dt.datetime.strptime(argument, '%H:%M')
-            now_datetime = dt.datetime.now()
-            datetime = datetime.replace(year=now_datetime.year, month=now_datetime.month, day=now_datetime.day)
-    return datetime.astimezone()
-
-
 @somsiad.bot.command(aliases=['zamknij'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
@@ -132,7 +115,7 @@ def str_to_datetime(argument: str) -> dt.datetime:
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_channels=True)
 @discord.ext.commands.bot_has_permissions(manage_channels=True)
-async def close(ctx, countdown_seconds: Optional[Union[float, locale.atof, str_to_datetime]] = 3600):
+async def close(ctx, countdown_seconds: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = 3600):
     """Counts down to channel removal."""
     try:
         closing = Closing(ctx, countdown_seconds)
