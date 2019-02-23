@@ -15,7 +15,6 @@ import aiohttp
 from typing import Optional
 import discord
 from somsiad import somsiad
-from utilities import TextFormatter
 
 
 class Yandex:

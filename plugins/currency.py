@@ -25,12 +25,6 @@ async def currency(ctx, *, query):
     """Provides (crypto)currency exchange rates."""
     FOOTER_TEXT = 'CryptoCompare.com (CC BY-NC 3.0)'
     FOOTER_ICON_URL = 'https://www.cryptocompare.com/media/20562/favicon.png'
-    ERROR_NOTICE = (
-        'Niewłaściwie skonstruowane zapytanie. Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 '
-        'WALUTA3 ...", gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody '
-        'walut ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody '
-        'kryptowalut. Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.'
-    )
 
     query_regex = re.compile(r'''
         (([0-9]*[.,])?[0-9]+)?      # optional number
