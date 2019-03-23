@@ -228,6 +228,10 @@ commands = (
         'oof serwer', '?użytkownik Discorda',
         'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'
     ),
+    Helper.Command(
+        ('deepfry', 'usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'),
+        None, 'Smaży ostatni wysłany na kanale obrazek.'
+    ),
     Helper.Command('tableflip', None, '(╯°□°）╯︵ ┻━┻'),
     Helper.Command('unflip', None, '┬─┬ ノ( ゜-゜ノ)'),
     Helper.Command('shrug', None, r'¯\_(ツ)_/¯'),
