@@ -76,10 +76,11 @@ https://www.reddit.com/prefs/apps
   * libnacl  
   * libopus  
   * ffmpeg  
+  * libjpeg
 
   A także paczkę wsparcia języka polskiego dla twojego systemu.  
 Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `apt`:  
-`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg`  
+`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg libjpeg-dev`  
 
 ## Instalacja  
 
@@ -181,10 +182,11 @@ https://www.reddit.com/prefs/apps
   * libnacl  
   * libopus  
   * ffmpeg
+  * libjpeg
 
   And also whatever the Polish language support package is for your system.  
 On Debian-based systems you can satisfy those dependencies with `apt`:  
-`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg`  
+`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg libjpeg-dev`  
 
 ## Installation  
 

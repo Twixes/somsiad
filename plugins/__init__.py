@@ -12,8 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = [
-    'birthday', 'bot_owner_utilities', 'burn', 'calculator', 'choice', 'closing', 'currency', 'dice', 'disco',
-    'eightball', 'emoticons', 'giphy', 'goodreads', 'google_search', 'help_message', 'inviting', 'isitup', 'last_fm',
-    'moderation', 'oof', 'omdb', 'pins', 'reactions', 'reddit_links', 'reddit_verification', 'rimshot', 'school_year',
-    'spotify', 'statistics', 'urban_dictionary', 'vote', 'wikipedia', 'yandex', 'youtube'
+    'birthday', 'bot_owner_utilities', 'burn', 'calculator', 'choice', 'closing', 'currency', 'deepfry', 'dice',
+    'disco', 'eightball', 'emoticons', 'giphy', 'goodreads', 'google_search', 'help_message', 'inviting', 'isitup',
+    'last_fm', 'moderation', 'oof', 'omdb', 'pins', 'reactions', 'reddit_links', 'reddit_verification', 'rimshot',
+    'school_year', 'spotify', 'statistics', 'urban_dictionary', 'vote', 'wikipedia', 'yandex', 'youtube'
 ]
