@@ -59,7 +59,7 @@ class DeepFrier:
 @discord.ext.commands.guild_only()
 async def deepfry(ctx, doneness: int = 2):
     """Deep-fries an image.
-    Deep-fries the attached image, or, if there is none, the last image sent in the channel.
+    Deep-fries the attached image, or, if there is none, the last image attached in the channel.
     Doneness is an integer between 1 and 3 inclusive signifying the number of deep-frying passes.
     """
     filename = None
