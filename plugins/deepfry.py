@@ -74,7 +74,7 @@ async def deepfry(ctx, doneness: int = 2):
             color=somsiad.color
         )
         return await ctx.send(ctx.author.mention, embed=embed)
-    output_image_bytes = DeepFrier.fry(input_image_bytes, doneness)
+    output_image_bytes = await somsiad.bot.loop.run_in_executor(None, DeepFrier.fry, input_image_bytes, doneness)
 
     return await ctx.send(
         f'{ctx.author.mention}', file=discord.File(output_image_bytes, filename=filename or 'deepfried.jpg')
