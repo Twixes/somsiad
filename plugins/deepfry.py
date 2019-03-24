@@ -35,6 +35,7 @@ def deepfry_image(im: BinaryIO):
     image = ImageEnhance.Sharpness(image).enhance(2)
     result = BytesIO()
     image.save(result, 'JPEG', quality=1)
+    result.seek(0)
     return result
 
 
