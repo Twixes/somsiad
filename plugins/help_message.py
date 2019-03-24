@@ -230,7 +230,7 @@ commands = (
     ),
     Helper.Command(
         ('deepfry', 'usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'),
-        None, 'Smaży ostatni wysłany na kanale obrazek.'
+        '?poziom usmażenia', 'Smaży ostatni wysłany na kanale obrazek <?poziom usmażenia> razy (domyślnie 2). '
     ),
     Helper.Command('tableflip', None, '(╯°□°）╯︵ ┻━┻'),
     Helper.Command('unflip', None, '┬─┬ ノ( ゜-゜ノ)'),
