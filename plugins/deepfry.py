@@ -1,4 +1,4 @@
-# Copyright 2018 Slavfox & Twixes
+# Copyright 2019 Slavfox & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
