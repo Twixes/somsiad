@@ -193,7 +193,7 @@ async def trade_sunday(ctx):
         Helper.Command(
             ('terminarz', 'lista', 'spis'), ('?rok', '?miesiąc'),
             'Zwraca terminarz niedziel handlowych w <?roku>, lub, jeśli go nie podano, w bieżącym roku, '
-            'z podziałem na miesiące. Jeśli podano <?rok> i <?miesiąc>, '
+            'z podziałem na miesiące. Jeśli wraz z <?rokiem> podano <?miesiąc>, '
             'uwzględnione zostaną tylko niedziele handlowe w <?miesiącu>.'
         )
     )
