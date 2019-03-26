@@ -227,7 +227,7 @@ async def warn_error(ctx, error):
             )
         elif error.param.name == 'reason':
             embed = discord.Embed(
-                title=f':warning: Musisz powód ostrzeżenia!',
+                title=f':warning: Musisz podać powód ostrzeżenia!',
                 color=somsiad.color
             )
         await ctx.send(ctx.author.mention, embed=embed)
@@ -279,7 +279,7 @@ async def kick_error(ctx, error):
             )
         elif error.param.name == 'reason':
             embed = discord.Embed(
-                title=f':warning: Musisz powód wyrzucenia!',
+                title=f':warning: Musisz podać powód wyrzucenia!',
                 color=somsiad.color
             )
         await ctx.send(ctx.author.mention, embed=embed)
@@ -326,7 +326,7 @@ async def ban_error(ctx, error):
             )
         elif error.param.name == 'reason':
             embed = discord.Embed(
-                title=f':warning: Musisz powód bana!',
+                title=f':warning: Musisz podać powód bana!',
                 color=somsiad.color
             )
         await ctx.send(ctx.author.mention, embed=embed)
