@@ -26,7 +26,6 @@ from utilities import TextFormatter, interpret_str_as_datetime
 )
 async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_str_as_datetime]] = 300):
     """Removes the message after a specified mount time."""
-
     if isinstance(countdown_time, int):
         countdown_seconds = int(countdown_time)
         if countdown_seconds < 3.0:
