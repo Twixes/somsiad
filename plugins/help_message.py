@@ -184,17 +184,22 @@ commands = (
     Helper.Command(
         ('disco', 'd'), 'podkomenda',
         'Grupa komend związanych z odtwarzaniem muzyki na kanale głosowym. '
-        f'Użyj {somsiad.conf["command_prefix"]}disco (d) bez podkomendy by dowiedzieć się więcej.',
+        f'Użyj {somsiad.conf["command_prefix"]}disco (d) bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         'stat', 'podkomenda',
         'Grupa komend związanych ze statystykami na serwerze. '
-        f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy by dowiedzieć się więcej.',
+        f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         'urodziny', 'podkomenda',
         'Grupa komend związanych z datami urodzin. '
-        f'Użyj {somsiad.conf["command_prefix"]}urodziny bez podkomendy by dowiedzieć się więcej.',
+        f'Użyj {somsiad.conf["command_prefix"]}urodziny bez podkomendy, by dowiedzieć się więcej.',
+    ),
+    Helper.Command(
+        ('handlowa', 'niedzielahandlowa'), 'podkomenda',
+        'Grupa komend związanych z niedzielami handlowymi. '
+        f'Użyj {somsiad.conf["command_prefix"]}handlowa bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         ('spal', 'burn'),
@@ -204,12 +209,12 @@ commands = (
     Helper.Command(
         'weryfikacja', 'podkomenda',
         'Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
-        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy by dowiedzieć się więcej.',
+        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         'przypinki', 'podkomenda',
         'Grupa komend związanych z archiwizacją przypiętych widadomości. '
-        f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy by dowiedzieć się więcej.',
+        f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         ('głosowanie', 'glosowanie'), ('?liczba minut do ogłoszenia wyniku/godzina', 'sprawa'),
