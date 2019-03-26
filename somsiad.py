@@ -208,7 +208,7 @@ def print_info(first_console_block=True):
         '',
         f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
         '',
-        'Copyright 2018 Habchy, ondondil & Twixes'
+        'Copyright 2018-2019 Habchy, ondondil & Twixes'
     ]
 
     print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
