@@ -11,11 +11,12 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Union
 import os
 import sys
 import platform
 import logging
-from typing import Union
+import random
 import discord
 from discord.ext.commands import Bot
 from version import __version__
@@ -208,7 +209,7 @@ def print_info(first_console_block=True):
         '',
         f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
         '',
-        'Copyright 2018-2019 Habchy, ondondil & Twixes'
+        'Copyright 2018-2019 Habchy, ondondil, Twixes & Slavfox'
     ]
 
     print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
@@ -235,7 +236,13 @@ async def no(ctx, member: discord.Member = None):
 )
 async def version(ctx):
     """Responds with current version of the bot."""
-    await ctx.send(f'{ctx.author.mention}\n{__version__}')
+    emojis = ['b', 'fire', 'frog']
+    embed = discord.Embed(
+        title=f':{random.choice(emojis)}: {__version__}',
+        color=somsiad.color
+    )
+    embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 @somsiad.bot.command()
@@ -244,7 +251,11 @@ async def version(ctx):
 )
 async def ping(ctx):
     """Pong!"""
-    await ctx.send(f'{ctx.author.mention}\n:ping_pong: Pong!')
+    embed = discord.Embed(
+        title=':ping_pong: Pong!',
+        color=somsiad.color
+    )
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 @somsiad.bot.event
