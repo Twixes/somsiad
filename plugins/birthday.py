@@ -29,6 +29,10 @@ class BirthdayCalendar:
     DATE_WITH_YEAR_FORMATS = ('%d %m %Y', '%Y %m %d', '%d %B %Y', '%d %b %Y')
     DATE_WITHOUT_YEAR_FORMATS = ('%d %m', '%d %B', '%d %b')
     MONTH_FORMATS = ('%m', '%B', '%b')
+    MONTH_NAMES_1 = [
+        'styczniu', 'lutym', 'marcu', 'kwietniu', 'maju', 'czerwcu', 'lipcu', 'sierpniu', 'wrześniu', 'październiku',
+        'listopadzie', 'grudniu'
+    ]
 
     @classmethod
     def _comprehend_date(cls, date_string: str, formats: Sequence[str], iteration: int = 0) -> dt.date:
@@ -279,7 +283,7 @@ async def birthday_when(ctx, *, member: discord.Member = None):
             date_string = date.strftime('%-d %B %Y')
 
         embed = discord.Embed(
-            title=f':calendar_spiral: {"Masz" if member == ctx.author else f"{member} ma"} urodziny {date_string}',
+            title=f':calendar_spiral: {"Urodziłeś" if member == ctx.author else f"{member} urodził"} się {date_string}',
             color=somsiad.color
         )
 
@@ -358,7 +362,7 @@ async def birthday_day(ctx, *, date_string = None):
         )
     else:
         embed = discord.Embed(
-            title=f':question: Nikt na serwerze nie ma ustawionych urodzin na {date.strftime("%-d %B")}',
+            title=f':question: Nikt na serwerze nie ma ustawionych urodzin {date.strftime("%-d %B")}',
             color=somsiad.color
         )
 
@@ -369,7 +373,7 @@ async def birthday_day(ctx, *, date_string = None):
 async def birthday_day_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
-            title=f':warning: Podano dzień w nieznanym formacie!',
+            title=':warning: Podano dzień w nieznanym formacie!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
@@ -393,16 +397,17 @@ async def birthday_month(ctx, *, month_string = None):
 
     if members:
         embed = discord.Embed(
-            title=f':calendar_spiral: W tym miesiącu urodziny ma '
+            title=f':calendar_spiral: W {BirthdayCalendar.MONTH_NAMES_1[month-1]} urodziny ma '
             f'{TextFormatter.word_number_variant(len(members), "użytkownik", "użytkowników")}',
-            description='\n'.join(
-                (f'<@{member["user_id"]}>' for member in members if ctx.guild.get_member(member["user_id"]) is not None)
-            ),
+            description='\n'.join((
+                f'{member["birthday_date"].day} – <@{member["user_id"]}>'
+                for member in members if ctx.guild.get_member(member["user_id"]) is not None
+            )),
             color=somsiad.color
         )
     else:
         embed = discord.Embed(
-            title=':question: Nikt na serwerze nie ma ustawionych urodzin w podanym miesiącu',
+            title=f':question: Nikt na serwerze nie ma ustawionych urodzin w {BirthdayCalendar.MONTH_NAMES_1[month-1]}',
             color=somsiad.color
         )
 
