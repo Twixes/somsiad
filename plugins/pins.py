@@ -135,8 +135,7 @@ async def pins(ctx):
 @discord.ext.commands.has_permissions(manage_channels=True)
 async def pins_channel(ctx, channel: discord.TextChannel = None):
     """Sets the pin archive channel of the server."""
-    if channel is None:
-        channel = ctx.channel
+    channel = channel or ctx.channel
 
     pin_archives_manager.set_archive_channel_id(ctx.guild.id, channel.id)
 

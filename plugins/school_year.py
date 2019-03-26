@@ -20,7 +20,7 @@ from utilities import TextFormatter
 
 class SchoolYear:
     def __init__(self, for_date: dt.date = None):
-        self.for_date = dt.date.today() if for_date is None else for_date
+        self.for_date = for_date or dt.date.today()
         end_date_for_year_of_date = self._find_end_date(self.for_date.year)
         if end_date_for_year_of_date >= self.for_date:
             self.start_date = self._find_start_date(self.for_date.year-1)

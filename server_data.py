@@ -156,8 +156,7 @@ server_data_manager = ServerDataManager()
 @discord.ext.commands.has_permissions(administrator=True)
 async def do_log(ctx, channel: discord.TextChannel = None):
     """Sets the channel where the command was invoked as the bot's log channel for the server."""
-    if channel is None:
-        channel = ctx.channel
+    channel = channel or ctx.channel
 
     server_data_manager.set_log_channel(ctx.guild.id, channel.id)
     embed = discord.Embed(

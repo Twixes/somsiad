@@ -52,9 +52,7 @@ class Files:
             self.executing_user_id = executing_user_id
             self.executing_user = None if executing_user_id is None else somsiad.bot.get_user(executing_user_id)
             self.subject_user_id = subject_user_id
-            self.subject_user = self.server.get_member(subject_user_id)
-            if self.subject_user is None:
-                self.subject_user = somsiad.bot.get_user(subject_user_id)
+            self.subject_user = self.server.get_member(subject_user_id) or somsiad.bot.get_user(subject_user_id)
             self.posix_timestamp = posix_timestamp
             self.local_datetime = (
                 dt.datetime.fromtimestamp(posix_timestamp).replace(tzinfo=dt.timezone.utc).astimezone()
@@ -92,8 +90,7 @@ class Files:
         """Adds an event with specified parameters to the database of the provided server."""
         channel_id = None if channel is None else channel.id
         executing_user_id = None if executing_user is None else executing_user.id
-        if posix_timestamp is None:
-            posix_timestamp = int(dt.datetime.utcnow().timestamp())
+        posix_timestamp = posix_timestamp or int(dt.datetime.utcnow().timestamp())
 
         server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
         server_data_manager.servers[server.id]['db_cursor'].execute(

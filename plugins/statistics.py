@@ -557,8 +557,7 @@ async def stat_server(ctx):
 )
 @discord.ext.commands.guild_only()
 async def stat_channel(ctx, *, channel: discord.TextChannel = None):
-    if channel is None:
-        channel = ctx.channel
+    channel = channel or ctx.channel
 
     async with ctx.typing():
         report = Report(ctx.author, channel)
@@ -584,8 +583,7 @@ async def stat_channel_error(ctx, error):
 )
 @discord.ext.commands.guild_only()
 async def stat_member(ctx, *, member: discord.Member = None):
-    if member is None:
-        member = ctx.author
+    member = member or ctx.author
 
     async with ctx.typing():
         report = Report(ctx.author, member)

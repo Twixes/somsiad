@@ -73,7 +73,7 @@ class BirthdayCalendar:
             (member.id,)
         )
         result = server_data_manager.servers[server.id]['db_cursor'].fetchone()
-        is_member_registered = False if result is None else True
+        is_member_registered = not result is None
 
         return is_member_registered
 
@@ -265,8 +265,7 @@ async def birthday_forget(ctx):
 )
 @discord.ext.commands.guild_only()
 async def birthday_when(ctx, *, member: discord.Member = None):
-    if member is None:
-        member = ctx.author
+    member = member or ctx.author
 
     date = BirthdayCalendar.get_birthday_date(ctx.guild, member)
 
@@ -306,8 +305,7 @@ async def birthday_when_error(ctx, error):
 )
 @discord.ext.commands.guild_only()
 async def birthday_age(ctx, *, member: discord.Member = None):
-    if member is None:
-        member = ctx.author
+    member = member or ctx.author
 
     date = BirthdayCalendar.get_birthday_date(ctx.guild, member)
 

@@ -25,8 +25,7 @@ from plugins.youtube import youtube
 @discord.ext.commands.guild_only()
 async def spotify(ctx, member: discord.Member = None):
     """Shares the song currently played on Spotify by the provided user (or if not provided, by the invoking user)."""
-    if member is None:
-        member = ctx.author
+    member = member or ctx.author
 
     spotify_activity = None
     for activity in member.activities:

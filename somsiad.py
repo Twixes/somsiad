@@ -220,8 +220,7 @@ def print_info(first_console_block=True):
 )
 async def no(ctx, member: discord.Member = None):
     """Removes the last message sent by the bot in the channel on the requesting user's request."""
-    if member is None:
-        member = ctx.author
+    member = member or ctx.author
 
     if member == ctx.author or ctx.author.permissions_in(ctx.channel).manage_messages:
         async for message in ctx.history(limit=10):

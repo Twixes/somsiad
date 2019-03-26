@@ -111,8 +111,7 @@ async def oof_how_many(ctx, member: discord.Member = None):
 )
 @discord.ext.commands.guild_only()
 async def oof_how_many_member(ctx, member: discord.Member = None):
-    if member is None:
-        member = ctx.author
+    member = member or ctx.author
 
     oofs = Oof.get_oofs(ctx.guild, member)
     oofs = 0 if oofs is None else oofs
