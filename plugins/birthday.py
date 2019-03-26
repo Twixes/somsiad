@@ -17,6 +17,7 @@ from typing import Union, Optional, Sequence, Tuple, Dict
 from somsiad import somsiad
 from server_data import server_data_manager
 from utilities import TextFormatter
+from plugins.help_message import Helper
 
 
 class BirthdayCalendar:
@@ -143,44 +144,28 @@ class BirthdayCalendar:
 @discord.ext.commands.guild_only()
 async def birthday(ctx, *, member: discord.Member = None):
     if member is None:
-        embed = discord.Embed(
-            title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
-            description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda> lub '
-            f'{somsiad.conf["command_prefix"]}{ctx.invoked_with} <użytkownik>',
-            color=somsiad.color
+        subcommands = (
+            Helper.Command(('zapamiętaj', 'zapamietaj'), 'data', 'Zapamiętuje twoją datę urodzin na serwerze.'),
+            Helper.Command('zapomnij', None, 'Zapomina twoją datę urodzin na serwerze.'),
+            Helper.Command(
+                'kiedy', '?użytkownik',
+                'Zwraca datę urodzin <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
+            ),
+            Helper.Command(
+                'wiek', '?użytkownik', 'Zwraca wiek <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
+            ),
+            Helper.Command(
+                ('dzień', 'dzien'), '?data',
+                'Zwraca listę użytkowników obchodzących urodziny danego dnia. '
+                'Jeśli nie podano <?daty> przyjmuje dzisiaj.'
+            ),
+            Helper.Command(
+                ('miesiąc', 'miesiac'), '?miesiąc',
+                'Zwraca listę użytkowników obchodzących urodziny w danym miesiącu. '
+                'Jeśli nie podano <?miesiąca> przyjmuje obecny miesiąc.'
+            )
         )
-        embed.add_field(
-            name=f'zapamiętaj (zapamietaj) <data>',
-            value='Zapamiętuje twoją datę urodzin na serwerze.',
-            inline=False
-        )
-        embed.add_field(
-            name=f'zapomnij',
-            value='Zapomina twoją datę urodzin na serwerze.',
-            inline=False
-        )
-        embed.add_field(
-            name=f'kiedy <?użytkownik>',
-            value='Zwraca datę urodzin <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.',
-            inline=False
-        )
-        embed.add_field(
-            name=f'wiek <?użytkownik>',
-            value='Zwraca wiek <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.',
-            inline=False
-        )
-        embed.add_field(
-            name=f'dzień (dzien) <?data>',
-            value='Zwraca listę użytkowników obchodzących urodziny danego dnia. '
-            'Jeśli nie podano <?daty> przyjmuje dzisiaj.',
-            inline=False
-        )
-        embed.add_field(
-            name=f'miesiąc (miesiac) <?miesiąc>',
-            value='Zwraca listę użytkowników obchodzących urodziny w danym miesiącu. '
-            'Jeśli nie podano <?miesiąca> przyjmuje obecny miesiąc.',
-            inline=False
-        )
+        embed = Helper.generate_subcommands_embed('urodziny', subcommands)
         await ctx.send(ctx.author.mention, embed=embed)
     else:
         await ctx.invoke(birthday_when)

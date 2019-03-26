@@ -195,7 +195,6 @@ disco_manager = DiscoManager()
 )
 @discord.ext.commands.guild_only()
 async def disco(ctx):
-    command_name = 'disco'
     subcommands = (
         Helper.Command(('zagraj', 'graj'), 'zapytanie/link', 'Odtwarza utwór na kanale głosowym.'),
         Helper.Command(
@@ -210,7 +209,7 @@ async def disco(ctx):
         ),
         Helper.Command(('rozłącz', 'rozlacz', 'stop'), None, 'Rozłącza z kanału głosowego.'),
     )
-    embed = Helper.generate_subcommands_embed(command_name, subcommands)
+    embed = Helper.generate_subcommands_embed(('disco', 'd'), subcommands)
     await ctx.send(ctx.author.mention, embed=embed)
 
 

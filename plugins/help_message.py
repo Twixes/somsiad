@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from collections import namedtuple
-from typing import Union, List
+from typing import Union, Sequence, List, Tuple
 import discord
 from somsiad import somsiad
 from version import __version__
@@ -23,13 +23,13 @@ class Helper:
     Command = namedtuple('Command', ('aliases', 'arguments', 'description'))
 
     @staticmethod
-    def _add_command_field_to_embed(embed: discord.Embed, command, is_subcommand: bool = False):
+    def _add_command_field_to_embed(embed: discord.Embed, command: Command, is_subcommand: bool = False):
         if isinstance(command.aliases, (tuple, list)):
             name_string = command.aliases[0]
         else:
             name_string = command.aliases
 
-        if isinstance(command.aliases, (tuple, list)) and command.aliases[1:]:
+        if isinstance(command.aliases, (tuple, list)) and len(command.aliases) > 1:
             aliases_string = f' ({", ".join(command.aliases[1:])})'
         else:
             aliases_string = ''
@@ -52,7 +52,9 @@ class Helper:
         )
 
     @classmethod
-    def generate_general_embed(cls, commands: Union[list, tuple], embeds: List[discord.Embed] = None) -> discord.Embed:
+    def generate_general_embed(
+            cls, commands: Sequence[Command], embeds: Sequence[discord.Embed] = None
+    ) -> discord.Embed:
         if embeds is None:
             embeds = []
             embeds.append(discord.Embed(color=somsiad.color))
@@ -79,10 +81,22 @@ class Helper:
             return embeds
 
     @classmethod
-    def generate_subcommands_embed(cls, command_name: str, subcommands: Union[list, tuple]) -> discord.Embed:
+    def generate_subcommands_embed(
+            cls, command_aliases: Union[str, Union[List[str], Tuple[str]]], subcommands: Sequence[Command]
+    ) -> discord.Embed:
+        if isinstance(command_aliases, (tuple, list)):
+            name_string = command_aliases[0]
+        else:
+            name_string = command_aliases
+
+        if isinstance(command_aliases, (tuple, list)) and len(command_aliases) > 1:
+            aliases_string = f' ({", ".join(command_aliases[1:])})'
+        else:
+            aliases_string = ''
+
         embed = discord.Embed(
-            title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{command_name}',
-            description=f'Użycie: {somsiad.conf["command_prefix"]}{command_name} <podkomenda>',
+            title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{name_string}{aliases_string}',
+            description=f'Użycie: {somsiad.conf["command_prefix"]}{name_string} <podkomenda>',
             color=somsiad.color
         )
 
