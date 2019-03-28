@@ -180,11 +180,11 @@ def determine_nearest_trade_sunday_after_inclusive_date(date: dt.date = None) ->
             year += 1
             month = 1
 
-@somsiad.bot.group(aliases=['niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)
+@somsiad.bot.group(aliases=['niedzielehandlowe', 'handlowe'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def trade_sunday(ctx):
+async def trade_sundays(ctx):
     subcommands = (
         Helper.Command(
             ('najbliższa', 'najblizsza'), None,
@@ -197,14 +197,14 @@ async def trade_sunday(ctx):
             'uwzględnione zostaną tylko niedziele handlowe w <?miesiącu>.'
         )
     )
-    embed = Helper.generate_subcommands_embed(('handlowa', 'niedzielahandlowa'), subcommands)
+    embed = Helper.generate_subcommands_embed(('handlowe', 'niedzielehandlowe'), subcommands)
     await ctx.send(ctx.author.mention, embed=embed)
 
-@trade_sunday.command(aliases=['najbliższa', 'najblizsza'])
+@trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def trade_sunday_nearest(ctx):
+async def trade_sundays_nearest(ctx):
     nearest_sunday_date = determine_nearest_sunday_after_inclusive_date()
     nearest_trade_sunday_date = determine_nearest_trade_sunday_after_inclusive_date()
     if nearest_sunday_date == nearest_trade_sunday_date:
@@ -234,11 +234,11 @@ async def trade_sunday_nearest(ctx):
     )
     await ctx.send(ctx.author.mention, embed=embed)
 
-@trade_sunday.command(aliases=['terminarz', 'lista', 'spis'])
+@trade_sundays.command(aliases=['terminarz', 'lista', 'spis'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def trade_sunday_list(ctx, year: Optional[int], month: Optional[int]):
+async def trade_sundays_list(ctx, year: Optional[int], month: Optional[int]):
     month_names = [
         'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik',
         'Listopad', 'Grudzień'
@@ -264,8 +264,8 @@ async def trade_sunday_list(ctx, year: Optional[int], month: Optional[int]):
             )
     await ctx.send(ctx.author.mention, embed=embed)
 
-@trade_sunday_list.error
-async def trade_sunday_list_error(ctx, error):
+@trade_sundays_list.error
+async def trade_sundays_list_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=f':warning: {error}!',

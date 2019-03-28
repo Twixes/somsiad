@@ -197,9 +197,9 @@ commands = (
         f'Użyj {somsiad.conf["command_prefix"]}urodziny bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
-        ('handlowa', 'niedzielahandlowa'), 'podkomenda',
+        ('handlowe', 'niedzielehandlowe'), 'podkomenda',
         'Grupa komend związanych z niedzielami handlowymi. '
-        f'Użyj {somsiad.conf["command_prefix"]}handlowa bez podkomendy, by dowiedzieć się więcej.',
+        f'Użyj {somsiad.conf["command_prefix"]}handlowe bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         ('spal', 'burn'),
