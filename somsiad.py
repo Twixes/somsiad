@@ -304,7 +304,14 @@ async def on_command_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
     else:
         prefixed_command_qualified_name = f'{somsiad.conf["command_prefix"]}{ctx.command.qualified_name}'
-        somsiad.logger.error(
-            f'Ignoring {type(error).__name__} type exception in {prefixed_command_qualified_name} command '
-            f'used by {ctx.author} (ID {ctx.author.id}) on server {ctx.guild} (ID {ctx.guild.id}): "{error}"'
-        )
+        if ctx.guild is None:
+            log_entry = (
+                f'Ignoring {type(error).__name__} type exception in command {prefixed_command_qualified_name} '
+                f'used by {ctx.author} (ID {ctx.author.id}) in direct messages: "{error}"'
+            )
+        else:
+            log_entry = (
+                f'Ignoring {type(error).__name__} type exception in command {prefixed_command_qualified_name} '
+                f'used by {ctx.author} (ID {ctx.author.id}) on server {ctx.guild} (ID {ctx.guild.id}): "{error}"'
+            )
+        somsiad.logger.error(log_entry)
