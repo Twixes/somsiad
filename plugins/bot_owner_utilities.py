@@ -71,14 +71,21 @@ async def announce_globally(ctx, *, raw_announcement):
         embed.add_field(name=announcement[n].strip(), value=announcement[n+1].strip(), inline=False)
 
     for server in ctx.bot.guilds:
-        if 'bot' not in server.name and server.member_count < 10000:
-            if server.system_channel is not None and server.system_channel.permissions_for(ctx.me).send_messages:
-                await server.system_channel.send(embed=embed)
-            else:
-                for channel in server.text_channels:
-                    if channel.permissions_for(ctx.me).send_messages:
-                        await channel.send(embed=embed)
-                        break
+        if 'bot' not in server.name.lower() and server.member_count < 10000:
+            if server.system_channel is not None:
+                try:
+                    await server.system_channel.send(embed=embed)
+                except discord.Forbidden:
+                    pass
+                else:
+                    continue
+            for channel in server.text_channels:
+                try:
+                    await channel.send(embed=embed)
+                except discord.Forbidden:
+                    pass
+                else:
+                    break
 
 
 @announce.command(aliases=['lokalnie'])
