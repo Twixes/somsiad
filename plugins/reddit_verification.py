@@ -328,9 +328,9 @@ class RedditVerifier:
             self._db.commit()
         return self.discord_user_info(discord_user_id)
 
-    @staticmethod
+    @classmethod
     def log_verification_result(
-        discord_user_id: int, reddit_username: str, *, success: bool, personal_reason: str = '',
+        cls, discord_user_id: int, reddit_username: str, *, success: bool, personal_reason: str = '',
         log_reason: str = '', thread_server_data_manager: ServerDataManager
     ):
         discord_user = somsiad.bot.get_user(discord_user_id)
@@ -350,7 +350,7 @@ class RedditVerifier:
                 color=somsiad.color
             )
 
-        embed.set_footer(text=verifier.FOOTER_TEXT)
+        embed.set_footer(text=cls.FOOTER_TEXT)
         asyncio.ensure_future(discord_user.send(embed=embed))
 
         for row in thread_server_data_manager.get_log_channels():
@@ -375,7 +375,7 @@ class RedditVerifier:
                             color=somsiad.color
                         )
 
-                    embed.set_footer(text=verifier.FOOTER_TEXT)
+                    embed.set_footer(text=cls.FOOTER_TEXT)
                     asyncio.ensure_future(channel.send(embed=embed))
 
     def add_verified_roles_to_discord_user(self, discord_user_id: int):

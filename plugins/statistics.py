@@ -96,22 +96,25 @@ class Report:
         """Renders a graph presenting activity of or in the subject over time."""
         if isinstance(self.subject, discord.Guild):
             title = f'Aktywność na serwerze {self.subject}'
+            subject_identification = f'server-{self.subject.id}'
         elif isinstance(self.subject, discord.TextChannel):
             title = f'Aktywność na kanale #{self.subject.name}'
+            subject_identification = f'server-{self.subject.guild.id}-channel-{self.subject.id}'
         elif isinstance(self.subject, discord.Member):
             title = f'Aktywność użytkownika {self.subject}'
+            subject_identification = f'server-{self.subject.guild.id}-user-{self.subject.id}'
 
         # Initialize the chart
         fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3)
-
-        # Make it look nice
-        fig.set_tight_layout(True)
-        ax_by_hour.set_title(title, color=self.FOREGROUND_COLOR, fontsize=13, fontweight='bold', y=1.04)
 
         # Plot
         ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
         ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
         ax_by_date = self._plot_activity_by_date(ax_by_date)
+
+        # Make it look nice
+        fig.set_tight_layout(True)
+        ax_by_hour.set_title(title, color=self.FOREGROUND_COLOR, fontsize=13, fontweight='bold', y=1.04)
 
         # Save as bytes
         chart_bytes = io.BytesIO()
@@ -120,7 +123,7 @@ class Report:
         chart_bytes.seek(0)
 
         # Create a Discord file and embed it
-        filename = f'activity-{self.init_datetime.now().strftime("%d.%m.%Y-%H.%M.%S")}.png'
+        filename = f'activity-{subject_identification}-{self.init_datetime.strftime("%Y.%m.%dT%H.%M.%S")}.png'
         self.activity_chart_file = discord.File(
             fp=chart_bytes,
             filename=filename
@@ -358,7 +361,7 @@ class Report:
             text=f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s buforując '
             f'''{TextFormatter.word_number_variant(
                 self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
-            )}.'''
+            )}'''
         )
 
     def _plot_activity_by_hour(self, ax):

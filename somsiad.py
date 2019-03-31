@@ -81,7 +81,7 @@ class Somsiad:
     def run(self):
         """Launches the bot."""
         try:
-            self.bot.run(somsiad.conf['discord_token'])
+            self.bot.run(self.conf['discord_token'])
             self.logger.info('Client started.')
         except discord.errors.ClientException:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')

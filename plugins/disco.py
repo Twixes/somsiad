@@ -129,9 +129,9 @@ class DiscoManager:
         if self.servers[server.id]['song_audio']:
             self.servers[server.id]['song_audio'].volume = volume_float
 
-    @staticmethod
+    @classmethod
     def _generate_song_embed(
-            voice_channel: discord.VoiceChannel, query: str, song_status: int, song_info: dict
+            cls, voice_channel: discord.VoiceChannel, query: str, song_status: int, song_info: dict
     ) -> discord.Embed:
         if song_status == 0:
             embed = discord.Embed(
@@ -172,15 +172,15 @@ class DiscoManager:
 
             if extractor.startswith('youtube'):
                 embed.set_footer(
-                    icon_url=disco_manager.FOOTER_ICON_URL_YOUTUBE, text=disco_manager.FOOTER_TEXT_YOUTUBE
+                    icon_url=cls.FOOTER_ICON_URL_YOUTUBE, text=cls.FOOTER_TEXT_YOUTUBE
                 )
             elif extractor.startswith('soundcloud'):
                 embed.set_footer(
-                    icon_url=disco_manager.FOOTER_ICON_URL_SOUNDCLOUD, text=disco_manager.FOOTER_TEXT_SOUNDCLOUD
+                    icon_url=cls.FOOTER_ICON_URL_SOUNDCLOUD, text=cls.FOOTER_TEXT_SOUNDCLOUD
                     )
             elif extractor.startswith('vimeo'):
                 embed.set_footer(
-                    icon_url=disco_manager.FOOTER_ICON_URL_VIMEO, text=disco_manager.FOOTER_TEXT_VIMEO
+                    icon_url=cls.FOOTER_ICON_URL_VIMEO, text=cls.FOOTER_TEXT_VIMEO
                 )
 
         return embed

@@ -73,7 +73,7 @@ class BirthdayCalendar:
             (member.id,)
         )
         result = server_data_manager.servers[server.id]['db_cursor'].fetchone()
-        is_member_registered = not result is None
+        is_member_registered = result is not None
 
         return is_member_registered
 
