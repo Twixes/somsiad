@@ -11,8 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from collections import namedtuple
 from typing import Union, Sequence, List, Tuple
+from collections import namedtuple
+import math
 import discord
 from somsiad import somsiad
 from version import __version__
@@ -52,33 +53,27 @@ class Helper:
         )
 
     @classmethod
-    def generate_general_embed(
-            cls, commands: Sequence[Command], embeds: Sequence[discord.Embed] = None
-    ) -> discord.Embed:
-        if embeds is None:
-            embeds = []
-            embeds.append(discord.Embed(color=somsiad.color))
-            embeds[0].add_field(
-                name='Dobry!',
-                value='Somsiad jestem. Pomagam ludziom w różnych kwestiach. '
-                'By skorzystać z mojej pomocy wystarczy wysłać komendę w miejscu, w którym będę mógł ją zobaczyć. '
-                'Lista komend wraz z ich opisami znajduje się poniżej.\n'
-                'W nawiasach okrągłych podane są alternatywne nazwy komend.\n'
-                'W nawiasach ostrokątnych podane są argumenty komend. Jeśli przed nazwą argumentu jest pytajnik, '
-                'oznacza to, że jest to argument opcjonalny.\n'
-                'Gdybyś chciał dowiedzieć się o mnie więcej, wejdź na https://somsiad.twixes.com/.',
-                inline=False
-            )
-        else:
-            embeds.append(discord.Embed(color=somsiad.color))
+    def generate_general_embed(cls, commands: Sequence[Command]) -> discord.Embed:
+        embeds = [discord.Embed(color=somsiad.color)]
+        embeds[0].add_field(
+            name='Dobry!',
+            value='Somsiad jestem. Pomagam ludziom w różnych kwestiach. '
+            'By skorzystać z mojej pomocy wystarczy wysłać komendę w miejscu, w którym będę mógł ją zobaczyć. '
+            'Lista komend wraz z ich opisami znajduje się poniżej.\n'
+            'W (nawiasach okrągłych) podane są alternatywne nazwy komend.\n'
+            'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
+            'oznacza to, że jest to argument opcjonalny.\n'
+            'By dowiedzieć się o mnie więcej, wejdź na https://somsiad.twixes.com/.',
+            inline=False
+        )
 
-        for command in commands[:25 * len(embeds)]:
-            cls._add_command_field_to_embed(embeds[-1], command)
+        for embed_index in range(math.ceil(len(commands) / 25)):
+            if embed_index:
+                embeds.append(discord.Embed(color=somsiad.color))
+            for command in commands[25*embed_index:25*embed_index+25]:
+                cls._add_command_field_to_embed(embeds[embed_index], command)
 
-        if commands[25 * len(embeds):]:
-            return cls.generate_general_embed(commands[25 * len(embeds) - 1:], embeds)
-        else:
-            return embeds
+        return embeds
 
     @classmethod
     def generate_subcommands_embed(
@@ -300,6 +295,5 @@ commands = (
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def help_message(ctx):
-    embeds = Helper.generate_general_embed(commands)
-    for embed in embeds:
+    for embed in Helper.generate_general_embed(commands):
         await ctx.author.send(embed=embed)
