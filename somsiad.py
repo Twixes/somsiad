@@ -236,9 +236,20 @@ async def no(ctx, member: discord.Member = None):
 )
 async def version(ctx):
     """Responds with current version of the bot."""
-    emojis = ['b', 'fire', 'frog']
+    EMOJIS = [
+        'b', 'fire', 'frog', 'thinking', 'angry', 'boom', 'ok_hand', 'poop', 'rabbit', 'rabbit2', 'eagle',
+        'upside_down', 'blush', 'slight_smile', 'nerd', 'scream', 'japanese_ogre', 'japanese_devil', 'robot',
+        'raised_hands', 'wave', 'muscle', 'eyes', 'construction_worker', 'spy', 'dancer', 'tophat', 'cowboy', 'dog',
+        'cat', 'hamster', 'koala', 'pig', 'octopus', 'penguin', 'chicken', 'horse', 'unicorn', 'bee', 'beetle',
+        'turtle', 'dolphin', 'whale', 'goat', 'racehorse', 'pig2', 'cactus', 'sunflower', 'sun_with_face', 'comet',
+        'zap', 'duck', 'owl', 'fox', 'apple', 'banana', 'watermelon', 'grapes', 'peach', 'pineapple', 'eggplant',
+        'bread', 'cheese', 'fries', 'ramen', 'cake', 'candy', 'lollipop', 'cookie', 'avocado', 'potato', 'egg', 'art',
+        'saxophone', 'trumpet', 'space_invader', 'dart', 'drum', 'bike', 'rocket', 'satellite_orbital', 'anchor',
+        'beach', 'sparkler', 'fireworks', 'rainbow', 'bulb', 'barber', 'telescope', 'balloon', 'ribbon', 'tada', '100',
+        'gift_heart', 'radioactive', 'biohazard', 'sos', 'hotsprings'
+    ]
     embed = discord.Embed(
-        title=f':{random.choice(emojis)}: {__version__}',
+        title=f':{random.choice(EMOJIS)}: Somsiad {__version__}',
         color=somsiad.color
     )
     embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
