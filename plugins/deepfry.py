@@ -64,18 +64,19 @@ async def deepfry(ctx, doneness: int = 2):
     """
     filename = None
     input_image_bytes = None
-    async for message in ctx.history(limit=15):
-        filename, input_image_bytes = await DeepFrier.find_image(message)
-        if input_image_bytes:
-            break
-    else:
-        embed = discord.Embed(
-            title=':warning: Nie znaleziono obrazka do usmażenia!',
-            color=somsiad.color
-        )
-        return await ctx.send(ctx.author.mention, embed=embed)
-    output_image_bytes = await somsiad.bot.loop.run_in_executor(None, DeepFrier.fry, input_image_bytes, doneness)
+    async with ctx.typing():
+        async for message in ctx.history(limit=15):
+            filename, input_image_bytes = await DeepFrier.find_image(message)
+            if input_image_bytes:
+                break
+        else:
+            embed = discord.Embed(
+                title=':warning: Nie znaleziono obrazka do usmażenia!',
+                color=somsiad.color
+            )
+            return await ctx.send(ctx.author.mention, embed=embed)
+        output_image_bytes = await somsiad.bot.loop.run_in_executor(None, DeepFrier.fry, input_image_bytes, doneness)
 
     return await ctx.send(
-        f'{ctx.author.mention}', file=discord.File(output_image_bytes, filename=filename or 'deepfried.jpg')
+        f'{ctx.author.mention}', file=discord.File(output_image_bytes, filename=filename or 'deepfried.jpeg')
     )
