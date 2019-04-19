@@ -286,7 +286,8 @@ commands = (
     ),
     Helper.Command('nieloguj', None, 'Wyłącza kanał logów serwera. Działa tylko dla administratorów serwera.'),
     Helper.Command('ping', None, ':ping_pong: Pong!'),
-    Helper.Command('wersja', None, __version__)
+    Helper.Command('wersja', 'v', 'Działająca wersja bota.'),
+    Helper.Command('informacje', 'info', 'Działająca wersja bota plus dodatkowe informacje.'),
 )
 
 
