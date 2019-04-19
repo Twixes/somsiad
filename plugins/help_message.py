@@ -296,5 +296,6 @@ commands = (
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def help_message(ctx):
+    await ctx.message.add_reaction('📫')
     for embed in Helper.generate_general_embed(commands):
         await ctx.author.send(embed=embed)
