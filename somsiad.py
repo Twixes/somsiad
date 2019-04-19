@@ -277,6 +277,7 @@ async def info(ctx):
     embed.add_field(
         name='Czas pracy', value=TextFormatter.human_readable_time(dt.datetime.now() - somsiad.run_datetime)
     )
+    embed.add_field(name='Właściciel instancji', value=(await somsiad.bot.application_info()).owner.mention)
     embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
     await ctx.send(ctx.author.mention, embed=embed)
 
