@@ -254,6 +254,7 @@ async def version(ctx):
     ]
     embed = discord.Embed(
         title=f':{random.choice(EMOJIS)}: Somsiad {__version__}',
+        url='https://somsiad.twixes.com',
         color=somsiad.color
     )
     embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
@@ -268,6 +269,7 @@ async def info(ctx):
     """Responds with current version of the bot."""
     embed = discord.Embed(
         title=f':information_source: Somsiad {__version__}',
+        url='https://somsiad.twixes.com',
         color=somsiad.color
     )
     embed.add_field(name='Liczba serwerów', value=len(somsiad.bot.guilds))
