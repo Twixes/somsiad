@@ -121,19 +121,26 @@ class TextFormatter:
         return ''.join(time_difference_elements)
 
     @staticmethod
-    def human_readable_time(total_seconds: Number) -> str:
+    def human_readable_time(time: Union[dt.timedelta, Number]) -> str:
         information = []
+
+        if isinstance(time, dt.timedelta):
+            total_seconds = int(round(time.total_seconds()))
+        elif isinstance(time, Number):
+            total_seconds = int(round(Number))
+        else:
+            raise TypeError('time must be datetime.timedelta or numbers.Number')
 
         if total_seconds == 0.0:
             information.append(f'0 s')
         else:
-            days = int(total_seconds // 86400)
+            days = total_seconds // 86400
             total_seconds -= days * 86400
-            hours = int(total_seconds // 3600)
+            hours = total_seconds // 3600
             total_seconds -= hours * 3600
-            minutes = int(total_seconds // 60)
+            minutes = total_seconds // 60
             total_seconds -= minutes * 60
-            seconds = int(round(total_seconds))
+            seconds = total_seconds
             if days >= 1:
                 information.append(f'{days} d')
             if hours >= 1:

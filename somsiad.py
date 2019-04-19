@@ -17,6 +17,7 @@ import sys
 import platform
 import logging
 import random
+import datetime as dt
 import discord
 from discord.ext.commands import Bot
 from version import __version__
@@ -56,6 +57,7 @@ class Somsiad:
     ]
 
     def __init__(self, additional_required_settings: Union[list, tuple] = None):
+        self.run_datetime = None
         self.logger = logging.getLogger('Somsiad')
         logging.basicConfig(
             filename=os.path.join(self.bot_dir_path, 'somsiad.log'),
@@ -80,11 +82,13 @@ class Somsiad:
 
     def run(self):
         """Launches the bot."""
+        self.run_datetime = dt.datetime.now()
         try:
             self.bot.run(self.conf['discord_token'])
-            self.logger.info('Client started.')
         except discord.errors.ClientException:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
+        else:
+            self.logger.info('Client started.')
 
     @property
     def conf(self):
@@ -238,7 +242,7 @@ async def version(ctx):
     """Responds with current version of the bot."""
     EMOJIS = [
         'b', 'fire', 'frog', 'thinking', 'angry', 'boom', 'ok_hand', 'poop', 'rabbit', 'rabbit2', 'eagle',
-        'upside_down', 'blush', 'slight_smile', 'nerd', 'scream', 'japanese_ogre', 'japanese_devil', 'robot',
+        'upside_down', 'blush', 'slight_smile', 'nerd', 'scream', 'japanese_ogre', 'japanese_goblin', 'robot',
         'raised_hands', 'wave', 'muscle', 'eyes', 'construction_worker', 'spy', 'dancer', 'tophat', 'cowboy', 'dog',
         'cat', 'hamster', 'koala', 'pig', 'octopus', 'penguin', 'chicken', 'horse', 'unicorn', 'bee', 'beetle',
         'turtle', 'dolphin', 'whale', 'goat', 'racehorse', 'pig2', 'cactus', 'sunflower', 'sun_with_face', 'comet',
@@ -251,6 +255,25 @@ async def version(ctx):
     embed = discord.Embed(
         title=f':{random.choice(EMOJIS)}: Somsiad {__version__}',
         color=somsiad.color
+    )
+    embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@somsiad.bot.command(aliases=['informacje'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+async def info(ctx):
+    """Responds with current version of the bot."""
+    embed = discord.Embed(
+        title=f':information_source: Somsiad {__version__}',
+        color=somsiad.color
+    )
+    embed.add_field(name='Liczba serwerów', value=len(somsiad.bot.guilds))
+    embed.add_field(name='Liczba użytkowników', value=len(set(somsiad.bot.get_all_members())))
+    embed.add_field(
+        name='Czas pracy', value=TextFormatter.human_readable_time(dt.datetime.now() - somsiad.run_datetime)
     )
     embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
     await ctx.send(ctx.author.mention, embed=embed)
