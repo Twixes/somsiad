@@ -22,7 +22,7 @@ class Ball:
     with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.json')) as f:
         eightball_answers = json.load(f)
 
-    categories = ['affirmative' for _ in range(2)] + ['negative' for _ in range(2)] + ['enigmatic']
+    categories = ['affirmative' for _ in range(5)] + ['negative' for _ in range(5)] + ['enigmatic']
 
     @classmethod
     def ask(cls) -> str:

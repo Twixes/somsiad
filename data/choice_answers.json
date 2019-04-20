@@ -1,20 +1,23 @@
-[
-    "Z mojej strony zdecydowane :point_right {0} :point_left:.",
-    "Nie znam się, ale myślę, że najlepszą opcją jest :point_right: {0} :point_left:.",
-    ":point_right: {0} :point_left:, choć bez przekonania...",
-    "Może :point_right: {0} :point_left:?",
-    "Sugerowałbym :point_right: {0} :point_left:.",
-    "Muszę powiedzieć, że :point_right: {0} :point_left: brzmi nieźle.",
-    "Zdecydowanie :point_right: {0} :point_left:.",
-    ":point_right: {0} :point_left:, bez dwóch zdań.",
-    "To oczywiste, że :point_right: {0} :point_left:.",
-    "Wiem coś o tym i z czystym sumieniem mogę doradzić ci :point_right: {0} :point_left:.",
-    "Nie ma nad czym się tutaj zastanawiać: :point_right: {0} :point_left:.",
-    "Dla mnie sprawa jest prosta: :point_right: {0} :point_left:.",
-    "W razie wątpliwości zawsze wybieraj :point_right: {0} :point_left:.",
-    "Na twoim miejscu spróbowałbym :point_right: {0} :point_left:.",
-    "Żadna z opcji nie wygląda ciekawie.",
-    "Wszystkie opcje brzmią kusząco.",
-    "Przecież już znasz odpowiedź.",
-    "Tak."
-]
+{
+    "definitive": [
+        "Z mojej strony zdecydowane :point_right: {0} :point_left:.",
+        "Nie znam się, ale myślę, że najlepszą opcją jest :point_right: {0} :point_left:.",
+        ":point_right: {0} :point_left:, choć bez przekonania...",
+        "Może :point_right: {0} :point_left:?",
+        "Sugerowałbym :point_right: {0} :point_left:.",
+        "Muszę powiedzieć, że :point_right: {0} :point_left: brzmi nieźle.",
+        "Zdecydowanie :point_right: {0} :point_left:.",
+        ":point_right: {0} :point_left:, bez dwóch zdań.",
+        "To oczywiste, że :point_right: {0} :point_left:.",
+        "Wiem coś o tym i z czystym sumieniem mogę doradzić :point_right: {0} :point_left:.",
+        "Nie ma nad czym się tutaj zastanawiać: :point_right: {0} :point_left:.",
+        "Dla mnie sprawa jest prosta: :point_right: {0} :point_left:.",
+        "W razie wątpliwości zawsze wybieraj :point_right: {0} :point_left:.",
+        "Na twoim miejscu spróbowałbym :point_right: {0} :point_left:."
+    ], "enigmatic": [
+        "Żadna z opcji nie wygląda ciekawie.",
+        "Wszystkie opcje brzmią kusząco.",
+        "Przecież już znasz odpowiedź.",
+        "Tak."
+    ]
+}

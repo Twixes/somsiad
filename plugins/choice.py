@@ -21,6 +21,7 @@ from somsiad import somsiad
 with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r') as f:
     choice_answers = json.load(f)
 
+categories = ['definitive' for _ in range(10)] + ['enigmatic']
 
 @somsiad.bot.command(aliases=['choose', 'wybierz'])
 @discord.ext.commands.cooldown(
@@ -28,9 +29,10 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r'
 )
 async def random_choice(ctx, *, raw_options = ''):
     """Randomly chooses one of provided options."""
+    raw_options = raw_options.replace(';', ',').replace('|', ',')
     options_words = []
     for word in raw_options.strip('?').split():
-        if word.lower() in (';', '|', 'or', 'czy', 'albo', 'lub'):
+        if word.lower() in ('or', 'czy', 'albo', 'lub'):
             options_words.append(',')
         else:
             options_words.append(word)
@@ -45,7 +47,8 @@ async def random_choice(ctx, *, raw_options = ''):
             chosen_option = 'trebuszet'
         else:
             chosen_option = random.choice(options)
-        answer = random.choice(choice_answers).format(chosen_option)
+        category = random.choice(categories)
+        answer = random.choice(choice_answers[category]).format(chosen_option)
         await ctx.send(f'{ctx.author.mention}\n{answer}')
     else:
         await ctx.send(
