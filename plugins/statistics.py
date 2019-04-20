@@ -15,6 +15,7 @@ import io
 import datetime as dt
 import calendar
 import locale
+import asyncio
 from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -31,17 +32,19 @@ class Report:
     FOREGROUND_COLOR = '#ffffff'
 
     statistics_cache = {}
+    cache_update_queues = {}
 
     plt.style.use('dark_background')
 
     class Message:
         def __init__(
-                self, message_id: int, author_id: int, channel_id: int, local_datetime: dt.datetime, word_count: int,
-                character_count: int
+                self, message_id: int, author_id: int, channel_id: int, naive_datetime: dt.datetime,
+                local_datetime: dt.datetime, word_count: int, character_count: int
         ):
             self.message_id = message_id
             self.author_id = author_id
             self.channel_id = channel_id
+            self.naive_datetime = naive_datetime
             self.local_datetime = local_datetime
             self.word_count = word_count
             self.character_count = character_count
@@ -52,8 +55,11 @@ class Report:
             except AttributeError:
                 return False
 
-
-    def __init__(self, requesting_member: discord.Member, subject: Union[discord.Guild, discord.TextChannel]):
+    def __init__(
+            self, request_message_id: int, requesting_member: discord.Member,
+            subject: Union[discord.Guild, discord.TextChannel]
+    ):
+        self.seconds_in_queue = 0
         self.messages_cached = 0
         self.total_message_count = 0
         self.total_word_count = 0
@@ -66,29 +72,38 @@ class Report:
         self.embed = None
         self.activity_chart_file = None
         self.init_datetime = dt.datetime.now().astimezone()
+        self.request_message_id = request_message_id
         self.requesting_member = requesting_member
         self.subject = subject
+        self.guild = requesting_member.guild
         if isinstance(subject, discord.Guild):
-            self._prepare_active_channels(self.subject)
+            self._prepare_active_channels(self.guild)
             self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.TextChannel):
             # Raise a BadArgument exception if the requesting user doesn't have access to the channel
             if not self.subject.permissions_for(self.requesting_member).read_messages:
                 raise discord.ext.commands.BadArgument
-            self._prepare_active_channels(self.subject.guild, self.subject)
+            self._prepare_active_channels(self.guild, self.subject)
             self._prepare_messages_over_date(self.subject.created_at)
         elif isinstance(subject, discord.Member):
-            self._prepare_active_channels(self.subject.guild)
+            self._prepare_active_channels(self.guild)
             self._prepare_messages_over_date(self.subject.joined_at)
+        if self.guild.id not in self.cache_update_queues:
+            self.cache_update_queues[self.guild.id] = []
 
     async def analyze_subject(self) -> discord.Embed:
         """Selects the right type of analysis depending on the subject."""
+        self.cache_update_queues[self.guild.id].append(self.request_message_id)
+        while not self.cache_update_queues[self.guild.id][0] == self.request_message_id:
+            await asyncio.sleep(1)
+            self.seconds_in_queue += 1
         if isinstance(self.subject, discord.Guild):
             await self._analyze_server()
         elif isinstance(self.subject, discord.TextChannel):
             await self._analyze_channel()
         elif isinstance(self.subject, discord.Member):
             await self._analyze_member()
+        self.cache_update_queues[self.guild.id].remove(self.request_message_id)
         self._embed_analysis_metastatistics()
         return self.embed
 
@@ -176,18 +191,21 @@ class Report:
 
     async def _update_statistics_cache_for_channel(self, channel: discord.TextChannel):
         try:
-            async for message in channel.history(limit=None):
+            if self.statistics_cache[channel.guild.id][channel.id]:
+                after = self.statistics_cache[channel.guild.id][channel.id][-1].naive_datetime
+            else:
+                after = None
+            cache_update = []
+            async for message in channel.history(limit=None, after=after):
                 if message.type == discord.MessageType.default:
                     message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
                     message_object = self.Message(
-                        message.id, message.author.id, message.channel.id, message_local_datetime,
+                        message.id, message.author.id, message.channel.id, message.created_at, message_local_datetime,
                         len(message.clean_content.split()), len(message.clean_content)
                     )
-                    if message_object in self.statistics_cache[channel.guild.id][channel.id]:
-                        break
-                    else:
-                        self.statistics_cache[channel.guild.id][channel.id].append(message_object)
-                        self.messages_cached += 1
+                    cache_update.append(message_object)
+            self.messages_cached = len(cache_update)
+            self.statistics_cache[channel.guild.id][channel.id] += reversed(cache_update)
         except discord.Forbidden:
             pass
 
@@ -357,12 +375,22 @@ class Report:
 
     def _embed_analysis_metastatistics(self):
         analysis_time = dt.datetime.now().astimezone() - self.init_datetime
-        self.embed.set_footer(
-            text=f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s buforując '
-            f'''{TextFormatter.word_number_variant(
-                self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
-            )}'''
-        )
+        if self.seconds_in_queue:
+            footer_text = (
+                f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s '
+                f'(z czego {self.seconds_in_queue} s oczekiwania na zakończenie pracy innych wątków analizy na '
+                f'''serwerze) buforując {TextFormatter.word_number_variant(
+                    self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
+                )}'''
+            )
+        else:
+            footer_text = (
+                f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s buforując '
+                f'''{TextFormatter.word_number_variant(
+                    self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
+                )}'''
+            )
+        self.embed.set_footer(text=footer_text)
 
     def _plot_activity_by_hour(self, ax):
         # Plot the chart
@@ -547,7 +575,7 @@ async def stat_error(ctx, error):
 @discord.ext.commands.guild_only()
 async def stat_server(ctx):
     async with ctx.typing():
-        report = Report(ctx.author, ctx.guild)
+        report = Report(ctx.message.id, ctx.author, ctx.guild)
         await report.analyze_subject()
         report.render_activity_chart()
 
@@ -563,7 +591,7 @@ async def stat_channel(ctx, *, channel: discord.TextChannel = None):
     channel = channel or ctx.channel
 
     async with ctx.typing():
-        report = Report(ctx.author, channel)
+        report = Report(ctx.message.id, ctx.author, channel)
         await report.analyze_subject()
         report.render_activity_chart()
 
@@ -589,7 +617,7 @@ async def stat_member(ctx, *, member: discord.Member = None):
     member = member or ctx.author
 
     async with ctx.typing():
-        report = Report(ctx.author, member)
+        report = Report(ctx.message.id, ctx.author, member)
         await report.analyze_subject()
         report.render_activity_chart()
 
