@@ -551,7 +551,7 @@ async def stat(ctx, *, subject: Union[discord.Member, discord.TextChannel] = Non
         await ctx.send(ctx.author.mention, embed=embed)
     else:
         async with ctx.typing():
-            report = Report(ctx.author, subject)
+            report = Report(ctx.message.id, ctx.author, subject)
             await report.analyze_subject()
             report.render_activity_chart()
 
