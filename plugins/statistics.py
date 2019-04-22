@@ -204,7 +204,7 @@ class Report:
                         len(message.clean_content.split()), len(message.clean_content)
                     )
                     cache_update.append(message_object)
-            self.messages_cached = len(cache_update)
+            self.messages_cached += len(cache_update)
             self.statistics_cache[channel.guild.id][channel.id] += reversed(cache_update)
         except discord.Forbidden:
             pass
