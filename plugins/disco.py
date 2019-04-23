@@ -97,7 +97,8 @@ class DiscoManager:
             if os.path.isfile(os.path.join(self._CACHE_DIR_PATH, song_filename)):
                 song_path = os.path.join(self._CACHE_DIR_PATH, song_filename)
 
-                voice_channel.guild.voice_client.stop()
+                if voice_channel.guild.voice_client is not None:
+                    voice_channel.guild.voice_client.stop()
 
                 song_audio = discord.PCMVolumeTransformer(
                     discord.FFmpegPCMAudio(song_path), self.servers[voice_channel.guild.id]['volume']
@@ -129,9 +130,8 @@ class DiscoManager:
         if self.servers[server.id]['song_audio']:
             self.servers[server.id]['song_audio'].volume = volume_float
 
-    @classmethod
     def _generate_song_embed(
-            cls, voice_channel: discord.VoiceChannel, query: str, song_status: int, song_info: dict
+            self, voice_channel: discord.VoiceChannel, query: str, song_status: int, song_info: dict
     ) -> discord.Embed:
         if song_status == 0:
             embed = discord.Embed(
@@ -159,29 +159,20 @@ class DiscoManager:
                     uploader_url = None
 
             embed = discord.Embed(
-                title=f':arrow_forward: {song_info["title"]}',
-                url=song_info['webpage_url'],
-                color=somsiad.color
+                title=f':arrow_forward: {song_info["title"]}', url=song_info['webpage_url'], color=somsiad.color
             )
             embed.set_author(name=song_info['uploader'], url=uploader_url)
             embed.set_thumbnail(url=song_info['thumbnail'])
             embed.add_field(name='Długość', value=TextFormatter.human_readable_time(song_info['duration']))
-            embed.add_field(
-                name='Kanał', value=voice_channel.name
-            )
+            embed.add_field(name='Głośność', value=f'{int(self.servers[voice_channel.guild.id]["volume"] * 100)}%')
+            embed.add_field(name='Kanał', value=voice_channel.name)
 
             if extractor.startswith('youtube'):
-                embed.set_footer(
-                    icon_url=cls.FOOTER_ICON_URL_YOUTUBE, text=cls.FOOTER_TEXT_YOUTUBE
-                )
+                embed.set_footer(icon_url=self.FOOTER_ICON_URL_YOUTUBE, text=self.FOOTER_TEXT_YOUTUBE)
             elif extractor.startswith('soundcloud'):
-                embed.set_footer(
-                    icon_url=cls.FOOTER_ICON_URL_SOUNDCLOUD, text=cls.FOOTER_TEXT_SOUNDCLOUD
-                    )
+                embed.set_footer(icon_url=self.FOOTER_ICON_URL_SOUNDCLOUD, text=self.FOOTER_TEXT_SOUNDCLOUD)
             elif extractor.startswith('vimeo'):
-                embed.set_footer(
-                    icon_url=cls.FOOTER_ICON_URL_VIMEO, text=cls.FOOTER_TEXT_VIMEO
-                )
+                embed.set_footer(icon_url=self.FOOTER_ICON_URL_VIMEO, text=self.FOOTER_TEXT_VIMEO)
 
         return embed
 
@@ -198,7 +189,7 @@ async def disco(ctx):
     subcommands = (
         Helper.Command(('zagraj', 'graj'), 'zapytanie/link', 'Odtwarza utwór na kanale głosowym.'),
         Helper.Command(
-            ('powtórz', 'powtorz'), None, 'Odtwarza od początku obecnie lub ostatnio odtwarzany na serwerze utwór.'
+            ('powtórz', 'powtorz', 'replay'), None, 'Odtwarza od początku obecnie lub ostatnio odtwarzany na serwerze utwór.'
         ),
         Helper.Command(('spauzuj', 'pauzuj', 'pauza'), None, 'Pauzuje obecnie odtwarzany utwór.'),
         Helper.Command(('wznów', 'wznow'), None, 'Wznawia odtwarzanie utworu.'),
@@ -246,7 +237,7 @@ async def disco_play_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat'])
+@disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
