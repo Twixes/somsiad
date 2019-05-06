@@ -374,6 +374,7 @@ class Report:
         self._embed_top_active_channels()
 
     def _embed_analysis_metastatistics(self):
+        """Adds information about analysis time as the report embed's footer."""
         analysis_time = dt.datetime.now().astimezone() - self.init_datetime
         if self.seconds_in_queue:
             footer_text = (
