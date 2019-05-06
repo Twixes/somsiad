@@ -48,7 +48,7 @@ async def random_choice(ctx, *, raw_options = ''):
         else:
             chosen_option = random.choice(options)
         category = random.choice(categories)
-        answer = random.choice(choice_answers[category]).format(chosen_option)
+        answer = random.choice(choice_answers[category]).format(f':point_right: {chosen_option} :point_left:')
         await ctx.send(f'{ctx.author.mention}\n{answer}')
     else:
         await ctx.send(
