@@ -21,7 +21,7 @@ from somsiad import somsiad
 with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r') as f:
     choice_answers = json.load(f)
 
-categories = ['definitive' for _ in range(10)] + ['enigmatic']
+categories = ['definitive' for _ in range(49)] + ['enigmatic']
 
 @somsiad.bot.command(aliases=['choose', 'wybierz'])
 @discord.ext.commands.cooldown(
