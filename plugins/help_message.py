@@ -67,10 +67,10 @@ class Helper:
             inline=False
         )
 
-        for embed_index in range(math.ceil(len(commands) / 25)):
+        for embed_index in range(math.ceil(len(commands) / 24)):
             if embed_index:
                 embeds.append(discord.Embed(color=somsiad.color))
-            for command in commands[25*embed_index:25*embed_index+25]:
+            for command in commands[24*embed_index:24*embed_index+24]:
                 cls._add_command_field_to_embed(embeds[embed_index], command)
 
         return embeds
@@ -286,8 +286,8 @@ commands = (
     ),
     Helper.Command('nieloguj', None, 'Wyłącza kanał logów serwera. Działa tylko dla administratorów serwera.'),
     Helper.Command('ping', None, ':ping_pong: Pong!'),
-    Helper.Command('wersja', 'v', 'Działająca wersja bota.'),
-    Helper.Command('informacje', 'info', 'Działająca wersja bota plus dodatkowe informacje.'),
+    Helper.Command(('wersja', 'v'), None, 'Działająca wersja bota.'),
+    Helper.Command(('informacje', 'info'), None, 'Działająca wersja bota plus dodatkowe informacje.'),
 )
 
 
