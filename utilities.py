@@ -127,7 +127,7 @@ class TextFormatter:
         if isinstance(time, dt.timedelta):
             total_seconds = int(round(time.total_seconds()))
         elif isinstance(time, Number):
-            total_seconds = int(round(Number))
+            total_seconds = int(round(time))
         else:
             raise TypeError('time must be datetime.timedelta or numbers.Number')
 
