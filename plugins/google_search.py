@@ -85,9 +85,12 @@ async def google(ctx, *, query):
             name=result['displayLink'],
             url=f'{site_protocol}://{result["displayLink"]}'
         )
-        embed.set_image(
-            url=result['pagemap']['cse_image'][0]['src']
-        )
+        try:
+            embed.set_image(
+                url=result['pagemap']['cse_image'][0]['src']
+            )
+        except KeyError:
+            pass
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
     await ctx.send(ctx.author.mention, embed=embed)
