@@ -11,13 +11,15 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import string
 from py_expression_eval import Parser
 import discord
 from somsiad import somsiad
+from utilities import TextFormatter
 
 
 parser = Parser()
-
+input_data_strip_chars = string.whitespace + ';'
 
 @somsiad.bot.command(aliases=['oblicz', 'policz'])
 @discord.ext.commands.cooldown(
@@ -27,14 +29,27 @@ async def calculate(ctx, *, data):
     """Calculates the provided expressions and sends the results.
     If calculation is not possible with available data, simplifies the expression.
     """
-    input_data = data.replace('\\', '').strip(';').split(';')
-    expression = input_data[0].strip()
+    input_data = [part.strip() for part in data.replace('\\', '').strip(input_data_strip_chars).split(';')]
+    expression = input_data[0]
     variables_list = input_data[1:]
+    roundDigits = None
+    if variables_list:
+        try:
+            roundDigits = int(variables_list[-1])
+        except ValueError:
+            pass
+        else:
+            variables_list.pop()
+
     variables_dict = {}
     for variable in variables_list:
         key_value_pair = variable.split('=')
         try:
-            variables_dict[key_value_pair[0].strip()] = float(key_value_pair[1].strip())
+            key = key_value_pair[0].strip()
+            variables_dict[key] = float(key_value_pair[1].strip())
+            if int(variables_dict[key]) == variables_dict[key]:
+                variables_dict[key] = int(variables_dict[key])
+
         except (IndexError, ValueError):
             embed = discord.Embed(
                 title=':warning: Podano nieprawidłowe zmienne!',
@@ -70,15 +85,37 @@ async def calculate(ctx, *, data):
                     title=':1234: Uproszczono wyrażenie',
                     color=somsiad.color
                 )
-                embed.add_field(name='Wejście', value=input_info_string.replace('*', '\*'), inline=False)
-                embed.add_field(name='Wyjście', value=result.replace('*', '\*'), inline=False)
+                embed.add_field(name='Wejście', value=input_info_string.replace('*', '\\*'), inline=False)
+                embed.add_field(name='Wyjście', value=result.replace('*', '\\*'), inline=False)
         else:
+            output_details = 'Wyjście'
+
+            if int(result) == result:
+                result = int(result)
+
+            if roundDigits is not None:
+                result = round(result, roundDigits)
+                if roundDigits <= 0:
+                    result = int(result)
+                    if roundDigits == 0:
+                        output_details = f'Wyjście zaokrąglone do całości'
+                    else:
+                        output_details = (
+                            'Wyjście zaokrąglone do '
+                            f'{TextFormatter.word_number_variant(-roundDigits, "cyfry", "cyfr")} przed przecinkiem'
+                        )
+                else:
+                    output_details = (
+                        'Wyjście zaokrąglone do '
+                        f'{TextFormatter.word_number_variant(roundDigits, "cyfry", "cyfr")} po przecinku'
+                    )
+
             embed = discord.Embed(
                 title=':1234: Obliczono wartość wyrażenia',
                 color=somsiad.color
             )
-            embed.add_field(name='Wejście', value=input_info_string.replace('*', '\*'), inline=False)
-            embed.add_field(name='Wyjście', value=result, inline=False)
+            embed.add_field(name='Wejście', value=input_info_string.replace('*', '\\*'), inline=False)
+            embed.add_field(name=output_details, value=result, inline=False)
 
     return await ctx.send(ctx.author.mention, embed=embed)
 

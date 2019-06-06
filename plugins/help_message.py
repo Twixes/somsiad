@@ -112,7 +112,9 @@ commands = (
     Helper.Command(
         ('oblicz', 'policz'), ('wyrażenie', '?zmienne'),
         'Oblicza wartość podanego wyrażenia. '
-        'Przyjmuje również oddzielone średnikami zmienne, np. "x ^ 2 + y + 4; x = 3; y = 5". '
+        'Przyjmuje również oddzielone średnikami zmienne. Po średniku można też podać liczbę miejsc po przecinku do jakiej ma zostać zaokrąglony wynik. '
+        f'Przykładowo `{somsiad.conf["command_prefix"]}oblicz 71 / x; x = 58; 2` zwróci 71/100 '
+        'zaokrąglone do 2 cyfr po przecinku. '
         'Jeśli podane dane nie są wystarczające do obliczenia wartości równania, próbuje je uprościć.'
     ),
     Helper.Command(
