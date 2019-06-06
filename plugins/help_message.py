@@ -110,7 +110,7 @@ commands = (
     ),
     Helper.Command(('rzuć', 'rzuc'), ('?liczba kości', '?liczba ścianek kości'), 'Rzuca kością/koścmi.'),
     Helper.Command(
-        ('oblicz', 'policz'), ('wyrażenie', '?zmienne'),
+        ('oblicz', 'policz'), ('wyrażenie', '?zmienne', '?poziom zaokrąglenia'),
         'Oblicza wartość podanego wyrażenia. '
         'Przyjmuje również oddzielone średnikami zmienne. Po średniku można też podać liczbę miejsc po przecinku do jakiej ma zostać zaokrąglony wynik. '
         f'Przykładowo `{somsiad.conf["command_prefix"]}oblicz 71 / x; x = 58; 2` zwróci 71/100 '
