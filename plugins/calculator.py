@@ -21,6 +21,8 @@ from utilities import TextFormatter
 parser = Parser()
 input_data_strip_chars = string.whitespace + ';'
 
+previous_expressions = {}
+
 @somsiad.bot.command(aliases=['oblicz', 'policz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
@@ -29,10 +31,33 @@ async def calculate(ctx, *, data):
     """Calculates the provided expressions and sends the results.
     If calculation is not possible with available data, simplifies the expression.
     """
-    input_data = [part.strip() for part in data.replace('\\', '').strip(input_data_strip_chars).split(';')]
-    expression = input_data[0]
-    variables_list = input_data[1:]
+    input_data = [part.strip() for part in data.strip(input_data_strip_chars).replace('\\', '').split(';')]
+    expression = None
+    variables_list = None
+    used_previous_expression = False
+    try:
+        expression = [input_data[0], parser.parse(input_data[0])]
+    except Exception:
+        try:
+            if '=' not in input_data[0]:
+                raise ValueError
+            expression = previous_expressions[ctx.channel.id][ctx.author.id]
+        except (ValueError, KeyError):
+            embed = discord.Embed(
+                title=':warning: Błąd w wyrażeniu!',
+                color=somsiad.color
+            )
+        else:
+            used_previous_expression = True
+            variables_list = input_data
+    else:
+        variables_list = input_data[1:]
+        if ctx.channel.id not in previous_expressions:
+            previous_expressions[ctx.channel.id] = {}
+        previous_expressions[ctx.channel.id][ctx.author.id] = expression
+
     roundDigits = None
+    variables_dict = {}
     if variables_list:
         try:
             roundDigits = int(variables_list[-1])
@@ -41,43 +66,33 @@ async def calculate(ctx, *, data):
         else:
             variables_list.pop()
 
-    variables_dict = {}
-    for variable in variables_list:
-        key_value_pair = variable.split('=')
-        try:
-            key = key_value_pair[0].strip()
-            variables_dict[key] = float(key_value_pair[1].strip())
-            if int(variables_dict[key]) == variables_dict[key]:
-                variables_dict[key] = int(variables_dict[key])
+        for variable in variables_list:
+            key_value_pair = variable.split('=')
+            try:
+                key = key_value_pair[0].strip()
+                variables_dict[key] = float(key_value_pair[1].strip())
+                if int(variables_dict[key]) == variables_dict[key]:
+                    variables_dict[key] = int(variables_dict[key])
+            except (IndexError, ValueError):
+                embed = discord.Embed(
+                    title=f':warning: Błąd w zmiennej `{variable}`!',
+                    color=somsiad.color
+                )
+                return await ctx.send(ctx.author.mention, embed=embed)
 
-        except (IndexError, ValueError):
-            embed = discord.Embed(
-                title=':warning: Podano nieprawidłowe zmienne!',
-                color=somsiad.color
-            )
-            return await ctx.send(ctx.author.mention, embed=embed)
-
-    try:
-        parsed_expression = parser.parse(expression)
-    except Exception:
-        embed = discord.Embed(
-            title=':warning: Podano nieprawidłowe wyrażenie!',
-            color=somsiad.color
-        )
-    else:
-        input_info = (
-            [expression] +
+    if expression is not None:
+        input_info = '\n'.join(
+            [expression[0]] +
             [f'{variable[0]} = {variable[1]}' for variable in variables_dict.items()]
         )
-        input_info_string = '\n'.join(input_info)
         try:
-            result = parsed_expression.evaluate(variables_dict)
+            result = expression[1].evaluate(variables_dict)
         except Exception:
             try:
-                result = parsed_expression.simplify(variables_dict).toString()
+                result = expression[1].simplify(variables_dict).toString()
             except Exception:
                 embed = discord.Embed(
-                    title=':warning: Podano nieprawidłowe wyrażenie lub zmienne!',
+                    title=':warning: Błąd w wyrażeniu lub zmiennych!',
                     color=somsiad.color
                 )
             else:
@@ -85,9 +100,11 @@ async def calculate(ctx, *, data):
                     title=':1234: Uproszczono wyrażenie',
                     color=somsiad.color
                 )
-                embed.add_field(name='Wejście', value=input_info_string.replace('*', '\\*'), inline=False)
-                embed.add_field(name='Wyjście', value=result.replace('*', '\\*'), inline=False)
+                embed.add_field(name='Wejście', value=f'```Matlab\n{input_info}```', inline=False)
+                embed.add_field(name='Wyjście', value=f'```Matlab\n{result}```', inline=False)
         else:
+            input_details = 'Wejście (zastosowano poprzednie wyrażenie)' if used_previous_expression else 'Wejście'
+
             output_details = 'Wyjście'
 
             if int(result) == result:
@@ -114,8 +131,8 @@ async def calculate(ctx, *, data):
                 title=':1234: Obliczono wartość wyrażenia',
                 color=somsiad.color
             )
-            embed.add_field(name='Wejście', value=input_info_string.replace('*', '\\*'), inline=False)
-            embed.add_field(name=output_details, value=result, inline=False)
+            embed.add_field(name=input_details, value=f'```Matlab\n{input_info}```', inline=False)
+            embed.add_field(name=output_details, value=f'```Matlab\n{result}```', inline=False)
 
     return await ctx.send(ctx.author.mention, embed=embed)
 
@@ -123,7 +140,7 @@ async def calculate(ctx, *, data):
 async def calculate_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
-            title=':warning: Nie podano wyrażenia do obliczenia!',
+            title=':warning: Nie podano wyrażenia ani zmiennych!',
             color=somsiad.color
         )
         await ctx.send(ctx.author.mention, embed=embed)
