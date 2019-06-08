@@ -16,7 +16,6 @@ from collections import namedtuple
 import math
 import discord
 from somsiad import somsiad
-from version import __version__
 
 
 class Helper:
@@ -101,8 +100,8 @@ class Helper:
         return embed
 
 
-commands = (
-    Helper.Command(('pomocy', 'help'), None, 'Wysyła ci tę wiadomość.'),
+COMMANDS = (
+    Helper.Command(('pomocy', 'pomoc', 'help'), None, 'Wysyła ci tę wiadomość.'),
     Helper.Command(('8-ball', '8ball', 'eightball', '8', 'czy'), 'pytanie', 'Zadaje <pytanie> magicznej kuli.'),
     Helper.Command(
         ('wybierz',), ('opcje',),
@@ -287,17 +286,17 @@ commands = (
         'komendy. Działa tylko dla administratorów serwera.'
     ),
     Helper.Command('nieloguj', None, 'Wyłącza kanał logów serwera. Działa tylko dla administratorów serwera.'),
-    Helper.Command('ping', None, ':ping_pong: Pong!'),
+    Helper.Command('ping', None, 'Pong!'),
     Helper.Command(('wersja', 'v'), None, 'Działająca wersja bota.'),
     Helper.Command(('informacje', 'info'), None, 'Działająca wersja bota plus dodatkowe informacje.'),
 )
 
 
-@somsiad.bot.command(aliases=['help', 'pomocy'])
+@somsiad.bot.command(aliases=['help', 'pomocy', 'pomoc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def help_message(ctx):
     await ctx.message.add_reaction('📫')
-    for embed in Helper.generate_general_embed(commands):
+    for embed in Helper.generate_general_embed(COMMANDS):
         await ctx.author.send(embed=embed)
