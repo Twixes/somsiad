@@ -49,6 +49,8 @@ class SchoolYear:
         while date.isoweekday() != 5:
             day += 1
             date = dt.date(year=end_year, month=6, day=day)
+        if end_year == 2019:
+            date -= dt.timedelta(2)
         return date
 
     def _length(self) -> int:
