@@ -121,7 +121,7 @@ async def how_much_more(ctx):
     else:
         current_summber_break = current_school_time
         embed = discord.Embed(
-            title=':books: Do końca wakacji '
+            title=':beach: Do końca wakacji '
             f'{TextFormatter.word_number_variant(current_summber_break.days_left, "został", "zostały", "zostało", include_number=False)} '
             f'{TextFormatter.word_number_variant(current_summber_break.days_left, "dzień", "dni")}',
             description=present_days_as_weeks(current_summber_break.days_left),
