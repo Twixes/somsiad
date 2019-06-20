@@ -172,7 +172,9 @@ COMMANDS = (
     Helper.Command(
         'isitup', 'url', 'Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.'
     ),
-    Helper.Command(('rokszkolny', 'ilejeszcze'), None, 'Zwraca ile jeszcze zostało do końca roku szkolnego.'),
+    Helper.Command(
+        ('rokszkolny', 'wakacje', 'ilejeszcze'), None, 'Zwraca ile jeszcze zostało do końca roku szkolnego lub wakacji.'
+    ),
     Helper.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca URL <subreddita>.'),
     Helper.Command(
         ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
