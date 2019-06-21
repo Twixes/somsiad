@@ -1,0 +1,134 @@
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  text-rendering: optimizeLegibility;
+}
+
+.logo {
+  font-size: 7rem;
+}
+
+.logo .logotype {
+  text-align: center;
+  line-height: 0.8;
+}
+
+.logo .username {
+  font: 600 1em "Zilla Slab", serif;
+  line-height: inherit;
+  vertical-align: middle;
+}
+
+.logo .bot-tag {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0.1em 0.2em;
+  border-radius: 6px;
+  background: #7289da;
+  color: #fff;
+  font: 600 0.475em "Open Sans", sans-serif;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+
+.logo .slogan {
+  font: 300 0.6875em "Zilla Slab", serif;
+  text-align: center;
+  line-height: 0.9;
+}
+
+.actions-box {
+  margin-top: 1em;
+  text-align: center;
+}
+
+a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.action-float {
+  float: left;
+}
+
+button {
+  display: inline-block;
+  transition: box-shadow 300ms ease, background 300ms ease, border 300ms ease;
+  height: 3em;
+  margin: 1em 0.5em 0;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  outline: none;
+  font: 600 1rem "Open Sans", sans-serif;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+.button-white {
+  width: 17.5em;
+  border: solid 1px #ddd;
+  background: #fff;
+  color: #000;
+}
+
+.button-white:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.button-white:active {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: #eee;
+  border-color: #eee;
+}
+
+.button-blurple {
+  width: 36em;
+  background: #7289da;
+  color: #fff;
+}
+
+.button-blurple:hover {
+  box-shadow: 0 8px 24px rgba(114, 137, 218, 0.6);
+}
+
+.button-blurple:active {
+  box-shadow: 0 8px 24px rgba(114, 137, 218, 0.6);
+  background: #677bc4;
+}
+
+@media screen and (max-width: 38rem) {
+  .logo {
+    font-size: 16vw;
+  }
+
+  .logo .bot-tag {
+    border-radius: 3px;
+  }
+
+  .action-float {
+    float: none;
+  }
+
+  .button-blurple {
+    width: 17.5em;
+  }
+}
+
+@media screen and (max-height: 38rem) and (orientation: landscape) {
+  .logo {
+    font-size: 22vh;
+  }
+}
