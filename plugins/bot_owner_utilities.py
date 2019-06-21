@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import sys
 import discord
 from somsiad import somsiad
 
@@ -121,7 +122,7 @@ async def announce_locally(ctx, *, raw_announcement):
                 break
 
 
-@somsiad.bot.command(aliases=['wyłącz', 'wylacz'])
+@somsiad.bot.command(aliases=['wyłącz', 'wylacz', 'stop'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -135,4 +136,4 @@ async def shutdown(ctx):
     await ctx.send(ctx.author.mention, embed=embed)
     print(f'Zatrzymuję działanie programu na żądanie {ctx.author}...')
     await ctx.bot.close()
-    exit()
+    sys.exit()
