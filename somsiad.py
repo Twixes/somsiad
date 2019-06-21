@@ -114,16 +114,17 @@ class Somsiad:
         list_of_servers = []
 
         for server in sorted_servers:
-            if len(server.name) > longest_server_name_length:
-                longest_server_name_length = len(server.name)
+            server_name_with_id = f'{server.name} (ID {server.id})'
+            if len(server_name_with_id) > longest_server_name_length:
+                longest_server_name_length = len(server_name_with_id)
             days_since_joining_info = TextFormatter.time_difference(server.me.joined_at, name_month=False)
             if len(days_since_joining_info) > longest_days_since_joining_info_length:
                 longest_days_since_joining_info_length = len(days_since_joining_info)
-
         for server in sorted_servers:
             days_since_joining_info = TextFormatter.time_difference(server.me.joined_at, name_month=False)
+            server_name_with_id = f'{server.name} (ID {server.id})'
             list_of_servers.append(
-                f'{server.name.ljust(longest_server_name_length)} - '
+                f'{server_name_with_id.ljust(longest_server_name_length)} - '
                 f'dołączono {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
                 f'{TextFormatter.word_number_variant(server.member_count, "użytkownik", "użytkowników")}'
             )
@@ -193,7 +194,7 @@ ADDITIONAL_REQUIRED_SETTINGS = (
 somsiad = Somsiad(ADDITIONAL_REQUIRED_SETTINGS)
 
 
-def print_info(first_console_block=True):
+def print_info():
     """Prints information about the bot to the console."""
     number_of_users = len(set(somsiad.bot.get_all_members()))
     number_of_servers = len(somsiad.bot.guilds)
@@ -216,7 +217,7 @@ def print_info(first_console_block=True):
         'Copyright 2018-2019 Habchy, ondondil, Twixes & Slavfox'
     ]
 
-    print(TextFormatter.generate_console_block(info_lines, '== ', first_console_block=first_console_block))
+    print(TextFormatter.generate_console_block(info_lines, '== '))
 
 
 @somsiad.bot.command(aliases=['nope', 'nie'])
@@ -305,15 +306,21 @@ async def on_ready():
 
 
 @somsiad.bot.event
-async def on_guild_join(server):
+async def on_guild_join(guild):
     """Does things whenever the bot joins a server."""
-    print_info(first_console_block=False)
+    print(TextFormatter.generate_console_block([
+        f'Dołączono do serwera {guild.name} (ID {guild.id}) - '
+        f'{TextFormatter.word_number_variant(guild.member_count, "użytkownik", "użytkowników")}'
+    ], '== '))
 
 
 @somsiad.bot.event
-async def on_guild_remove(server):
+async def on_guild_remove(guild):
     """Does things whenever the bot leaves a server."""
-    print_info(first_console_block=False)
+    print(TextFormatter.generate_console_block([
+        f'Opuszczono serwer {guild.name} (ID {guild.id}) - '
+        f'{TextFormatter.word_number_variant(guild.member_count, "użytkownik", "użytkowników")}'
+    ], '== '))
 
 
 @somsiad.bot.event

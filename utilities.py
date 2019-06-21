@@ -153,35 +153,34 @@ class TextFormatter:
         return ' '.join(information)
 
     @staticmethod
-    def separator(block: str, width: int = None) -> str:
+    def separator(block: str, with_datetime: bool = True, width: int = None) -> str:
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
-        # If width was not passed try to set it to the terminal's width, if that turns out to be impossible set it to 80
         if width is None:
             try:
                 width = os.get_terminal_size()[0]
             except OSError:
                 width = 80
 
-        # Generate the pattern
-        pattern = (width // len(block) * block + block)[:width].strip()
+        if with_datetime:
+            date_isoformat = dt.datetime.now().isoformat()
+            pattern = (
+                3 * block +
+                date_isoformat +
+                (((width - len(date_isoformat)) // len(block) - 2) * block)
+            )[:width].strip()
+        else:
+            pattern = ((width // len(block) + 1) * block)[:width].strip()
 
         return pattern
 
     @classmethod
-    def generate_console_block(
-            cls, info_lines: list, separator_block: str = None, *, first_console_block: bool = True
-    ) -> str:
+    def generate_console_block(cls, info_lines: list, separator_block: str = None) -> str:
         """Takes a list of lines and returns a string ready for printing in the console."""
         info_block = []
-        separator = None
         if separator_block is not None:
-            separator = cls.separator(separator_block)
-        if separator is not None and first_console_block:
-            info_block.append(separator)
+            info_block.append(cls.separator(separator_block))
         for line in info_lines:
             info_block.append(line)
-        if separator is not None:
-            info_block.append(separator)
 
         return '\n'.join(info_block)
 
