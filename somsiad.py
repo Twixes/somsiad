@@ -14,6 +14,7 @@
 from typing import Union
 import os
 import sys
+import asyncio
 import platform
 import logging
 import random
@@ -194,32 +195,6 @@ ADDITIONAL_REQUIRED_SETTINGS = (
 somsiad = Somsiad(ADDITIONAL_REQUIRED_SETTINGS)
 
 
-def print_info():
-    """Prints information about the bot to the console."""
-    number_of_users = len(set(somsiad.bot.get_all_members()))
-    number_of_servers = len(somsiad.bot.guilds)
-
-    info_lines = [
-        f'Obudzono Somsiada (ID {somsiad.bot.user.id}).',
-        '',
-        f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
-        f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
-        f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}:',
-        *somsiad.list_of_servers(),
-        '',
-        'Link do zaproszenia bota:',
-        somsiad.invite_url,
-        '',
-        somsiad.configurator.info(),
-        '',
-        f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
-        '',
-        'Copyright 2018-2019 Habchy, ondondil, Twixes & Slavfox'
-    ]
-
-    print(TextFormatter.generate_console_block(info_lines, '== '))
-
-
 @somsiad.bot.command(aliases=['nope', 'nie'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
@@ -299,10 +274,34 @@ async def ping(ctx):
 @somsiad.bot.event
 async def on_ready():
     """Does things once the bot comes online."""
-    print_info()
-    await somsiad.bot.change_presence(
-        activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy')
-    )
+    number_of_users = len(set(somsiad.bot.get_all_members()))
+    number_of_servers = len(somsiad.bot.guilds)
+
+    info_lines = [
+        f'Obudzono Somsiada (ID {somsiad.bot.user.id}).',
+        '',
+        f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
+        f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
+        f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}:',
+        *somsiad.list_of_servers(),
+        '',
+        'Link do zaproszenia bota:',
+        somsiad.invite_url,
+        '',
+        somsiad.configurator.info(),
+        '',
+        f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
+        '',
+        'Copyright 2018-2019 Habchy, ondondil, Twixes & Slavfox'
+    ]
+
+    print(TextFormatter.generate_console_block(info_lines, '== '))
+
+    while True:
+        await somsiad.bot.change_presence(
+            activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy')
+        )
+        await asyncio.sleep(600)
 
 
 @somsiad.bot.event
