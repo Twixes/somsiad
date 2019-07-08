@@ -14,11 +14,17 @@
 import asyncio
 import locale
 import datetime as dt
+import string
 from typing import Union, Optional
 import discord
 from somsiad import somsiad
 from utilities import TextFormatter, interpret_str_as_datetime
 
+LETTER_EMOIJS = {
+    'A': '🇦', 'B': '🇧', 'C': '🇨', 'D': '🇩', 'E': '🇪', 'F': '🇫', 'G': '🇬', 'H': '🇭', 'I': '🇮', 'J': '🇯',
+    'K': '🇰', 'L': '🇱', 'M': '🇲', 'N': '🇳', 'O': '🇴', 'P': '🇵', 'Q': '🇶', 'R': '🇷', 'S': '🇸', 'T': '🇹',
+    'U': '🇺', 'V': '🇻', 'W': '🇼', 'X': '🇽', 'Y': '🇾', 'Z': '🇿'
+}
 
 @somsiad.bot.command(aliases=['głosowanie', 'glosowanie'])
 @discord.ext.commands.cooldown(
@@ -66,37 +72,74 @@ async def vote(
             color=somsiad.color
         )
 
+    letter_options_found = []
+    for letter in string.ascii_uppercase:
+        if f'{letter}.' in statement or f'{letter}:' in statement:
+            letter_options_found.append(letter)
+        else:
+            break
+
+    if letter_options_found:
+        options = [LETTER_EMOIJS[letter] for letter in letter_options_found]
+    else:
+        options = ('✅', '🔴')
+
     message = await ctx.send(ctx.author.mention, embed=embed)
-    await message.add_reaction('✅')
-    await message.add_reaction('🔴')
+    for option_emoji in options:
+        await message.add_reaction(option_emoji)
 
     if seconds is not None:
         await asyncio.sleep(seconds)
 
         try:
-            message_final = await ctx.channel.get_message(message.id)
+            message_final = await ctx.channel.fetch_message(message.id)
         except discord.NotFound:
             pass
         else:
-            results = {reaction.emoji: reaction.count for reaction in message_final.reactions}
+            result = {
+                reaction.emoji: reaction.count - 1 for reaction in message_final.reactions if reaction.emoji in options
+            }
 
-            if results["✅"] > results["🔴"]:
-                results_emoji = ':white_check_mark:'
-            elif results["✅"] < results["🔴"]:
-                results_emoji = ':red_circle:'
+            winning_emojis = []
+            winning_count = -1
+
+            for option in result.items():
+                if option[1] > winning_count:
+                    winning_emojis = [option[0]]
+                    winning_count = option[1]
+                elif option[1] == winning_count:
+                    winning_emojis.append(option[0])
+
+            if len(winning_emojis) != 1:
+                result_emoji = '❓'
             else:
-                results_emoji = ':question:'
+                result_emoji = winning_emojis[0]
 
             embed_results = discord.Embed(
-                title=f'{results_emoji} {statement}',
+                title=f'{result_emoji} {statement}',
                 description=(
                     f'Głosowanie zostało zakończone po {human_readable_time} od rozpoczęcia.'
                 ),
                 timestamp=results_datetime,
                 color=somsiad.color
             )
-            embed_results.add_field(name='Za', value=results['✅']-1)
-            embed_results.add_field(name='Przeciw', value=results['🔴']-1)
+            if letter_options_found:
+                for letter in letter_options_found:
+                    letter_emoji = LETTER_EMOIJS[letter]
+                    if letter_emoji in winning_emojis and winning_count > 0:
+                        presentation_count = f'**{result[letter_emoji]}**'
+                    else:
+                        presentation_count = result[letter_emoji]
+                    embed_results.add_field(name=f'Opcja {letter}', value=presentation_count)
+            else:
+                embed_results.add_field(
+                    name='Za',
+                    value=f'**{result["✅"]}**' if '✅' in winning_emojis and winning_count > 0 else result['✅']
+                )
+                embed_results.add_field(
+                    name='Przeciw',
+                    value=f'**{result["🔴"]}**' if '🔴' in winning_emojis and winning_count > 0 else result['🔴']
+                )
 
             await message_final.edit(embed=embed_results)
             await ctx.send(ctx.author.mention, embed=embed_results)
