@@ -32,7 +32,7 @@ LETTER_EMOIJS = {
 )
 @discord.ext.commands.guild_only()
 async def vote(
-        ctx, duration: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = None,
+        ctx, duration: Optional[Union[int, locale.atoi, interpret_str_as_datetime]] = None,
         *, statement: discord.ext.commands.clean_content(fix_channel_mentions=True)
     ):
     """Holds a vote."""
