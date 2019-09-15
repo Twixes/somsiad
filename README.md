@@ -80,7 +80,7 @@ Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `
 ## Instalacja  
 
 1. Pobierz kopię najnowszego wydania:  
-https://github.com/Twixes/Somsiad/releases/latest  
+https://github.com/Twixes/somsiad/releases/latest  
 
 2. Rozpakuj pobrane archiwum i wejdź do nowo utworzonego katalogu:  
 `$ tar -xvf Somsiad-<wersja>.tar.gz`  
@@ -181,7 +181,7 @@ On Debian-based systems you can satisfy those dependencies with `apt`:
 ## Installation  
 
 1. Grab a copy of the latest release:  
-https://github.com/Twixes/Somsiad/releases/latest  
+https://github.com/Twixes/somsiad/releases/latest  
 
 2. Unpack the downloaded archive and enter the newly created directory:  
 `$ tar -xvf Somsiad-<version>.tar.gz`  
