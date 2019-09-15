@@ -24,7 +24,6 @@ Polski bot discordowy. Napisany w Pythonie.
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
 * wymiana walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
 * sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
-* weryfikacja konta na [Reddicie](https://www.reddit.com/)  
 * rozpoczynanie głosowań z opcją opublikowania wyników po określonym czasie
 * obliczanie wartości wyrażeń matematycznych  
 * zapamiętywanie urodzin użytkowników serwera  
@@ -130,7 +129,6 @@ The Polish Discord bot. Written in Python.
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
 * currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
 * website status check powered by [isitup.org](https://isitup.org)  
-* [Reddit](https://www.reddit.com/) account verification  
 * vote commencement with optional publication of results after a specified amount of time
 * calculation of mathematical expressions  
 * remembering birthdays of server members  
