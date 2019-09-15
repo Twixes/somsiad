@@ -14,7 +14,6 @@
 import os.path
 import sqlite3
 from typing import Union, Tuple, List
-import discord
 from somsiad import somsiad
 
 
@@ -42,8 +41,7 @@ class ServerDataManager:
         self.servers_db_cursor = self.servers_db.cursor()
         self.servers_db_cursor.execute(
             '''CREATE TABLE IF NOT EXISTS servers(
-                server_id INTEGER NOT NULL PRIMARY KEY,
-                log_channel_id INTEGER
+                server_id INTEGER NOT NULL PRIMARY KEY
             )'''
         )
         self.servers_db.commit()
@@ -128,55 +126,5 @@ class ServerDataManager:
         self.servers[server_id]['db'].commit()
         self.load_server(server_id, load_own_db=True)
 
-    def set_log_channel(self, server_id: int, log_channel_id):
-        """Sets the log channel for the specified server."""
-        self.load_server(server_id)
-        self.servers_db_cursor.execute(
-            'UPDATE servers SET log_channel_id = ? WHERE server_id = ?',
-            (log_channel_id, server_id)
-        )
-        self.servers_db.commit()
-        self.load_server(server_id)
-
-    def get_log_channels(self) -> dict:
-        self.servers_db_cursor.execute(
-            'SELECT server_id, log_channel_id FROM servers WHERE log_channel_id IS NOT NULL'
-        )
-        return [self.dict_from_row(server) for server in self.servers_db_cursor.fetchall()]
-
 
 server_data_manager = ServerDataManager()
-
-
-@somsiad.bot.command(aliases=['loguj'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(administrator=True)
-async def do_log(ctx, channel: discord.TextChannel = None):
-    """Sets the channel where the command was invoked as the bot's log channel for the server."""
-    channel = channel or ctx.channel
-
-    server_data_manager.set_log_channel(ctx.guild.id, channel.id)
-    embed = discord.Embed(
-        title=f':white_check_mark: Ustawiono #{channel} jako kanał logów',
-        color=somsiad.color
-    )
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.bot.command(aliases=['nieloguj'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(administrator=True)
-async def do_not_log(ctx):
-    """Unsets the bot's log channel for the server."""
-    server_data_manager.set_log_channel(ctx.guild.id, None)
-    embed = discord.Embed(
-        title=f':white_check_mark: Wyłączono logi na tym serwerze',
-        color=somsiad.color
-    )
-    await ctx.send(ctx.author.mention, embed=embed)

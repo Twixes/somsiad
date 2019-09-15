@@ -274,11 +274,6 @@ COMMANDS = (
         'z kanału na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienia '
         'do zarządzania wiadomościami na kanale.'
     ),
-    Helper.Command('loguj', '?kanał',
-        'Ustawia <?kanał> jako kanał logów serwera. Jeśli nie podano <?kanału> przyjmuje kanał na którym użyto '
-        'komendy. Działa tylko dla administratorów serwera.'
-    ),
-    Helper.Command('nieloguj', None, 'Wyłącza kanał logów serwera. Działa tylko dla administratorów serwera.'),
     Helper.Command('ping', None, 'Pong!'),
     Helper.Command(('wersja', 'v'), None, 'Działająca wersja bota.'),
     Helper.Command(('informacje', 'info'), None, 'Działająca wersja bota plus dodatkowe informacje.'),
