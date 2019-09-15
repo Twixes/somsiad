@@ -129,10 +129,6 @@ COMMANDS = (
         'Zwraca z [YouTube](https://www.youtube.com) najlepiej pasujące do <zapytania> wideo.'
     ),
     Helper.Command(
-        ('giphy', 'gif'), 'zapytanie',
-        'Zwraca z [Giphy](https://giphy.com) najlepiej pasującego do <zapytania> gifa.'
-    ),
-    Helper.Command(
         ('wikipedia', 'wiki', 'w'), ('dwuliterowy kod języka', 'hasło'),
         'Sprawdza znaczenie <hasła> w danej wersji językowej [Wikipedii](https://www.wikipedia.org/).'
     ),

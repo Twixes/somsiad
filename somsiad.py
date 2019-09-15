@@ -147,9 +147,6 @@ ADDITIONAL_REQUIRED_SETTINGS = (
         value_type='str'
     ),
     Setting(
-        'giphy_key', description='Klucz API Giphy', input_instruction='Wprowadź klucz API Giphy', value_type='str'
-    ),
-    Setting(
         'omdb_key', description='Klucz API OMDb', input_instruction='Wprowadź klucz API OMDb', value_type='str'
     ),
     Setting(

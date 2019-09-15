@@ -14,7 +14,6 @@ Polski bot discordowy. Napisany w Pythonie.
 * odliczanie do końca roku szkolnego (w Polsce)  
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
-* wyszukiwanie gifów na [Giphy](https://giphy.com/)  
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku  
 * wyszukiwanie filmów i seriali w [OMDb](https://www.omdbapi.com/)  
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
@@ -46,9 +45,6 @@ https://cse.google.com/cse/all
 By twoja wyszukiwarka Google Custom Search Engine działała prawidłowo, musisz podczas jej tworzenia przypisać do niej 
 dowolną stronę (może być to https://example.com). Następnie musisz udać się do zakładki Konfiguracja / Podstawy 
 wyszukiwarki, usunąć dodaną stronę i zaznaczyć pola: "Wyszukiwarka grafiki" oraz "Wyszukiwanie w całej sieci".  
-
-* Klucz API Giphy:  
-https://developers.giphy.com/  
 
 * Klucz API goodreads:  
 https://www.goodreads.com/api  
@@ -119,7 +115,6 @@ The Polish Discord bot. Written in Python.
 * counting down to the end of the school year (in Poland)  
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
-* [Giphy](https://giphy.com/) gif search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
 * [OMDb](https://www.omdbapi.com/) movie and TV show search  
 * [goodreads](https://www.goodreads.com) book search  
@@ -151,9 +146,6 @@ https://cse.google.com/cse/all
 In order to make your Google Custom Search Engine work correctly, you must assign any website to it during creation 
 (it might as well be https://example.com). Then you must go into the CSE's Setup / Basics, remove the website and 
 check boxes: "Image search" and "Search the entire web".  
-
-* A Giphy API key:  
-https://developers.giphy.com/  
 
 * A goodreads API key:  
 https://www.goodreads.com/api  
