@@ -1,4 +1,4 @@
-# Copyright 2018 Habchy, ondondil & Twixes
+# Copyright 2018 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -221,7 +221,7 @@ async def version(ctx):
         url='https://somsiad.twixes.com',
         color=somsiad.color
     )
-    embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
+    embed.set_footer(text='© 2018-2019 ondondil, Twixes & Slavfox')
     await ctx.send(ctx.author.mention, embed=embed)
 
 
@@ -242,7 +242,7 @@ async def info(ctx):
         name='Czas pracy', value=TextFormatter.human_readable_time(dt.datetime.now() - somsiad.run_datetime)
     )
     embed.add_field(name='Właściciel instancji', value=(await somsiad.bot.application_info()).owner.mention)
-    embed.set_footer(text='© 2018-2019 Habchy, ondondil, Twixes & Slavfox')
+    embed.set_footer(text='© 2018-2019 ondondil, Twixes & Slavfox')
     await ctx.send(ctx.author.mention, embed=embed)
 
 
@@ -280,7 +280,7 @@ async def on_ready():
         '',
         f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
         '',
-        'Copyright 2018-2019 Habchy, ondondil, Twixes & Slavfox'
+        'Copyright 2018-2019 ondondil, Twixes & Slavfox'
     ]
 
     print(TextFormatter.generate_console_block(info_lines, '== '))
