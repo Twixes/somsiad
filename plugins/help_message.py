@@ -205,11 +205,6 @@ COMMANDS = (
         'Usuwa wiadomość po podanej liczbie sekund lub o podanym czasie.'
     ),
     Helper.Command(
-        'weryfikacja', 'podkomenda',
-        'Grupa komend związanych z weryfikacją użytkownika Discorda na Reddicie. '
-        f'Użyj {somsiad.conf["command_prefix"]}weryfikacja bez podkomendy, by dowiedzieć się więcej.',
-    ),
-    Helper.Command(
         'przypinki', 'podkomenda',
         'Grupa komend związanych z archiwizacją przypiętych widadomości. '
         f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy, by dowiedzieć się więcej.',
