@@ -19,24 +19,23 @@ import somsiad
 import server_data
 from plugins import *
 
-
 ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 
 
-def set_locale(iteration: int = 0):
-    """Sets the locale.
-    Recursively tries locale after locale until it finds one that the system supports.
+def setlocale(locale_index: int = 0):
+    """Sets the program locale.
+    Tries locale after locale from the list until it finds one that the system supports.
     """
     try:
-        return locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[iteration])
+        return locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[locale_index])
     except locale.Error:
-        return set_locale(iteration + 1)
+        return setlocale(locale_index + 1)
     except IndexError:
-        return None
+        raise Exception('No locale from the list of accepted ones was found in the system')
 
 
 if __name__ == '__main__':
     print('Budzenie Somsiada...')
-    set_locale()
+    setlocale()
     calendar.setfirstweekday(calendar.MONDAY)
     somsiad.somsiad.run()
