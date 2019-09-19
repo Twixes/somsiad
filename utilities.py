@@ -15,6 +15,7 @@ import locale
 import re
 import json
 import os
+from collections import namedtuple
 import datetime as dt
 from numbers import Number
 from typing import Union, Dict
@@ -407,23 +408,40 @@ class Setting:
         return self.value
 
 
-def interpret_str_as_datetime(argument: str) -> dt.datetime:
-    argument = argument.replace('-', '.').replace('/', '.').replace(':', '.')
-    now = dt.datetime.now()
-    try:
-        datetime = dt.datetime.strptime(argument, '%d.%m.%YT%H.%M')
-    except ValueError:
+def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: dt.datetime = None) -> dt.datetime:
+    DatetimeFormat = namedtuple('DatetimeFormat', ('format', 'imply_year', 'imply_month', 'imply_day'))
+    DATETIME_FORMATS = (
+        DatetimeFormat('%d.%m.%YT%H.%M', False, False, False),
+        DatetimeFormat('%d.%mT%H.%M', True, False, False),
+        DatetimeFormat('%dT%H.%M', True, True, False),
+        DatetimeFormat('%H.%M', True, True, True)
+    )
+    string = string.replace('-', '.').replace('/', '.').replace(':', '.')
+    for datetime_format in DATETIME_FORMATS:
         try:
-            datetime = dt.datetime.strptime(argument, '%d.%m.%yT%H.%M')
+            datetime = dt.datetime.strptime(string, datetime_format.format)
         except ValueError:
-            try:
-                datetime = dt.datetime.strptime(argument, '%d.%mT%H.%M')
+            continue
+        else:
+            now = now_override or dt.datetime.now()
+            if datetime_format.imply_day:
+                datetime = datetime.replace(day=now.day)
+            if datetime_format.imply_month:
+                datetime = datetime.replace(month=now.month)
+            if datetime_format.imply_year:
                 datetime = datetime.replace(year=now.year)
-            except ValueError:
-                try:
-                    datetime = dt.datetime.strptime(argument, '%dT%H.%M')
-                    datetime = datetime.replace(year=now.year, month=now.month)
-                except ValueError:
-                    datetime = dt.datetime.strptime(argument, '%H.%M')
-                    datetime = datetime.replace(year=now.year, month=now.month, day=now.day)
+            if roll_over and datetime < now:
+                # if implied date is in the past, roll it over so it's not
+                if datetime_format.imply_day:
+                    datetime += dt.timedelta(1)
+                elif datetime_format.imply_month:
+                    if now.month == 12:
+                        datetime = datetime.replace(year=now.year+1, month=1)
+                    else:
+                        datetime = datetime.replace(month=now.month+1)
+                elif datetime_format.imply_year:
+                    datetime = datetime.replace(year=now.year+1)
+            break
+    else:
+        raise ValueError
     return datetime.astimezone()
