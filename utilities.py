@@ -52,6 +52,8 @@ class TextFormatter:
     @staticmethod
     def with_preposition_variant(number: int) -> str:
         """Returns the gramatically correct variant of the 'with' preposition in Polish."""
+        while number // 1000 > 0:
+            number //= 1000
         return 'ze' if 100 <= number < 200 else 'z'
 
     @staticmethod
