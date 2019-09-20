@@ -111,35 +111,12 @@ class TestTextFormatterLimitTextLength(unittest.TestCase):
         expected_cut_text = 'This string is…'
         self.assertEqual(cut_text, expected_cut_text)
 
-    def test_limit_exact(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 19)
+    def test_limit_from_exact_to_5_over(self):
         expected_cut_text = 'This string is too…'
-        self.assertEqual(cut_text, expected_cut_text)
-
-    def test_limit_1_over(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 20)
-        expected_cut_text = 'This string is too…'
-        self.assertEqual(cut_text, expected_cut_text)
-
-    def test_limit_2_over(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 21)
-        expected_cut_text = 'This string is too…'
-        self.assertEqual(cut_text, expected_cut_text)
-
-    def test_limit_3_over(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 22)
-        expected_cut_text = 'This string is too…'
-        self.assertEqual(cut_text, expected_cut_text)
-
-    def test_limit_4_over(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 23)
-        expected_cut_text = 'This string is too…'
-        self.assertEqual(cut_text, expected_cut_text)
-
-    def test_limit_5_over(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 24)
-        expected_cut_text = 'This string is too…'
-        self.assertEqual(cut_text, expected_cut_text)
+        for limit in (19 + leeway for leeway in range(6)):
+            with self.subTest(limit=limit):
+                cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', limit)
+                self.assertEqual(cut_text, expected_cut_text)
 
     def test_end_on_comma(self):
         cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 25)
@@ -149,11 +126,6 @@ class TestTextFormatterLimitTextLength(unittest.TestCase):
     def test_end_on_semicolon(self):
         cut_text = TextFormatter.limit_text_length('This string is too long; it needs to be cut.', 25)
         expected_cut_text = 'This string is too long;…'
-        self.assertEqual(cut_text, expected_cut_text)
-
-    def test_end_on_period(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long. It needs to be cut.', 25)
-        expected_cut_text = 'This string is too long.…'
         self.assertEqual(cut_text, expected_cut_text)
 
     def test_end_on_period(self):
@@ -178,73 +150,19 @@ class TestTextFormatterLimitTextLength(unittest.TestCase):
 
 
 class TestTextFormatterWithPrepositionVariant(unittest.TestCase):
-    def test_0(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(0)
-        self.assertEqual(with_preposition_variant, 'z')
+    def test_positive_numbers_starting_with_1_hundred(self):
+        for number in [base * 1000**power for power in range(3) for base in (100, 199)]:
+            with self.subTest(number=number):
+                returned_with_preposition_variant = TextFormatter.with_preposition_variant(number)
+                self.assertEqual(returned_with_preposition_variant, 'ze')
 
-    def test_1(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(1)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_99(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(99)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_negative_99(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(-99)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_100(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(100)
-        self.assertEqual(with_preposition_variant, 'ze')
-
-    def test_negative_100(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(-100)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_199(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(199)
-        self.assertEqual(with_preposition_variant, 'ze')
-
-    def test_negative_199(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(-199)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_200(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(200)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_600(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(600)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_1_000(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(1_000)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_1_100(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(1_100)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_99_999(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(99_999)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_100_000(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(100_000)
-        self.assertEqual(with_preposition_variant, 'ze')
-
-    def test_199_000(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(199_000)
-        self.assertEqual(with_preposition_variant, 'ze')
-
-    def test_200_000(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(200_000)
-        self.assertEqual(with_preposition_variant, 'z')
-
-    def test_100_000_000(self):
-        with_preposition_variant = TextFormatter.with_preposition_variant(100_000_000)
-        self.assertEqual(with_preposition_variant, 'ze')
+    def test_numbers_negative_or_not_starting_with_1_hundred(self):
+        for number in [0] + [
+            base * 1000**power for power in range(3) for base in (-999, -200, -199, -100, -99, -1, 1, 99, 200, 999)
+        ]:
+            with self.subTest(number=number):
+                returned_with_preposition_variant = TextFormatter.with_preposition_variant(number)
+                self.assertEqual(returned_with_preposition_variant, 'z')
 
 
 class TestInterpretStrAsDatetime(unittest.TestCase):
