@@ -33,19 +33,21 @@ class TextFormatter:
 
     @staticmethod
     def limit_text_length(text: str, limit: int) -> str:
-        if text:
-            words = text.split()
-            cut_text = ''
-            for word in words:
-                if len(cut_text) + 1 + len(word) <= limit:
-                    cut_text = f'{cut_text} {word}'
-
-            if not cut_text[-1] in ('.', '?', '!'):
-                cut_text = cut_text.rstrip('-').rstrip(',').rstrip() + '...'
-
-            return cut_text
-        else:
+        if not text:
             return ''
+        stripped_text = text.strip()
+        if len(stripped_text) <= limit:
+            return stripped_text
+        words = stripped_text.split()
+        if limit > len(words[0]):
+            cut_text = words[0]
+            for word in words[1:]:
+                if len(cut_text) + 1 + len(word) < limit:
+                    cut_text = f'{cut_text} {word}'
+                else:
+                    break
+            return cut_text.rstrip(',') + '…'
+        return '…'
 
     @staticmethod
     def with_preposition_variant(number: int) -> str:
