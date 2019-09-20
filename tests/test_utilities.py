@@ -165,6 +165,90 @@ class TestTextFormatterWithPrepositionVariant(unittest.TestCase):
                 self.assertEqual(returned_with_preposition_variant, 'z')
 
 
+class TestTextFormatterWordNumberVariant(unittest.TestCase):
+    _SIGNS = (-1, 1)
+    _BASES = (0, 100, 200, 1000, 1100, 11000)
+
+    def test_singular_noun(self):
+        returned_variant_with_number = TextFormatter.word_number_variant(1, 'klocek', 'klocki', 'klocków')
+        expected_variant_with_number = '1 klocek'
+        self.assertEqual(returned_variant_with_number, expected_variant_with_number)
+
+    def test_singular_noun_without_number(self):
+        returned_variant_without_number = TextFormatter.word_number_variant(
+            1, 'klocek', 'klocki', 'klocków', include_number=False
+        )
+        expected_variant_without_number = 'klocek'
+        self.assertEqual(returned_variant_without_number, expected_variant_without_number)
+
+    def test_plural_noun_2_to_4(self):
+        for number in (
+            sign * (base + addition)
+            for base in self._BASES
+            for addition in range(2, 5)
+            for sign in self._SIGNS
+        ):
+            with self.subTest(number=number):
+                returned_variant_with_number = TextFormatter.word_number_variant(number, 'klocek', 'klocki', 'klocków')
+                expected_variant_with_number = f'{number} klocki'
+                self.assertEqual(returned_variant_with_number, expected_variant_with_number)
+
+    def test_plural_noun_5_to_1(self):
+        for number in (
+            sign * (base + addition)
+            for base in self._BASES
+            for addition in list(range(5, 10)) + ([0, 1] if base != 0 else [0])
+            for sign in self._SIGNS
+        ):
+            with self.subTest(number=number):
+                returned_variant_with_number = TextFormatter.word_number_variant(number, 'klocek', 'klocki', 'klocków')
+                expected_variant_with_number = f'{number} klocków'
+                self.assertEqual(returned_variant_with_number, expected_variant_with_number)
+
+    def test_plural_noun_12_to_14(self):
+        for number in (
+            sign * (base + addition)
+            for base in self._BASES
+            for addition in list(range(12, 15))
+            for sign in self._SIGNS
+        ):
+            with self.subTest(number=number):
+                returned_variant_with_number = TextFormatter.word_number_variant(number, 'klocek', 'klocki', 'klocków')
+                expected_variant_with_number = f'{number} klocków'
+                self.assertEqual(returned_variant_with_number, expected_variant_with_number)
+
+    def test_fractional_noun(self):
+        for number in (
+            sign * (base + addition + 0.5)
+            for base in self._BASES
+            for addition in range(100)
+            for sign in self._SIGNS
+        ):
+            with self.subTest(number=number):
+                returned_variant_with_number = TextFormatter.word_number_variant(
+                    number, 'klocek', 'klocki', 'klocków', 'klocka'
+                )
+                expected_variant_with_number = f'{number} klocka'
+                self.assertEqual(returned_variant_with_number, expected_variant_with_number)
+
+    def test_singular_verb(self):
+        returned_variant_with_number = TextFormatter.word_number_variant(1, 'skoczył', 'skoczyło')
+        expected_variant_with_number = '1 skoczył'
+        self.assertEqual(returned_variant_with_number, expected_variant_with_number)
+
+    def test_plural_verb(self):
+        for number in (
+            sign * (base + addition)
+            for base in self._BASES
+            for addition in list(range(2, 100)) + [0]
+            for sign in self._SIGNS
+        ):
+            with self.subTest(number=number):
+                returned_variant_with_number = TextFormatter.word_number_variant(number, 'skoczył', 'skoczyło')
+                expected_variant_with_number = f'{number} skoczyło'
+                self.assertEqual(returned_variant_with_number, expected_variant_with_number)
+
+
 class TestInterpretStrAsDatetime(unittest.TestCase):
     NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
 
