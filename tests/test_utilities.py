@@ -177,6 +177,76 @@ class TestTextFormatterLimitTextLength(unittest.TestCase):
         self.assertEqual(cut_text, expected_cut_text)
 
 
+class TestTextFormatterWithPrepositionVariant(unittest.TestCase):
+    def test_0(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(0)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_1(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(1)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_99(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(99)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_negative_99(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(-99)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_100(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(100)
+        self.assertEqual(with_preposition_variant, 'ze')
+
+    def test_negative_100(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(-100)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_199(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(199)
+        self.assertEqual(with_preposition_variant, 'ze')
+
+    def test_negative_199(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(-199)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_200(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(200)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_600(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(600)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_1_000(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(1_000)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_1_100(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(1_100)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_99_999(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(99_999)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_100_000(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(100_000)
+        self.assertEqual(with_preposition_variant, 'ze')
+
+    def test_199_000(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(199_000)
+        self.assertEqual(with_preposition_variant, 'ze')
+
+    def test_200_000(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(200_000)
+        self.assertEqual(with_preposition_variant, 'z')
+
+    def test_100_000_000(self):
+        with_preposition_variant = TextFormatter.with_preposition_variant(100_000_000)
+        self.assertEqual(with_preposition_variant, 'ze')
+
+
 class TestInterpretStrAsDatetime(unittest.TestCase):
     NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
 
