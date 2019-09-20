@@ -105,6 +105,78 @@ class TestTextFormatterFindURL(unittest.TestCase):
         self.assertIsNone(search_result)
 
 
+class TestTextFormatterLimitTextLength(unittest.TestCase):
+    def test_limit_1_under(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 18)
+        expected_cut_text = 'This string is…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_limit_exact(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 19)
+        expected_cut_text = 'This string is too…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_limit_1_over(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 20)
+        expected_cut_text = 'This string is too…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_limit_2_over(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 21)
+        expected_cut_text = 'This string is too…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_limit_3_over(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 22)
+        expected_cut_text = 'This string is too…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_limit_4_over(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 23)
+        expected_cut_text = 'This string is too…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_limit_5_over(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 24)
+        expected_cut_text = 'This string is too…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_end_on_comma(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 25)
+        expected_cut_text = 'This string is too long…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_end_on_semicolon(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long; it needs to be cut.', 25)
+        expected_cut_text = 'This string is too long;…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_end_on_period(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long. It needs to be cut.', 25)
+        expected_cut_text = 'This string is too long.…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_end_on_period(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long. It needs to be cut.', 25)
+        expected_cut_text = 'This string is too long.…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_first_word_too_long(self):
+        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 4)
+        expected_cut_text = '…'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_no_cutting(self):
+        cut_text = TextFormatter.limit_text_length('This string is not too long, it doesn\'t need to be cut.', 420)
+        expected_cut_text = 'This string is not too long, it doesn\'t need to be cut.'
+        self.assertEqual(cut_text, expected_cut_text)
+
+    def test_no_text(self):
+        cut_text = TextFormatter.limit_text_length('', 16)
+        expected_cut_text = ''
+        self.assertEqual(cut_text, expected_cut_text)
+
+
 class TestInterpretStrAsDatetime(unittest.TestCase):
     NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
 
