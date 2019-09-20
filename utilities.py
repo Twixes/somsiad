@@ -58,26 +58,28 @@ class TextFormatter:
 
     @staticmethod
     def word_number_variant(
-            number: int, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str = None,
-            *, include_number: bool = True
+            number: Number, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str = None,
+            fractional_form: str = None, *, include_number: bool = True
     ) -> str:
         """Returns the gramatically correct variant of the given word in Polish."""
-        number_modulo_10 = number % 10
-        number_modulo_100 = number % 100
-        if number == 1:
-            proper_form = singular_form
-        elif number_modulo_10 in (2, 3, 4) and number_modulo_100 not in (12, 13, 14):
-            proper_form = plural_form_2_to_4
-        else:
-            if plural_form_5_to_1 is not None:
-                proper_form = plural_form_5_to_1
-            else:
-                proper_form = plural_form_2_to_4
+        absolute_number = abs(number)
+        absolute_number_floored = absolute_number // 1
 
-        if include_number:
-            return f'{locale.str(number)} {proper_form}'
+        if fractional_form is not None and absolute_number != absolute_number_floored:
+            proper_form = fractional_form
         else:
-            return proper_form
+            absolute_number = absolute_number_floored
+            if absolute_number == 1:
+                proper_form = singular_form
+            elif absolute_number % 10 in (2, 3, 4) and absolute_number % 100 not in (12, 13, 14):
+                proper_form = plural_form_2_to_4
+            else:
+                if plural_form_5_to_1 is not None:
+                    proper_form = plural_form_5_to_1
+                else:
+                    proper_form = plural_form_2_to_4
+
+        return f'{locale.str(number)} {proper_form}' if include_number else proper_form
 
     @classmethod
     def time_difference(
