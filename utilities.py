@@ -23,16 +23,13 @@ from typing import Union, Dict
 
 class TextFormatter:
     """Text formatting utilities."""
-    URL_REGEX = re.compile('(https?://[\S]+\.[\S]+)')
+    _URL_REGEX = re.compile('(https?://[\S]+\.[\S]+)')
 
     @classmethod
     def find_url(cls, string: str) -> str:
         """Returns the first well-formed URL found in the string."""
-        search_result = cls.URL_REGEX.search(string)
-        if search_result is None:
-            return None
-        else:
-            return search_result.group()
+        search_result = cls._URL_REGEX.search(string)
+        return search_result.group().rstrip('()[{]};:\'",<.>') if search_result is not None else None
 
     @staticmethod
     def limit_text_length(text: str, limit: int) -> str:
