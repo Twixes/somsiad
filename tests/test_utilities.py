@@ -13,8 +13,12 @@
 
 import unittest
 import datetime as dt
+import locale
 from utilities import TextFormatter, interpret_str_as_datetime
+from run import setlocale
 
+
+setlocale()
 
 class TestTextFormatterFindURL(unittest.TestCase):
     def test_proper_http(self):
@@ -228,7 +232,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
                 returned_variant_with_number = TextFormatter.word_number_variant(
                     number, 'klocek', 'klocki', 'klocków', 'klocka'
                 )
-                expected_variant_with_number = f'{number} klocka'
+                expected_variant_with_number = f'{locale.str(number)} klocka'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_singular_verb(self):
