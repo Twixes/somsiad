@@ -344,6 +344,33 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
                 self.assertEqual(returned_time_difference, expected_time_difference)
 
 
+class TestTextFormatterHumanReadableTime(unittest.TestCase):
+    def test_timedelta(self):
+        returned_human_readable_time = TextFormatter.human_readable_time(dt.timedelta(days=3, hours=9, minutes=3, seconds=1))
+        expected_human_readable_time = '3 d 9 h 3 min 1 s'
+        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+
+    def test_timedelta_with_microseconds(self):
+        returned_human_readable_time = TextFormatter.human_readable_time(dt.timedelta(days=3, hours=9, minutes=3, seconds=1, microseconds=909303))
+        expected_human_readable_time = '3 d 9 h 3 min 2 s'
+        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+
+    def test_seconds(self):
+        returned_human_readable_time = TextFormatter.human_readable_time(86400 + 3600 + 60 + 1.25)
+        expected_human_readable_time = '1 d 1 h 1 min 1 s'
+        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+
+    def test_seconds_exactly_one_day(self):
+        returned_human_readable_time = TextFormatter.human_readable_time(86400)
+        expected_human_readable_time = '1 d'
+        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+
+    def test_zero(self):
+        returned_human_readable_time = TextFormatter.human_readable_time(0)
+        expected_human_readable_time = '0 s'
+        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+
+
 class TestInterpretStrAsDatetime(unittest.TestCase):
     def test_format_1(self):
         expected_datetime = dt.datetime(2013, 12, 24, 18, 0).astimezone()
