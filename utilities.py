@@ -155,7 +155,7 @@ class TextFormatter:
         return ' '.join(information)
 
     @staticmethod
-    def separator(block: str, with_datetime: bool = True, width: int = None) -> str:
+    def separator(block: str, with_datetime: bool = True, width: int = None, now_override: dt.datetime = None) -> str:
         """Generates a separator string to the specified length out of given blocks. Can print to the console."""
         if width is None:
             try:
@@ -163,15 +163,11 @@ class TextFormatter:
             except OSError:
                 width = 80
 
+        pattern = ((width // len(block) + 1) * block)[:width].strip()
+
         if with_datetime:
-            date_isoformat = dt.datetime.now().isoformat()
-            pattern = (
-                3 * block +
-                date_isoformat +
-                (((width - len(date_isoformat)) // len(block) - 2) * block)
-            )[:width].strip()
-        else:
-            pattern = ((width // len(block) + 1) * block)[:width].strip()
+            now = now_override or dt.datetime.now()
+            pattern = pattern[:4] + now.strftime('%Y-%m-%dT%H:%M:%S') + pattern[23:]
 
         return pattern
 
