@@ -84,45 +84,43 @@ class TextFormatter:
     @classmethod
     def time_difference(
             cls, datetime: dt.datetime, *, naive=True, date=True, time=True, days_difference=True,
-            name_month=True
+            name_month=True, now_override: dt.datetime = None
     ) -> str:
+        """Returns the difference between the provided datetime and now as text in Polish."""
         local_datetime = datetime.replace(tzinfo=dt.timezone.utc).astimezone() if naive else datetime.astimezone()
-        timedelta = dt.datetime.now().astimezone() - local_datetime
 
-        time_difference_elements = []
-        if date:
-            if name_month:
-                time_difference_elements.append(local_datetime.strftime('%-d %B %Y'))
-            else:
-                time_difference_elements.append(local_datetime.strftime('%-d.%m.%Y'))
-        if time:
+        time_difference_parts = []
+
+        if date or time:
+            datetime_parts = []
             if date:
-                time_difference_elements.append(local_datetime.strftime(' o %H:%M'))
-            else:
-                time_difference_elements.append(local_datetime.strftime('%H:%M'))
+                if name_month:
+                    datetime_parts.append(local_datetime.strftime('%-d %B %Y'))
+                else:
+                    datetime_parts.append(local_datetime.strftime('%-d.%m.%Y'))
+            if time:
+                datetime_parts.append(local_datetime.strftime('%-H:%M'))
+            time_difference_parts.append(' o '.join(datetime_parts))
+
         if days_difference:
-            days_difference_number = timedelta.days
-            if days_difference_number == -2:
-                days_difference_string = 'pojutrze'
-            elif days_difference_number == -1:
-                days_difference_string = 'jutro'
-            elif days_difference_number == 0:
-                days_difference_string = 'dzisiaj'
-            elif days_difference_number == 1:
-                days_difference_string = 'wczoraj'
-            elif days_difference_number == 2:
-                days_difference_string = 'przedwczoraj'
-            elif days_difference_number > 0:
-                days_difference_string = f'{cls.word_number_variant(days_difference_number, "dzień", "dni")} temu'
+            timedelta = local_datetime.date()
+            timedelta -= dt.date.today().astimezone() if now_override is None else now_override.astimezone().date()
+            if timedelta.days == -2:
+                time_difference_parts.append('przedwczoraj')
+            elif timedelta.days == -1:
+                time_difference_parts.append('wczoraj')
+            elif timedelta.days == 0:
+                time_difference_parts.append('dzisiaj')
+            elif timedelta.days == 1:
+                time_difference_parts.append('jutro')
+            elif timedelta.days == 2:
+                time_difference_parts.append('pojutrze')
+            elif timedelta.days < 0:
+                time_difference_parts.append(f'{cls.word_number_variant(-timedelta.days, "dzień", "dni")} temu')
             else:
-                days_difference_string = f'za {cls.word_number_variant(-days_difference_number, "dzień", "dni")}'
+                time_difference_parts.append(f'za {cls.word_number_variant(timedelta.days, "dzień", "dni")}')
 
-            if date or time:
-                time_difference_elements.append(f', {days_difference_string}')
-            else:
-                time_difference_elements.append(days_difference_string)
-
-        return ''.join(time_difference_elements)
+        return ', '.join(time_difference_parts)
 
     @staticmethod
     def human_readable_time(time: Union[dt.timedelta, Number]) -> str:
