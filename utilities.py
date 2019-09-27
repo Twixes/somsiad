@@ -104,7 +104,7 @@ class TextFormatter:
 
         if days_difference:
             timedelta = local_datetime.date()
-            timedelta -= dt.date.today().astimezone() if now_override is None else now_override.astimezone().date()
+            timedelta -= dt.date.today() if now_override is None else now_override.date()
             if timedelta.days == -2:
                 time_difference_parts.append('przedwczoraj')
             elif timedelta.days == -1:
