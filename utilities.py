@@ -167,7 +167,7 @@ class TextFormatter:
 
         if with_datetime:
             now = now_override or dt.datetime.now()
-            pattern = pattern[:4] + now.strftime('%Y-%m-%dT%H:%M:%S') + pattern[23:]
+            pattern = pattern[:5] + now.strftime('%Y-%m-%dT%H:%M:%S') + pattern[24:]
 
         return pattern
 

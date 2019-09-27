@@ -379,7 +379,7 @@ class TestTextFormatterSeparator(unittest.TestCase):
 
     def test_with_datetime(self):
         returned_separator = TextFormatter.separator('=*', width=60, now_override=NOW_OVERRIDE)
-        expected_separator = '=*=*2013-12-24T12:00:00*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*'
+        expected_separator = '=*=*=2013-12-24T12:00:00=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*'
         self.assertEqual(returned_separator, expected_separator)
 
 
