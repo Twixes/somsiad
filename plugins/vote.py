@@ -16,6 +16,7 @@ import locale
 import datetime as dt
 import string
 from typing import Union, Optional
+from numbers import Number
 import discord
 from somsiad import somsiad
 from utilities import TextFormatter, interpret_str_as_datetime
@@ -51,7 +52,7 @@ async def vote(
             timestamp=results_datetime,
             color=somsiad.color
         )
-    elif isinstance(duration, float) and 0.0 < duration <= 10080.0:
+    elif isinstance(duration, Number) and 0.0 < duration <= 10080.0:
         seconds = duration * 60.0
         results_datetime = now_datetime + dt.timedelta(seconds=seconds)
         human_readable_time = TextFormatter.human_readable_time(seconds)
