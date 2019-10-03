@@ -234,7 +234,7 @@ def determine_nearest_trade_sunday_after_inclusive_date(date: dt.date = None) ->
             month = 1
 
 
-@somsiad.bot.group(aliases=['niedzielehandlowe', 'handlowe'], invoke_without_command=True, case_insensitive=True)
+@somsiad.bot.group(aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
