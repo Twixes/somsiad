@@ -23,19 +23,19 @@ ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 
 
 def setlocale(locale_index: int = 0):
-    """Sets the program locale.
-    Tries locale after locale from the list until it finds one that the system supports.
-    """
+    """Set program locale and first day of the week."""
     try:
-        return locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[locale_index])
+        locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[locale_index])
     except locale.Error:
         return setlocale(locale_index + 1)
     except IndexError:
-        raise Exception('No locale from the list of accepted ones was found in the system')
+        raise Exception(
+            f'no locale from the list of accepted ones ({", ".join(ACCEPTED_LOCALES)}) was found in the system'
+        )
+    calendar.setfirstweekday(calendar.MONDAY)
 
 
 if __name__ == '__main__':
     print('Budzenie Somsiada...')
     setlocale()
-    calendar.setfirstweekday(calendar.MONDAY)
     somsiad.somsiad.run()
