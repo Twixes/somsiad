@@ -105,34 +105,6 @@ class Somsiad:
         except discord.errors.ClientException:
             return None
 
-    def list_of_servers(self):
-        """Generates a list of servers the bot is connected to, including the number of days since joining
-        and the number of users.
-        """
-        servers = [guild for guild in self.bot.guilds if guild.me is not None]
-        sorted_servers = sorted(servers, key=lambda server: server.me.joined_at, reverse=True)
-        longest_server_name_length = 0
-        longest_days_since_joining_info_length = 0
-        list_of_servers = []
-
-        for server in sorted_servers:
-            server_name_with_id = f'{server.name} (ID {server.id})'
-            if len(server_name_with_id) > longest_server_name_length:
-                longest_server_name_length = len(server_name_with_id)
-            days_since_joining_info = TextFormatter.time_difference(server.me.joined_at, name_month=False)
-            if len(days_since_joining_info) > longest_days_since_joining_info_length:
-                longest_days_since_joining_info_length = len(days_since_joining_info)
-        for server in sorted_servers:
-            days_since_joining_info = TextFormatter.time_difference(server.me.joined_at, name_month=False)
-            server_name_with_id = f'{server.name} (ID {server.id})'
-            list_of_servers.append(
-                f'{server_name_with_id.ljust(longest_server_name_length)} - '
-                f'dołączono {days_since_joining_info.ljust(longest_days_since_joining_info_length)} - '
-                f'{TextFormatter.word_number_variant(server.member_count, "użytkownik", "użytkowników")}'
-            )
-
-        return list_of_servers
-
 
 # Plugin settings
 ADDITIONAL_REQUIRED_SETTINGS = (
@@ -271,8 +243,7 @@ async def on_ready():
         '',
         f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
         f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
-        f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}:',
-        *somsiad.list_of_servers(),
+        f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}.',
         '',
         'Link do zaproszenia bota:',
         somsiad.invite_url,
@@ -284,9 +255,10 @@ async def on_ready():
         COPYRIGHT
     ]
 
-    print(TextFormatter.generate_console_block(info_lines, '== '))
+    print('\n'.join(info_lines))
 
     while True:
+        # necessary due to presence randomly disappearing if not refreshed
         await somsiad.bot.change_presence(
             activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy')
         )

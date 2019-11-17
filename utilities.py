@@ -154,34 +154,6 @@ class TextFormatter:
 
         return ' '.join(information)
 
-    @staticmethod
-    def separator(block: str, with_datetime: bool = True, width: int = None, now_override: dt.datetime = None) -> str:
-        """Generates a separator string to the specified length out of given blocks. Can print to the console."""
-        if width is None:
-            try:
-                width = os.get_terminal_size()[0]
-            except OSError:
-                width = 80
-
-        pattern = ((width // len(block) + 1) * block)[:width].strip()
-
-        if with_datetime:
-            now = now_override or dt.datetime.now()
-            pattern = pattern[:5] + now.strftime('%Y-%m-%dT%H:%M:%S') + pattern[24:]
-
-        return pattern
-
-    @classmethod
-    def generate_console_block(cls, info_lines: list, separator_block: str = None) -> str:
-        """Takes a list of lines and returns a string ready for printing in the console."""
-        info_block = []
-        if separator_block is not None:
-            info_block.append(cls.separator(separator_block))
-        for line in info_lines:
-            info_block.append(line)
-
-        return '\n'.join(info_block)
-
 
 class Configurator:
     """Handles bot configuration."""
