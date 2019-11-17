@@ -217,7 +217,7 @@ def determine_trade_sunday_dates(year: int, month: int = None) -> List[dt.date]:
     return trade_sundays
 
 
-def determine_nearest_trade_sunday_after_inclusive_date(date: dt.date = None) -> dt.date:
+def determine_nearest_trade_sunday_after_date_inclusive(date: dt.date = None) -> dt.date:
     if date is not None and not isinstance(date, dt.date):
         raise TypeError('date must be None or a datetime.date')
     date = date or dt.date.today()
@@ -261,7 +261,7 @@ async def trade_sundays(ctx):
 )
 async def trade_sundays_nearest(ctx):
     nearest_sunday_date = determine_nearest_sunday_after_date_inclusive()
-    nearest_trade_sunday_date = determine_nearest_trade_sunday_after_inclusive_date()
+    nearest_trade_sunday_date = determine_nearest_trade_sunday_after_date_inclusive()
     if nearest_sunday_date == nearest_trade_sunday_date:
         embed_description = None
         if dt.date.today() == nearest_sunday_date:
