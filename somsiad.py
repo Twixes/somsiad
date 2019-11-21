@@ -75,22 +75,25 @@ class Somsiad:
         self.required_settings.extend(additional_required_settings)
         self.configurator = Configurator(self.conf_file_path, self.required_settings)
         self.bot = Bot(
-            description='Zawsze pomocny Somsiad',
-            command_prefix=self.conf['command_prefix'],
+            command_prefix=self.prefix_callable, help_command=None, description='Zawsze pomocny Somsiad',
             case_insensitive=True
         )
-        self.bot.remove_command('help') # Replaced with the 'help_direct' plugin
         self.member_converter = discord.ext.commands.MemberConverter()
 
     def run(self):
         """Launches the bot."""
         self.run_datetime = dt.datetime.now()
         try:
-            self.bot.run(self.conf['discord_token'])
+            self.bot.run(self.conf['discord_token'], reconnect=True)
         except discord.errors.ClientException:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
         else:
             self.logger.info('Client started.')
+
+    def prefix_callable(self, bot, message):
+        user_id = bot.user.id
+        prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ', self.conf['command_prefix']]
+        return prefixes
 
     @property
     def conf(self):
@@ -263,24 +266,6 @@ async def on_ready():
             activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy')
         )
         await asyncio.sleep(600)
-
-
-@somsiad.bot.event
-async def on_guild_join(guild):
-    """Does things whenever the bot joins a server."""
-    print(TextFormatter.generate_console_block([
-        f'Dołączono do serwera {guild.name} (ID {guild.id}) - '
-        f'{TextFormatter.word_number_variant(guild.member_count, "użytkownik", "użytkowników")}'
-    ], '== '))
-
-
-@somsiad.bot.event
-async def on_guild_remove(guild):
-    """Does things whenever the bot leaves a server."""
-    print(TextFormatter.generate_console_block([
-        f'Opuszczono serwer {guild.name} (ID {guild.id}) - '
-        f'{TextFormatter.word_number_variant(guild.member_count, "użytkownik", "użytkowników")}'
-    ], '== '))
 
 
 @somsiad.bot.event
