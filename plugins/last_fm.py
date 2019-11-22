@@ -23,7 +23,7 @@ class LastFM:
     FOOTER_TEXT = 'Last.fm'
     FOOTER_ICON_URL = 'https://www.last.fm/static/images/lastfm_avatar_twitter.png'
     API_URL = 'https://ws.audioscrobbler.com/2.0/'
-    headers = {'User-Agent': somsiad.user_agent}
+    headers = {'User-Agent': somsiad.USER_AGENT}
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -98,7 +98,7 @@ async def last_fm(ctx, *, user):
             embed = discord.Embed(
                 title=f'{current_state_emoji} {user_recent_tracks[0]["name"]}',
                 url=user_recent_tracks[0]['url'],
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             embed.set_thumbnail(url=user_recent_tracks[0]['image'][2]['#text'])
             embed.add_field(
@@ -133,7 +133,7 @@ async def last_fm(ctx, *, user):
         else:
             embed = discord.Embed(
                 title=f':question: Brak ostatnio słuchanego utworu',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         embed.set_author(
             name=user_info['name'],
@@ -152,7 +152,7 @@ async def last_fm_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano użytkownika Last.fm!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.set_footer(
             text=LastFM.FOOTER_TEXT,
@@ -162,7 +162,7 @@ async def last_fm_error(ctx, error):
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono takiego użytkownika Last.fm!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.set_footer(
             text=LastFM.FOOTER_TEXT,

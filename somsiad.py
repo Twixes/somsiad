@@ -27,22 +27,24 @@ from utilities import Configurator, Setting, TextFormatter
 COPYRIGHT = '© 2018-2019 Twixes, ondondil et al.'
 
 class Somsiad:
-    color = 0x7289da
-    user_agent = f'SomsiadBot/{__version__}'
+    COLOR = 0x7289da
+    USER_AGENT = f'SomsiadBot/{__version__}'
+    WEBSITE_URL = 'https://somsiad.net'
+    EMOJIS = [
+        '🐜', '🅱️', '🔥', '🐸', '🤔', '💥', '👌', '💩', '🐇', '🐰', '🦅', '🙃', '😎', '😩', '👹', '👺', '🤖', '✌️',
+        '🙌', '👋', '💪', '👀', '👷', '🕵️', '💃', '🎩', '🤠', '🐕', '🐈', '🐹', '🐨', '🐽', '🐙', '🐧', '🐔', '🐎',
+        '🦄', '🐝', '🐢', '🐬', '🐋', '🐐', '🌵', '🌻', '🌞', '☄️', '⚡', '🦆', '🦉', '🦊', '🍎', '🍉', '🍇', '🍑',
+        '🍍', '🍆', '🍞', '🧀', '🍟', '🎂', '🍬', '🍭', '🍪', '🥑', '🥔', '🎨', '🎷', '🎺', '👾', '🎯', '🥁', '🚀',
+        '🛰️', '⚓', '🏖️', '✨', '🌈', '💡', '💈', '🔭', '🎈', '🎉', '💯', '💝', '☢️', '🆘', '♨️', '💭'
+    ]
 
-    bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
-    conf_file_path = os.path.join(conf_dir_path, 'somsiad.json')
-    storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
-    cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
-
-    message_autodestruction_time_in_seconds = 5
-    message_autodestruction_notice = (
+    MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS = 5
+    MESSAGE_AUTODESTRUCTION_NOTICE = (
         'Ta wiadomość ulegnie autodestrukcji w ciągu '
-        f'{TextFormatter.word_number_variant(message_autodestruction_time_in_seconds, "sekundy", "sekund")} od wysłania.'
+        f'{TextFormatter.word_number_variant(MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS, "sekundy", "sekund")} od wysłania.'
     )
 
-    required_settings = [
+    REQUIRED_SETTINGS = [
         Setting(
             'discord_token', description='Token bota', input_instruction='Wprowadź discordowy token bota',
             value_type='str'
@@ -58,6 +60,12 @@ class Somsiad:
         )
     ]
 
+    bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+    conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
+    conf_file_path = os.path.join(conf_dir_path, 'somsiad.json')
+    storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
+    cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
+
     def __init__(self, additional_required_settings: Union[list, tuple] = None):
         self.run_datetime = None
         self.logger = logging.getLogger('Somsiad')
@@ -72,8 +80,8 @@ class Somsiad:
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
             os.makedirs(self.cache_dir_path)
-        self.required_settings.extend(additional_required_settings)
-        self.configurator = Configurator(self.conf_file_path, self.required_settings)
+        self.REQUIRED_SETTINGS.extend(additional_required_settings)
+        self.configurator = Configurator(self.conf_file_path, self.REQUIRED_SETTINGS)
         self.bot = Bot(
             command_prefix=self.prefix_callable, help_command=None, description='Zawsze pomocny Somsiad',
             case_insensitive=True
@@ -100,13 +108,9 @@ class Somsiad:
         """Returns current configuration of the bot."""
         return self.configurator.configuration
 
-    @property
     def invite_url(self):
         """Returns the invitation URL of the bot."""
-        try:
-            return discord.utils.oauth_url(self.bot.user.id, discord.Permissions(305392727))
-        except discord.errors.ClientException:
-            return None
+        return discord.utils.oauth_url(self.bot.user.id, discord.Permissions(305392727))
 
 
 # Plugin settings
@@ -180,22 +184,10 @@ async def no(ctx, member: discord.Member = None):
 )
 async def version(ctx):
     """Responds with current version of the bot."""
-    EMOJIS = [
-        'b', 'fire', 'frog', 'thinking', 'angry', 'boom', 'ok_hand', 'poop', 'rabbit', 'rabbit2', 'eagle',
-        'upside_down', 'blush', 'slight_smile', 'nerd', 'scream', 'japanese_ogre', 'japanese_goblin', 'robot',
-        'raised_hands', 'wave', 'muscle', 'eyes', 'construction_worker', 'spy', 'dancer', 'tophat', 'cowboy', 'dog',
-        'cat', 'hamster', 'koala', 'pig', 'octopus', 'penguin', 'chicken', 'horse', 'unicorn', 'bee', 'beetle',
-        'turtle', 'dolphin', 'whale', 'goat', 'racehorse', 'pig2', 'cactus', 'sunflower', 'sun_with_face', 'comet',
-        'zap', 'duck', 'owl', 'fox', 'apple', 'banana', 'watermelon', 'grapes', 'peach', 'pineapple', 'eggplant',
-        'bread', 'cheese', 'fries', 'ramen', 'cake', 'candy', 'lollipop', 'cookie', 'avocado', 'potato', 'egg', 'art',
-        'saxophone', 'trumpet', 'space_invader', 'dart', 'drum', 'bike', 'rocket', 'satellite_orbital', 'anchor',
-        'beach', 'sparkler', 'fireworks', 'rainbow', 'bulb', 'barber', 'telescope', 'balloon', 'ribbon', 'tada', '100',
-        'gift_heart', 'radioactive', 'biohazard', 'sos', 'hotsprings'
-    ]
     embed = discord.Embed(
-        title=f':{random.choice(EMOJIS)}: Somsiad {__version__}',
-        url='https://somsiad.twixes.com',
-        color=somsiad.color
+        title=f'{random.choice(somsiad.EMOJIS)} Somsiad {__version__}',
+        url=somsiad.WEBSITE_URL,
+        color=somsiad.COLOR
     )
     embed.set_footer(text=COPYRIGHT)
     await ctx.send(ctx.author.mention, embed=embed)
@@ -209,8 +201,8 @@ async def info(ctx):
     """Responds with current version of the bot."""
     embed = discord.Embed(
         title=f':information_source: Somsiad {__version__}',
-        url='https://somsiad.twixes.com',
-        color=somsiad.color
+        url=somsiad.WEBSITE_URL,
+        color=somsiad.COLOR
     )
     embed.add_field(name='Liczba serwerów', value=len(somsiad.bot.guilds))
     embed.add_field(name='Liczba użytkowników', value=len(set(somsiad.bot.get_all_members())))
@@ -230,7 +222,7 @@ async def ping(ctx):
     """Pong!"""
     embed = discord.Embed(
         title=':ping_pong: Pong!',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -249,7 +241,7 @@ async def on_ready():
         f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}.',
         '',
         'Link do zaproszenia bota:',
-        somsiad.invite_url,
+        somsiad.invite_url(),
         '',
         somsiad.configurator.info(),
         '',
@@ -282,13 +274,13 @@ async def on_command_error(ctx, error):
     elif isinstance(error, discord.ext.commands.NoPrivateMessage):
         embed = discord.Embed(
             title=f':warning: Ta komenda nie może być użyta w prywatnych wiadomościach!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(embed=embed)
     elif isinstance(error, discord.ext.commands.DisabledCommand):
         embed = discord.Embed(
             title=f':warning: Ta komenda jest wyłączona!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
     else:

@@ -136,13 +136,13 @@ class DiscoManager:
         if song_status == 0:
             embed = discord.Embed(
                 title=f':slight_frown: Brak wyników dla zapytania "{query}"',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif song_status == 1:
             embed = discord.Embed(
                 title=':slight_frown: Znaleziony utwór przekracza limit rozmiaru wynoszący '
                 f'{somsiad.conf["disco_max_file_size_in_mib"]} MiB',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         else:
             extractor = song_info['extractor']
@@ -159,7 +159,7 @@ class DiscoManager:
                     uploader_url = None
 
             embed = discord.Embed(
-                title=f':arrow_forward: {song_info["title"]}', url=song_info['webpage_url'], color=somsiad.color
+                title=f':arrow_forward: {song_info["title"]}', url=song_info['webpage_url'], color=somsiad.COLOR
             )
             embed.set_author(name=song_info['uploader'], url=uploader_url)
             embed.set_thumbnail(url=song_info['thumbnail'])
@@ -216,7 +216,7 @@ async def disco_play(ctx, *, query):
     if ctx.author.voice is None:
         embed = discord.Embed(
             title=':warning: Nie odtworzono utworu, bo nie jesteś połączony z żadnym kanałem głosowym!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         async with ctx.typing():
@@ -232,7 +232,7 @@ async def disco_play_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=f':warning: Nie podano zapytania ani linku!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -249,12 +249,12 @@ async def disco_again(ctx):
     if ctx.author.voice is None:
         embed = discord.Embed(
             title=':warning: Nie powtórzono utworu, bo nie jesteś połączony z żadnym kanałem głosowym!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif disco_manager.servers[ctx.guild.id]['song_url'] is None:
         embed = discord.Embed(
             title=':red_circle: Nie powtórzono utworu, bo nie ma żadnego do powtórzenia',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         async with ctx.typing():
@@ -275,28 +275,28 @@ async def disco_pause(ctx):
     if ctx.voice_client is None:
         embed = discord.Embed(
             title=':red_circle: Nie spauzowano utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
         embed = discord.Embed(
             title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif ctx.voice_client.is_paused():
         embed = discord.Embed(
             title=':red_circle: Nie spauzowano utworu, bo już jest spauzowany',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif not ctx.voice_client.is_playing():
         embed = discord.Embed(
             title=':red_circle: Nie spauzowano utworu, bo żaden nie jest odtwarzany',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         ctx.voice_client.pause()
         embed = discord.Embed(
             title=f':pause_button: Spauzowano utwór',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -311,28 +311,28 @@ async def disco_resume(ctx):
     if ctx.voice_client is None:
         embed = discord.Embed(
             title=':red_circle: Nie wznowiono odtwarzania utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
         embed = discord.Embed(
             title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif ctx.voice_client.is_playing():
         embed = discord.Embed(
             title=':red_circle: Nie wznowiono odtwarzania utworu, bo już jest odtwarzany',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif not ctx.voice_client.is_paused():
         embed = discord.Embed(
             title=':red_circle: Nie wznowiono odtwarzania utworu, bo żaden nie jest spauzowany',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         ctx.voice_client.resume()
         embed = discord.Embed(
             title=f':arrow_forward: Wznowiono odtwarzanie utworu',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -347,18 +347,18 @@ async def disco_skip(ctx):
     if ctx.voice_client is None:
         embed = discord.Embed(
             title=':red_circle: Nie pominięto utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
         embed = discord.Embed(
             title=':red_circle: Nie pominięto utworu, bo żaden nie jest odtwarzany',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         ctx.voice_client.stop()
         embed = discord.Embed(
             title=f':fast_forward: Pominięto utwór',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -373,18 +373,18 @@ async def disco_disconnect(ctx):
     if ctx.voice_client is None:
         embed = discord.Embed(
             title=':warning: Nie rozłączono z kanałem głosowym, bo bot nie jest połączony z żadnym!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
         embed = discord.Embed(
             title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         voice_channel = await disco_manager.server_disconnect(ctx.guild)
         embed = discord.Embed(
             title=f':stop_button: Rozłączono z kanałem {voice_channel}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -402,7 +402,7 @@ async def disco_volume(ctx, volume_percentage: Union[int, locale.atoi] = None):
         embed = discord.Embed(
             title=':level_slider: Głośność ustawiona jest na '
             f'{int(disco_manager.servers[ctx.guild.id]["volume"] * 100)}%',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         if (
@@ -411,14 +411,14 @@ async def disco_volume(ctx, volume_percentage: Union[int, locale.atoi] = None):
         ):
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         else:
             disco_manager.server_change_volume(ctx.guild, volume_percentage)
             embed = discord.Embed(
                 title=':level_slider: Ustawiono głośność na '
                 f'{int(disco_manager.servers[ctx.guild.id]["volume"] * 100)}%',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -428,6 +428,6 @@ async def disco_volume_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadUnionArgument):
         embed = discord.Embed(
             title=f':warning: Podana wartość nie jest liczbą całkowitą!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

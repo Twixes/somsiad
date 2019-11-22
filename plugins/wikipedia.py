@@ -23,7 +23,7 @@ class Wikipedia:
     FOOTER_ICON_URL = (
         'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/60px-Wikipedia%27s_W.svg.png'
     )
-    headers = {'User-Agent': somsiad.user_agent}
+    headers = {'User-Agent': somsiad.USER_AGENT}
 
     class SearchResult:
         """Wikipedia search results."""
@@ -117,7 +117,7 @@ class Wikipedia:
         if search_result.status is None:
             embed = discord.Embed(
                 title=f':warning: Nie istnieje wersja językowa Wikipedii o kodzie "{language.upper()}"!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif search_result.status == 200:
             number_of_articles = len(search_result.articles)
@@ -129,27 +129,27 @@ class Wikipedia:
                     title=f'Hasło "{search_result.title}" może odnosić się do:',
                     url=search_result.url,
                     description='\n'.join(disambiguation),
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
             elif number_of_articles == 1:
                 embed = discord.Embed(
                     title=search_result.articles[0]['title'],
                     url=search_result.articles[0]['url'],
                     description=search_result.articles[0]['summary'],
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
                 if search_result.articles[0]['thumbnail_url'] is not None:
                     embed.set_thumbnail(url=search_result.articles[0]['thumbnail_url'])
             else:
                 embed = discord.Embed(
                     title=f':slight_frown: Brak wyników dla hasła "{title}"',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
 
         else:
             embed = discord.Embed(
                 title=':warning: Nie udało się połączyć z Wikipedią!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
 
         embed.set_footer(
@@ -173,7 +173,7 @@ async def wikipedia_error(ctx, error):
     if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano wersji językowej Wikipedii!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.set_footer(
             text=Wikipedia.FOOTER_TEXT,

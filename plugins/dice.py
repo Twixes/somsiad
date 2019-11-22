@@ -69,7 +69,7 @@ async def roll_dice(ctx, *args):
             embed = discord.Embed(
                 title=f':game_die: Rzucono {number_of_sides_description} kością',
                 description=results_info,
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         else:
             # Convert results to strings and concatenate them
@@ -82,12 +82,12 @@ async def roll_dice(ctx, *args):
             embed = discord.Embed(
                 title=f':game_die: Rzucono {number_of_dice} {number_of_sides_description} koścmi',
                 description=results_info,
-                color=somsiad.color
+                color=somsiad.COLOR
             )
     else:
         embed = discord.Embed(
             title=f':warning: {number_of_sides_on_a_die}-ścienna kość nie ma sensu!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     await ctx.send(ctx.author.mention, embed=embed)
@@ -99,7 +99,7 @@ async def roll_dice_error(ctx, error):
         embed = discord.Embed(
             title=':warning: Podano nieprawidłowy argument!',
             description='Ta komenda przyjmuje argumenty w formacie <?liczba kości> <?liczba ścianek kości>.',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
         await ctx.send(ctx.author.mention, embed=embed)

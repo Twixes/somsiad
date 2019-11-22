@@ -27,7 +27,7 @@ async def urban_dictionary(ctx, *, query):
     FOOTER_TEXT = 'Urban Dictionary'
 
     api_url = 'https://api.urbandictionary.com/v0/define'
-    headers = {'User-Agent': somsiad.user_agent}
+    headers = {'User-Agent': somsiad.USER_AGENT}
     params = {'term': query}
     async with aiohttp.ClientSession() as session:
         async with session.get(api_url, headers=headers, params=params) as r:
@@ -51,19 +51,19 @@ async def urban_dictionary(ctx, *, query):
                         title=word,
                         url=link,
                         description=definition,
-                        color=somsiad.color
+                        color=somsiad.COLOR
                     )
                     embed.add_field(name=':thumbsup:', value=t_up)
                     embed.add_field(name=':thumbsdown:', value=t_down)
                 else:
                     embed = discord.Embed(
                         title=f':slight_frown: Brak wyników dla terminu "{query}"',
-                        color=somsiad.color
+                        color=somsiad.COLOR
                     )
             else:
                 embed = discord.Embed(
                     title=':warning: Nie można połączyć się z serwisem!',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
     embed.set_footer(text=FOOTER_TEXT)
 
@@ -76,7 +76,7 @@ async def urban_dictionary_error(ctx, error):
 
     embed = discord.Embed(
         title=':warning: Musisz podać termin do sprawdzenia!',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
     embed.set_footer(text=FOOTER_TEXT)
 

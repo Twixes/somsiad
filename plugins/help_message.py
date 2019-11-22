@@ -53,7 +53,7 @@ class Helper:
 
     @classmethod
     def generate_general_embed(cls, commands: Sequence[Command]) -> discord.Embed:
-        embeds = [discord.Embed(color=somsiad.color)]
+        embeds = [discord.Embed(color=somsiad.COLOR)]
         embeds[0].add_field(
             name='Dobry!',
             value='Somsiad jestem. Pomagam ludziom w różnych kwestiach. '
@@ -62,13 +62,13 @@ class Helper:
             'W (nawiasach okrągłych) podane są alternatywne nazwy komend.\n'
             'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
             'oznacza to, że jest to argument opcjonalny.\n'
-            'By dowiedzieć się o mnie więcej, wejdź na https://somsiad.twixes.com/.',
+            f'By dowiedzieć się o mnie więcej, wejdź na {somsiad.WEBSITE_URL}.',
             inline=False
         )
 
         for embed_index in range(math.ceil(len(commands) / 24)):
             if embed_index:
-                embeds.append(discord.Embed(color=somsiad.color))
+                embeds.append(discord.Embed(color=somsiad.COLOR))
             for command in commands[24*embed_index:24*embed_index+24]:
                 cls._add_command_field_to_embed(embeds[embed_index], command)
 
@@ -91,7 +91,7 @@ class Helper:
         embed = discord.Embed(
             title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{name_string}{aliases_string}',
             description=f'Użycie: {somsiad.conf["command_prefix"]}{name_string} <podkomenda>',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
         for subcommand in subcommands:

@@ -316,7 +316,7 @@ class Report:
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o serwerze',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         self.embed.add_field(name='Utworzono', value=server_creation_datetime_information)
         self.embed.add_field(name='Właściciel', value=self.subject.owner.mention)
@@ -339,7 +339,7 @@ class Report:
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o kanale #{self.subject}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         self.embed.add_field(
             name='Utworzono', value=TextFormatter.time_difference(self.subject.created_at), inline=False
@@ -362,7 +362,7 @@ class Report:
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o użytkowniku {self.subject}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         self.embed.add_field(
             name='Utworzył konto', value=TextFormatter.time_difference(self.subject.created_at), inline=False
@@ -531,7 +531,7 @@ async def stat(ctx, *, subject: Union[discord.Member, discord.TextChannel] = Non
             title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
             description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda> lub '
             f'{somsiad.conf["command_prefix"]}{ctx.invoked_with} <użytkownik/kanał>',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.add_field(
             name=f'serwer',
@@ -564,7 +564,7 @@ async def stat_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadUnionArgument):
         embed = discord.Embed(
             title=f':warning: Nie znaleziono pasującego użytkownika ani kanału!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -604,7 +604,7 @@ async def stat_channel_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=f':warning: Nie znaleziono pasującego kanału!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -630,6 +630,6 @@ async def stat_member_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

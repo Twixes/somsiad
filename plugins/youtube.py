@@ -66,7 +66,7 @@ async def youtube_search(ctx, *, query = ''):
     else:
         embed = discord.Embed(
             title=f':slight_frown: Brak wyników dla zapytania "{query}"',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.set_footer(icon_url=YouTube.FOOTER_ICON_URL, text=YouTube.FOOTER_TEXT)
         await ctx.send(ctx.author.mention, embed=embed)

@@ -35,12 +35,12 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
         embed_before = discord.Embed(
             title=':fire: Twoja wiadomość zostanie usunięta za '
             f'{TextFormatter.human_readable_time(countdown_seconds)}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed_after = discord.Embed(
             title=':white_check_mark: Twoja wiadomość została usunięta po '
             f'{TextFormatter.human_readable_time(countdown_seconds)}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif isinstance(countdown_time, dt.datetime):
         now = dt.datetime.now().astimezone()
@@ -56,12 +56,12 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
         embed_before = discord.Embed(
             title=':fire: Twoja wiadomość zostanie usunięta '
             f'{TextFormatter.time_difference(bound_countdown_datetime, naive=False, days_difference=False)}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed_after = discord.Embed(
             title=':white_check_mark: Twoja wiadomość została usunięta '
             f'{TextFormatter.time_difference(bound_countdown_datetime, naive=False, days_difference=False)}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         raise TypeError(f'countdown_time must be int or datetime.datetime, not {type(countdown_time).__name__}')
@@ -76,7 +76,7 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
             title=':warning: Bot nie usunął wiadomości wysłanej '
             f'{TextFormatter.time_difference(ctx.message.created_at, days_difference=False)}, '
             'bo nie ma uprawnień do zarządzania wiadomościami na kanale!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed_warning)
     else:

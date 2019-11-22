@@ -37,13 +37,13 @@ async def spotify(ctx, member: discord.Member = None):
         embed = discord.Embed(
             title=':stop_button: W tym momencie '
             f'{"nie słuchasz" if member == ctx.author else f"{member.display_name} nie słucha"} niczego na Spotify',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         embed = discord.Embed(
             title=f':arrow_forward: {member.activity.title}',
             url=f'https://open.spotify.com/go?uri=spotify:track:{member.activity.track_id}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.set_thumbnail(url=member.activity.album_cover_url)
         embed.add_field(name='W wykonaniu', value=', '.join(member.activity.artists))

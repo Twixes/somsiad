@@ -285,7 +285,7 @@ async def trade_sundays_nearest(ctx):
     embed = discord.Embed(
         title=embed_title,
         description=embed_description,
-        color=somsiad.color
+        color=somsiad.COLOR
     )
     await ctx.send(ctx.author.mention, embed=embed)
 
@@ -310,7 +310,7 @@ async def trade_sundays_list(ctx, year: Optional[int], month: Optional[int]):
         trade_sunday_dates_by_month[trade_sunday_date.month-1].append(str(trade_sunday_date.day))
     embed = discord.Embed(
         title=f':calendar_spiral: Niedziele handlowe w {year}',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
     for i_month in enumerate(trade_sunday_dates_by_month):
         if i_month[1]:
@@ -326,6 +326,6 @@ async def trade_sundays_list_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=f':warning: {error}!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

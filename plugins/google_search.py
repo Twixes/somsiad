@@ -65,12 +65,12 @@ async def google(ctx, *, query):
         embed = discord.Embed(
             title=':warning: Nie udało się połączyć z serwerem wyszukiwania!',
             description='Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif results == []:
         embed = discord.Embed(
             title=f':slight_frown: Brak wyników dla zapytania "{query}"',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         result = results[0]
@@ -79,7 +79,7 @@ async def google(ctx, *, query):
             title=result['title'],
             url=result['link'],
             description=result['snippet'],
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.set_author(
             name=result['displayLink'],
@@ -111,12 +111,12 @@ async def google_image(ctx, *, query):
         embed = discord.Embed(
             title=':warning: Nie udało się połączyć z serwerem wyszukiwania!',
             description='Możliwe, że wyczerpał się dzienny limit wyszukiwań.',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif results == []:
         embed = discord.Embed(
             title=f':slight_frown: Brak wyników dla zapytania "{query}"',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         result = results[0]
@@ -124,7 +124,7 @@ async def google_image(ctx, *, query):
         embed = discord.Embed(
             title=result['title'],
             url=result['image']['contextLink'],
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.set_author(
             name=result['displayLink'],
@@ -143,7 +143,7 @@ async def google_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano szukanego hasła!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -153,6 +153,6 @@ async def google_image_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano szukanego hasła!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

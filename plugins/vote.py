@@ -50,7 +50,7 @@ async def vote(
                 f'Wynik zostanie ogłoszony {duration.strftime("%-d %B %Y o %H:%M")}.'
             ),
             timestamp=results_datetime,
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     elif isinstance(duration, Number) and 0.0 < duration <= 10080.0:
         seconds = duration * 60.0
@@ -63,14 +63,14 @@ async def vote(
                 f'Wynik zostanie ogłoszony po {TextFormatter.human_readable_time(seconds)} od rozpoczęcia głosowania.'
             ),
             timestamp=results_datetime,
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         seconds = None
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
             description='Zagłosuj w tej sprawie przy użyciu reakcji.',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     letter_options_found = []
@@ -122,7 +122,7 @@ async def vote(
                     f'Głosowanie zostało zakończone po {human_readable_time} od rozpoczęcia.'
                 ),
                 timestamp=results_datetime,
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             if letter_options_found:
                 for letter in letter_options_found:
@@ -151,6 +151,6 @@ async def vote_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=f':warning: Nie podano sprawy w jakiej ma się odbyć głosowanie!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

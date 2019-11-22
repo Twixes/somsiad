@@ -21,7 +21,7 @@ class Yandex:
     """Handles Yandex stuff."""
     FOOTER_TEXT = 'Yandex'
     FOOTER_ICON_URL = 'https://tech.yandex.com/favicon_en.ico'
-    HEADERS = { 'User-Agent': somsiad.user_agent }
+    HEADERS = { 'User-Agent': somsiad.USER_AGENT }
     TRANSLATE_API_URL = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
 
     @classmethod
@@ -57,12 +57,12 @@ class Yandex:
         if translation is None:
             embed = discord.Embed(
                 title=f':warning: Nie udało się połączyć z serwerem tłumaczenia!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif translation['code'] == 200:
             embed = discord.Embed(
                 title=':globe_with_meridians: Przetłumaczono tekst',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             if source_language_code is None:
                 source_language_display = f'{translation["detected"]["lang"].upper()} (wykryto)'
@@ -73,18 +73,18 @@ class Yandex:
         elif translation['code'] == 422:
             embed = discord.Embed(
                 title=':warning: Podany tekst jest nieprzetłumaczalny!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif translation['code'] == 501 or translation['code'] == 502:
             embed = discord.Embed(
                 title=f':warning: Podany kierunek tłumaczenia ({source_language_display} → {target_language_display}) '
                 'nie jest obsługiwany!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         else:
             embed = discord.Embed(
                 title=':warning: Błąd',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
 
         embed.set_footer(
@@ -115,18 +115,18 @@ async def translate_error(ctx, error):
                 title=':warning: Nie podano kodu języka źródłowego!',
                 description='Przykłady: EN, JP, ?.\n'
                 'Znak zapytania spowoduje wykrycie języka źródłowego.',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif error.param.name == 'target_language_code':
             embed = discord.Embed(
                 title=':warning: Nie podano kodu języka docelowego!',
                 description='Przykłady: PL, DE, RU.',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif error.param.name == 'text':
             embed = discord.Embed(
                 title=':warning: Nie podano tekstu do przetłumaczenia!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         embed.set_footer(
             text=Yandex.FOOTER_TEXT,

@@ -31,7 +31,7 @@ async def invite(ctx, *, argument = ''):
         embed = discord.Embed(
             title=':house: Zapraszam do Somsiad Labs – mojego domu',
             description='http://discord.gg/xRCpDs7',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -71,8 +71,8 @@ async def invite(ctx, *, argument = ''):
             embed = discord.Embed(
                 title=':warning: Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
                 'na którym ty je masz',
-                description=somsiad.message_autodestruction_notice,
-                color=somsiad.color
+                description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
+                color=somsiad.COLOR
             )
             await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
         else:
@@ -88,14 +88,14 @@ async def invite(ctx, *, argument = ''):
                 f'{"#" if isinstance(channel, discord.TextChannel) else ""}{channel}'
                 f'{max_uses_info if max_uses != 1 else ""}',
                 description=invite.url,
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             await ctx.send(ctx.author.mention, embed=embed)
 
     else:
         embed = discord.Embed(
             title=':warning: Nie utworzono zaproszenia, bo nie masz do tego uprawnień na żadnym kanale',
-            description=somsiad.message_autodestruction_notice,
-            color=somsiad.color
+            description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)

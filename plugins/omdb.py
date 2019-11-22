@@ -50,7 +50,7 @@ async def omdb(ctx, *args):
             )
     ):
         embed = discord.Embed(
-            title=':warning: Nie podano tytułu szukanej produkcji!', color=somsiad.color
+            title=':warning: Nie podano tytułu szukanej produkcji!', color=somsiad.COLOR
         )
     else:
         if re.match(r's\d\de\d\d', args[1].lower() if args[0].lower() in ('tv', 'serial') else args[0].lower()):
@@ -59,7 +59,7 @@ async def omdb(ctx, *args):
 
             if len(args) == (2 if args[0].lower() in ('tv', 'serial') else 1):
                 embed = discord.Embed(
-                    title=':warning: Nie podano tytułu szukanej produkcji!', color=somsiad.color
+                    title=':warning: Nie podano tytułu szukanej produkcji!', color=somsiad.COLOR
                 )
             else:
                 query = ' '.join(args[1:])
@@ -79,7 +79,7 @@ async def omdb(ctx, *args):
             query = ' '.join(args)
             params = {'apikey': somsiad.conf['omdb_key'], 't': query}
 
-        headers = {'User-Agent': somsiad.user_agent}
+        headers = {'User-Agent': somsiad.USER_AGENT}
         URL = 'http://www.omdbapi.com/'
         BASIC_INFO = ['Rated', 'Runtime', 'Released', 'Country']
 
@@ -105,10 +105,10 @@ async def omdb(ctx, *args):
                             if 'imdbID' in res:
                                 main_url = 'https://www.imdb.com/title/' + res['imdbID']
                                 embed = discord.Embed(
-                                    title=title, url=main_url, description=mess_part1, color=somsiad.color
+                                    title=title, url=main_url, description=mess_part1, color=somsiad.COLOR
                                 )
                             else:
-                                embed = discord.Embed(title=title, description=mess_part1, color=somsiad.color)
+                                embed = discord.Embed(title=title, description=mess_part1, color=somsiad.COLOR)
 
                             OMDb.smart_add_info_field_to_embed(embed, 'Gatunek', res, 'Genre')
 
@@ -169,12 +169,12 @@ async def omdb(ctx, *args):
                     elif res['Response'] == 'False':
                         embed = discord.Embed(
                             title=f':slight_frown: Brak wyników dla tytułu "{query}"',
-                            color=somsiad.color
+                            color=somsiad.COLOR
                         )
                 else:
                     embed = discord.Embed(
                         title=':warning: Nie udało się połączyć z OMDb!',
-                        color=somsiad.color
+                        color=somsiad.COLOR
                     )
     embed.set_footer(text=OMDb.FOOTER_TEXT)
     await ctx.send(ctx.author.mention, embed=embed)

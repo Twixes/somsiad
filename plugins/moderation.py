@@ -208,7 +208,7 @@ async def warn(ctx, subject_user: discord.Member, *, reason):
 
     embed = discord.Embed(
         title=f':white_check_mark: Ostrzeżono {subject_user} po raz {len(warnings)}.',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     await ctx.send(ctx.author.mention, embed=embed)
@@ -220,18 +220,18 @@ async def warn_error(ctx, error):
         if error.param.name == 'subject_user':
             embed = discord.Embed(
                 title=f':warning: Musisz podać którego użytkownika chcesz ostrzec!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif error.param.name == 'reason':
             embed = discord.Embed(
                 title=f':warning: Musisz podać powód ostrzeżenia!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         await ctx.send(ctx.author.mention, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -249,7 +249,7 @@ async def kick(ctx, subject_user: discord.Member, *, reason):
     except discord.Forbidden:
         embed = discord.Embed(
             title=f':warning: Bot nie ma uprawnień do wyrzucenia tego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         return await ctx.send(ctx.author.mention, embed=embed)
 
@@ -260,7 +260,7 @@ async def kick(ctx, subject_user: discord.Member, *, reason):
 
     embed = discord.Embed(
         title=f':white_check_mark: Wyrzucono {subject_user}',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -272,18 +272,18 @@ async def kick_error(ctx, error):
         if error.param.name == 'subject_user':
             embed = discord.Embed(
                 title=f':warning: Musisz podać którego użytkownika chcesz wyrzucić!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif error.param.name == 'reason':
             embed = discord.Embed(
                 title=f':warning: Musisz podać powód wyrzucenia!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         await ctx.send(ctx.author.mention, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -301,13 +301,13 @@ async def ban(ctx, subject_user: discord.Member, *, reason):
     except discord.Forbidden:
         embed = discord.Embed(
             title=f':warning: Bot nie ma uprawnień do zbanowania tego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         return await ctx.send(ctx.author.mention, embed=embed)
 
     embed = discord.Embed(
         title=f':white_check_mark: Zbanowano {subject_user}',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -319,18 +319,18 @@ async def ban_error(ctx, error):
         if error.param.name == 'subject_user':
             embed = discord.Embed(
                 title=f':warning: Musisz podać którego użytkownika chcesz zbanować!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif error.param.name == 'reason':
             embed = discord.Embed(
                 title=f':warning: Musisz podać powód bana!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         await ctx.send(ctx.author.mention, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -363,7 +363,7 @@ async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types:
             title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
             f'zawiera {TextFormatter.word_number_variant(len(entries), "zdarzenie", "zdarzenia", "zdarzeń")}'
             f'{event_types_description}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         for entry in entries:
             entry_info = [str(entry).capitalize(), entry.local_datetime.strftime("%-d %B %Y o %H:%M")]
@@ -381,13 +381,13 @@ async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types:
             embed = discord.Embed(
                 title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
                 'jest pusta',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         else:
             embed = discord.Embed(
                 title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
                 'nie zawiera zdarzeń podanego typu',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
 
     await ctx.send(ctx.author.mention, embed=embed)
@@ -398,7 +398,7 @@ async def file_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -425,8 +425,8 @@ async def purge(ctx, number_of_messages_to_delete: int = 1):
     )
     embed = discord.Embed(
         title=f':white_check_mark: Usunięto z kanału {last_adjective_variant} {messages_noun_variant}',
-        description=somsiad.message_autodestruction_notice,
-        color=somsiad.color
+        description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
+        color=somsiad.COLOR
     )
 
     await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
@@ -437,14 +437,14 @@ async def purge_error(ctx, error):
     if isinstance(error, discord.ext.commands.errors.BotMissingPermissions):
         embed = discord.Embed(
             title=':warning: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma tutaj do tego uprawnień',
-            description=somsiad.message_autodestruction_notice,
-            color=somsiad.color
+            description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia',
-            description=somsiad.message_autodestruction_notice,
-            color=somsiad.color
+            description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)

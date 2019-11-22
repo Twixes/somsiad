@@ -120,13 +120,13 @@ async def oof_how_many_member(ctx, member: discord.Member = None):
         embed = discord.Embed(
             title='Masz na koncie '
             f'{TextFormatter.word_number_variant(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         embed = discord.Embed(
             title=f'{member.display_name} ma na koncie '
             f'{TextFormatter.word_number_variant(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     await ctx.send(ctx.author.mention, embed=embed)
@@ -137,7 +137,7 @@ async def oof_how_many_member_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -171,7 +171,7 @@ async def oof_server(ctx):
 
     embed = discord.Embed(
         title=f'Do tej pory oofnięto na serwerze {TextFormatter.word_number_variant(total_oofs, "raz", "razy")}',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
     if top_oofers:
         embed.add_field(name='Najaktywniejsi ooferzy', value=top_oofers_string, inline=False)

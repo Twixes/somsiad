@@ -46,25 +46,25 @@ async def isitup(ctx, *, query):
                         description=f'Z IP [{res["response_ip"]}](http://{res["response_ip"]}) otrzymano '
                         f'kod odpowiedzi [{res["response_code"]}]({res_code_wikipedia_url}) '
                         f'w czasie {int(res_time)} ms.',
-                        color=somsiad.color
+                        color=somsiad.COLOR
                     )
                 # Website offline
                 elif res['status_code'] == 2:
                     embed = discord.Embed(
                         title=f':red_circle: Strona {res["domain"]} jest niedostępna',
                         url=f'http://{res["domain"]}',
-                        color=somsiad.color
+                        color=somsiad.COLOR
                     )
                 # Wrong URL
                 elif res['status_code'] == 3:
                     embed = discord.Embed(
                         title=':warning: Podany adres jest niepoprawny!',
-                        color=somsiad.color
+                        color=somsiad.COLOR
                     )
             else:
                 embed = discord.Embed(
                     title=':warning: Nie udało się połączyć z serwerem sprawdzania statusu stron!',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
 
     embed.set_footer(text=FOOTER_TEXT)
@@ -76,6 +76,6 @@ async def isitup_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=f':warning: Nie podano adresu strony do sprawdzenia!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

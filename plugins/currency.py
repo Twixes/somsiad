@@ -48,11 +48,11 @@ async def currency(ctx, *, query):
         else:
             target = 'PLN,USD,EUR'
         api_url = 'https://min-api.cryptocompare.com/data/price'
-        headers = {'User-Agent': somsiad.user_agent}
+        headers = {'User-Agent': somsiad.USER_AGENT}
         params = {
             'fsym': initial,
             'tsyms': target,
-            'extraParams': somsiad.user_agent
+            'extraParams': somsiad.USER_AGENT
         }
         async with aiohttp.ClientSession() as session:
             async with session.get(api_url, headers=headers, params=params) as response:
@@ -66,7 +66,7 @@ async def currency(ctx, *, query):
                             'gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody walut ISO 4217]'
                             '(https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody kryptowalut. '
                             'Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.',
-                            color=somsiad.color
+                            color=somsiad.COLOR
                         )
                     else:
                         currency_values = [
@@ -76,12 +76,12 @@ async def currency(ctx, *, query):
                         embed = discord.Embed(
                             title=f'{num} {initial}',
                             description=currency_values,
-                            color=somsiad.color
+                            color=somsiad.COLOR
                         )
                 else:
                     embed = discord.Embed(
                         title=':warning: Nie udało się połączyć z serwerem przelicznika walut!',
-                        color=somsiad.color
+                        color=somsiad.COLOR
                     )
     else:
         embed = discord.Embed(
@@ -90,7 +90,7 @@ async def currency(ctx, *, query):
             'gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody walut ISO 4217]'
             '(https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody kryptowalut. '
             'Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
@@ -100,5 +100,5 @@ async def currency(ctx, *, query):
 @currency.error
 async def currency_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', color=somsiad.color)
+        embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', color=somsiad.COLOR)
         await ctx.send(ctx.author.mention, embed=embed)

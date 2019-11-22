@@ -61,7 +61,7 @@ class PinArchivesManager:
         """Archives the provided message in the provided channel."""
         pin_embed = discord.Embed(
             description=pin.content,
-            color=somsiad.color,
+            color=somsiad.COLOR,
             timestamp=pin.created_at
         )
         pin_embed.set_author(
@@ -104,7 +104,7 @@ async def pins(ctx):
     embed = discord.Embed(
         title=f'Podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
         description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
     embed.add_field(
         name='kanał (kanal) <?kanał>',
@@ -142,7 +142,7 @@ async def pins_channel(ctx, channel: discord.TextChannel = None):
 
     embed = discord.Embed(
         title=f':white_check_mark: Ustawiono #{channel} jako kanał archiwum przypiętych wiadomości',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     await ctx.send(ctx.author.mention, embed=embed)
@@ -171,22 +171,22 @@ async def pins_archive(ctx):
                 result_embed = discord.Embed(
                     title=':white_check_mark: Zarchiwizowano '
                     f'{TextFormatter.word_number_variant(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
             else:
                 result_embed = discord.Embed(
                     title=':red_circle: Brak przypiętych wiadomości do zarchiwizowania',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
         else:
             result_embed = discord.Embed(
                 title=f':warning: Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
     else:
         result_embed = discord.Embed(
             title=f':warning: Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     await ctx.send(ctx.author.mention, embed=result_embed)
@@ -209,12 +209,12 @@ async def pins_clear(ctx):
         result_embed = discord.Embed(
             title=':white_check_mark: Odpięto '
             f'{TextFormatter.word_number_variant(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         result_embed = discord.Embed(
             title=':red_circle: Brak przypiętych wiadomości do odpięcia',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     await ctx.send(ctx.author.mention, embed=result_embed)

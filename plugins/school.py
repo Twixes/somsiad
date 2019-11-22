@@ -102,12 +102,12 @@ async def how_much_more(ctx):
         if current_school_year.days_left == 0:
             embed = discord.Embed(
                 title=':tada: Dziś zakończenie roku szkolnego',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif current_school_year.days_passed == 0:
             embed = discord.Embed(
                 title=':chains: Dziś rozpoczęcie roku szkolnego',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         else:
             embed = discord.Embed(
@@ -115,7 +115,7 @@ async def how_much_more(ctx):
                 f'{TextFormatter.word_number_variant(current_school_year.days_left, "został", "zostały", "zostało", include_number=False)} '
                 f'{TextFormatter.word_number_variant(current_school_year.days_left, "dzień", "dni")}',
                 description=present_days_as_weeks(current_school_year.days_left),
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             embed.add_field(name='Postęp', value=f'{locale.str(round(current_school_year.fraction_passed * 100, 1))}%')
     else:
@@ -125,7 +125,7 @@ async def how_much_more(ctx):
             f'{TextFormatter.word_number_variant(current_summber_break.days_left, "został", "zostały", "zostało", include_number=False)} '
             f'{TextFormatter.word_number_variant(current_summber_break.days_left, "dzień", "dni")}',
             description=present_days_as_weeks(current_summber_break.days_left),
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         embed.add_field(
             name='Postęp', value=f'{locale.str(round(current_summber_break.fraction_passed * 100, 1))}%'

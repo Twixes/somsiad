@@ -180,7 +180,7 @@ async def birthday_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -202,13 +202,13 @@ async def birthday_remember(ctx, *, raw_date_string):
             if date.year <= 1900:
                 embed = discord.Embed(
                     title=f':warning: Podaj współczesną datę urodzin!',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
                 return await ctx.send(ctx.author.mention, embed=embed)
             elif date > dt.date.today():
                 embed = discord.Embed(
                     title=f':warning: Podaj przeszłą datę urodzin!',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
                 return await ctx.send(ctx.author.mention, embed=embed)
 
@@ -221,7 +221,7 @@ async def birthday_remember(ctx, *, raw_date_string):
 
     embed = discord.Embed(
         title=f':white_check_mark: Ustawiono twoją datę urodzin na {date_string}',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -232,13 +232,13 @@ async def birthday_remember_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano daty!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=f':warning: Podano datę w nieznanym formacie!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -253,7 +253,7 @@ async def birthday_forget(ctx):
 
     embed = discord.Embed(
         title=f':white_check_mark: Zapomniano twoją datę urodzin',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -273,7 +273,7 @@ async def birthday_when(ctx, *, member: discord.Member = None):
         embed = discord.Embed(
             title=f':question: {"Nie ustawiłeś" if member == ctx.author else f"{member} nie ustawił"} '
             'swojej daty urodzin na serwerze',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         if date.year == 1900:
@@ -283,7 +283,7 @@ async def birthday_when(ctx, *, member: discord.Member = None):
 
         embed = discord.Embed(
             title=f':calendar_spiral: {"Urodziłeś" if member == ctx.author else f"{member} urodził"} się {date_string}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -294,7 +294,7 @@ async def birthday_when_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -313,14 +313,14 @@ async def birthday_age(ctx, *, member: discord.Member = None):
         embed = discord.Embed(
             title=f':question: {"Nie ustawiłeś" if member == ctx.author else f"{member} nie ustawił"} '
             'swojego roku urodzin na serwerze',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         age = BirthdayCalendar.calculate_age(date)
         embed = discord.Embed(
             title=f':calendar_spiral: {"Masz" if member == ctx.author else f"{member} ma"} '
             f'{TextFormatter.word_number_variant(age, "rok", "lata", "lat")}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -331,7 +331,7 @@ async def birthday_age_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -356,12 +356,12 @@ async def birthday_day(ctx, *, date_string = None):
             description='\n'.join(
                 (f'<@{member["user_id"]}>' for member in members if ctx.guild.get_member(member["user_id"]) is not None)
             ),
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         embed = discord.Embed(
             title=f':question: Nikt na serwerze nie ma ustawionych urodzin {date.strftime("%-d %B")}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -372,7 +372,7 @@ async def birthday_day_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Podano dzień w nieznanym formacie!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)
 
@@ -401,12 +401,12 @@ async def birthday_month(ctx, *, month_string = None):
                 f'{member["birthday_date"].day} – <@{member["user_id"]}>'
                 for member in members if ctx.guild.get_member(member["user_id"]) is not None
             )),
-            color=somsiad.color
+            color=somsiad.COLOR
         )
     else:
         embed = discord.Embed(
             title=f':question: Nikt na serwerze nie ma ustawionych urodzin w {BirthdayCalendar.MONTH_NAMES_1[month-1]}',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
 
     return await ctx.send(ctx.author.mention, embed=embed)
@@ -417,6 +417,6 @@ async def birthday_month_error(ctx, error):
     if isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=f':warning: Podano miesiąc w nieznanym formacie!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

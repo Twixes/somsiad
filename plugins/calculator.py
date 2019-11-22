@@ -45,7 +45,7 @@ async def calculate(ctx, *, data):
         except (ValueError, KeyError):
             embed = discord.Embed(
                 title=':warning: Błąd w wyrażeniu!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         else:
             used_previous_expression = True
@@ -76,7 +76,7 @@ async def calculate(ctx, *, data):
             except (IndexError, ValueError):
                 embed = discord.Embed(
                     title=f':warning: Błąd w zmiennej `{variable}`!',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
                 return await ctx.send(ctx.author.mention, embed=embed)
 
@@ -93,12 +93,12 @@ async def calculate(ctx, *, data):
             except Exception:
                 embed = discord.Embed(
                     title=':warning: Błąd w wyrażeniu lub zmiennych!',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
             else:
                 embed = discord.Embed(
                     title=':1234: Uproszczono wyrażenie',
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
                 embed.add_field(name='Wejście', value=f'```Matlab\n{input_info}```', inline=False)
                 embed.add_field(name='Wyjście', value=f'```Matlab\n{result}```', inline=False)
@@ -129,7 +129,7 @@ async def calculate(ctx, *, data):
 
             embed = discord.Embed(
                 title=':1234: Obliczono wartość wyrażenia',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             embed.add_field(name=input_details, value=f'```Matlab\n{input_info}```', inline=False)
             embed.add_field(name=output_details, value=f'```Matlab\n{result}```', inline=False)
@@ -141,6 +141,6 @@ async def calculate_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano wyrażenia ani zmiennych!',
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await ctx.send(ctx.author.mention, embed=embed)

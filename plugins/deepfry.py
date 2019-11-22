@@ -72,7 +72,7 @@ async def deepfry(ctx, doneness: int = 2):
         else:
             embed = discord.Embed(
                 title=':warning: Nie znaleziono obrazka do usmażenia!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             return await ctx.send(ctx.author.mention, embed=embed)
         output_image_bytes = await somsiad.bot.loop.run_in_executor(None, DeepFrier.fry, input_image_bytes, doneness)

@@ -53,7 +53,7 @@ class Closing:
             f'{TextFormatter.human_readable_time(self.countdown_seconds)}',
             description='Napisz STOP by zatrzymać odliczanie.',
             timestamp=self.closing_datetime,
-            color=somsiad.color
+            color=somsiad.COLOR
         )
         await self.ctx.send(self.ctx.author.mention, embed=embed)
 
@@ -75,7 +75,7 @@ class Closing:
                 title=':raised_hand: Odliczanie zostało zatrzymane '
                 f'{TextFormatter.human_readable_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
                 timestamp=self.closing_datetime,
-                color=somsiad.color
+                color=somsiad.COLOR
             )
             if stop_message.author.mention == self.ctx.author.mention:
                 mentions = stop_message.author.mention
@@ -94,7 +94,7 @@ class Closing:
                     f'{TextFormatter.human_readable_time(self.STEPS[step_index])}',
                     description='Napisz STOP by zatrzymać odliczanie.',
                     timestamp=self.closing_datetime,
-                    color=somsiad.color
+                    color=somsiad.COLOR
                 )
                 await self.ctx.send(embed=embed)
                 await asyncio.sleep(self.STEPS[step_index]-self.STEPS[step_index-1])
@@ -123,12 +123,12 @@ async def close(ctx, countdown_seconds: Optional[Union[float, locale.atof, inter
         if str(e) == 'time until closing cannot be below 3 seconds':
             embed = discord.Embed(
                 title=':warning: Odliczanie do zamknięcia kanału nie może trwać poniżej 3 sekund!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         elif str(e) == 'time until closing cannot be over 2 weeks':
             embed = discord.Embed(
                 title=':warning: Odliczanie do zamknięcia kanału nie może trwać powyżej 2 tygodni!',
-                color=somsiad.color
+                color=somsiad.COLOR
             )
         await ctx.send(ctx.author.mention, embed=embed)
     else:

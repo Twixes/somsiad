@@ -65,7 +65,7 @@ async def announce_globally(ctx, *, raw_announcement):
     embed = discord.Embed(
         title='Ogłoszenie somsiedzkie',
         description=description,
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     for n in range(0, len(announcement) - 1, 2):
@@ -107,7 +107,7 @@ async def announce_locally(ctx, *, raw_announcement):
     embed = discord.Embed(
         title='Ogłoszenie somsiedzkie',
         description=description,
-        color=somsiad.color
+        color=somsiad.COLOR
     )
 
     for n in range(0, len(announcement) - 1, 2):
@@ -131,7 +131,7 @@ async def shutdown(ctx):
     """Shuts down the bot."""
     embed = discord.Embed(
         title=':stop_button: Wyłączanie bota...',
-        color=somsiad.color
+        color=somsiad.COLOR
     )
     await ctx.send(ctx.author.mention, embed=embed)
     print(f'Zatrzymuję działanie programu na żądanie {ctx.author}...')
