@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Optional, Sequence
+import random
 import discord
 from somsiad import somsiad
 
@@ -48,7 +49,9 @@ class Reactor:
     @classmethod
     def _convert_ascii_character(cls, character: str, characters: Sequence[str] = '') -> str:
         """Converts ASCII characters to Unicode emojis."""
-        if isinstance(character, str) and character in cls.ASCII_CHARACTERS:
+        if character == ' ':
+            return random.choice(somsiad.EMOJIS)
+        elif isinstance(character, str) and character in cls.ASCII_CHARACTERS:
             if cls.ASCII_CHARACTERS[character][0] not in characters:
                 return cls.ASCII_CHARACTERS[character][0]
             elif (
@@ -68,7 +71,7 @@ class Reactor:
         passes = []
         # first pass: create a tuple of lowercase characters
         passes.append([])
-        passes[-1] = (character.lower() for character in characters if character != ' ')
+        passes[-1] = (character.lower() for character in ' '.join(characters.split()))
         # second pass: convert diacritic characters to server emojis or ASCII characters
         passes.append([])
         for character in passes[-2]:
