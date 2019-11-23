@@ -15,7 +15,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.bot.command(aliases=['badum', 'badumtss'])
+@somsiad.command(aliases=['badum', 'badumtss'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

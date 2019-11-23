@@ -27,7 +27,7 @@ LETTER_EMOIJS = {
     'U': '🇺', 'V': '🇻', 'W': '🇼', 'X': '🇽', 'Y': '🇾', 'Z': '🇿'
 }
 
-@somsiad.bot.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
+@somsiad.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

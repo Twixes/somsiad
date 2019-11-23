@@ -38,4 +38,4 @@ def setlocale(locale_index: int = 0):
 if __name__ == '__main__':
     print('Budzenie Somsiada...')
     setlocale()
-    somsiad.somsiad.run()
+    somsiad.somsiad.controlled_run()

@@ -15,7 +15,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.bot.command(aliases=['lenny'])
+@somsiad.command(aliases=['lenny'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -24,7 +24,7 @@ async def lennyface(ctx):
     await ctx.send('( ͡° ͜ʖ ͡°)')
 
 
-@somsiad.bot.command(aliases=['lenno'])
+@somsiad.command(aliases=['lenno'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -33,7 +33,7 @@ async def lennoface(ctx):
     await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
 
 
-@somsiad.bot.command(aliases=['wywróć'])
+@somsiad.command(aliases=['wywróć'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -42,7 +42,7 @@ async def tableflip(ctx):
     await ctx.send('(╯°□°）╯︵ ┻━┻')
 
 
-@somsiad.bot.command(aliases=['odstaw'])
+@somsiad.command(aliases=['odstaw'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -51,7 +51,7 @@ async def unflip(ctx):
     await ctx.send('┬─┬ ノ( ゜-゜ノ)')
 
 
-@somsiad.bot.command()
+@somsiad.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -60,7 +60,7 @@ async def shrug(ctx):
     await ctx.send(r'¯\_(ツ)_/¯')
 
 
-@somsiad.bot.command(aliases=['dej'])
+@somsiad.command(aliases=['dej'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -74,7 +74,7 @@ async def gib(ctx, *, thing = None):
         await ctx.send(f'༼ つ ◕_◕ ༽つ {thing}')
 
 
-@somsiad.bot.command()
+@somsiad.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

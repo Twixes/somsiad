@@ -80,7 +80,7 @@ class LastFM:
 last_fm_api = LastFM(somsiad.conf['last_fm_key'])
 
 
-@somsiad.bot.group(aliases=['lastfm', 'last', 'fm', 'lfm'], invoke_without_command=True, case_insensitive=True)
+@somsiad.group(aliases=['lastfm', 'last', 'fm', 'lfm'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

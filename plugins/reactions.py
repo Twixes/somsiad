@@ -112,7 +112,7 @@ class Reactor:
                     pass
 
 
-@somsiad.bot.command(aliases=['zareaguj', 'x'])
+@somsiad.command(aliases=['zareaguj', 'x'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -125,7 +125,7 @@ async def react(
     await Reactor.react(ctx, characters, member)
 
 
-@somsiad.bot.command(aliases=['pomógł', 'pomogl'])
+@somsiad.command(aliases=['pomógł', 'pomogl'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -135,7 +135,7 @@ async def helped(ctx, member: discord.Member = None):
     await Reactor.react(ctx, 'pomógł', member)
 
 
-@somsiad.bot.command(aliases=['niepomógł', 'niepomogl'])
+@somsiad.command(aliases=['niepomógł', 'niepomogl'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -145,7 +145,7 @@ async def didnothelp(ctx, member: discord.Member = None):
     await Reactor.react(ctx, 'niepomógł', member)
 
 
-@somsiad.bot.command(aliases=['^', 'to', 'up', 'upvote'])
+@somsiad.command(aliases=['^', 'to', 'up', 'upvote'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -155,7 +155,7 @@ async def this(ctx, member: discord.Member = None):
     await Reactor.raw_react(ctx, '⬆', member)
 
 
-@somsiad.bot.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
+@somsiad.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -165,7 +165,7 @@ async def thinking(ctx, member: discord.Member = None):
     await Reactor.raw_react(ctx, '🤔', member)
 
 
-@somsiad.bot.command()
+@somsiad.command()
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -174,7 +174,7 @@ async def f(ctx, member: discord.Member = None):
     """Reacts with "F"."""
     await Reactor.raw_react(ctx, '🇫', member)
 
-@somsiad.bot.command(aliases=['chlip', '😢'])
+@somsiad.command(aliases=['chlip', '😢'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

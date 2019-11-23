@@ -18,7 +18,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.bot.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
+@somsiad.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
 @discord.ext.commands.cooldown(
     1,
     somsiad.conf['command_cooldown_per_user_in_seconds']

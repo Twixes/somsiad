@@ -46,13 +46,13 @@ class Files:
             self.event_id = event_id
             self.event_type = event_type
             self.server_id = server_id
-            self.server = somsiad.bot.get_guild(server_id)
+            self.server = somsiad.get_guild(server_id)
             self.channel_id = channel_id
-            self.channel = None if channel_id is None else somsiad.bot.get_channel(channel_id)
+            self.channel = None if channel_id is None else somsiad.get_channel(channel_id)
             self.executing_user_id = executing_user_id
-            self.executing_user = None if executing_user_id is None else somsiad.bot.get_user(executing_user_id)
+            self.executing_user = None if executing_user_id is None else somsiad.get_user(executing_user_id)
             self.subject_user_id = subject_user_id
-            self.subject_user = self.server.get_member(subject_user_id) or somsiad.bot.get_user(subject_user_id)
+            self.subject_user = self.server.get_member(subject_user_id) or somsiad.get_user(subject_user_id)
             self.posix_timestamp = posix_timestamp
             self.local_datetime = (
                 dt.datetime.fromtimestamp(posix_timestamp).replace(tzinfo=dt.timezone.utc).astimezone()
@@ -168,31 +168,31 @@ class Files:
         return new_to_old_events
 
 
-@somsiad.bot.event
+@somsiad.event
 async def on_member_join(member):
     """Adds the joining event to the member's file."""
     Files.add_event(event_type='joined', server=member.guild, subject_user=member)
 
 
-@somsiad.bot.event
+@somsiad.event
 async def on_member_remove(member):
     """Adds the removal event to the member's file."""
     Files.add_event(event_type='left', server=member.guild,subject_user=member)
 
 
-@somsiad.bot.event
+@somsiad.event
 async def on_member_ban(server, member):
     """Adds the unban event to the member's file."""
     Files.add_event(event_type='banned', server=server, subject_user=member)
 
 
-@somsiad.bot.event
+@somsiad.event
 async def on_member_unban(server, member):
     """Adds the unban event to the member's file."""
     Files.add_event(event_type='unbanned', server=server, subject_user=member)
 
 
-@somsiad.bot.command(aliases=['ostrzeż', 'ostrzez'])
+@somsiad.command(aliases=['ostrzeż', 'ostrzez'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -236,7 +236,7 @@ async def warn_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.bot.command(aliases=['wyrzuć', 'wyrzuc'])
+@somsiad.command(aliases=['wyrzuć', 'wyrzuc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -288,7 +288,7 @@ async def kick_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.bot.command(aliases=['zbanuj'])
+@somsiad.command(aliases=['zbanuj'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -335,7 +335,7 @@ async def ban_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.bot.command(aliases=['kartoteka'])
+@somsiad.command(aliases=['kartoteka'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -403,7 +403,7 @@ async def file_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.bot.command(aliases=['wyczyść', 'wyczysc'])
+@somsiad.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

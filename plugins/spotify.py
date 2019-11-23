@@ -18,7 +18,7 @@ from utilities import TextFormatter
 from plugins.youtube import youtube
 
 
-@somsiad.bot.command(aliases=['kanał', 'kanal'])
+@somsiad.command(aliases=['kanał', 'kanal'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

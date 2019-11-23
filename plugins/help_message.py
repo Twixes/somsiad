@@ -278,7 +278,7 @@ COMMANDS = (
 )
 
 
-@somsiad.bot.command(aliases=['help', 'pomocy', 'pomoc'])
+@somsiad.command(aliases=['help', 'pomocy', 'pomoc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

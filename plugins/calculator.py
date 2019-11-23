@@ -23,7 +23,7 @@ input_data_strip_chars = string.whitespace + ';'
 
 previous_expressions = {}
 
-@somsiad.bot.command(aliases=['oblicz', 'policz'])
+@somsiad.command(aliases=['oblicz', 'policz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

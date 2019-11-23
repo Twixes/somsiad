@@ -16,7 +16,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.bot.command(aliases=['roll', 'rzuć', 'rzuc'])
+@somsiad.command(aliases=['roll', 'rzuć', 'rzuc'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

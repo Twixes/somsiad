@@ -20,7 +20,7 @@ from somsiad import somsiad
 from utilities import TextFormatter, interpret_str_as_datetime
 
 
-@somsiad.bot.command(aliases=['spal'])
+@somsiad.command(aliases=['spal'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

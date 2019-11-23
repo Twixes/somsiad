@@ -23,7 +23,7 @@ with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r'
 
 categories = ['definitive' for _ in range(49)] + ['enigmatic']
 
-@somsiad.bot.command(aliases=['choose', 'wybierz'])
+@somsiad.command(aliases=['choose', 'wybierz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

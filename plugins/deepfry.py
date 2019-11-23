@@ -52,7 +52,7 @@ class DeepFrier:
         return filename, image_bytes
 
 
-@somsiad.bot.command(aliases=['usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'])
+@somsiad.command(aliases=['usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -75,7 +75,7 @@ async def deepfry(ctx, doneness: int = 2):
                 color=somsiad.COLOR
             )
             return await ctx.send(ctx.author.mention, embed=embed)
-        output_image_bytes = await somsiad.bot.loop.run_in_executor(None, DeepFrier.fry, input_image_bytes, doneness)
+        output_image_bytes = await somsiad.loop.run_in_executor(None, DeepFrier.fry, input_image_bytes, doneness)
 
     return await ctx.send(
         f'{ctx.author.mention}', file=discord.File(output_image_bytes, filename=filename or 'deepfried.jpeg')

@@ -16,7 +16,7 @@ import discord
 from somsiad import somsiad
 
 
-@somsiad.bot.command(aliases=['wejdź'])
+@somsiad.command(aliases=['wejdź'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -39,7 +39,7 @@ async def enter(ctx, *, server_name):
         await ctx.send(f'{ctx.author.mention}\n{invite.url}')
 
 
-@somsiad.bot.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
+@somsiad.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -122,7 +122,7 @@ async def announce_locally(ctx, *, raw_announcement):
                 break
 
 
-@somsiad.bot.command(aliases=['wyłącz', 'wylacz', 'stop'])
+@somsiad.command(aliases=['wyłącz', 'wylacz', 'stop'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

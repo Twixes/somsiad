@@ -50,7 +50,7 @@ class YouTube:
 youtube = YouTube(somsiad.conf['google_key'])
 
 
-@somsiad.bot.command(aliases=['youtube', 'yt', 'tuba'])
+@somsiad.command(aliases=['youtube', 'yt', 'tuba'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -72,7 +72,7 @@ async def youtube_search(ctx, *, query = ''):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@somsiad.bot.group(invoke_without_command=True, case_insensitive=True)
+@somsiad.group(invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

@@ -108,7 +108,7 @@ class Closing:
         return step_index
 
 
-@somsiad.bot.command(aliases=['zamknij'])
+@somsiad.command(aliases=['zamknij'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

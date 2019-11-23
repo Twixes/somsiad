@@ -18,7 +18,7 @@ from somsiad import somsiad
 from utilities import TextFormatter
 
 
-@somsiad.bot.command(aliases=['urbandictionary', 'urban'])
+@somsiad.command(aliases=['urbandictionary', 'urban'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )

@@ -30,7 +30,7 @@ class OMDb:
                 embed.add_field(name=name, value=res[key], inline=inline)
 
 
-@somsiad.bot.command(aliases=['film'])
+@somsiad.command(aliases=['film'])
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )

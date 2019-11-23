@@ -180,7 +180,7 @@ class DiscoManager:
 disco_manager = DiscoManager()
 
 
-@somsiad.bot.group(aliases=['d'], invoke_without_command=True)
+@somsiad.group(aliases=['d'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
     1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
