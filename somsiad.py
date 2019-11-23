@@ -18,6 +18,7 @@ import asyncio
 import platform
 import logging
 import random
+import itertools
 import datetime as dt
 import discord
 from discord.ext.commands import Bot
@@ -65,7 +66,7 @@ class Somsiad:
         self.conf = configuration
         self.prefix_safe_commands = tuple(map(
             lambda command: f'{self.conf["command_prefix"]}{command}',
-            ('help_message', 'help', 'pomocy', 'pomoc', 'prefix', 'prefiks', 'przedrostek')
+            ('help', 'pomocy', 'pomoc', 'prefix', 'prefiks', 'przedrostek', 'info', 'informacje', 'ping')
         ))
         self.bot = Bot(
             command_prefix=self.get_prefix, help_command=None, description='Zawsze pomocny Somsiad',
@@ -89,10 +90,10 @@ class Somsiad:
         data_server = session.query(data.Server).filter(data.Server.id == message.guild.id).one_or_none()
         session.close()
         does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
-        is_message_a_safe_command = message.content.startswith(self.prefix_safe_commands)
+        is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_commands)
         if does_server_have_custom_command_prefix:
             prefixes.append(data_server.command_prefix)
-        if not does_server_have_custom_command_prefix or is_message_a_safe_command:
+        if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
             prefixes.append(self.conf['command_prefix'])
         return prefixes
 
@@ -132,13 +133,14 @@ class Somsiad:
         ]
         return '\n'.join(info_lines)
 
-    async def keep_presence(self):
-        """Change presence to a custom one and keep refreshing it so it doesn't disappear."""
-        while True:
+    async def cycle_presence(self):
+        """Cycle through prefix safe commands in the presence."""
+        prefix_safe_commands = ('pomocy', 'prefiks', 'info', 'ping')
+        for command in itertools.cycle(prefix_safe_commands):
             await self.bot.change_presence(
-                activity=discord.Game(name=f'Kiedyś to było | {self.conf["command_prefix"]}pomocy')
+                activity=discord.Game(name=f'Kiedyś to było | {self.conf["command_prefix"]}{command}')
             )
-            await asyncio.sleep(600)
+            await asyncio.sleep(15)
 
 
 somsiad = Somsiad()
@@ -248,7 +250,7 @@ async def on_ready():
     """Does things once the bot comes online."""
     print(somsiad.info())
     somsiad.ensure_registration_of_all_servers()
-    await somsiad.keep_presence()
+    await somsiad.cycle_presence()
 
 
 @somsiad.bot.event
