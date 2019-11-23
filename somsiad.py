@@ -168,9 +168,12 @@ class Somsiad(Bot):
     def _get_prefix(self, bot: Bot, message: discord.Message) -> List[str]:
         user_id = bot.user.id
         prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ']
-        session = data.Session()
-        data_server = session.query(data.Server).filter(data.Server.id == message.guild.id).one_or_none()
-        session.close()
+        if message.guild is not None:
+            session = data.Session()
+            data_server = session.query(data.Server).filter(data.Server.id == message.guild.id).one_or_none()
+            session.close()
+        else:
+            data_server = None
         does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
         is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_commands)
         if does_server_have_custom_command_prefix:
