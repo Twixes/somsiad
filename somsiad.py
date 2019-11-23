@@ -22,7 +22,7 @@ import datetime as dt
 import discord
 from discord.ext.commands import Bot
 from version import __version__
-from utilities import Configurator, Setting, TextFormatter
+from utilities import Configuration, Setting, TextFormatter
 
 COPYRIGHT = '© 2018-2019 Twixes, ondondil et al.'
 
@@ -45,24 +45,16 @@ class Somsiad:
     )
 
     REQUIRED_SETTINGS = [
-        Setting(
-            'discord_token', description='Token bota', input_instruction='Wprowadź discordowy token bota',
-            value_type='str'
-        ),
-        Setting(
-            'command_prefix', description='Prefiks komend', input_instruction='Wprowadź prefiks komend',
-            value_type='str', default_value='!'
-        ),
+        Setting('discord_token', description='Token bota'),
+        Setting('command_prefix', description='Domyślny prefiks komend', default_value='!'),
         Setting(
             'command_cooldown_per_user_in_seconds', description='Cooldown wywołania komendy przez użytkownika',
-            input_instruction='Wprowadź cooldown wywołania komendy przez użytkownika w sekundach',
-            unit=('sekunda', 'sekund'), value_type='float', default_value=1.0
-        )
+            unit='s', value_type=float, default_value=1.0
+        ),
+        Setting('database_url', description='URL bazy danych')
     ]
 
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-    conf_dir_path = os.path.join(os.path.expanduser('~'), '.config')
-    conf_file_path = os.path.join(conf_dir_path, 'somsiad.json')
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
 
@@ -74,19 +66,15 @@ class Somsiad:
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
-        if not os.path.exists(self.conf_dir_path):
-            os.makedirs(self.conf_dir_path)
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
             os.makedirs(self.cache_dir_path)
-        self.REQUIRED_SETTINGS.extend(additional_required_settings)
-        self.configurator = Configurator(self.conf_file_path, self.REQUIRED_SETTINGS)
+        self.conf = Configuration(list(self.REQUIRED_SETTINGS) + list(additional_required_settings))
         self.bot = Bot(
             command_prefix=self.prefix_callable, help_command=None, description='Zawsze pomocny Somsiad',
             case_insensitive=True
         )
-        self.member_converter = discord.ext.commands.MemberConverter()
 
     def run(self):
         """Launches the bot."""
@@ -103,11 +91,6 @@ class Somsiad:
         prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ', self.conf['command_prefix']]
         return prefixes
 
-    @property
-    def conf(self):
-        """Returns current configuration of the bot."""
-        return self.configurator.configuration
-
     def invite_url(self):
         """Returns the invitation URL of the bot."""
         return discord.utils.oauth_url(self.bot.user.id, discord.Permissions(305392727))
@@ -115,46 +98,18 @@ class Somsiad:
 
 # Plugin settings
 ADDITIONAL_REQUIRED_SETTINGS = (
+    Setting('google_key', description='Klucz API Google'),
+    Setting('google_custom_search_engine_id', description='Identyfikator CSE Google'),
+    Setting('goodreads_key', description='Klucz API Goodreads'),
+    Setting('omdb_key', description='Klucz API OMDb'),
+    Setting('last_fm_key', description='Klucz API Last.fm'),
+    Setting('yandex_translate_key', description='Klucz API Yandex Translate',),
+    Setting('reddit_id', description='ID aplikacji redditowej'),
+    Setting('reddit_secret', description='Szyfr aplikacji redditowej'),
+    Setting('reddit_username', description='Redditowa nazwa użytkownika'),
+    Setting('reddit_password', description='Hasło do konta na Reddicie'),
     Setting(
-        'google_key', description='Klucz API Google', input_instruction='Wprowadź klucz API Google', value_type='str'
-    ),
-    Setting(
-        'google_custom_search_engine_id', description='Identyfikator CSE Google',
-        input_instruction='Wprowadź identyfikator CSE Google', value_type='str'
-    ),
-    Setting(
-        'goodreads_key', description='Klucz API Goodreads', input_instruction='Wprowadź klucz API Goodreads',
-        value_type='str'
-    ),
-    Setting(
-        'omdb_key', description='Klucz API OMDb', input_instruction='Wprowadź klucz API OMDb', value_type='str'
-    ),
-    Setting(
-        'last_fm_key', description='Klucz API Last.fm', input_instruction='Wprowadź klucz API Last.fm', value_type='str'
-    ),
-    Setting(
-        'yandex_translate_key', description='Klucz API Yandex Translate',
-        input_instruction='Wprowadź klucz API Yandex Translate', value_type='str'
-    ),
-    Setting(
-        'reddit_id', description='ID aplikacji redditowej', input_instruction='Wprowadź ID aplikacji redditowej',
-        value_type='str'
-    ),
-    Setting(
-        'reddit_secret', description='Szyfr aplikacji redditowej',
-        input_instruction='Wprowadź szyfr aplikacji redditowej', value_type='str'
-    ),
-    Setting(
-        'reddit_username', description='Redditowa nazwa użytkownika',
-        input_instruction='Wprowadź redditową nazwę użytkownika', value_type='str'
-    ),
-    Setting(
-        'reddit_password', description='Hasło do konta na Reddicie',
-        input_instruction='Wprowadź hasło do konta na Reddicie', value_type='str'
-    ),
-    Setting(
-        'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco',
-        input_instruction='Wprowadź maksymalny rozmiar pliku utworu disco', unit='MiB', value_type='int',
+        'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', value_type=int,
         default_value=16
     )
 )
@@ -243,7 +198,7 @@ async def on_ready():
         'Link do zaproszenia bota:',
         somsiad.invite_url(),
         '',
-        somsiad.configurator.info(),
+        *map(str, somsiad.conf.settings.values()),
         '',
         f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
         '',

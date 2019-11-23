@@ -1,5 +1,6 @@
-.DS_Store
-/.vscode
-__pycache__
 /somsiad_env
-/somsiad.log
+.vscode
+__pycache__
+.env
+.DS_Store
+somsiad.log

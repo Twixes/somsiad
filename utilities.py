@@ -11,19 +11,19 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Any, Sequence, Union
 import locale
 import re
-import json
 import os
 from collections import namedtuple
 import datetime as dt
 from numbers import Number
-from typing import Union, Dict
+from dotenv import load_dotenv
 
 
 class TextFormatter:
     """Text formatting utilities."""
-    _URL_REGEX = re.compile('(https?://[\S]+\.[\S]+)')
+    _URL_REGEX = re.compile(r'(https?://[\S]+\.[\S]+)')
 
     @classmethod
     def find_url(cls, string: str) -> str:
@@ -155,226 +155,68 @@ class TextFormatter:
         return ' '.join(information)
 
 
-class Configurator:
-    """Handles bot configuration."""
-    def __init__(self, configuration_file_path: str, required_settings: tuple = None):
-        self.configuration_file_path = configuration_file_path
-        self.required_settings = required_settings
-        self.configuration = {}
-
-        self.ensure_completeness()
-
-    def load(self) -> Dict[str, Union[str, float, int]]:
-        """Loads the configuration from the file specified during class initialization."""
-        # FUTURE
-        if os.path.exists(self.configuration_file_path):
-            with open(self.configuration_file_path, 'r') as configuration_file:
-                self.configuration = json.load(configuration_file)
-
-        return self.configuration
-
-    def input_setting(self, setting, step_number: int = None):
-        """Asks the CLI user to input a setting."""
-        setting.input(step_number)
-        self.write_setting(setting)
-
-    def write_setting(self, setting):
-        """Writes a key-value pair to the configuration file."""
-        self.configuration[setting.name] = setting.value
-
-        with open(self.configuration_file_path, 'w') as configuration_file:
-            json.dump(self.configuration, configuration_file, indent=4, ensure_ascii=False)
-
-    def ensure_completeness(self) -> dict:
-        """Loads the configuration from the file specified during class initialization and ensures
-        that all required keys are present. If not, the CLI user is asked to input missing settings.
-        If the file doesn't exist yet, configuration is started from scratch.
-        """
-        was_configuration_changed = False
-        step_number = 1
-
-        self.load()
-
-        if self.required_settings is not None:
-            if not self.configuration:
-                for required_setting in self.required_settings:
-                    self.input_setting(required_setting, step_number)
-                    step_number += 1
-                was_configuration_changed = True
-            else:
-                for required_setting in self.required_settings:
-                    is_setting_present = False
-                    for setting in self.configuration:
-                        if setting == required_setting.name:
-                            is_setting_present = True
-                            break
-                    if not is_setting_present:
-                        self.input_setting(required_setting, step_number)
-                        was_configuration_changed = True
-                    step_number += 1
-
-        if was_configuration_changed:
-            print(f'Gotowe! Konfigurację zapisano w {self.configuration_file_path}.')
-
-        return self.configuration
-
-    def info(self) -> str:
-        """Returns a string presenting the current configuration in a human-readable form."""
-        if self.required_settings is None:
-            return ''
-        else:
-            info = ''
-            for setting in self.required_settings:
-                # Handle the unit
-                if setting.unit is None:
-                    line = f'{setting}: {self.configuration[setting.name]}'
-                elif isinstance(setting.unit, (list, tuple)) and len(setting.unit) == 2:
-                    unit_variant = (
-                        setting.unit[0] if float(self.configuration[setting.name]) == 1.0 else setting.unit[1]
-                    )
-                    line = f'{setting}: {self.configuration[setting.name]} {unit_variant}'
-                else:
-                    line = f'{setting}: {self.configuration[setting.name]} {setting.unit}'
-                info = f'{info}{line}\n'
-
-            line = f'Ścieżka pliku konfiguracyjnego: {self.configuration_file_path}'
-            info = f'{info}{line}'
-
-            return info
-
-
 class Setting:
-    """A setting used for configuration."""
-    __slots__ = '_name', '_description', '_input_instruction', '_unit', '_value_type', '_default_value', '_value'
+    __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'value')
 
     def __init__(
-            self, name: str, *, description: str, input_instruction: str, unit: Union[tuple, str] = None,
-            value_type: str = None, default_value=None, value=None
+            self, name: str, *, description: str, unit: Sequence[str] = None, value_type = str,
+            default_value: Any = None
     ):
-        self._name = str(name)
-        self._input_instruction = str(input_instruction)
-        self._description = str(description)
-        self._value_type = value_type
-        self._default_value = None if default_value is None else self._convert_value_to_type(default_value)
-        if unit is None:
-            self._unit = None
-        else:
-            self._unit = tuple(map(str, unit)) if isinstance(unit, (list, tuple)) else str(unit)
-        self._value = self._convert_value_to_type(value)
+        self.name = name
+        self.description = description
+        self.unit = unit
+        self.value_type = value_type
+        self.default_value = default_value
 
     def __repr__(self) -> str:
-        return f'Setting(\'{self._name}\')'
+        return (
+            'Setting('
+            f'name=\'{self.name}\', description=\'{self.description}\', unit=\'{self.unit}\','
+            f'value_type=\'{self.value_type}\', default_value=\'{self.default_value}\''
+            ')'
+        )
 
     def __str__(self) -> str:
-        return self._description
+        return f'{self.description}: {self.human_value()}'
 
-    @property
-    def name(self) -> str:
-        return self._name
+    def human_value(self) -> str:
+        if self.value is None:
+            return 'brak!' if self.default_value is None else 'brak'
+        if self.unit is not None:
+            return f'{self.value} {self.unit}'
+        return str(self.value)
 
-    @property
-    def description(self) -> str:
-        return self._description
+    def set_value_with_env(self):
+        value_obtained = os.getenv(self.name.upper(), self.default_value)
+        self.value = self._convert_value_to_type(value_obtained)
 
-    @property
-    def input_instruction(self) -> str:
-        return self._input_instruction
-
-    @property
-    def unit(self) -> Union[tuple, str]:
-        return self._unit
-
-    @property
-    def value_type(self):
-        return self._value_type
-
-    @property
-    def default_value(self):
-        return self._default_value
-
-    @property
-    def value(self):
-        return self._value
-
-    @property
-    def input_instruction_with_default_value(self) -> str:
-        if self.default_value is None:
-            return self.input_instruction
-        else:
-            return f'{self.input_instruction} (domyślnie {self.default_value})'
-
-    @property
-    def value_with_unit(self) -> str:
-        if self._value is None:
-            return 'brak'
-        else:
-            if isinstance(self._unit, (list, tuple)):
-                if self._value_type in ('int', 'float') and abs(self._value) == 1:
-                    return f'{self._value} {self._unit[0]}'
-                else:
-                    return f'{self._value} {self._unit[1]}'
-            else:
-                return f'{self.input_instruction} {self._unit})'
-
-    def to_dict(self) -> str:
-        return {
-            'name': self._name,
-            'description': self._description,
-            'input_instruction': self._input_instruction,
-            'unit': self._unit,
-            'value_type': self._value_type,
-            'default_value': self._default_value,
-            'value': self._value
-        }
-
-    def _convert_value_to_type(self, value):
-        if value is not None:
-            if self._value_type == 'str':
-                return str(value)
-            elif self._value_type == 'int':
-                return int(value)
-            elif self._value_type == 'float':
-                try:
-                    return float(value)
-                except ValueError:
-                    return locale.atof(value)
-            else:
-                return value
-        else:
-            return None
-
-    def set_value(self, value=None):
+    def _convert_value_to_type(self, value: Any) -> Any:
         if value is None:
-            self._value = self._default_value
-        else:
-            self._value = self._convert_value_to_type(value)
+            return None
+        if self.value_type == int:
+            try:
+                return int(value)
+            except ValueError:
+                return locale.atoi(value)
+        if self.value_type == float:
+            try:
+                return float(value)
+            except ValueError:
+                return locale.atof(value)
+        return self.value_type(value)
 
-        return self._value
 
-    def input(self, step_number: int = None):
-        while True:
-            if step_number is None:
-                input_buffer = input(f'{self.input_instruction_with_default_value}:\n').strip()
-            else:
-                input_buffer = input(f'{step_number}. {self.input_instruction_with_default_value}:\n').strip()
+class Configuration:
+    __slots__ = ('settings',)
 
-            if input_buffer == '':
-                if self._default_value is None:
-                    print('Nie podano obowiązkowej wartości!')
-                    continue
-                else:
-                    self.set_value()
-                    break
-            else:
-                try:
-                    self.set_value(input_buffer)
-                except ValueError:
-                    print(f'Podana wartość nie pasuje do typu {self._value_type}!')
-                    continue
-                else:
-                    break
+    def __init__(self, settings: Sequence[Setting]):
+        load_dotenv()
+        for setting in settings:
+            setting.set_value_with_env()
+        self.settings = {setting.name: setting for setting in settings}
 
-        return self.value
+    def __getitem__(self, key: str):
+        return self.settings[key].value
 
 
 def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: dt.datetime = None) -> dt.datetime:
