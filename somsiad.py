@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union
+from typing import List
 import os
 import sys
 import asyncio
@@ -22,7 +22,9 @@ import datetime as dt
 import discord
 from discord.ext.commands import Bot
 from version import __version__
-from utilities import Configuration, Setting, TextFormatter
+from utilities import TextFormatter
+from configuration import configuration
+import data
 
 COPYRIGHT = '© 2018-2019 Twixes, ondondil et al.'
 
@@ -44,21 +46,11 @@ class Somsiad:
         f'{TextFormatter.word_number_variant(MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS, "sekundy", "sekund")} od wysłania.'
     )
 
-    REQUIRED_SETTINGS = [
-        Setting('discord_token', description='Token bota'),
-        Setting('command_prefix', description='Domyślny prefiks komend', default_value='!'),
-        Setting(
-            'command_cooldown_per_user_in_seconds', description='Cooldown wywołania komendy przez użytkownika',
-            unit='s', value_type=float, default_value=1.0
-        ),
-        Setting('database_url', description='URL bazy danych')
-    ]
-
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
 
-    def __init__(self, additional_required_settings: Union[list, tuple] = None):
+    def __init__(self):
         self.run_datetime = None
         self.logger = logging.getLogger('Somsiad')
         logging.basicConfig(
@@ -70,9 +62,13 @@ class Somsiad:
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
             os.makedirs(self.cache_dir_path)
-        self.conf = Configuration(list(self.REQUIRED_SETTINGS) + list(additional_required_settings))
+        self.conf = configuration
+        self.prefix_safe_commands = tuple(map(
+            lambda command: f'{self.conf["command_prefix"]}{command}',
+            ('help_message', 'help', 'pomocy', 'pomoc', 'prefix', 'prefiks', 'przedrostek')
+        ))
         self.bot = Bot(
-            command_prefix=self.prefix_callable, help_command=None, description='Zawsze pomocny Somsiad',
+            command_prefix=self.get_prefix, help_command=None, description='Zawsze pomocny Somsiad',
             case_insensitive=True
         )
 
@@ -86,36 +82,66 @@ class Somsiad:
         else:
             self.logger.info('Client started.')
 
-    def prefix_callable(self, bot, message):
+    def get_prefix(self, bot: Bot, message: discord.Message) -> List[str]:
         user_id = bot.user.id
-        prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ', self.conf['command_prefix']]
+        prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ']
+        session = data.Session()
+        data_server = session.query(data.Server).filter(data.Server.id == message.guild.id).one_or_none()
+        session.close()
+        does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
+        is_message_a_safe_command = message.content.startswith(self.prefix_safe_commands)
+        if does_server_have_custom_command_prefix:
+            prefixes.append(data_server.command_prefix)
+        if not does_server_have_custom_command_prefix or is_message_a_safe_command:
+            prefixes.append(self.conf['command_prefix'])
         return prefixes
 
-    def invite_url(self):
-        """Returns the invitation URL of the bot."""
+    def ensure_registration_of_all_servers(self):
+        session = data.Session()
+        server_ids_already_registered = [server.id for server in session.query(data.Server).all()]
+        session.add_all((
+            data.Server(id=server.id, joined_at=server.me.joined_at) for server in self.bot.guilds
+            if server.id not in server_ids_already_registered
+        ))
+        session.commit()
+        session.close()
+
+    def invite_url(self) -> str:
+        """Return the invitation URL of the bot."""
         return discord.utils.oauth_url(self.bot.user.id, discord.Permissions(305392727))
 
+    def info(self) -> str:
+        """Return a block of bot information."""
+        number_of_users = len(set(self.bot.get_all_members()))
+        number_of_servers = len(self.bot.guilds)
+        info_lines = [
+            f'Obudzono Somsiada (ID {self.bot.user.id}).',
+            '',
+            f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
+            f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
+            f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}.',
+            '',
+            'Link do zaproszenia bota:',
+            self.invite_url(),
+            '',
+            *map(str, self.conf.settings.values()),
+            '',
+            f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
+            '',
+            COPYRIGHT
+        ]
+        return '\n'.join(info_lines)
 
-# Plugin settings
-ADDITIONAL_REQUIRED_SETTINGS = (
-    Setting('google_key', description='Klucz API Google'),
-    Setting('google_custom_search_engine_id', description='Identyfikator CSE Google'),
-    Setting('goodreads_key', description='Klucz API Goodreads'),
-    Setting('omdb_key', description='Klucz API OMDb'),
-    Setting('last_fm_key', description='Klucz API Last.fm'),
-    Setting('yandex_translate_key', description='Klucz API Yandex Translate',),
-    Setting('reddit_id', description='ID aplikacji redditowej'),
-    Setting('reddit_secret', description='Szyfr aplikacji redditowej'),
-    Setting('reddit_username', description='Redditowa nazwa użytkownika'),
-    Setting('reddit_password', description='Hasło do konta na Reddicie'),
-    Setting(
-        'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', value_type=int,
-        default_value=16
-    )
-)
+    async def keep_presence(self):
+        """Change presence to a custom one and keep refreshing it so it doesn't disappear."""
+        while True:
+            await self.bot.change_presence(
+                activity=discord.Game(name=f'Kiedyś to było | {self.conf["command_prefix"]}pomocy')
+            )
+            await asyncio.sleep(600)
 
 
-somsiad = Somsiad(ADDITIONAL_REQUIRED_SETTINGS)
+somsiad = Somsiad()
 
 
 @somsiad.bot.command(aliases=['nope', 'nie'])
@@ -131,6 +157,41 @@ async def no(ctx, member: discord.Member = None):
             if message.author == ctx.me and member in message.mentions:
                 await message.delete()
                 break
+
+
+@somsiad.bot.command(aliases=['prefiks', 'przedrostek'])
+@discord.ext.commands.cooldown(
+    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.guild_only()
+@discord.ext.commands.has_permissions(administrator=True)
+async def prefix(ctx, new_prefix = None):
+    """Presents the current command prefix or changes it."""
+    session = data.Session()
+    data_server = session.query(data.Server).filter(data.Server.id == ctx.guild.id).one()
+
+    if new_prefix is None:
+        embed = discord.Embed(
+            title=':wrench: Obecny prefiks to '
+            f'*{data_server.command_prefix or somsiad.conf["command_prefix"]}*'
+            f'{" (wartość domyślna)" if data_server.command_prefix is None else ""}',
+            color=somsiad.COLOR
+        )
+    elif len(new_prefix) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
+        embed = discord.Embed(
+            title=':warning: Prefiks nie może być dłuższy niż '
+            f'{TextFormatter.word_number_variant(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")}!',
+            color=somsiad.COLOR
+        )
+    else:
+        data_server.command_prefix = new_prefix
+        session.commit()
+        embed = discord.Embed(
+            title=f':white_check_mark: Ustawiono nowy prefiks *{new_prefix}*',
+            color=somsiad.COLOR
+        )
+    session.close()
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 @somsiad.bot.command(aliases=['wersja', 'v'])
@@ -185,34 +246,9 @@ async def ping(ctx):
 @somsiad.bot.event
 async def on_ready():
     """Does things once the bot comes online."""
-    number_of_users = len(set(somsiad.bot.get_all_members()))
-    number_of_servers = len(somsiad.bot.guilds)
-
-    info_lines = [
-        f'Obudzono Somsiada (ID {somsiad.bot.user.id}).',
-        '',
-        f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
-        f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
-        f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}.',
-        '',
-        'Link do zaproszenia bota:',
-        somsiad.invite_url(),
-        '',
-        *map(str, somsiad.conf.settings.values()),
-        '',
-        f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
-        '',
-        COPYRIGHT
-    ]
-
-    print('\n'.join(info_lines))
-
-    while True:
-        # necessary due to presence randomly disappearing if not refreshed
-        await somsiad.bot.change_presence(
-            activity=discord.Game(name=f'Kiedyś to było | {somsiad.conf["command_prefix"]}pomocy')
-        )
-        await asyncio.sleep(600)
+    print(somsiad.info())
+    somsiad.ensure_registration_of_all_servers()
+    await somsiad.keep_presence()
 
 
 @somsiad.bot.event

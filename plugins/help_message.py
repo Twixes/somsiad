@@ -43,10 +43,8 @@ class Helper:
         else:
             arguments_string = ''
 
-        prefix = '' if is_subcommand else somsiad.conf["command_prefix"]
-
         embed.add_field(
-            name=f'{prefix}{name_string}{aliases_string}{arguments_string}',
+            name=f'{name_string}{aliases_string}{arguments_string}',
             value=command.description,
             inline=False
         )

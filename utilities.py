@@ -11,14 +11,12 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Any, Sequence, Union
+from typing import Union
 import locale
 import re
-import os
 from collections import namedtuple
 import datetime as dt
 from numbers import Number
-from dotenv import load_dotenv
 
 
 class TextFormatter:
@@ -153,70 +151,6 @@ class TextFormatter:
                 information.append(f'{seconds} s')
 
         return ' '.join(information)
-
-
-class Setting:
-    __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'value')
-
-    def __init__(
-            self, name: str, *, description: str, unit: Sequence[str] = None, value_type = str,
-            default_value: Any = None
-    ):
-        self.name = name
-        self.description = description
-        self.unit = unit
-        self.value_type = value_type
-        self.default_value = default_value
-
-    def __repr__(self) -> str:
-        return (
-            'Setting('
-            f'name=\'{self.name}\', description=\'{self.description}\', unit=\'{self.unit}\','
-            f'value_type=\'{self.value_type}\', default_value=\'{self.default_value}\''
-            ')'
-        )
-
-    def __str__(self) -> str:
-        return f'{self.description}: {self.human_value()}'
-
-    def human_value(self) -> str:
-        if self.value is None:
-            return 'brak!' if self.default_value is None else 'brak'
-        if self.unit is not None:
-            return f'{self.value} {self.unit}'
-        return str(self.value)
-
-    def set_value_with_env(self):
-        value_obtained = os.getenv(self.name.upper(), self.default_value)
-        self.value = self._convert_value_to_type(value_obtained)
-
-    def _convert_value_to_type(self, value: Any) -> Any:
-        if value is None:
-            return None
-        if self.value_type == int:
-            try:
-                return int(value)
-            except ValueError:
-                return locale.atoi(value)
-        if self.value_type == float:
-            try:
-                return float(value)
-            except ValueError:
-                return locale.atof(value)
-        return self.value_type(value)
-
-
-class Configuration:
-    __slots__ = ('settings',)
-
-    def __init__(self, settings: Sequence[Setting]):
-        load_dotenv()
-        for setting in settings:
-            setting.set_value_with_env()
-        self.settings = {setting.name: setting for setting in settings}
-
-    def __getitem__(self, key: str):
-        return self.settings[key].value
 
 
 def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: dt.datetime = None) -> dt.datetime:
