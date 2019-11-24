@@ -16,7 +16,7 @@ import datetime as dt
 import locale
 import discord
 from core import somsiad
-from utilities import TextFormatter
+from utilities import word_number_form
 from configuration import configuration
 
 
@@ -82,11 +82,11 @@ def present_days_as_weeks(number_of_days: int) -> Optional[str]:
     if number_of_days // 7 == 0:
         return None
     elif number_of_days % 7 == 0:
-        return f'To {TextFormatter.word_number_variant(number_of_days // 7, "tydzień", "tygodnie", "tygodni")}.'
+        return f'To {word_number_form(number_of_days // 7, "tydzień", "tygodnie", "tygodni")}.'
     else:
         return (
-            f'To {TextFormatter.word_number_variant(number_of_days // 7, "tydzień", "tygodnie", "tygodni")} '
-            f'i {TextFormatter.word_number_variant(number_of_days % 7, "dzień", "dni")}.'
+            f'To {word_number_form(number_of_days // 7, "tydzień", "tygodnie", "tygodni")} '
+            f'i {word_number_form(number_of_days % 7, "dzień", "dni")}.'
         )
 
 
@@ -113,8 +113,8 @@ async def how_much_more(ctx):
         else:
             embed = discord.Embed(
                 title=':books: Do końca roku szkolnego '
-                f'{TextFormatter.word_number_variant(current_school_year.days_left, "został", "zostały", "zostało", include_number=False)} '
-                f'{TextFormatter.word_number_variant(current_school_year.days_left, "dzień", "dni")}',
+                f'{word_number_form(current_school_year.days_left, "został", "zostały", "zostało", include_number=False)} '
+                f'{word_number_form(current_school_year.days_left, "dzień", "dni")}',
                 description=present_days_as_weeks(current_school_year.days_left),
                 color=somsiad.COLOR
             )
@@ -123,8 +123,8 @@ async def how_much_more(ctx):
         current_summber_break = current_school_time
         embed = discord.Embed(
             title=':beach: Do końca wakacji '
-            f'{TextFormatter.word_number_variant(current_summber_break.days_left, "został", "zostały", "zostało", include_number=False)} '
-            f'{TextFormatter.word_number_variant(current_summber_break.days_left, "dzień", "dni")}',
+            f'{word_number_form(current_summber_break.days_left, "został", "zostały", "zostało", include_number=False)} '
+            f'{word_number_form(current_summber_break.days_left, "dzień", "dni")}',
             description=present_days_as_weeks(current_summber_break.days_left),
             color=somsiad.COLOR
         )

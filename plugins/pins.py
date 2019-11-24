@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2019 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -15,7 +15,7 @@ import io
 import discord
 from core import somsiad
 from server_data import server_data_manager
-from utilities import TextFormatter
+from utilities import first_url, word_number_form
 from configuration import configuration
 
 
@@ -87,7 +87,7 @@ class PinArchivesManager:
         elif len(files) > 1:
             await archive_channel.send(embed=pin_embed, files=files)
         else:
-            url_from_content = TextFormatter.find_url(pin.content)
+            url_from_content = first_url(pin.content)
             if url_from_content is not None:
                 pin_embed.set_image(url=url_from_content)
             await archive_channel.send(embed=pin_embed)
@@ -171,7 +171,7 @@ async def pins_archive(ctx):
 
                 result_embed = discord.Embed(
                     title=':white_check_mark: Zarchiwizowano '
-                    f'{TextFormatter.word_number_variant(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
+                    f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
                     color=somsiad.COLOR
                 )
             else:
@@ -209,7 +209,7 @@ async def pins_clear(ctx):
 
         result_embed = discord.Embed(
             title=':white_check_mark: Odpięto '
-            f'{TextFormatter.word_number_variant(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
+            f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
             color=somsiad.COLOR
         )
     else:

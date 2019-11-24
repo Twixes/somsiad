@@ -19,7 +19,7 @@ from typing import Union, Optional
 from numbers import Number
 import discord
 from core import somsiad
-from utilities import TextFormatter, interpret_str_as_datetime
+from utilities import human_amount_of_time, interpret_str_as_datetime
 from configuration import configuration
 
 LETTER_EMOIJS = {
@@ -43,7 +43,7 @@ async def vote(
         results_datetime = duration
         results_and_now_timedelta = results_datetime - now_datetime
         seconds = results_and_now_timedelta.total_seconds()
-        human_readable_time = TextFormatter.human_readable_time(seconds)
+        amount_of_time = human_amount_of_time(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
             description=(
@@ -56,12 +56,12 @@ async def vote(
     elif isinstance(duration, Number) and 0.0 < duration <= 10080.0:
         seconds = duration * 60.0
         results_datetime = now_datetime + dt.timedelta(seconds=seconds)
-        human_readable_time = TextFormatter.human_readable_time(seconds)
+        amount_of_time = human_amount_of_time(seconds)
         embed = discord.Embed(
             title=f':ballot_box: {statement}',
             description=(
                 'Zagłosuj w tej sprawie przy użyciu reakcji.\n'
-                f'Wynik zostanie ogłoszony po {TextFormatter.human_readable_time(seconds)} od rozpoczęcia głosowania.'
+                f'Wynik zostanie ogłoszony po {amount_of_time} od rozpoczęcia głosowania.'
             ),
             timestamp=results_datetime,
             color=somsiad.COLOR
@@ -120,7 +120,7 @@ async def vote(
             embed_results = discord.Embed(
                 title=f'{result_emoji} {statement}',
                 description=(
-                    f'Głosowanie zostało zakończone po {human_readable_time} od rozpoczęcia.'
+                    f'Głosowanie zostało zakończone po {amount_of_time} od rozpoczęcia.'
                 ),
                 timestamp=results_datetime,
                 color=somsiad.COLOR

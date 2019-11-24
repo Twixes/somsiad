@@ -15,7 +15,7 @@ import re
 import aiohttp
 import discord
 from core import somsiad
-from utilities import TextFormatter
+from utilities import text_snippet
 from configuration import configuration
 
 
@@ -40,11 +40,11 @@ async def urban_dictionary(ctx, *, query):
                     word = top_def['word']
                     definition = top_def['definition']
                     definition = bra_pat.sub(r'', definition)
-                    definition = TextFormatter.limit_text_length(definition, 500)
+                    definition = text_snippet(definition, 500)
                     link = top_def['permalink']
                     example = top_def['example']
                     example = bra_pat.sub(r'', example)
-                    example = TextFormatter.limit_text_length(example, 400)
+                    example = text_snippet(example, 400)
                     t_up = top_def['thumbs_up']
                     t_down = top_def['thumbs_down']
                     # Output results

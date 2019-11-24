@@ -14,7 +14,7 @@
 from difflib import SequenceMatcher
 import discord
 from core import somsiad
-from utilities import TextFormatter
+from utilities import human_amount_of_time
 from configuration import configuration
 from plugins.youtube import youtube
 
@@ -50,7 +50,7 @@ async def spotify(ctx, member: discord.Member = None):
         embed.add_field(name='W wykonaniu', value=', '.join(member.activity.artists))
         embed.add_field(name='Z albumu', value=member.activity.album)
         embed.add_field(
-            name='Długość', value=TextFormatter.human_readable_time(member.activity.duration.total_seconds())
+            name='Długość', value=human_amount_of_time(member.activity.duration.total_seconds())
         )
 
         # Search for the song on YouTube

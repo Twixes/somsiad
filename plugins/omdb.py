@@ -16,7 +16,7 @@ import aiohttp
 import re
 import discord
 from core import somsiad
-from utilities import TextFormatter
+from utilities import word_number_form
 from configuration import configuration
 
 
@@ -118,7 +118,7 @@ async def omdb(ctx, *args):
                                     imdb_rating = locale.str(float(res['imdbRating']))
                                     imdb_votes = float(res["imdbVotes"].replace(',', ''))
                                     imdb_votes_string = (
-                                        TextFormatter.word_number_variant(imdb_votes, 'głos', 'głosy', 'głosów')
+                                        word_number_form(imdb_votes, 'głos', 'głosy', 'głosów')
                                     )
                                     if 'imdbVotes' in res:
                                         if res['imdbVotes'] != 'N/A':

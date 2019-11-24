@@ -14,7 +14,10 @@
 import unittest
 import datetime as dt
 import locale
-from utilities import TextFormatter, interpret_str_as_datetime, setlocale
+from utilities import (
+    first_url, text_snippet, with_preposition_form, word_number_form, human_amount_of_time, human_timedelta,
+    interpret_str_as_datetime, setlocale
+)
 
 NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
 
@@ -22,96 +25,96 @@ setlocale()
 
 class TestTextFormatterFindURL(unittest.TestCase):
     def test_proper_http(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: http://www.example.com.')
+        search_result = first_url('This sentence contains an exemplary URL: http://www.example.com.')
         self.assertEqual(search_result, 'http://www.example.com')
 
     def test_proper_https(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: https://www.example.com.')
+        search_result = first_url('This sentence contains an exemplary URL: https://www.example.com.')
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_proper_no_subdomain(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: https://example.com.')
+        search_result = first_url('This sentence contains an exemplary URL: https://example.com.')
         self.assertEqual(search_result, 'https://example.com')
 
     def test_proper_trailing_slash(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: https://www.example.com/.')
+        search_result = first_url('This sentence contains an exemplary URL: https://www.example.com/.')
         self.assertEqual(search_result, 'https://www.example.com/')
 
     def test_proper_path(self):
-        search_result = TextFormatter.find_url(
+        search_result = first_url(
             'This sentence contains an exemplary URL: https://www.example.com/resource/id.'
         )
         self.assertEqual(search_result, 'https://www.example.com/resource/id')
 
     def test_proper_comma_after(self):
-        search_result = TextFormatter.find_url(
+        search_result = first_url(
             'This sentence contains an exemplary URL: https://www.example.com, and some rambling.'
         )
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_proper_markdown(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: <https://www.example.com>.')
+        search_result = first_url('This sentence contains an exemplary URL: <https://www.example.com>.')
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_proper_markdown_formatted(self):
-        search_result = TextFormatter.find_url('This sentence contains [an exemplary URL](https://www.example.com).')
+        search_result = first_url('This sentence contains [an exemplary URL](https://www.example.com).')
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_proper_comma_continuation(self):
-        search_result = TextFormatter.find_url(
+        search_result = first_url(
             'This sentence contains an exemplary URL: https://www.example.com, and some rambling.'
         )
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_proper_semicolon_continuation(self):
-        search_result = TextFormatter.find_url(
+        search_result = first_url(
             'This sentence contains an exemplary URL: https://www.example.com; and some rambling.'
         )
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_proper_colon_after(self):
-        search_result = TextFormatter.find_url('https://www.example.com: An Exemplary URL')
+        search_result = first_url('https://www.example.com: An Exemplary URL')
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_proper_two_urls(self):
-        search_result = TextFormatter.find_url(
+        search_result = first_url(
             'This sentence contains exemplary URLs: https://one.example.com and https://two.example.com.'
         )
         self.assertEqual(search_result, 'https://one.example.com')
 
     def test_proper_sentence_after(self):
-        search_result = TextFormatter.find_url(
+        search_result = first_url(
             'This sentence contains an exemplary URL: https://www.example.com. '
             'And this sentence contains no exemplary URL.'
         )
         self.assertEqual(search_result, 'https://www.example.com')
 
     def test_improper_unspaced_sentence_after(self):
-        search_result = TextFormatter.find_url(
+        search_result = first_url(
             'ThissentencecontainsanexemplaryURL:https://www.example.com.AndthissentencecontainsnoexemplaryURL.'
         )
         self.assertEqual(search_result, 'https://www.example.com.AndthissentencecontainsnoexemplaryURL')
 
     def test_improper_ftp(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: ftp://www.example.com.')
+        search_result = first_url('This sentence contains an exemplary URL: ftp://www.example.com.')
         self.assertIsNone(search_result)
 
     def tesy_improper_no_protocol(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: www.example.com.')
+        search_result = first_url('This sentence contains an exemplary URL: www.example.com.')
         self.assertIsNone(search_result)
 
     def test_improper_no_tld(self):
-        search_result = TextFormatter.find_url('This sentence contains an exemplary URL: https://example.')
+        search_result = first_url('This sentence contains an exemplary URL: https://example.')
         self.assertIsNone(search_result)
 
     def test_improper_no_url(self):
-        search_result = TextFormatter.find_url('This sentence contains no exemplary URL.')
+        search_result = first_url('This sentence contains no exemplary URL.')
         self.assertIsNone(search_result)
 
 
 class TestTextFormatterLimitTextLength(unittest.TestCase):
     def test_limit_1_under(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 18)
+        cut_text = text_snippet('This string is too long, it needs to be cut.', 18)
         expected_cut_text = 'This string is…'
         self.assertEqual(cut_text, expected_cut_text)
 
@@ -119,36 +122,36 @@ class TestTextFormatterLimitTextLength(unittest.TestCase):
         expected_cut_text = 'This string is too…'
         for limit in (19 + leeway for leeway in range(6)):
             with self.subTest(limit=limit):
-                cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', limit)
+                cut_text = text_snippet('This string is too long, it needs to be cut.', limit)
                 self.assertEqual(cut_text, expected_cut_text)
 
     def test_end_on_comma(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 25)
+        cut_text = text_snippet('This string is too long, it needs to be cut.', 25)
         expected_cut_text = 'This string is too long…'
         self.assertEqual(cut_text, expected_cut_text)
 
     def test_end_on_semicolon(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long; it needs to be cut.', 25)
+        cut_text = text_snippet('This string is too long; it needs to be cut.', 25)
         expected_cut_text = 'This string is too long;…'
         self.assertEqual(cut_text, expected_cut_text)
 
     def test_end_on_period(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long. It needs to be cut.', 25)
+        cut_text = text_snippet('This string is too long. It needs to be cut.', 25)
         expected_cut_text = 'This string is too long.…'
         self.assertEqual(cut_text, expected_cut_text)
 
     def test_first_word_too_long(self):
-        cut_text = TextFormatter.limit_text_length('This string is too long, it needs to be cut.', 4)
+        cut_text = text_snippet('This string is too long, it needs to be cut.', 4)
         expected_cut_text = '…'
         self.assertEqual(cut_text, expected_cut_text)
 
     def test_no_cutting(self):
-        cut_text = TextFormatter.limit_text_length('This string is not too long, it doesn\'t need to be cut.', 420)
+        cut_text = text_snippet('This string is not too long, it doesn\'t need to be cut.', 420)
         expected_cut_text = 'This string is not too long, it doesn\'t need to be cut.'
         self.assertEqual(cut_text, expected_cut_text)
 
     def test_no_text(self):
-        cut_text = TextFormatter.limit_text_length('', 16)
+        cut_text = text_snippet('', 16)
         expected_cut_text = ''
         self.assertEqual(cut_text, expected_cut_text)
 
@@ -157,7 +160,7 @@ class TestTextFormatterWithPrepositionVariant(unittest.TestCase):
     def test_positive_numbers_starting_with_1_hundred(self):
         for number in [base * 1000**power for power in range(3) for base in (100, 199)]:
             with self.subTest(number=number):
-                returned_with_preposition_variant = TextFormatter.with_preposition_variant(number)
+                returned_with_preposition_variant = with_preposition_form(number)
                 self.assertEqual(returned_with_preposition_variant, 'ze')
 
     def test_numbers_negative_or_not_starting_with_1_hundred(self):
@@ -165,7 +168,7 @@ class TestTextFormatterWithPrepositionVariant(unittest.TestCase):
             base * 1000**power for power in range(3) for base in (-999, -200, -199, -100, -99, -1, 1, 99, 200, 999)
         ]:
             with self.subTest(number=number):
-                returned_with_preposition_variant = TextFormatter.with_preposition_variant(number)
+                returned_with_preposition_variant = with_preposition_form(number)
                 self.assertEqual(returned_with_preposition_variant, 'z')
 
 
@@ -174,26 +177,26 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
     _BASES = (0, 100, 200, 1000, 1100, 11000)
 
     def test_singular_noun(self):
-        returned_variant_with_number = TextFormatter.word_number_variant(1, 'klocek', 'klocki', 'klocków')
+        returned_variant_with_number = word_number_form(1, 'klocek', 'klocki', 'klocków')
         expected_variant_with_number = '1 klocek'
         self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_singular_noun_without_number(self):
-        returned_variant_without_number = TextFormatter.word_number_variant(
+        returned_variant_without_number = word_number_form(
             1, 'klocek', 'klocki', 'klocków', include_number=False
         )
         expected_variant_without_number = 'klocek'
         self.assertEqual(returned_variant_without_number, expected_variant_without_number)
 
     def test_singular_noun_with_with(self):
-        returned_variant_without_number = TextFormatter.word_number_variant(
+        returned_variant_without_number = word_number_form(
             1, 'klockiem', 'klockami', include_with=True
         )
         expected_variant_without_number = 'z 1 klockiem'
         self.assertEqual(returned_variant_without_number, expected_variant_without_number)
 
     def test_plural_noun_with_with(self):
-        returned_variant_without_number = TextFormatter.word_number_variant(
+        returned_variant_without_number = word_number_form(
             106, 'klockiem', 'klockami', include_with=True
         )
         expected_variant_without_number = 'ze 106 klockami'
@@ -207,7 +210,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
             for sign in self._SIGNS
         ):
             with self.subTest(number=number):
-                returned_variant_with_number = TextFormatter.word_number_variant(number, 'klocek', 'klocki', 'klocków')
+                returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
                 expected_variant_with_number = f'{number} klocki'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
@@ -219,7 +222,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
             for sign in self._SIGNS
         ):
             with self.subTest(number=number):
-                returned_variant_with_number = TextFormatter.word_number_variant(number, 'klocek', 'klocki', 'klocków')
+                returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
                 expected_variant_with_number = f'{number} klocków'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
@@ -231,7 +234,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
             for sign in self._SIGNS
         ):
             with self.subTest(number=number):
-                returned_variant_with_number = TextFormatter.word_number_variant(number, 'klocek', 'klocki', 'klocków')
+                returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
                 expected_variant_with_number = f'{number} klocków'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
@@ -243,14 +246,14 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
             for sign in self._SIGNS
         ):
             with self.subTest(number=number):
-                returned_variant_with_number = TextFormatter.word_number_variant(
+                returned_variant_with_number = word_number_form(
                     number, 'klocek', 'klocki', 'klocków', 'klocka'
                 )
                 expected_variant_with_number = f'{locale.str(number)} klocka'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_singular_verb(self):
-        returned_variant_with_number = TextFormatter.word_number_variant(1, 'skoczył', 'skoczyło')
+        returned_variant_with_number = word_number_form(1, 'skoczył', 'skoczyło')
         expected_variant_with_number = '1 skoczył'
         self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
@@ -262,7 +265,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
             for sign in self._SIGNS
         ):
             with self.subTest(number=number):
-                returned_variant_with_number = TextFormatter.word_number_variant(number, 'skoczył', 'skoczyło')
+                returned_variant_with_number = word_number_form(number, 'skoczył', 'skoczyło')
                 expected_variant_with_number = f'{number} skoczyło'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
@@ -271,77 +274,77 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
     def test_singular_day_n_days_ago(self):
         for n in range(3, 8):
             with self.subTest(n=n):
-                returned_time_difference = TextFormatter.time_difference(
+                returned_time_difference = human_timedelta(
                     NOW_OVERRIDE - dt.timedelta(n), naive=False, now_override=NOW_OVERRIDE
                 )
                 expected_time_difference = f'{24 - n} grudnia 2013 o 12:00, {n} dni temu'
                 self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_day_before_yesterday(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE - dt.timedelta(2), naive=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'22 grudnia 2013 o 12:00, przedwczoraj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_yesterday(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE - dt.timedelta(1), naive=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'23 grudnia 2013 o 12:00, wczoraj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE, naive=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'24 grudnia 2013 o 12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_date(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE, naive=False, date=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_time(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE, naive=False, time=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'24 grudnia 2013, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_name_month(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE, naive=False, name_month=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'24.12.2013 o 12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_days_difference(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE, naive=False, days_difference=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'24 grudnia 2013 o 12:00'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_tomorrow(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE + dt.timedelta(1), naive=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'25 grudnia 2013 o 12:00, jutro'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_tomorrow_less_than_24_hours_later(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE + dt.timedelta(hours=16), naive=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'25 grudnia 2013 o 4:00, jutro'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_day_after_tomorrow(self):
-        returned_time_difference = TextFormatter.time_difference(
+        returned_time_difference = human_timedelta(
             NOW_OVERRIDE + dt.timedelta(2), naive=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'26 grudnia 2013 o 12:00, pojutrze'
@@ -350,7 +353,7 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
     def test_singular_day_in_n_days(self):
         for n in range(3, 8):
             with self.subTest(n=n):
-                returned_time_difference = TextFormatter.time_difference(
+                returned_time_difference = human_timedelta(
                     NOW_OVERRIDE + dt.timedelta(n), naive=False, now_override=NOW_OVERRIDE
                 )
                 expected_time_difference = f'{24 + n} grudnia 2013 o 12:00, za {n} dni'
@@ -359,29 +362,29 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
 
 class TestTextFormatterHumanReadableTime(unittest.TestCase):
     def test_timedelta(self):
-        returned_human_readable_time = TextFormatter.human_readable_time(dt.timedelta(days=3, hours=9, minutes=3, seconds=1))
-        expected_human_readable_time = '3 d 9 h 3 min 1 s'
-        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+        returned_human_time = human_amount_of_time(dt.timedelta(days=3, hours=9, minutes=3, seconds=1))
+        expected_human_time = '3 d 9 h 3 min 1 s'
+        self.assertEqual(returned_human_time, expected_human_time)
 
     def test_timedelta_with_microseconds(self):
-        returned_human_readable_time = TextFormatter.human_readable_time(dt.timedelta(days=3, hours=9, minutes=3, seconds=1, microseconds=909303))
-        expected_human_readable_time = '3 d 9 h 3 min 2 s'
-        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+        returned_human_time = human_amount_of_time(dt.timedelta(days=3, hours=9, minutes=3, seconds=1, microseconds=909303))
+        expected_human_time = '3 d 9 h 3 min 2 s'
+        self.assertEqual(returned_human_time, expected_human_time)
 
     def test_seconds(self):
-        returned_human_readable_time = TextFormatter.human_readable_time(86400 + 3600 + 60 + 1.25)
-        expected_human_readable_time = '1 d 1 h 1 min 1 s'
-        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+        returned_human_time = human_amount_of_time(86400 + 3600 + 60 + 1.25)
+        expected_human_time = '1 d 1 h 1 min 1 s'
+        self.assertEqual(returned_human_time, expected_human_time)
 
     def test_seconds_exactly_one_day(self):
-        returned_human_readable_time = TextFormatter.human_readable_time(86400)
-        expected_human_readable_time = '1 d'
-        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+        returned_human_time = human_amount_of_time(86400)
+        expected_human_time = '1 d'
+        self.assertEqual(returned_human_time, expected_human_time)
 
     def test_zero(self):
-        returned_human_readable_time = TextFormatter.human_readable_time(0)
-        expected_human_readable_time = '0 s'
-        self.assertEqual(returned_human_readable_time, expected_human_readable_time)
+        returned_human_time = human_amount_of_time(0)
+        expected_human_time = '0 s'
+        self.assertEqual(returned_human_time, expected_human_time)
 
 
 class TestInterpretStrAsDatetime(unittest.TestCase):

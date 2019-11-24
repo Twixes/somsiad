@@ -17,7 +17,7 @@ import datetime as dt
 from typing import Optional, Union
 import discord
 from core import somsiad
-from utilities import TextFormatter, interpret_str_as_datetime
+from utilities import human_amount_of_time, human_timedelta, interpret_str_as_datetime
 from configuration import configuration
 
 
@@ -35,12 +35,12 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
             countdown_seconds = 1209600.0
         embed_before = discord.Embed(
             title=':fire: Twoja wiadomość zostanie usunięta za '
-            f'{TextFormatter.human_readable_time(countdown_seconds)}',
+            f'{human_amount_of_time(countdown_seconds)}',
             color=somsiad.COLOR
         )
         embed_after = discord.Embed(
             title=':white_check_mark: Twoja wiadomość została usunięta po '
-            f'{TextFormatter.human_readable_time(countdown_seconds)}',
+            f'{human_amount_of_time(countdown_seconds)}',
             color=somsiad.COLOR
         )
     elif isinstance(countdown_time, dt.datetime):
@@ -56,12 +56,12 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
         )
         embed_before = discord.Embed(
             title=':fire: Twoja wiadomość zostanie usunięta '
-            f'{TextFormatter.time_difference(bound_countdown_datetime, naive=False, days_difference=False)}',
+            f'{human_timedelta(bound_countdown_datetime, naive=False, days_difference=False)}',
             color=somsiad.COLOR
         )
         embed_after = discord.Embed(
             title=':white_check_mark: Twoja wiadomość została usunięta '
-            f'{TextFormatter.time_difference(bound_countdown_datetime, naive=False, days_difference=False)}',
+            f'{human_timedelta(bound_countdown_datetime, naive=False, days_difference=False)}',
             color=somsiad.COLOR
         )
     else:
@@ -75,7 +75,7 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
     except discord.Forbidden:
         embed_warning = discord.Embed(
             title=':warning: Bot nie usunął wiadomości wysłanej '
-            f'{TextFormatter.time_difference(ctx.message.created_at, days_difference=False)}, '
+            f'{human_timedelta(ctx.message.created_at, days_difference=False)}, '
             'bo nie ma uprawnień do zarządzania wiadomościami na kanale!',
             color=somsiad.COLOR
         )

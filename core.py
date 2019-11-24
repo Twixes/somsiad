@@ -23,7 +23,7 @@ import datetime as dt
 import discord
 from discord.ext.commands import Bot
 from version import __version__, __copyright__
-from utilities import TextFormatter
+from utilities import word_number_form, human_amount_of_time
 from configuration import configuration
 import data
 
@@ -47,7 +47,7 @@ class Somsiad(Bot):
     MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS = 5
     MESSAGE_AUTODESTRUCTION_NOTICE = (
         'Ta wiadomość ulegnie autodestrukcji w ciągu '
-        f'{TextFormatter.word_number_variant(MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS, "sekundy", "sekund")} od wysłania.'
+        f'{word_number_form(MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS, "sekundy", "sekund")} od wysłania.'
     )
 
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -133,8 +133,8 @@ class Somsiad(Bot):
             f'Obudzono Somsiada (ID {self.user.id}).',
             '',
             f'Połączono '
-            f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami", include_with=True)} '
-            f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}.',
+            f'{word_number_form(number_of_users, "użytkownikiem", "użytkownikami", include_with=True)} '
+            f'na {word_number_form(number_of_servers, "serwerze", "serwerach")}.',
             '',
             'Link do zaproszenia bota:',
             self.invite_url(),
@@ -213,7 +213,7 @@ async def prefix(ctx, new_prefix = None):
     elif len(new_prefix) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
         embed = discord.Embed(
             title=':warning: Prefiks nie może być dłuższy niż '
-            f'{TextFormatter.word_number_variant(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")}!',
+            f'{word_number_form(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")}!',
             color=somsiad.COLOR
         )
     else:
@@ -256,7 +256,7 @@ async def info(ctx):
     embed.add_field(name='Liczba serwerów', value=len(somsiad.guilds))
     embed.add_field(name='Liczba użytkowników', value=len(set(somsiad.get_all_members())))
     embed.add_field(
-        name='Czas pracy', value=TextFormatter.human_readable_time(dt.datetime.now() - somsiad.run_datetime)
+        name='Czas pracy', value=human_amount_of_time(dt.datetime.now() - somsiad.run_datetime)
     )
     embed.add_field(name='Właściciel instancji', value=(await somsiad.application_info()).owner.mention)
     embed.set_footer(text=__copyright__)

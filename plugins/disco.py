@@ -18,7 +18,7 @@ from numbers import Number
 import discord
 import youtube_dl
 from core import somsiad
-from utilities import TextFormatter
+from utilities import human_amount_of_time
 from configuration import configuration
 from plugins.help_message import Helper
 
@@ -164,7 +164,7 @@ class DiscoManager:
             )
             embed.set_author(name=song_info['uploader'], url=uploader_url)
             embed.set_thumbnail(url=song_info['thumbnail'])
-            embed.add_field(name='Długość', value=TextFormatter.human_readable_time(song_info['duration']))
+            embed.add_field(name='Długość', value=human_amount_of_time(song_info['duration']))
             embed.add_field(name='Głośność', value=f'{int(self.servers[voice_channel.guild.id]["volume"] * 100)}%')
             embed.add_field(name='Kanał', value=voice_channel.name)
 

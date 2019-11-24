@@ -16,7 +16,7 @@ import discord
 from typing import Union, Optional, Sequence, Tuple, Dict
 from core import somsiad
 from server_data import server_data_manager
-from utilities import TextFormatter
+from utilities import word_number_form
 from configuration import configuration
 from plugins.help_message import Helper
 
@@ -320,7 +320,7 @@ async def birthday_age(ctx, *, member: discord.Member = None):
         age = BirthdayCalendar.calculate_age(date)
         embed = discord.Embed(
             title=f':calendar_spiral: {"Masz" if member == ctx.author else f"{member} ma"} '
-            f'{TextFormatter.word_number_variant(age, "rok", "lata", "lat")}',
+            f'{word_number_form(age, "rok", "lata", "lat")}',
             color=somsiad.COLOR
         )
 
@@ -353,7 +353,7 @@ async def birthday_day(ctx, *, date_string = None):
     if members:
         embed = discord.Embed(
             title=f':calendar_spiral: {date.strftime("%-d %B")} urodziny ma '
-            f'{TextFormatter.word_number_variant(len(members), "użytkownik", "użytkowników")}',
+            f'{word_number_form(len(members), "użytkownik", "użytkowników")}',
             description='\n'.join(
                 (f'<@{member["user_id"]}>' for member in members if ctx.guild.get_member(member["user_id"]) is not None)
             ),
@@ -397,7 +397,7 @@ async def birthday_month(ctx, *, month_string = None):
     if members:
         embed = discord.Embed(
             title=f':calendar_spiral: W {BirthdayCalendar.MONTH_NAMES_1[month-1]} urodziny ma '
-            f'{TextFormatter.word_number_variant(len(members), "użytkownik", "użytkowników")}',
+            f'{word_number_form(len(members), "użytkownik", "użytkowników")}',
             description='\n'.join((
                 f'{member["birthday_date"].day} – <@{member["user_id"]}>'
                 for member in members if ctx.guild.get_member(member["user_id"]) is not None

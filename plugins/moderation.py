@@ -16,7 +16,7 @@ from typing import Union, Optional
 import discord
 from core import somsiad
 from server_data import server_data_manager
-from utilities import TextFormatter
+from utilities import word_number_form
 from configuration import configuration
 
 
@@ -362,7 +362,7 @@ async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types:
             event_types_description = " podanych typów"
         embed = discord.Embed(
             title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
-            f'zawiera {TextFormatter.word_number_variant(len(entries), "zdarzenie", "zdarzenia", "zdarzeń")}'
+            f'zawiera {word_number_form(len(entries), "zdarzenie", "zdarzenia", "zdarzeń")}'
             f'{event_types_description}',
             color=somsiad.COLOR
         )
@@ -418,10 +418,10 @@ async def purge(ctx, number_of_messages_to_delete: int = 1):
 
     await ctx.channel.purge(limit=number_of_messages_to_delete+1)
 
-    last_adjective_variant = TextFormatter.word_number_variant(
+    last_adjective_variant = word_number_form(
         number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
     )
-    messages_noun_variant = TextFormatter.word_number_variant(
+    messages_noun_variant = word_number_form(
         number_of_messages_to_delete, 'wiadomość', 'wiadomości', include_number=False
     )
     embed = discord.Embed(

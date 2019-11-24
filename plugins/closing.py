@@ -18,7 +18,7 @@ from numbers import Number
 from typing import Optional, Union
 import discord
 from core import somsiad
-from utilities import TextFormatter, interpret_str_as_datetime
+from utilities import human_amount_of_time, interpret_str_as_datetime
 from configuration import configuration
 
 
@@ -51,7 +51,7 @@ class Closing:
     async def timeout_handler(self):
         embed = discord.Embed(
             title=':bomb: Kanał zostanie zamknięty za '
-            f'{TextFormatter.human_readable_time(self.countdown_seconds)}',
+            f'{human_amount_of_time(self.countdown_seconds)}',
             description='Napisz STOP by zatrzymać odliczanie.',
             timestamp=self.closing_datetime,
             color=somsiad.COLOR
@@ -74,7 +74,7 @@ class Closing:
             closing_defusal_timedelta = self.closing_datetime - dt.datetime.now().astimezone()
             embed = discord.Embed(
                 title=':raised_hand: Odliczanie zostało zatrzymane '
-                f'{TextFormatter.human_readable_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
+                f'{human_amount_of_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
                 timestamp=self.closing_datetime,
                 color=somsiad.COLOR
             )
@@ -92,7 +92,7 @@ class Closing:
             if self.countdown_active:
                 embed = discord.Embed(
                     title=':bomb: Kanał zostanie zamknięty za '
-                    f'{TextFormatter.human_readable_time(self.STEPS[step_index])}',
+                    f'{human_amount_of_time(self.STEPS[step_index])}',
                     description='Napisz STOP by zatrzymać odliczanie.',
                     timestamp=self.closing_datetime,
                     color=somsiad.COLOR

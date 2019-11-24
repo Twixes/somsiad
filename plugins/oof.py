@@ -15,7 +15,7 @@ from typing import List, Dict, Union, Optional
 import discord
 from core import somsiad
 from server_data import server_data_manager
-from utilities import TextFormatter
+from utilities import word_number_form
 from configuration import configuration
 
 
@@ -120,13 +120,13 @@ async def oof_how_many_member(ctx, member: discord.Member = None):
     if member == ctx.author:
         embed = discord.Embed(
             title='Masz na koncie '
-            f'{TextFormatter.word_number_variant(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
+            f'{word_number_form(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
             color=somsiad.COLOR
         )
     else:
         embed = discord.Embed(
             title=f'{member.display_name} ma na koncie '
-            f'{TextFormatter.word_number_variant(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
+            f'{word_number_form(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
             color=somsiad.COLOR
         )
 
@@ -166,12 +166,12 @@ async def oof_server(ctx):
     for oofer in enumerate(oofers[:5]):
         top_oofers.append(
             f'{oofer[0]+1}. <@{oofer[1]["user_id"]}> – '
-            f'{TextFormatter.word_number_variant(oofer[1]["oofs"], "oofnięcie", "oofnięcia", "oofnięć")}'
+            f'{word_number_form(oofer[1]["oofs"], "oofnięcie", "oofnięcia", "oofnięć")}'
         )
     top_oofers_string = '\n'.join(top_oofers)
 
     embed = discord.Embed(
-        title=f'Do tej pory oofnięto na serwerze {TextFormatter.word_number_variant(total_oofs, "raz", "razy")}',
+        title=f'Do tej pory oofnięto na serwerze {word_number_form(total_oofs, "raz", "razy")}',
         color=somsiad.COLOR
     )
     if top_oofers:

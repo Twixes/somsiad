@@ -14,7 +14,7 @@
 import aiohttp
 import discord
 from core import somsiad
-from utilities import TextFormatter
+from utilities import text_snippet
 from configuration import configuration
 
 
@@ -93,7 +93,7 @@ class Wikipedia:
 
                                     elif article_data['type'] == 'standard':
                                         if len(article_data['extract']) > 400:
-                                            summary = TextFormatter.limit_text_length(article_data['extract'], 400)
+                                            summary = text_snippet(article_data['extract'], 400)
                                         else:
                                             summary =  article_data['extract']
                                         thumbnail_url = (

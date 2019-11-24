@@ -23,7 +23,7 @@ import matplotlib.ticker as ticker
 import discord
 from core import somsiad
 from configuration import configuration
-from utilities import TextFormatter
+from utilities import word_number_form, human_timedelta
 
 
 class Report:
@@ -276,9 +276,9 @@ class Report:
             if channel[1]['message_count'] > 0:
                 top_active_channels.append(
                     f'{channel[0]+1}. {channel[1]["channel"].mention} – '
-                    f'{TextFormatter.word_number_variant(channel[1]["message_count"], "wiadomość", "wiadomości")}, '
-                    f'{TextFormatter.word_number_variant(channel[1]["word_count"], "słowo", "słowa", "słów")}, '
-                    f'{TextFormatter.word_number_variant(channel[1]["character_count"], "znak", "znaki", "znaków")}'
+                    f'{word_number_form(channel[1]["message_count"], "wiadomość", "wiadomości")}, '
+                    f'{word_number_form(channel[1]["word_count"], "słowo", "słowa", "słów")}, '
+                    f'{word_number_form(channel[1]["character_count"], "znak", "znaki", "znaków")}'
                 )
         if top_active_channels:
             field_name = (
@@ -296,9 +296,9 @@ class Report:
         for active_user in enumerate(sorted_active_users[:5]):
             top_active_users.append(
                 f'{active_user[0]+1}. <@{active_user[1]["author_id"]}> – '
-                f'{TextFormatter.word_number_variant(active_user[1]["message_count"], "wiadomość", "wiadomości")}, '
-                f'{TextFormatter.word_number_variant(active_user[1]["word_count"], "słowo", "słowa", "słów")}, '
-                f'{TextFormatter.word_number_variant(active_user[1]["character_count"], "znak", "znaki", "znaków")}'
+                f'{word_number_form(active_user[1]["message_count"], "wiadomość", "wiadomości")}, '
+                f'{word_number_form(active_user[1]["word_count"], "słowo", "słowa", "słów")}, '
+                f'{word_number_form(active_user[1]["character_count"], "znak", "znaki", "znaków")}'
             )
         if top_active_users:
             top_active_users_string = '\n'.join(top_active_users)
@@ -313,7 +313,7 @@ class Report:
                 self._update_active_channels(message)
                 self._update_active_users(message)
 
-        server_creation_datetime_information = TextFormatter.time_difference(self.subject.created_at)
+        server_creation_datetime_information = human_timedelta(self.subject.created_at)
 
         self.embed = discord.Embed(
             title=f':white_check_mark: Przygotowano raport o serwerze',
@@ -343,7 +343,7 @@ class Report:
             color=somsiad.COLOR
         )
         self.embed.add_field(
-            name='Utworzono', value=TextFormatter.time_difference(self.subject.created_at), inline=False
+            name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False
         )
         if self.subject.category is not None:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name, inline=False)
@@ -366,10 +366,10 @@ class Report:
             color=somsiad.COLOR
         )
         self.embed.add_field(
-            name='Utworzył konto', value=TextFormatter.time_difference(self.subject.created_at), inline=False
+            name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False
         )
         self.embed.add_field(
-            name='Dołączył do serwera', value=TextFormatter.time_difference(self.subject.joined_at), inline=False
+            name='Dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False
         )
         self._embed_message_stats()
         self._embed_top_active_channels()
@@ -381,14 +381,14 @@ class Report:
             footer_text = (
                 f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s '
                 f'(z czego {self.seconds_in_queue} s oczekiwania na zakończenie pracy innych wątków analizy na '
-                f'''serwerze) buforując {TextFormatter.word_number_variant(
+                f'''serwerze) buforując {word_number_form(
                     self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
                 )}'''
             )
         else:
             footer_text = (
                 f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s buforując '
-                f'''{TextFormatter.word_number_variant(
+                f'''{word_number_form(
                     self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
                 )}'''
             )

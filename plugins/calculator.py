@@ -15,7 +15,7 @@ import string
 from py_expression_eval import Parser
 import discord
 from core import somsiad
-from utilities import TextFormatter
+from utilities import word_number_form
 from configuration import configuration
 
 
@@ -120,12 +120,12 @@ async def calculate(ctx, *, data):
                     else:
                         output_details = (
                             'Wyjście zaokrąglone do '
-                            f'{TextFormatter.word_number_variant(-roundDigits, "cyfry", "cyfr")} przed przecinkiem'
+                            f'{word_number_form(-roundDigits, "cyfry", "cyfr")} przed przecinkiem'
                         )
                 else:
                     output_details = (
                         'Wyjście zaokrąglone do '
-                        f'{TextFormatter.word_number_variant(roundDigits, "cyfry", "cyfr")} po przecinku'
+                        f'{word_number_form(roundDigits, "cyfry", "cyfr")} po przecinku'
                     )
 
             embed = discord.Embed(
