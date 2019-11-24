@@ -17,10 +17,9 @@ from typing import Optional, Union, Dict, Any
 from numbers import Number
 import discord
 import youtube_dl
-from core import somsiad
+from core import somsiad, Help
 from utilities import human_amount_of_time
 from configuration import configuration
-from plugins.help_message import Helper
 
 
 class DiscoManager:
@@ -180,6 +179,23 @@ class DiscoManager:
 
 disco_manager = DiscoManager()
 
+GROUP = Help.Command(('disco', 'd'), (), 'Grupa komend związanych z odtwarzaniem muzyki.')
+COMMANDS = (
+    Help.Command(('zagraj', 'graj'), 'zapytanie/link', 'Odtwarza utwór na kanale głosowym.'),
+    Help.Command(
+        ('powtórz', 'powtorz', 'replay'), (), 'Odtwarza od początku obecnie lub ostatnio odtwarzany na serwerze utwór.'
+    ),
+    Help.Command(('spauzuj', 'pauzuj', 'pauza'), (), 'Pauzuje obecnie odtwarzany utwór.'),
+    Help.Command(('wznów', 'wznow'), (), 'Wznawia odtwarzanie utworu.'),
+    Help.Command(('pomiń', 'pomin'), (), 'Pomija obecnie odtwarzany utwór.'),
+    Help.Command(
+        ('głośność', 'glosnosc', 'volume', 'vol'), '?nowa głośność w procentach',
+        'Sprawdza głośność odtwarzania lub, jeśli podano <?nową głośność>, ustawia ją.'
+    ),
+    Help.Command(('rozłącz', 'rozlacz', 'stop'), (), 'Rozłącza z kanału głosowego.'),
+)
+HELP = Help(COMMANDS, group=GROUP)
+
 
 @somsiad.group(aliases=['d'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
@@ -187,22 +203,7 @@ disco_manager = DiscoManager()
 )
 @discord.ext.commands.guild_only()
 async def disco(ctx):
-    subcommands = (
-        Helper.Command(('zagraj', 'graj'), 'zapytanie/link', 'Odtwarza utwór na kanale głosowym.'),
-        Helper.Command(
-            ('powtórz', 'powtorz', 'replay'), None, 'Odtwarza od początku obecnie lub ostatnio odtwarzany na serwerze utwór.'
-        ),
-        Helper.Command(('spauzuj', 'pauzuj', 'pauza'), None, 'Pauzuje obecnie odtwarzany utwór.'),
-        Helper.Command(('wznów', 'wznow'), None, 'Wznawia odtwarzanie utworu.'),
-        Helper.Command(('pomiń', 'pomin'), None, 'Pomija obecnie odtwarzany utwór.'),
-        Helper.Command(
-            ('głośność', 'glosnosc', 'volume', 'vol'), '?nowa głośność w procentach',
-            'Sprawdza głośność odtwarzania lub, jeśli podano <?nową głośność>, ustawia ją.'
-        ),
-        Helper.Command(('rozłącz', 'rozlacz', 'stop'), None, 'Rozłącza z kanału głosowego.'),
-    )
-    embed = Helper.generate_subcommands_embed(('disco', 'd'), subcommands)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await HELP.send(ctx)
 
 
 @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])

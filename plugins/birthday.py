@@ -14,11 +14,10 @@
 import datetime as dt
 import discord
 from typing import Union, Optional, Sequence, Tuple, Dict
-from core import somsiad
+from core import somsiad, Help
 from server_data import server_data_manager
 from utilities import word_number_form
 from configuration import configuration
-from plugins.help_message import Helper
 
 
 class BirthdayCalendar:
@@ -142,6 +141,31 @@ class BirthdayCalendar:
         server_data_manager.servers[server.id]['db'].commit()
 
 
+GROUP = Help.Command('urodziny', (), 'Grupa komend związanych z urodzinami.')
+COMMANDS = (
+    Help.Command(('zapamiętaj', 'zapamietaj'), 'data', 'Zapamiętuje twoją datę urodzin na serwerze.'),
+    Help.Command('zapomnij', (), 'Zapomina twoją datę urodzin na serwerze.'),
+    Help.Command(
+        'kiedy', '?użytkownik',
+        'Zwraca datę urodzin <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
+    ),
+    Help.Command(
+        'wiek', '?użytkownik', 'Zwraca wiek <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
+    ),
+    Help.Command(
+        ('dzień', 'dzien'), '?data',
+        'Zwraca listę użytkowników obchodzących urodziny danego dnia. '
+        'Jeśli nie podano <?daty> przyjmuje dzisiaj.'
+    ),
+    Help.Command(
+        ('miesiąc', 'miesiac'), '?miesiąc',
+        'Zwraca listę użytkowników obchodzących urodziny w danym miesiącu. '
+        'Jeśli nie podano <?miesiąca> przyjmuje obecny miesiąc.'
+    )
+)
+HELP = Help(COMMANDS, group=GROUP)
+
+
 @somsiad.group(aliases=['urodziny'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
@@ -149,29 +173,7 @@ class BirthdayCalendar:
 @discord.ext.commands.guild_only()
 async def birthday(ctx, *, member: discord.Member = None):
     if member is None:
-        subcommands = (
-            Helper.Command(('zapamiętaj', 'zapamietaj'), 'data', 'Zapamiętuje twoją datę urodzin na serwerze.'),
-            Helper.Command('zapomnij', None, 'Zapomina twoją datę urodzin na serwerze.'),
-            Helper.Command(
-                'kiedy', '?użytkownik',
-                'Zwraca datę urodzin <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
-            ),
-            Helper.Command(
-                'wiek', '?użytkownik', 'Zwraca wiek <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
-            ),
-            Helper.Command(
-                ('dzień', 'dzien'), '?data',
-                'Zwraca listę użytkowników obchodzących urodziny danego dnia. '
-                'Jeśli nie podano <?daty> przyjmuje dzisiaj.'
-            ),
-            Helper.Command(
-                ('miesiąc', 'miesiac'), '?miesiąc',
-                'Zwraca listę użytkowników obchodzących urodziny w danym miesiącu. '
-                'Jeśli nie podano <?miesiąca> przyjmuje obecny miesiąc.'
-            )
-        )
-        embed = Helper.generate_subcommands_embed('urodziny', subcommands)
-        await ctx.send(ctx.author.mention, embed=embed)
+        await HELP.send(ctx)
     else:
         await ctx.invoke(birthday_when)
 

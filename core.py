@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import List
+from typing import Optional, Union, Sequence, Tuple, List
 import os
 import sys
 import asyncio
@@ -179,6 +179,75 @@ class Somsiad(Bot):
         return prefixes
 
 
+class Help:
+    """A help message generator."""
+    class Command:
+        "A command model."
+        __slots__ = ('_aliases', '_arguments', '_description')
+
+        def __init__(self, aliases: Union[Tuple[str], str], arguments: Union[Tuple[str], str], description: str):
+            self._aliases = aliases if isinstance(aliases, tuple) else (aliases,)
+            self._arguments = arguments if isinstance(arguments, tuple) else (arguments,)
+            self._description = description
+
+        def __str__(self) -> str:
+            return ' '.join(filter(None, (self.name, self.aliases, self.arguments)))
+
+        @property
+        def name(self) -> str:
+            return self._aliases[0]
+
+        @property
+        def aliases(self) -> Optional[str]:
+            return f'({", ".join(self._aliases[1:])})' if len(self._aliases) > 1 else None
+
+        @property
+        def arguments(self) -> Optional[str]:
+            return " ".join(f"<{argument}>" for argument in self._arguments) if self._arguments else None
+
+        @property
+        def description(self) -> str:
+            return self._description
+
+    __slots__ = ('group', 'embeds')
+
+    def __init__(
+            self, commands: Sequence[Command], *,
+            title: Optional[str] = None, description: Optional[str] = None, group: Optional[Command] = None
+    ):
+        self.group = group
+        if group is not None and title is None:
+            title = f'Dostępne podkomendy {" ".join(filter(None, (group.name, group.aliases)))}'
+        if description is None:
+            description = (
+                'Używając ich pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
+                f'`{configuration["command_prefix"]}prefiks sprawdź`).\n'
+                'W (nawiasach okrągłych) podane są aliasy komend.\n'
+                'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
+                'oznacza to, że jest to argument opcjonalny.'
+            )
+        self.embeds = [discord.Embed(title=title, description=description, color=somsiad.COLOR)]
+        for command in commands:
+            self.append(command)
+
+    def append(self, command: Command):
+        if len(self.embeds[-1].fields) >= 25:
+            self.embeds.append(discord.Embed(color=somsiad.COLOR))
+        self.embeds[-1].add_field(
+            name=str(command) if self.group is None else f'{self.group.name} {command}',
+            value=command.description,
+            inline=False
+        )
+
+    async def send(self, ctx: discord.ext.commands.Context, *, privately: bool = False):
+        destination = ctx.author if privately else ctx.channel
+        if privately and not isinstance(ctx.channel, discord.abc.PrivateChannel):
+            await ctx.message.add_reaction('📫')
+        await destination.send(None if privately else ctx.author.mention, embed=self.embeds[0])
+        for embed in self.embeds[1:]:
+            await destination.send(embed=embed)
+
+
 somsiad = Somsiad()
 
 
@@ -197,6 +266,14 @@ async def no(ctx, member: discord.Member = None):
                 break
 
 
+GROUP = Help.Command(('prefiks', 'prefix', 'przedrostek'), (), 'Grupa komend związanych z prefiksem.')
+COMMANDS = (
+    Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje prefiks obowiązujący na serwerze.'),
+    Help.Command(('ustaw'), (), 'Ustawia na serwerze podany prefiks.'),
+    Help.Command(('usuń', 'usun'), (), 'Przywraca na serwerze domyślny prefiks.')
+)
+HELP = Help(COMMANDS, group=GROUP)
+
 prefix_usage_example = lambda example_prefix: f'Przykład użycia: `{example_prefix}wersja` lub `{example_prefix} oof`.'
 
 
@@ -207,7 +284,7 @@ prefix_usage_example = lambda example_prefix: f'Przykład użycia: `{example_pre
 @discord.ext.commands.guild_only()
 async def prefix(ctx):
     """Command prefix commands."""
-    pass
+    await HELP.send(ctx)
 
 
 @prefix.command(aliases=['sprawdź', 'sprawdz'])

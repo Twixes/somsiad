@@ -14,9 +14,8 @@
 from typing import List, Optional
 import datetime as dt
 import discord
-from core import somsiad
+from core import somsiad, Help
 from configuration import configuration
-from plugins.help_message import Helper
 
 ONE_WEEK = dt.timedelta(7)
 
@@ -235,25 +234,28 @@ def determine_nearest_trade_sunday_after_date_inclusive(date: dt.date = None) ->
             month = 1
 
 
+GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Grupa komend związanych z niedzielami handlowymi.')
+COMMANDS = (
+    Help.Command(
+        ('najbliższa', 'najblizsza'), (),
+        'Zwraca informacje na temat najbliższej niedzieli oraz najbliższej niedzieli handlowej.'
+    ),
+    Help.Command(
+        ('terminarz', 'lista', 'spis'), ('?rok', '?miesiąc'),
+        'Zwraca terminarz niedziel handlowych w <?roku>, lub, jeśli go nie podano, w bieżącym roku, '
+        'z podziałem na miesiące. Jeśli wraz z <?rokiem> podano <?miesiąc>, '
+        'uwzględnione zostaną tylko niedziele handlowe w <?miesiącu>.'
+    )
+)
+HELP = Help(COMMANDS, group=GROUP)
+
+
 @somsiad.group(aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def trade_sundays(ctx):
-    subcommands = (
-        Helper.Command(
-            ('najbliższa', 'najblizsza'), None,
-            'Zwraca informacje na temat najbliższej niedzieli oraz najbliższej niedzieli handlowej.'
-        ),
-        Helper.Command(
-            ('terminarz', 'lista', 'spis'), ('?rok', '?miesiąc'),
-            'Zwraca terminarz niedziel handlowych w <?roku>, lub, jeśli go nie podano, w bieżącym roku, '
-            'z podziałem na miesiące. Jeśli wraz z <?rokiem> podano <?miesiąc>, '
-            'uwzględnione zostaną tylko niedziele handlowe w <?miesiącu>.'
-        )
-    )
-    embed = Helper.generate_subcommands_embed(('handlowe', 'niedzielehandlowe'), subcommands)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await HELP.send(ctx)
 
 
 @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
