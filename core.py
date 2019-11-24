@@ -78,7 +78,7 @@ class Somsiad(Bot):
 
     async def on_ready(self):
         print(self.info())
-        self.ensure_registration_of_all_servers()
+        data.Server.register_all(self.guilds)
         await self.cycle_presence()
 
     async def on_command_error(self, ctx, error):
@@ -118,16 +118,6 @@ class Somsiad(Bot):
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
         else:
             self.logger.info('Client started.')
-
-    def ensure_registration_of_all_servers(self):
-        session = data.Session()
-        server_ids_already_registered = [server.id for server in session.query(data.Server).all()]
-        session.add_all((
-            data.Server(id=server.id, joined_at=server.me.joined_at) for server in self.guilds
-            if server.id not in server_ids_already_registered
-        ))
-        session.commit()
-        session.close()
 
     def invite_url(self) -> str:
         """Return the invitation URL of the bot."""
