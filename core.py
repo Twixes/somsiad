@@ -110,6 +110,9 @@ class Somsiad(Bot):
                 )
             self.logger.error(log_entry)
 
+    async def on_guild_join(self, server):
+        data.Server.register(server)
+
     def controlled_run(self):
         self.run_datetime = dt.datetime.now()
         try:
