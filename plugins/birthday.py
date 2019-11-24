@@ -11,9 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Union, Optional, Sequence, Tuple, Dict
 import datetime as dt
 import discord
-from typing import Union, Optional, Sequence, Tuple, Dict
 from core import somsiad, Help
 from server_data import server_data_manager
 from utilities import word_number_form

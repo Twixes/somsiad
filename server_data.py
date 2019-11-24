@@ -11,9 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import os.path
-import sqlite3
 from typing import Union, Tuple, List
+import os
+import sqlite3
 from core import somsiad
 
 

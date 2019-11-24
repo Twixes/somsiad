@@ -11,12 +11,12 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Union
 import io
 import datetime as dt
 import calendar
 import locale
 import asyncio
-from typing import Union
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker

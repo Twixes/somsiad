@@ -11,12 +11,12 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Union, Optional
+from numbers import Number
 import asyncio
 import locale
 import datetime as dt
 import string
-from typing import Union, Optional
-from numbers import Number
 import discord
 from core import somsiad
 from utilities import human_amount_of_time, interpret_str_as_datetime
@@ -27,6 +27,7 @@ LETTER_EMOIJS = {
     'K': '🇰', 'L': '🇱', 'M': '🇲', 'N': '🇳', 'O': '🇴', 'P': '🇵', 'Q': '🇶', 'R': '🇷', 'S': '🇸', 'T': '🇹',
     'U': '🇺', 'V': '🇻', 'W': '🇼', 'X': '🇽', 'Y': '🇾', 'Z': '🇿'
 }
+
 
 @somsiad.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
 @discord.ext.commands.cooldown(

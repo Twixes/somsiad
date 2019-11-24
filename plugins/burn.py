@@ -11,10 +11,10 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Optional, Union
 import asyncio
 import locale
 import datetime as dt
-from typing import Optional, Union
 import discord
 from core import somsiad
 from utilities import human_amount_of_time, human_timedelta, interpret_str_as_datetime

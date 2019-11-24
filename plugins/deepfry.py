@@ -13,10 +13,12 @@
 
 from typing import BinaryIO, Optional, Tuple
 import io
-import PIL.Image, PIL.ImageEnhance
+import PIL.Image
+import PIL.ImageEnhance
 import discord
 from core import somsiad
 from configuration import configuration
+
 
 class DeepFrier:
     @staticmethod

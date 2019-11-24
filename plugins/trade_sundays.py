@@ -19,6 +19,7 @@ from configuration import configuration
 
 ONE_WEEK = dt.timedelta(7)
 
+
 def determine_easter_date(year: int) -> dt.date:
     if not isinstance(year, int):
         raise TypeError('year must be an int')

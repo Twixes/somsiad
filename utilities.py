@@ -12,12 +12,12 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Union
+from numbers import Number
 import locale
 import calendar
 import re
 from collections import namedtuple
 import datetime as dt
-from numbers import Number
 
 DatetimeFormat = namedtuple('DatetimeFormat', ('format', 'imply_year', 'imply_month', 'imply_day'))
 

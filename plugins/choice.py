@@ -18,7 +18,6 @@ import discord
 from core import somsiad
 from configuration import configuration
 
-
 with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r') as f:
     choice_answers = json.load(f)
 

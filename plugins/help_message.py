@@ -206,6 +206,7 @@ DESCRIPTION = (
     f'By dowiedzieć się o mnie więcej, wejdź na {somsiad.WEBSITE_URL}.'
 )
 
+
 @somsiad.command(aliases=['help', 'pomocy', 'pomoc'])
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user

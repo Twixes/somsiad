@@ -11,10 +11,10 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import locale
 from typing import Optional, Union, Dict, Any
 from numbers import Number
+import os
+import locale
 import discord
 import youtube_dl
 from core import somsiad, Help

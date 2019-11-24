@@ -11,8 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import datetime as dt
 from typing import Union, Optional
+import datetime as dt
 import discord
 from core import somsiad
 from server_data import server_data_manager
