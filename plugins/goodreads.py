@@ -15,14 +15,15 @@ import locale
 import xml.etree.ElementTree as ET
 import aiohttp
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 @somsiad.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
 @discord.ext.commands.cooldown(
     1,
-    somsiad.conf['command_cooldown_per_user_in_seconds']
-    if float(somsiad.conf['command_cooldown_per_user_in_seconds']) > 1.0 else 1.0
+    configuration['command_cooldown_per_user_in_seconds']
+    if float(configuration['command_cooldown_per_user_in_seconds']) > 1.0 else 1.0
 )
 @discord.ext.commands.guild_only()
 async def goodreads(ctx, *, query):
@@ -33,7 +34,7 @@ async def goodreads(ctx, *, query):
     url = 'https://www.goodreads.com/search/index.xml'
     params = {
         'q': query,
-        'key': somsiad.conf['goodreads_key']
+        'key': configuration['goodreads_key']
     }
     headers = {'User-Agent': somsiad.USER_AGENT}
     async with aiohttp.ClientSession() as session:

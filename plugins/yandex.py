@@ -14,7 +14,8 @@
 import aiohttp
 from typing import Optional
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 class Yandex:
@@ -28,7 +29,7 @@ class Yandex:
     async def translate(cls, text: str, target_language_code: str, source_language_code: str = None) -> Optional[str]:
         """Translates text."""
         params = {
-            'key': somsiad.conf['yandex_translate_key'],
+            'key': configuration['yandex_translate_key'],
             'text': text,
             'lang': target_language_code if source_language_code is None else f'{source_language_code}-{target_language_code}',
             'options': 1
@@ -97,7 +98,7 @@ class Yandex:
 
 @somsiad.command(aliases=['tłumacz', 'tlumacz', 'translator'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def translate(ctx, source_language_code, target_language_code, *, text):
     """The Wikipedia search command."""

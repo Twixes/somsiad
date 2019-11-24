@@ -14,7 +14,7 @@
 import os.path
 import sqlite3
 from typing import Union, Tuple, List
-from somsiad import somsiad
+from core import somsiad
 
 
 class ServerDataManager:

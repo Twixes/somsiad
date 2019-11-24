@@ -13,12 +13,13 @@
 
 import random
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 @somsiad.command(aliases=['roll', 'rzuć', 'rzuc'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def roll_dice(ctx, *args):
     number_of_dice = 1

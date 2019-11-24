@@ -12,12 +12,13 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 @somsiad.command(aliases=['lenny'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
@@ -26,7 +27,7 @@ async def lennyface(ctx):
 
 @somsiad.command(aliases=['lenno'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def lennoface(ctx):
     """( ͡ʘ ͜ʖ ͡ʘ)"""
@@ -35,7 +36,7 @@ async def lennoface(ctx):
 
 @somsiad.command(aliases=['wywróć'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def tableflip(ctx):
     """(╯°□°）╯︵ ┻━┻"""
@@ -44,7 +45,7 @@ async def tableflip(ctx):
 
 @somsiad.command(aliases=['odstaw'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def unflip(ctx):
     """┬─┬ ノ( ゜-゜ノ)"""
@@ -53,7 +54,7 @@ async def unflip(ctx):
 
 @somsiad.command()
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def shrug(ctx):
     r"""¯\_(ツ)_/¯"""
@@ -62,7 +63,7 @@ async def shrug(ctx):
 
 @somsiad.command(aliases=['dej'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def gib(ctx, *, thing = None):
     """༼ つ ◕_◕ ༽つ"""
@@ -76,7 +77,7 @@ async def gib(ctx, *, thing = None):
 
 @somsiad.command()
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def fccchk(ctx):
     """:japanese_goblin:"""

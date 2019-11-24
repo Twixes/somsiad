@@ -14,9 +14,10 @@
 import datetime as dt
 import discord
 from typing import Union, Optional, Sequence, Tuple, Dict
-from somsiad import somsiad
+from core import somsiad
 from server_data import server_data_manager
 from utilities import TextFormatter
+from configuration import configuration
 from plugins.help_message import Helper
 
 
@@ -143,7 +144,7 @@ class BirthdayCalendar:
 
 @somsiad.group(aliases=['urodziny'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def birthday(ctx, *, member: discord.Member = None):
@@ -187,7 +188,7 @@ async def birthday_error(ctx, error):
 
 @birthday.command(aliases=['zapamiętaj', 'zapamietaj'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def birthday_remember(ctx, *, raw_date_string):
@@ -245,7 +246,7 @@ async def birthday_remember_error(ctx, error):
 
 @birthday.command(aliases=['zapomnij'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def birthday_forget(ctx):
@@ -261,7 +262,7 @@ async def birthday_forget(ctx):
 
 @birthday.command(aliases=['kiedy'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def birthday_when(ctx, *, member: discord.Member = None):
@@ -301,7 +302,7 @@ async def birthday_when_error(ctx, error):
 
 @birthday.command(aliases=['wiek'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def birthday_age(ctx, *, member: discord.Member = None):
@@ -338,7 +339,7 @@ async def birthday_age_error(ctx, error):
 
 @birthday.command(aliases=['dzień', 'dzien'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def birthday_day(ctx, *, date_string = None):
@@ -379,7 +380,7 @@ async def birthday_day_error(ctx, error):
 
 @birthday.command(aliases=['miesiąc', 'miesiac'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def birthday_month(ctx, *, month_string = None):

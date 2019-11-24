@@ -15,7 +15,7 @@
 
 import locale
 import calendar
-import somsiad
+from core import somsiad
 import server_data
 from plugins import *
 
@@ -38,4 +38,4 @@ def setlocale(locale_index: int = 0):
 if __name__ == '__main__':
     print('Budzenie Somsiada...')
     setlocale()
-    somsiad.somsiad.controlled_run()
+    somsiad.controlled_run()

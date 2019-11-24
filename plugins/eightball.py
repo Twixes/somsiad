@@ -15,7 +15,8 @@ import os
 import random
 import json
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 class Ball:
@@ -40,7 +41,7 @@ class Ball:
 
 @somsiad.command(aliases=['8ball', '8-ball', '8', 'czy'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def eightball(ctx, *, question: discord.ext.commands.clean_content(fix_channel_mentions=True) = ''):
     """Returns an 8-Ball answer."""

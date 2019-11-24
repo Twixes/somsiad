@@ -13,9 +13,10 @@
 
 import io
 import discord
-from somsiad import somsiad
+from core import somsiad
 from server_data import server_data_manager
 from utilities import TextFormatter
+from configuration import configuration
 
 
 class PinArchivesManager:
@@ -97,13 +98,13 @@ pin_archives_manager = PinArchivesManager()
 
 @somsiad.group(aliases=['przypinki'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def pins(ctx):
     """A group of pin-related commands."""
     embed = discord.Embed(
-        title=f'Podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
-        description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda>',
+        title=f'Podkomendy {configuration["command_prefix"]}{ctx.invoked_with}',
+        description=f'Użycie: {configuration["command_prefix"]}{ctx.invoked_with} <podkomenda>',
         color=somsiad.COLOR
     )
     embed.add_field(
@@ -129,7 +130,7 @@ async def pins(ctx):
 
 @pins.command(aliases=['kanał', 'kanal'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_channels=True)
@@ -150,7 +151,7 @@ async def pins_channel(ctx, channel: discord.TextChannel = None):
 
 @pins.command(aliases=['zarchiwizuj'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_messages=True)
@@ -194,7 +195,7 @@ async def pins_archive(ctx):
 
 @pins.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_messages=True)

@@ -14,7 +14,8 @@
 from difflib import SequenceMatcher
 import aiohttp
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 from plugins.youtube import youtube
 
 
@@ -77,12 +78,12 @@ class LastFM:
             return None
 
 
-last_fm_api = LastFM(somsiad.conf['last_fm_key'])
+last_fm_api = LastFM(configuration['last_fm_key'])
 
 
 @somsiad.group(aliases=['lastfm', 'last', 'fm', 'lfm'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def last_fm(ctx, *, user):
     user_info = await last_fm_api.get_user_info(user)

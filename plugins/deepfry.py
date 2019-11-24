@@ -15,7 +15,8 @@ from typing import BinaryIO, Optional, Tuple
 import io
 import PIL.Image, PIL.ImageEnhance
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 class DeepFrier:
     @staticmethod
@@ -54,7 +55,7 @@ class DeepFrier:
 
 @somsiad.command(aliases=['usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def deepfry(ctx, doneness: int = 2):

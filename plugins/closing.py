@@ -17,8 +17,9 @@ import datetime as dt
 from numbers import Number
 from typing import Optional, Union
 import discord
-from somsiad import somsiad
+from core import somsiad
 from utilities import TextFormatter, interpret_str_as_datetime
+from configuration import configuration
 
 
 class Closing:
@@ -110,7 +111,7 @@ class Closing:
 
 @somsiad.command(aliases=['zamknij'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_channels=True)

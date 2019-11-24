@@ -12,12 +12,13 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 @somsiad.command(aliases=['zaproś', 'zapros'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def invite(ctx, *, argument = ''):

@@ -15,7 +15,8 @@ import os
 import random
 import json
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r') as f:
@@ -25,7 +26,7 @@ categories = ['definitive' for _ in range(49)] + ['enigmatic']
 
 @somsiad.command(aliases=['choose', 'wybierz'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def random_choice(ctx, *, raw_options = ''):
     """Randomly chooses one of provided options."""

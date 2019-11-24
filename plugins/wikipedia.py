@@ -13,8 +13,9 @@
 
 import aiohttp
 import discord
-from somsiad import somsiad
+from core import somsiad
 from utilities import TextFormatter
+from configuration import configuration
 
 
 class Wikipedia:
@@ -161,7 +162,7 @@ class Wikipedia:
 
 @somsiad.command(aliases=['wiki', 'w'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def wikipedia(ctx, language, *, title = 'Wikipedia'):
     """The Wikipedia search command."""

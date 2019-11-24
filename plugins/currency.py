@@ -14,12 +14,13 @@
 import re
 import aiohttp
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 @somsiad.command(aliases=['exchange', 'kantor', 'kurs'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def currency(ctx, *, query):
     """Provides (crypto)currency exchange rates."""

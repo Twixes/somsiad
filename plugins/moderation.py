@@ -14,9 +14,10 @@
 import datetime as dt
 from typing import Union, Optional
 import discord
-from somsiad import somsiad
+from core import somsiad
 from server_data import server_data_manager
 from utilities import TextFormatter
+from configuration import configuration
 
 
 class Files:
@@ -194,7 +195,7 @@ async def on_member_unban(server, member):
 
 @somsiad.command(aliases=['ostrzeż', 'ostrzez'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(kick_members=True)
@@ -238,7 +239,7 @@ async def warn_error(ctx, error):
 
 @somsiad.command(aliases=['wyrzuć', 'wyrzuc'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(kick_members=True)
@@ -290,7 +291,7 @@ async def kick_error(ctx, error):
 
 @somsiad.command(aliases=['zbanuj'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(ban_members=True)
@@ -337,7 +338,7 @@ async def ban_error(ctx, error):
 
 @somsiad.command(aliases=['kartoteka'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types: str = None):
@@ -405,7 +406,7 @@ async def file_error(ctx, error):
 
 @somsiad.command(aliases=['wyczyść', 'wyczysc'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(manage_messages=True)

@@ -14,7 +14,8 @@
 from typing import Optional, Sequence
 import random
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 class Reactor:
@@ -114,7 +115,7 @@ class Reactor:
 
 @somsiad.command(aliases=['zareaguj', 'x'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def react(
@@ -127,7 +128,7 @@ async def react(
 
 @somsiad.command(aliases=['pomógł', 'pomogl'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def helped(ctx, member: discord.Member = None):
@@ -137,7 +138,7 @@ async def helped(ctx, member: discord.Member = None):
 
 @somsiad.command(aliases=['niepomógł', 'niepomogl'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def didnothelp(ctx, member: discord.Member = None):
@@ -147,7 +148,7 @@ async def didnothelp(ctx, member: discord.Member = None):
 
 @somsiad.command(aliases=['^', 'to', 'up', 'upvote'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def this(ctx, member: discord.Member = None):
@@ -157,7 +158,7 @@ async def this(ctx, member: discord.Member = None):
 
 @somsiad.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def thinking(ctx, member: discord.Member = None):
@@ -167,7 +168,7 @@ async def thinking(ctx, member: discord.Member = None):
 
 @somsiad.command()
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def f(ctx, member: discord.Member = None):
@@ -176,7 +177,7 @@ async def f(ctx, member: discord.Member = None):
 
 @somsiad.command(aliases=['chlip', '😢'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def sob(ctx, member: discord.Member = None):

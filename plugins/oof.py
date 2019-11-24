@@ -13,9 +13,10 @@
 
 from typing import List, Dict, Union, Optional
 import discord
-from somsiad import somsiad
+from core import somsiad
 from server_data import server_data_manager
 from utilities import TextFormatter
+from configuration import configuration
 
 
 class Oof:
@@ -88,7 +89,7 @@ class Oof:
 
 @somsiad.group(invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def oof(ctx):
@@ -98,7 +99,7 @@ async def oof(ctx):
 
 @oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def oof_how_many(ctx, member: discord.Member = None):
@@ -107,7 +108,7 @@ async def oof_how_many(ctx, member: discord.Member = None):
 
 @oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def oof_how_many_member(ctx, member: discord.Member = None):
@@ -144,7 +145,7 @@ async def oof_how_many_member_error(ctx, error):
 
 @oof_how_many.command(aliases=['server', 'serwer'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def oof_how_many_server(ctx):
@@ -153,7 +154,7 @@ async def oof_how_many_server(ctx):
 
 @oof.command(aliases=['server', 'serwer'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def oof_server(ctx):

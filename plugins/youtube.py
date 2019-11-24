@@ -15,7 +15,8 @@ import logging
 import discord
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 class YouTube:
@@ -47,12 +48,12 @@ class YouTube:
             return None
 
 
-youtube = YouTube(somsiad.conf['google_key'])
+youtube = YouTube(configuration['google_key'])
 
 
 @somsiad.command(aliases=['youtube', 'yt', 'tuba'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def youtube_search(ctx, *, query = ''):
@@ -74,7 +75,7 @@ async def youtube_search(ctx, *, query = ''):
 
 @somsiad.group(invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def alexa(ctx):
@@ -83,7 +84,7 @@ async def alexa(ctx):
 
 @alexa.command(aliases=['play'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def alexa_play(ctx):

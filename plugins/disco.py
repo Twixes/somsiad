@@ -17,8 +17,9 @@ from typing import Optional, Union, Dict, Any
 from numbers import Number
 import discord
 import youtube_dl
-from somsiad import somsiad
+from core import somsiad
 from utilities import TextFormatter
+from configuration import configuration
 from plugins.help_message import Helper
 
 
@@ -41,7 +42,7 @@ class DiscoManager:
         'ignoreerrors': True,
         'quiet': True,
         'no_warnings': True,
-        'max_filesize': somsiad.conf['disco_max_file_size_in_mib'] * 2 ** 20,
+        'max_filesize': configuration['disco_max_file_size_in_mib'] * 2 ** 20,
         'outtmpl': os.path.join(_CACHE_DIR_PATH, '%(id)s'),
         'default_search': 'auto'
     }
@@ -141,7 +142,7 @@ class DiscoManager:
         elif song_status == 1:
             embed = discord.Embed(
                 title=':slight_frown: Znaleziony utwór przekracza limit rozmiaru wynoszący '
-                f'{somsiad.conf["disco_max_file_size_in_mib"]} MiB',
+                f'{configuration["disco_max_file_size_in_mib"]} MiB',
                 color=somsiad.COLOR
             )
         else:
@@ -182,7 +183,7 @@ disco_manager = DiscoManager()
 
 @somsiad.group(aliases=['d'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def disco(ctx):
@@ -206,7 +207,7 @@ async def disco(ctx):
 
 @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def disco_play(ctx, *, query):
@@ -239,7 +240,7 @@ async def disco_play_error(ctx, error):
 
 @disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def disco_again(ctx):
@@ -267,7 +268,7 @@ async def disco_again(ctx):
 
 @disco.command(aliases=['pauza', 'spauzuj', 'pauzuj', 'pause'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def disco_pause(ctx):
@@ -303,7 +304,7 @@ async def disco_pause(ctx):
 
 @disco.command(aliases=['wznów', 'wznow', 'odpauzuj', 'unpause', 'resume'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def disco_resume(ctx):
@@ -339,7 +340,7 @@ async def disco_resume(ctx):
 
 @disco.command(aliases=['pomiń', 'pomin', 'skip'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def disco_skip(ctx):
@@ -365,7 +366,7 @@ async def disco_skip(ctx):
 
 @disco.command(aliases=['rozłącz', 'rozlacz', 'stop'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def disco_disconnect(ctx):
@@ -391,7 +392,7 @@ async def disco_disconnect(ctx):
 
 @disco.command(aliases=['głośność', 'glosnosc', 'poziom', 'volume', 'vol'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def disco_volume(ctx, volume_percentage: Union[int, locale.atoi] = None):

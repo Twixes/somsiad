@@ -21,13 +21,14 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 from utilities import TextFormatter
 
 
 class Report:
     """A statistics report. Can generate server, channel or member statistics."""
-    COOLDOWN = max(float(somsiad.conf['command_cooldown_per_user_in_seconds']), 15.0)
+    COOLDOWN = max(float(configuration['command_cooldown_per_user_in_seconds']), 15.0)
     BACKGROUND_COLOR = '#32363c'
     FOREGROUND_COLOR = '#ffffff'
 
@@ -523,14 +524,14 @@ class Report:
 
 @somsiad.group(invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def stat(ctx, *, subject: Union[discord.Member, discord.TextChannel] = None):
     if subject is None:
         embed = discord.Embed(
-            title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{ctx.invoked_with}',
-            description=f'Użycie: {somsiad.conf["command_prefix"]}{ctx.invoked_with} <podkomenda> lub '
-            f'{somsiad.conf["command_prefix"]}{ctx.invoked_with} <użytkownik/kanał>',
+            title=f'Dostępne podkomendy {configuration["command_prefix"]}{ctx.invoked_with}',
+            description=f'Użycie: {configuration["command_prefix"]}{ctx.invoked_with} <podkomenda> lub '
+            f'{configuration["command_prefix"]}{ctx.invoked_with} <użytkownik/kanał>',
             color=somsiad.COLOR
         )
         embed.add_field(

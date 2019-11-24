@@ -13,12 +13,13 @@
 
 import sys
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 @somsiad.command(aliases=['wejdź'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
 async def enter(ctx, *, server_name):
@@ -41,7 +42,7 @@ async def enter(ctx, *, server_name):
 
 @somsiad.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
 async def announce(ctx):
@@ -50,7 +51,7 @@ async def announce(ctx):
 
 @announce.command(aliases=['globalnie'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
 async def announce_globally(ctx, *, raw_announcement):
@@ -91,7 +92,7 @@ async def announce_globally(ctx, *, raw_announcement):
 
 @announce.command(aliases=['lokalnie'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
 @discord.ext.commands.guild_only()
@@ -124,7 +125,7 @@ async def announce_locally(ctx, *, raw_announcement):
 
 @somsiad.command(aliases=['wyłącz', 'wylacz', 'stop'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.is_owner()
 async def shutdown(ctx):

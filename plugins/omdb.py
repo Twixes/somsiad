@@ -15,8 +15,9 @@ import locale
 import aiohttp
 import re
 import discord
-from somsiad import somsiad
+from core import somsiad
 from utilities import TextFormatter
+from configuration import configuration
 
 
 class OMDb:
@@ -32,7 +33,7 @@ class OMDb:
 
 @somsiad.command(aliases=['film'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 async def omdb(ctx, *args):
@@ -67,17 +68,17 @@ async def omdb(ctx, *args):
                 series_season_episode = series_season_episode.lstrip('s')
                 series_season, series_episode = series_season_episode.split('e')
                 params = {
-                    'apikey': somsiad.conf['omdb_key'], 't': query, 'Season': series_season, 'Episode': series_episode
+                    'apikey': configuration['omdb_key'], 't': query, 'Season': series_season, 'Episode': series_episode
                 }
         elif args[0].lower() == 'film':
             query = ' '.join(args[1:])
-            params = {'apikey': somsiad.conf['omdb_key'], 't': query, 'type': 'movie'}
+            params = {'apikey': configuration['omdb_key'], 't': query, 'type': 'movie'}
         elif args[0].lower() in ('tv', 'serial'):
             query = ' '.join(args[1:])
-            params = {'apikey': somsiad.conf['omdb_key'], 't': query, 'type': 'series'}
+            params = {'apikey': configuration['omdb_key'], 't': query, 'type': 'series'}
         else:
             query = ' '.join(args)
-            params = {'apikey': somsiad.conf['omdb_key'], 't': query}
+            params = {'apikey': configuration['omdb_key'], 't': query}
 
         headers = {'User-Agent': somsiad.USER_AGENT}
         URL = 'http://www.omdbapi.com/'

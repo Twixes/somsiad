@@ -12,12 +12,13 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 @somsiad.command(aliases=['r', 'sub'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def subreddit(ctx, *, subreddit=None):
     """Responds with the URL of the given subreddit."""
@@ -30,12 +31,12 @@ async def subreddit(ctx, *, subreddit=None):
 
 @somsiad.command(aliases=['u'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def reddit_user(ctx, *, username=None):
     """Responds with the URL of the given Reddit user."""
     if username is None:
-        url = f'https://old.reddit.com/u/{somsiad.conf["reddit_username"]}'
+        url = f'https://old.reddit.com/u/{configuration["reddit_username"]}'
     else:
         url = f'https://old.reddit.com/u/{username.replace(" ", "_")}'
     await ctx.send(f'{ctx.author.mention}\n{url}')

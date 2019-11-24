@@ -13,14 +13,15 @@
 
 from difflib import SequenceMatcher
 import discord
-from somsiad import somsiad
+from core import somsiad
 from utilities import TextFormatter
+from configuration import configuration
 from plugins.youtube import youtube
 
 
 @somsiad.command(aliases=['kanał', 'kanal'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def spotify(ctx, member: discord.Member = None):

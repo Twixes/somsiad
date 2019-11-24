@@ -14,7 +14,8 @@
 import discord
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 class GoogleCSE:
@@ -47,12 +48,12 @@ class GoogleCSE:
             return None
 
 
-google_cse = GoogleCSE(somsiad.conf['google_key'], somsiad.conf['google_custom_search_engine_id'])
+google_cse = GoogleCSE(configuration['google_key'], configuration['google_custom_search_engine_id'])
 
 
 @somsiad.command(aliases=['g', 'gugiel'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def google(ctx, *, query):
@@ -98,7 +99,7 @@ async def google(ctx, *, query):
 
 @somsiad.command(aliases=['googleimage', 'gi', 'i'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def google_image(ctx, *, query):

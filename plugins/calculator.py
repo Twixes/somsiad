@@ -14,8 +14,9 @@
 import string
 from py_expression_eval import Parser
 import discord
-from somsiad import somsiad
+from core import somsiad
 from utilities import TextFormatter
+from configuration import configuration
 
 
 parser = Parser()
@@ -25,7 +26,7 @@ previous_expressions = {}
 
 @somsiad.command(aliases=['oblicz', 'policz'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def calculate(ctx, *, data):
     """Calculates the provided expressions and sends the results.

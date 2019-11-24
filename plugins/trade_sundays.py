@@ -14,7 +14,8 @@
 from typing import List, Optional
 import datetime as dt
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 from plugins.help_message import Helper
 
 ONE_WEEK = dt.timedelta(7)
@@ -236,7 +237,7 @@ def determine_nearest_trade_sunday_after_date_inclusive(date: dt.date = None) ->
 
 @somsiad.group(aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def trade_sundays(ctx):
     subcommands = (
@@ -257,7 +258,7 @@ async def trade_sundays(ctx):
 
 @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def trade_sundays_nearest(ctx):
     nearest_sunday_date = determine_nearest_sunday_after_date_inclusive()
@@ -292,7 +293,7 @@ async def trade_sundays_nearest(ctx):
 
 @trade_sundays.command(aliases=['terminarz', 'lista', 'spis'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def trade_sundays_list(ctx, year: Optional[int], month: Optional[int]):
     month_names = [

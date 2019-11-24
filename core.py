@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2019 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -71,9 +71,8 @@ class Somsiad(Bot):
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
             os.makedirs(self.cache_dir_path)
-        self.conf = configuration
         self.prefix_safe_commands = tuple(map(
-            lambda command: f'{self.conf["command_prefix"]}{command}',
+            lambda command: f'{configuration["command_prefix"]}{command}',
             ('help', 'pomocy', 'pomoc', 'prefix', 'prefiks', 'przedrostek', 'info', 'informacje', 'ping')
         ))
 
@@ -98,7 +97,7 @@ class Somsiad(Bot):
             )
             await ctx.send(ctx.author.mention, embed=embed)
         else:
-            prefixed_command_qualified_name = f'{self.conf["command_prefix"]}{ctx.command.qualified_name}'
+            prefixed_command_qualified_name = f'{configuration["command_prefix"]}{ctx.command.qualified_name}'
             if ctx.guild is None:
                 log_entry = (
                     f'Ignoring {type(error).__name__} type exception in command {prefixed_command_qualified_name} '
@@ -114,7 +113,7 @@ class Somsiad(Bot):
     def controlled_run(self):
         self.run_datetime = dt.datetime.now()
         try:
-            self.run(self.conf['discord_token'], reconnect=True)
+            self.run(configuration['discord_token'], reconnect=True)
         except discord.errors.ClientException:
             self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
         else:
@@ -148,7 +147,7 @@ class Somsiad(Bot):
             'Link do zaproszenia bota:',
             self.invite_url(),
             '',
-            *map(str, self.conf.settings.values()),
+            *map(str, configuration.settings.values()),
             '',
             f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
             '',
@@ -161,7 +160,7 @@ class Somsiad(Bot):
         prefix_safe_commands = ('pomocy', 'prefiks', 'info', 'ping')
         for command in itertools.cycle(prefix_safe_commands):
             await self.change_presence(
-                activity=discord.Game(name=f'Kiedyś to było | {self.conf["command_prefix"]}{command}')
+                activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
             )
             await asyncio.sleep(15)
 
@@ -179,7 +178,7 @@ class Somsiad(Bot):
         if does_server_have_custom_command_prefix:
             prefixes.append(data_server.command_prefix)
         if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
-            prefixes.append(self.conf['command_prefix'])
+            prefixes.append(configuration['command_prefix'])
         return prefixes
 
 
@@ -188,7 +187,7 @@ somsiad = Somsiad()
 
 @somsiad.command(aliases=['nope', 'nie'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def no(ctx, member: discord.Member = None):
     """Removes the last message sent by the bot in the channel on the requesting user's request."""
@@ -203,7 +202,7 @@ async def no(ctx, member: discord.Member = None):
 
 @somsiad.command(aliases=['prefiks', 'przedrostek'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
@@ -215,7 +214,7 @@ async def prefix(ctx, new_prefix = None):
     if new_prefix is None:
         embed = discord.Embed(
             title=':wrench: Obecny prefiks to '
-            f'*{data_server.command_prefix or somsiad.conf["command_prefix"]}*'
+            f'*{data_server.command_prefix or configuration["command_prefix"]}*'
             f'{" (wartość domyślna)" if data_server.command_prefix is None else ""}',
             color=somsiad.COLOR
         )
@@ -238,7 +237,7 @@ async def prefix(ctx, new_prefix = None):
 
 @somsiad.command(aliases=['wersja', 'v'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def version(ctx):
     """Responds with current version of the bot."""
@@ -253,7 +252,7 @@ async def version(ctx):
 
 @somsiad.command(aliases=['informacje'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def info(ctx):
     """Responds with current version of the bot."""
@@ -274,7 +273,7 @@ async def info(ctx):
 
 @somsiad.command()
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def ping(ctx):
     """Pong!"""

@@ -15,7 +15,8 @@ from typing import Union, Sequence, List, Tuple
 from collections import namedtuple
 import math
 import discord
-from somsiad import somsiad
+from core import somsiad
+from configuration import configuration
 
 
 class Helper:
@@ -87,8 +88,8 @@ class Helper:
             aliases_string = ''
 
         embed = discord.Embed(
-            title=f'Dostępne podkomendy {somsiad.conf["command_prefix"]}{name_string}{aliases_string}',
-            description=f'Użycie: {somsiad.conf["command_prefix"]}{name_string} <podkomenda>',
+            title=f'Dostępne podkomendy {configuration["command_prefix"]}{name_string}{aliases_string}',
+            description=f'Użycie: {configuration["command_prefix"]}{name_string} <podkomenda>',
             color=somsiad.COLOR
         )
 
@@ -110,7 +111,7 @@ COMMANDS = (
         ('oblicz', 'policz'), ('wyrażenie', '?zmienne', '?poziom zaokrąglenia'),
         'Oblicza wartość podanego wyrażenia. '
         'Przyjmuje również oddzielone średnikami zmienne. Po średniku można też podać liczbę miejsc po przecinku do jakiej ma zostać zaokrąglony wynik. '
-        f'Przykładowo `{somsiad.conf["command_prefix"]}oblicz 71 / x; x = 58; 2` zwróci 71/100 '
+        f'Przykładowo `{configuration["command_prefix"]}oblicz 71 / x; x = 58; 2` zwróci 71/100 '
         'zaokrąglone do 2 cyfr po przecinku. '
         'Jeśli podane dane nie są wystarczające do obliczenia wartości równania, próbuje je uprościć.'
     ),
@@ -176,22 +177,22 @@ COMMANDS = (
     Helper.Command(
         ('disco', 'd'), 'podkomenda',
         'Grupa komend związanych z odtwarzaniem muzyki na kanale głosowym. '
-        f'Użyj {somsiad.conf["command_prefix"]}disco (d) bez podkomendy, by dowiedzieć się więcej.',
+        f'Użyj {configuration["command_prefix"]}disco (d) bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         'stat', 'podkomenda',
         'Grupa komend związanych ze statystykami na serwerze. '
-        f'Użyj {somsiad.conf["command_prefix"]}stat bez podkomendy, by dowiedzieć się więcej.',
+        f'Użyj {configuration["command_prefix"]}stat bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         'urodziny', 'podkomenda',
         'Grupa komend związanych z datami urodzin. '
-        f'Użyj {somsiad.conf["command_prefix"]}urodziny bez podkomendy, by dowiedzieć się więcej.',
+        f'Użyj {configuration["command_prefix"]}urodziny bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         ('handlowe', 'niedzielehandlowe'), 'podkomenda',
         'Grupa komend związanych z niedzielami handlowymi. '
-        f'Użyj {somsiad.conf["command_prefix"]}handlowe bez podkomendy, by dowiedzieć się więcej.',
+        f'Użyj {configuration["command_prefix"]}handlowe bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         ('spal', 'burn'),
@@ -201,7 +202,7 @@ COMMANDS = (
     Helper.Command(
         'przypinki', 'podkomenda',
         'Grupa komend związanych z archiwizacją przypiętych widadomości. '
-        f'Użyj {somsiad.conf["command_prefix"]}przypinki bez podkomendy, by dowiedzieć się więcej.',
+        f'Użyj {configuration["command_prefix"]}przypinki bez podkomendy, by dowiedzieć się więcej.',
     ),
     Helper.Command(
         ('głosowanie', 'glosowanie'), ('?liczba minut do ogłoszenia wyniku/godzina', 'sprawa'),
@@ -280,7 +281,7 @@ COMMANDS = (
 
 @somsiad.command(aliases=['help', 'pomocy', 'pomoc'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def help_message(ctx):
     await ctx.message.add_reaction('📫')

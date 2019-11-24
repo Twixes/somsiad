@@ -18,8 +18,9 @@ import string
 from typing import Union, Optional
 from numbers import Number
 import discord
-from somsiad import somsiad
+from core import somsiad
 from utilities import TextFormatter, interpret_str_as_datetime
+from configuration import configuration
 
 LETTER_EMOIJS = {
     'A': '🇦', 'B': '🇧', 'C': '🇨', 'D': '🇩', 'E': '🇪', 'F': '🇫', 'G': '🇬', 'H': '🇭', 'I': '🇮', 'J': '🇯',
@@ -29,7 +30,7 @@ LETTER_EMOIJS = {
 
 @somsiad.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
 @discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
 async def vote(
