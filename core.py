@@ -132,8 +132,8 @@ class Somsiad(Bot):
         info_lines = [
             f'Obudzono Somsiada (ID {self.user.id}).',
             '',
-            f'Połączono {TextFormatter.with_preposition_variant(number_of_users)} '
-            f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami")} '
+            f'Połączono '
+            f'{TextFormatter.word_number_variant(number_of_users, "użytkownikiem", "użytkownikami", include_with=True)} '
             f'na {TextFormatter.word_number_variant(number_of_servers, "serwerze", "serwerach")}.',
             '',
             'Link do zaproszenia bota:',

@@ -57,10 +57,10 @@ class TextFormatter:
             number /= 1000
         return 'ze' if 100 <= number < 200 else 'z'
 
-    @staticmethod
+    @classmethod
     def word_number_variant(
-            number: Number, singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
-            fractional_form: str = None, *, include_number: bool = True
+            cls, number: Number, singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
+            fractional_form: str = None, *, include_number: bool = True, include_with: bool = False
     ) -> str:
         """Returns the gramatically correct variant of the given word in Polish."""
         absolute_number = abs(number)
@@ -80,7 +80,14 @@ class TextFormatter:
                 else:
                     proper_form = plural_form
 
-        return f'{locale.str(number)} {proper_form}' if include_number else proper_form
+        parts = []
+        if include_with:
+            parts.append(cls.with_preposition_variant(number))
+        if include_number:
+            parts.append(locale.str(number))
+        parts.append(proper_form)
+
+        return ' '.join(parts)
 
     @classmethod
     def time_difference(

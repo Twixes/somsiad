@@ -185,6 +185,20 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
         expected_variant_without_number = 'klocek'
         self.assertEqual(returned_variant_without_number, expected_variant_without_number)
 
+    def test_singular_noun_with_with(self):
+        returned_variant_without_number = TextFormatter.word_number_variant(
+            1, 'klockiem', 'klockami', include_with=True
+        )
+        expected_variant_without_number = 'z 1 klockiem'
+        self.assertEqual(returned_variant_without_number, expected_variant_without_number)
+
+    def test_plural_noun_with_with(self):
+        returned_variant_without_number = TextFormatter.word_number_variant(
+            106, 'klockiem', 'klockami', include_with=True
+        )
+        expected_variant_without_number = 'ze 106 klockami'
+        self.assertEqual(returned_variant_without_number, expected_variant_without_number)
+
     def test_plural_noun_2_to_4(self):
         for number in (
             sign * (base + addition)
