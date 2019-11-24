@@ -1,5 +1,7 @@
 ***Languages: [polski](#somsiad--po-polsku), [English](#somsiad--in-english)***
 
+---
+
 # Somsiad – po polsku  
 
 Polski bot discordowy. Napisany w Pythonie.  
@@ -35,7 +37,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Wymagania  
 
-* Python 3.6 lub późniejszy.  
+* Python 3.6+.  
 
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
@@ -77,7 +79,7 @@ https://www.reddit.com/prefs/apps
 
   A także paczkę wsparcia języka polskiego dla twojego systemu.  
 Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `apt`:  
-`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg libjpeg-dev`  
+`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev libjpeg-dev ffmpeg`  
 
 ## Instalacja  
 
@@ -85,15 +87,15 @@ Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `
 https://github.com/Twixes/somsiad/releases/latest  
 
 2. Rozpakuj pobrane archiwum i wejdź do nowo utworzonego katalogu:  
-`$ tar -xvf Somsiad-<wersja>.tar.gz`  
-`$ cd Somsiad-<wersja>`  
+`$ tar -xvf somsiad-<wersja>.tar.gz`  
+`$ cd somsiad-<wersja>`  
 
-3. Uruchom bota (przy pierwszym uruchomieniu zostaniesz przeprowadzony przez krótki proces konfiguracji):  
+3. Uruchom bota:  
 `$ ./run.sh`  
-lub jeśli masz `screen`:  
-`$ screen -S Somsiad ./run.sh`  
+Lub jeśli masz `screen`:  
+`$ screen -S somsiad ./run.sh`  
 
-4. Zaproś Somsiada na swój serwer za pomocą linku podanego w konsoli po uruchomieniu.  
+4. Zapraszaj Somsiada na serwery za pomocą linku podanego w konsoli po uruchomieniu.  
 
 ## Licencja  
 
@@ -136,7 +138,7 @@ The Polish Discord bot. Written in Python.
 
 ## Prerequisites  
 
-* Python 3.6 or later.  
+* Python 3.6+.  
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
@@ -178,7 +180,7 @@ https://www.reddit.com/prefs/apps
 
   And also whatever the Polish language support package is for your system.  
 On Debian-based systems you can satisfy those dependencies with `apt`:  
-`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg libjpeg-dev`  
+`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev libjpeg-dev ffmpeg`  
 
 ## Installation  
 
@@ -186,15 +188,15 @@ On Debian-based systems you can satisfy those dependencies with `apt`:
 https://github.com/Twixes/somsiad/releases/latest  
 
 2. Unpack the downloaded archive and enter the newly created directory:  
-`$ tar -xvf Somsiad-<version>.tar.gz`  
-`$ cd Somsiad-<version>`  
+`$ tar -xvf somsiad-<version>.tar.gz`  
+`$ cd somsiad-<version>`  
 
-3. Run the bot (you will be guided through configuration on the first run):  
+3. Run the bot:  
 `$ ./run.sh`  
-or if you have `screen` installed:  
-`$ screen -S Somsiad ./run.sh`  
+Or if you have `screen` installed:  
+`$ screen -S somsiad ./run.sh`  
 
-4. Invite Somsiad to your server with the link provided in the console upon launch.  
+4. Invite Somsiad to servers with the link provided in the console upon launch.  
 
 ## License  
 
