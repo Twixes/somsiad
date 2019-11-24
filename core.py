@@ -162,7 +162,7 @@ class Somsiad(Bot):
         prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ']
         if message.guild is not None:
             session = data.Session()
-            data_server = session.query(data.Server).filter(data.Server.id == message.guild.id).one_or_none()
+            data_server = session.query(data.Server).get(message.guild.id)
             session.close()
         else:
             data_server = None
@@ -202,7 +202,7 @@ async def no(ctx, member: discord.Member = None):
 async def prefix(ctx, new_prefix = None):
     """Presents the current command prefix or changes it."""
     session = data.Session()
-    data_server = session.query(data.Server).filter(data.Server.id == ctx.guild.id).one()
+    data_server = session.query(data.Server).get(ctx.guild.id)
 
     if new_prefix is None:
         embed = discord.Embed(
