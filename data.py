@@ -24,6 +24,10 @@ Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
 
+def create_table(model):
+    Base.metadata.create_all(engine, tables=[model.__table__])
+
+
 def insert_or_ignore_by_id(
         model: Base, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], session: _Session = None
 ):
@@ -73,4 +77,4 @@ class Server(Base):
         insert_or_ignore_by_id(cls, values)
 
 
-Base.metadata.create_all(engine)
+create_table(Server)
