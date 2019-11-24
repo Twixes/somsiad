@@ -370,18 +370,6 @@ class TestTextFormatterHumanReadableTime(unittest.TestCase):
         self.assertEqual(returned_human_readable_time, expected_human_readable_time)
 
 
-class TestTextFormatterSeparator(unittest.TestCase):
-    def test_without_datetime(self):
-        returned_separator = TextFormatter.separator('=*', with_datetime=False, width=60, now_override=NOW_OVERRIDE)
-        expected_separator = '=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*'
-        self.assertEqual(returned_separator, expected_separator)
-
-    def test_with_datetime(self):
-        returned_separator = TextFormatter.separator('=*', width=60, now_override=NOW_OVERRIDE)
-        expected_separator = '=*=*=2013-12-24T12:00:00=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*'
-        self.assertEqual(returned_separator, expected_separator)
-
-
 class TestInterpretStrAsDatetime(unittest.TestCase):
     def test_format_1(self):
         expected_datetime = dt.datetime(2013, 12, 24, 18, 0).astimezone()
