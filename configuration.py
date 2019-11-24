@@ -3,6 +3,7 @@ import locale
 import os
 from dotenv import load_dotenv
 
+
 class Setting:
     __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'value')
 
@@ -19,8 +20,8 @@ class Setting:
     def __repr__(self) -> str:
         return (
             'Setting('
-            f'name=\'{self.name}\', description=\'{self.description}\', unit=\'{self.unit}\','
-            f'value_type=\'{self.value_type}\', default_value=\'{self.default_value}\''
+            f'name={self.name}, description={self.description}, unit={self.unit},'
+            f'value_type={self.value_type}, default_value={self.default_value}'
             ')'
         )
 
