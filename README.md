@@ -1,3 +1,5 @@
+***Languages: [polski](#somsiad--po-polsku), [English](#somsiad--in-english)***
+
 # Somsiad – po polsku  
 
 Polski bot discordowy. Napisany w Pythonie.  
