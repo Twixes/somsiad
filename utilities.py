@@ -51,20 +51,20 @@ class TextFormatter:
         return '…'
 
     @staticmethod
-    def with_preposition_variant(number: int) -> str:
+    def with_preposition_variant(number: Number) -> str:
         """Returns the gramatically correct variant of the 'with' preposition in Polish."""
-        while number // 1000 > 0:
-            number //= 1000
+        while number > 1000:
+            number /= 1000
         return 'ze' if 100 <= number < 200 else 'z'
 
     @staticmethod
     def word_number_variant(
-            number: Number, singular_form: str, plural_form_2_to_4: str, plural_form_5_to_1: str = None,
+            number: Number, singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
             fractional_form: str = None, *, include_number: bool = True
     ) -> str:
         """Returns the gramatically correct variant of the given word in Polish."""
         absolute_number = abs(number)
-        absolute_number_floored = absolute_number // 1
+        absolute_number_floored = int(absolute_number)
 
         if fractional_form is not None and absolute_number != absolute_number_floored:
             proper_form = fractional_form
@@ -73,12 +73,12 @@ class TextFormatter:
             if absolute_number == 1:
                 proper_form = singular_form
             elif absolute_number % 10 in (2, 3, 4) and absolute_number % 100 not in (12, 13, 14):
-                proper_form = plural_form_2_to_4
+                proper_form = plural_form
             else:
                 if plural_form_5_to_1 is not None:
                     proper_form = plural_form_5_to_1
                 else:
-                    proper_form = plural_form_2_to_4
+                    proper_form = plural_form
 
         return f'{locale.str(number)} {proper_form}' if include_number else proper_form
 
