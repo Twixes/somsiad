@@ -14,8 +14,7 @@
 import unittest
 import datetime as dt
 import locale
-from utilities import TextFormatter, interpret_str_as_datetime
-from run import setlocale
+from utilities import TextFormatter, interpret_str_as_datetime, setlocale
 
 NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
 

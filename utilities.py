@@ -13,10 +13,13 @@
 
 from typing import Union
 import locale
+import calendar
 import re
 from collections import namedtuple
 import datetime as dt
 from numbers import Number
+
+ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 
 
 class TextFormatter:
@@ -190,3 +193,16 @@ def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: 
     else:
         raise ValueError
     return datetime.astimezone()
+
+
+def setlocale(locale_index: int = 0):
+    """Set program locale and first day of the week."""
+    try:
+        locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[locale_index])
+    except locale.Error:
+        return setlocale(locale_index + 1)
+    except IndexError:
+        raise Exception(
+            f'no locale from the list of accepted ones ({", ".join(ACCEPTED_LOCALES)}) was found in the system'
+        )
+    return calendar.setfirstweekday(calendar.MONDAY)

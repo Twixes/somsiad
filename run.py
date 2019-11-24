@@ -13,26 +13,10 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import locale
-import calendar
 from core import somsiad
+from utilities import setlocale
 import server_data
 from plugins import *
-
-ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
-
-
-def setlocale(locale_index: int = 0):
-    """Set program locale and first day of the week."""
-    try:
-        locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[locale_index])
-    except locale.Error:
-        return setlocale(locale_index + 1)
-    except IndexError:
-        raise Exception(
-            f'no locale from the list of accepted ones ({", ".join(ACCEPTED_LOCALES)}) was found in the system'
-        )
-    calendar.setfirstweekday(calendar.MONDAY)
 
 
 if __name__ == '__main__':
