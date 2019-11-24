@@ -70,9 +70,12 @@ class Somsiad(Bot):
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
             os.makedirs(self.cache_dir_path)
-        self.prefix_safe_commands = tuple(map(
-            lambda command: f'{configuration["command_prefix"]}{command}',
+        self.prefix_safe_commands = tuple((
+            variant
+            for command in
             ('help', 'pomocy', 'pomoc', 'prefix', 'prefiks', 'przedrostek', 'info', 'informacje', 'ping')
+            for variant in
+            (f'{configuration["command_prefix"]} {command}', f'{configuration["command_prefix"]}{command}')
         ))
 
     async def on_ready(self):
@@ -168,8 +171,10 @@ class Somsiad(Bot):
         does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
         is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_commands)
         if does_server_have_custom_command_prefix:
+            prefixes.append(data_server.command_prefix + ' ')
             prefixes.append(data_server.command_prefix)
         if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
+            prefixes.append(configuration['command_prefix'] + ' ')
             prefixes.append(configuration['command_prefix'])
         return prefixes
 
@@ -192,39 +197,120 @@ async def no(ctx, member: discord.Member = None):
                 break
 
 
-@somsiad.command(aliases=['prefiks', 'przedrostek'])
+prefix_usage_example = lambda example_prefix: f'Przykład użycia: `{example_prefix}wersja` lub `{example_prefix} oof`.'
+
+
+@somsiad.group(aliases=['prefiks', 'przedrostek'], invoke_without_command=True)
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(administrator=True)
-async def prefix(ctx, new_prefix = None):
-    """Presents the current command prefix or changes it."""
+async def prefix(ctx):
+    """Command prefix commands."""
+    pass
+
+
+@prefix.command(aliases=['sprawdź', 'sprawdz'])
+@discord.ext.commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+)
+@discord.ext.commands.guild_only()
+async def prefix_check(ctx):
+    """Presents the current command prefix."""
     session = data.Session()
     data_server = session.query(data.Server).get(ctx.guild.id)
-
-    if new_prefix is None:
-        embed = discord.Embed(
-            title=':wrench: Obecny prefiks to '
-            f'*{data_server.command_prefix or configuration["command_prefix"]}*'
-            f'{" (wartość domyślna)" if data_server.command_prefix is None else ""}',
-            color=somsiad.COLOR
-        )
-    elif len(new_prefix) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
-        embed = discord.Embed(
-            title=':warning: Prefiks nie może być dłuższy niż '
-            f'{word_number_form(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")}!',
-            color=somsiad.COLOR
-        )
-    else:
-        data_server.command_prefix = new_prefix
-        session.commit()
-        embed = discord.Embed(
-            title=f':white_check_mark: Ustawiono nowy prefiks *{new_prefix}*',
-            color=somsiad.COLOR
-        )
+    current_prefix = data_server.command_prefix or configuration["command_prefix"]
+    embed = discord.Embed(
+        title=':wrench: Obecny prefiks to '
+        f'"{current_prefix}"{" (wartość domyślna)" if data_server.command_prefix is None else ""}',
+        description=prefix_usage_example(current_prefix),
+        color=somsiad.COLOR
+    )
     session.close()
     await ctx.send(ctx.author.mention, embed=embed)
+
+
+@prefix.command(aliases=['ustaw'])
+@discord.ext.commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+)
+@discord.ext.commands.guild_only()
+@discord.ext.commands.has_permissions(administrator=True)
+async def prefix_set(ctx, *, new_prefix: str):
+    """Sets a new command prefix."""
+    session = data.Session()
+    data_server = session.query(data.Server).get(ctx.guild.id)
+    if len(new_prefix) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
+        session.close()
+        raise discord.ext.commands.BadArgument
+    data_server.command_prefix = new_prefix
+    session.commit()
+    embed = discord.Embed(
+        title=f':white_check_mark: Ustawiono nowy prefiks "{new_prefix}"',
+        description=prefix_usage_example(new_prefix),
+        color=somsiad.COLOR
+    )
+    session.close()
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@prefix_set.error
+async def prefix_set_error(ctx, error):
+    """Handles new command prefix setting errors."""
+    embed = None
+    if isinstance(error, discord.ext.commands.MissingPermissions):
+        embed = discord.Embed(
+            title=':warning: Do ustawienia prefiksu potrzebne są uprawnienia adminstratora',
+            color=somsiad.COLOR
+        )
+    elif isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        embed = discord.Embed(
+            title=':warning: Nie podano nowego prefiksu',
+            color=somsiad.COLOR
+        )
+    elif isinstance(error, discord.ext.commands.BadArgument):
+        embed = discord.Embed(
+            title=':warning: Nowy prefiks nie może być dłuższy niż '
+            f'{word_number_form(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")}',
+            color=somsiad.COLOR
+        )
+    if embed is not None:
+        await ctx.send(ctx.author.mention, embed=embed)
+
+
+@prefix.command(aliases=['usuń', 'usun'])
+@discord.ext.commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+)
+@discord.ext.commands.guild_only()
+@discord.ext.commands.has_permissions(administrator=True)
+async def prefix_remove(ctx):
+    """Reverts to the default command prefix."""
+    session = data.Session()
+    data_server = session.query(data.Server).get(ctx.guild.id)
+    data_server.command_prefix = None
+    session.commit()
+    new_prefix = configuration['command_prefix']
+    embed = discord.Embed(
+        title=f':white_check_mark: Przywrócono domyślny prefiks "{new_prefix}"',
+        description=prefix_usage_example(new_prefix),
+        color=somsiad.COLOR
+    )
+    session.close()
+    await ctx.send(ctx.author.mention, embed=embed)
+
+
+@prefix_remove.error
+async def prefix_remove_error(ctx, error):
+    """Handles reverting to the default command prefix errors."""
+    embed = None
+    if isinstance(error, discord.ext.commands.MissingPermissions):
+        embed = discord.Embed(
+            title=':warning: Do usunięcia prefiksu potrzebne są uprawnienia adminstratora',
+            color=somsiad.COLOR
+        )
+    if embed is not None:
+        await ctx.send(ctx.author.mention, embed=embed)
 
 
 @somsiad.command(aliases=['wersja', 'v'])
