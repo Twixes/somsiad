@@ -12,3 +12,4 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 __version__ = '2.0.0'
+__copyright__ = '© 2018-2019 ondondil, Twixes et al.'

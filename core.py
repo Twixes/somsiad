@@ -22,12 +22,11 @@ import itertools
 import datetime as dt
 import discord
 from discord.ext.commands import Bot
-from version import __version__
+from version import __version__, __copyright__
 from utilities import TextFormatter
 from configuration import configuration
 import data
 
-COPYRIGHT = '© 2018-2019 Twixes, ondondil et al.'
 
 class Somsiad(Bot):
     COLOR = 0x7289da
@@ -144,7 +143,7 @@ class Somsiad(Bot):
             '',
             f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
             '',
-            COPYRIGHT
+            __copyright__
         ]
         return '\n'.join(info_lines)
 
@@ -239,7 +238,7 @@ async def version(ctx):
         url=somsiad.WEBSITE_URL,
         color=somsiad.COLOR
     )
-    embed.set_footer(text=COPYRIGHT)
+    embed.set_footer(text=__copyright__)
     await ctx.send(ctx.author.mention, embed=embed)
 
 
@@ -260,7 +259,7 @@ async def info(ctx):
         name='Czas pracy', value=TextFormatter.human_readable_time(dt.datetime.now() - somsiad.run_datetime)
     )
     embed.add_field(name='Właściciel instancji', value=(await somsiad.application_info()).owner.mention)
-    embed.set_footer(text=COPYRIGHT)
+    embed.set_footer(text=__copyright__)
     await ctx.send(ctx.author.mention, embed=embed)
 
 
