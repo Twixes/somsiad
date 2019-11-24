@@ -268,7 +268,7 @@ async def no(ctx, member: discord.Member = None):
 
 GROUP = Help.Command(('prefiks', 'prefix', 'przedrostek'), (), 'Grupa komend związanych z prefiksem.')
 COMMANDS = (
-    Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje prefiks obowiązujący na serwerze.'),
+    Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks.'),
     Help.Command(('ustaw'), (), 'Ustawia na serwerze podany prefiks.'),
     Help.Command(('usuń', 'usun'), (), 'Przywraca na serwerze domyślny prefiks.')
 )
@@ -281,7 +281,6 @@ prefix_usage_example = lambda example_prefix: f'Przykład użycia: `{example_pre
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
 async def prefix(ctx):
     """Command prefix commands."""
     await HELP.send(ctx)
@@ -291,15 +290,15 @@ async def prefix(ctx):
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
 async def prefix_check(ctx):
     """Presents the current command prefix."""
     session = data.Session()
-    data_server = session.query(data.Server).get(ctx.guild.id)
-    current_prefix = data_server.command_prefix or configuration["command_prefix"]
+    data_server = session.query(data.Server).get(ctx.guild.id) if ctx.guild is not None else None
+    is_prefix_custom = data_server is not None and data_server.command_prefix is not None
+    current_prefix = data_server.command_prefix if is_prefix_custom else configuration["command_prefix"]
     embed = discord.Embed(
-        title=':wrench: Obecny prefiks to '
-        f'"{current_prefix}"{" (wartość domyślna)" if data_server.command_prefix is None else ""}',
+        title=':wrench: Obowiązujący prefiks to '
+        f'"{current_prefix}"{" (wartość domyślna)" if not is_prefix_custom else ""}',
         description=prefix_usage_example(current_prefix),
         color=somsiad.COLOR
     )
