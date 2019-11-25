@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union
+from typing import Union, Optional
 from numbers import Number
 import locale
 import calendar
@@ -169,6 +169,19 @@ def human_amount_of_time(time: Union[dt.timedelta, Number]) -> str:
             information.append(f'{seconds} s')
 
     return ' '.join(information)
+
+
+def days_as_weeks(number_of_days: int, none_if_no_weeks: bool = True) -> Optional[str]:
+    number_of_weeks, number_of_leftover_days = divmod(number_of_days, 7)
+    if number_of_weeks == 0:
+        return None if none_if_no_weeks else word_number_form(number_of_leftover_days, 'dzień', 'dni')
+    elif number_of_leftover_days == 0:
+        return word_number_form(number_of_weeks, 'tydzień', 'tygodnie', 'tygodni')
+    else:
+        return (
+            f'{word_number_form(number_of_weeks, "tydzień", "tygodnie", "tygodni")} '
+            f'i {word_number_form(number_of_leftover_days, "dzień", "dni")}'
+        )
 
 
 def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: dt.datetime = None) -> dt.datetime:
