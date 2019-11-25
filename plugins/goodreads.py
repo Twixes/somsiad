@@ -12,11 +12,11 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import locale
-import xml.etree.ElementTree as ET
 import aiohttp
 import discord
 from core import somsiad
 from configuration import configuration
+from defusedxml import ElementTree
 
 
 @somsiad.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
@@ -40,7 +40,7 @@ async def goodreads(ctx, *, query):
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers, params=params) as response:
             if response.status == 200:
-                tree = ET.fromstring(await response.text())
+                tree = ElementTree.fromstring(await response.text())
                 node = tree.find('.//total-results')
                 if node.text == '0':
                     embed = discord.Embed(
