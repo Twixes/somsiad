@@ -31,7 +31,7 @@ ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 URL_REGEX = re.compile(r'(https?://[\S]+\.[\S]+)')
 
 
-def first_url(string: str) -> str:
+def first_url(string: str) -> Optional[str]:
     """Return the first well-formed URL found in the string."""
     search_result = URL_REGEX.search(string)
     return search_result.group().rstrip('()[{]};:\'",<.>') if search_result is not None else None
@@ -49,7 +49,7 @@ def text_snippet(text: str, limit: int) -> str:
         cut_text = words[0]
         for word in words[1:]:
             if len(cut_text) + 1 + len(word) < limit:
-                cut_text = f'{cut_text} {word}'
+                cut_text += ' ' + word
             else:
                 break
         return cut_text.rstrip(',') + '…'
@@ -58,8 +58,7 @@ def text_snippet(text: str, limit: int) -> str:
 
 def with_preposition_form(number: Number) -> str:
     """Return the gramatically correct form of the "with" preposition in Polish."""
-    while number > 1000:
-        number /= 1000
+    while number > 1000: number /= 1000
     return 'ze' if 100 <= number < 200 else 'z'
 
 
@@ -93,7 +92,6 @@ def word_number_form(
     parts.append(proper_form)
 
     return ' '.join(parts)
-
 
 
 def human_timedelta(
@@ -140,8 +138,6 @@ def human_timedelta(
 
 def human_amount_of_time(time: Union[dt.timedelta, Number]) -> str:
     """Return the provided amoutt of in Polish."""
-    information = []
-
     if isinstance(time, dt.timedelta):
         total_seconds = int(round(time.total_seconds()))
     elif isinstance(time, Number):
@@ -150,23 +146,24 @@ def human_amount_of_time(time: Union[dt.timedelta, Number]) -> str:
         raise TypeError('time must be datetime.timedelta or numbers.Number')
 
     if total_seconds == 0.0:
-        information.append(f'0 s')
-    else:
-        days = total_seconds // 86400
-        total_seconds -= days * 86400
-        hours = total_seconds // 3600
-        total_seconds -= hours * 3600
-        minutes = total_seconds // 60
-        total_seconds -= minutes * 60
-        seconds = total_seconds
-        if days >= 1:
-            information.append(f'{days} d')
-        if hours >= 1:
-            information.append(f'{hours} h')
-        if minutes >= 1:
-            information.append(f'{minutes} min')
-        if seconds >= 1:
-            information.append(f'{seconds} s')
+        return '0 s'
+
+    days = total_seconds // 86400
+    total_seconds -= days * 86400
+    hours = total_seconds // 3600
+    total_seconds -= hours * 3600
+    minutes = total_seconds // 60
+    total_seconds -= minutes * 60
+    seconds = total_seconds
+    information = []
+    if days >= 1:
+        information.append(f'{days} d')
+    if hours >= 1:
+        information.append(f'{hours} h')
+    if minutes >= 1:
+        information.append(f'{minutes} min')
+    if seconds >= 1:
+        information.append(f'{seconds} s')
 
     return ' '.join(information)
 
