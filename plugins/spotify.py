@@ -42,19 +42,19 @@ async def spotify(ctx, member: discord.Member = None):
         )
     else:
         embed = discord.Embed(
-            title=f':arrow_forward: {member.activity.title}',
-            url=f'https://open.spotify.com/go?uri=spotify:track:{member.activity.track_id}',
+            title=f':arrow_forward: {spotify_activity.title}',
+            url=f'https://open.spotify.com/go?uri=spotify:track:{spotify_activity.track_id}',
             color=somsiad.COLOR
         )
-        embed.set_thumbnail(url=member.activity.album_cover_url)
-        embed.add_field(name='W wykonaniu', value=', '.join(member.activity.artists))
-        embed.add_field(name='Z albumu', value=member.activity.album)
+        embed.set_thumbnail(url=spotify_activity.album_cover_url)
+        embed.add_field(name='W wykonaniu', value=', '.join(spotify_activity.artists))
+        embed.add_field(name='Z albumu', value=spotify_activity.album)
         embed.add_field(
-            name='Długość', value=human_amount_of_time(member.activity.duration.total_seconds())
+            name='Długość', value=human_amount_of_time(spotify_activity.duration.total_seconds())
         )
 
         # Search for the song on YouTube
-        youtube_search_query = f'{member.activity.title} {" ".join(member.activity.artists)}'
+        youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
         youtube_search_result = youtube.search(youtube_search_query)
         # Add a link to a YouTube video if a match was found
         if (
