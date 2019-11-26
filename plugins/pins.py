@@ -13,6 +13,7 @@
 
 from typing import Optional, Sequence
 import io
+from collections import defaultdict
 import discord
 from core import somsiad, Help
 from utilities import first_url, word_number_form
@@ -71,9 +72,9 @@ class PinArchive(data.Base):
                 await channel.send(embed=pin_embed)
 
 
-data.create_table(PinArchive)
-
-GROUP = Help.Command(('przypinki', 'piny'), (), 'Grupa komend związanych z archiwizacją przypinek.')
+GROUP = Help.Command(
+    ('przypięte', 'przypinki', 'piny'), (), 'Grupa komend związanych z archiwizacją przypiętych wiadomości.'
+)
 COMMANDS = (
     Help.Command(
         ('kanał', 'kanal'), '?kanał',
@@ -90,8 +91,12 @@ COMMANDS = (
 )
 HELP = Help(COMMANDS, group=GROUP)
 
+channels_being_processed_on_servers = defaultdict(lambda: None)
 
-@somsiad.group(aliases=['przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
+data.create_table(PinArchive)
+
+
+@somsiad.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -164,33 +169,46 @@ async def pins_archive(ctx):
     session = data.Session()
     pin_archive = session.query(PinArchive).get(ctx.guild.id)
     if pin_archive is None or pin_archive.channel_id is None:
-        result_embed = discord.Embed(
+        embed = discord.Embed(
             title=':warning: Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości',
             color=somsiad.COLOR
         )
     else:
         pin_archive_channel = pin_archive.channel
         if pin_archive_channel is None:
-            result_embed = discord.Embed(
+            embed = discord.Embed(
                 title=':warning: Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje',
                 color=somsiad.COLOR
             )
         else:
             pins = await ctx.channel.pins()
             if not pins:
-                result_embed = discord.Embed(
+                embed = discord.Embed(
                     title=':red_circle: Brak przypiętych wiadomości do zarchiwizowania',
                     color=somsiad.COLOR
                 )
-            else:
-                async with ctx.typing(): await pin_archive.archive(reversed(pins))
-                result_embed = discord.Embed(
-                    title=':white_check_mark: Zarchiwizowano '
-                    f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
+            elif channels_being_processed_on_servers[ctx.guild.id] is not None:
+                embed = discord.Embed(
+                    title=':red_circle: Na serwerze właśnie trwa przetwarzanie kanału '
+                    f'#{channels_being_processed_on_servers[ctx.guild.id]}',
                     color=somsiad.COLOR
                 )
+            else:
+                try:
+                    channels_being_processed_on_servers[ctx.guild.id] = ctx.channel
+                    async with ctx.typing(): await pin_archive.archive(reversed(pins))
+                except Exception as e:
+                    raise e
+                else:
+                    embed = discord.Embed(
+                        title=':white_check_mark: Zarchiwizowano '
+                        f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
+                        color=somsiad.COLOR
+                    )
+                finally:
+                    channels_being_processed_on_servers[ctx.guild.id] = None
     session.close()
-    await ctx.send(ctx.author.mention, embed=result_embed)
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 @pins.command(aliases=['wyczyść', 'wyczysc'])
@@ -202,16 +220,29 @@ async def pins_archive(ctx):
 async def pins_clear(ctx):
     """Unpins all pins in the channel."""
     pins = await ctx.channel.pins()
-    if pins:
-        for pin in pins: await pin.unpin()
-        result_embed = discord.Embed(
-            title=':white_check_mark: Odpięto '
-            f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
-            color=somsiad.COLOR
-        )
-    else:
-        result_embed = discord.Embed(
+    if not pins:
+        embed = discord.Embed(
             title=':red_circle: Brak przypiętych wiadomości do odpięcia',
             color=somsiad.COLOR
         )
-    await ctx.send(ctx.author.mention, embed=result_embed)
+    elif channels_being_processed_on_servers[ctx.guild.id] is not None:
+        embed = discord.Embed(
+            title=':red_circle: Na serwerze właśnie trwa przetwarzanie kanału '
+            f'#{channels_being_processed_on_servers[ctx.guild.id]}',
+            color=somsiad.COLOR
+        )
+    else:
+        try:
+            channels_being_processed_on_servers[ctx.guild.id] = ctx.channel
+            for pin in pins: await pin.unpin()
+        except Exception as e:
+            raise e
+        else:
+            embed = discord.Embed(
+                title=':white_check_mark: Odpięto '
+                f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
+                color=somsiad.COLOR
+            )
+        finally:
+            channels_being_processed_on_servers[ctx.guild.id] = None
+    await ctx.send(ctx.author.mention, embed=embed)
