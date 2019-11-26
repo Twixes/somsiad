@@ -13,11 +13,21 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from configuration import configuration
+
+if configuration['sentry_dsn'] is not None:
+    import sentry_sdk
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from version import __version__
+    sentry_sdk.init(
+        configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
+        integrations=[SqlalchemyIntegration()]
+    )
+
 from core import somsiad
 from utilities import setlocale
 import server_data
 from plugins import *
-
 
 if __name__ == '__main__':
     print('Budzenie Somsiada...')

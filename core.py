@@ -16,10 +16,10 @@ import os
 import sys
 import asyncio
 import platform
-import logging
 import random
 import itertools
 import datetime as dt
+import sentry_sdk
 import discord
 from discord.ext.commands import Bot
 from version import __version__, __copyright__
@@ -60,12 +60,6 @@ class Somsiad(Bot):
             case_insensitive=True
         )
         self.run_datetime = None
-        self.logger = logging.getLogger('Somsiad')
-        logging.basicConfig(
-            filename=os.path.join(self.bot_dir_path, 'somsiad.log'),
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s'
-        )
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
@@ -99,30 +93,35 @@ class Somsiad(Bot):
             )
             await ctx.send(ctx.author.mention, embed=embed)
         else:
-            prefixed_command_qualified_name = f'{configuration["command_prefix"]}{ctx.command.qualified_name}'
-            if ctx.guild is None:
-                log_entry = (
-                    f'Ignoring {type(error).__name__} type exception in command {prefixed_command_qualified_name} '
-                    f'used by {ctx.author} (ID {ctx.author.id}) in direct messages: "{error}"'
-                )
-            else:
-                log_entry = (
-                    f'Ignoring {type(error).__name__} type exception in command {prefixed_command_qualified_name} '
-                    f'used by {ctx.author} (ID {ctx.author.id}) on server {ctx.guild} (ID {ctx.guild.id}): "{error}"'
-                )
-            self.logger.error(log_entry)
+            with sentry_sdk.push_scope() as scope:
+                scope.user = {
+                    'id': ctx.author.id, 'username': str(ctx.author),
+                    'activities': (
+                        ', '.join((activity.name for activity in ctx.author.activities))
+                        if ctx.guild is not None else None
+                    )
+                }
+                scope.set_tag('command', ctx.command.qualified_name)
+                scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
+                scope.set_context('message', {
+                    'prefix': ctx.prefix, 'content': ctx.message.content,
+                    'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
+                })
+                scope.set_context('channel', {
+                    'id': ctx.channel.id, 'name': str(ctx.channel)
+                })
+                if ctx.guild is not None:
+                    scope.set_context('server', {
+                        'id': ctx.guild.id, 'name': str(ctx.guild)
+                    })
+                sentry_sdk.capture_exception(error)
 
     async def on_guild_join(self, server):
         data.Server.register(server)
 
     def controlled_run(self):
         self.run_datetime = dt.datetime.now()
-        try:
-            self.run(configuration['discord_token'], reconnect=True)
-        except discord.errors.ClientException:
-            self.logger.critical('Client could not come online! The Discord bot token provided may be faulty.')
-        else:
-            self.logger.info('Client started.')
+        self.run(configuration['discord_token'], reconnect=True)
 
     def invite_url(self) -> str:
         """Return the invitation URL of the bot."""

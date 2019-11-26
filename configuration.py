@@ -88,6 +88,7 @@ SETTINGS = (
         unit='s', value_type=float, default_value=1.0
     ),
     Setting('database_url', description='URL bazy danych'),
+    Setting('sentry_dsn', description='DSN Sentry', optional=True),
     Setting('google_key', description='Klucz API Google'),
     Setting('google_custom_search_engine_id', description='Identyfikator CSE Google'),
     Setting('goodreads_key', description='Klucz API Goodreads'),

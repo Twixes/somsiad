@@ -11,7 +11,6 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import logging
 import discord
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -44,7 +43,6 @@ class YouTube:
             results = search_response.get('items')
             return results
         except HttpError as e:
-            logging.error(e)
             return None
 
 
