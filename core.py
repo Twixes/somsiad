@@ -82,39 +82,18 @@ class Somsiad(Bot):
             pass
         elif isinstance(error, discord.ext.commands.NoPrivateMessage):
             embed = discord.Embed(
-                title=f':warning: Ta komenda nie może być użyta w prywatnych wiadomościach!',
+                title=f':warning: Ta komenda nie może być użyta w prywatnych wiadomościach',
                 color=self.COLOR
             )
             await ctx.send(embed=embed)
         elif isinstance(error, discord.ext.commands.DisabledCommand):
             embed = discord.Embed(
-                title=f':warning: Ta komenda jest wyłączona!',
+                title=f':warning: Ta komenda jest wyłączona',
                 color=self.COLOR
             )
             await ctx.send(ctx.author.mention, embed=embed)
         else:
-            with sentry_sdk.push_scope() as scope:
-                scope.user = {
-                    'id': ctx.author.id, 'username': str(ctx.author),
-                    'activities': (
-                        ', '.join((activity.name for activity in ctx.author.activities))
-                        if ctx.guild is not None else None
-                    )
-                }
-                scope.set_tag('command', ctx.command.qualified_name)
-                scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
-                scope.set_context('message', {
-                    'prefix': ctx.prefix, 'content': ctx.message.content,
-                    'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
-                })
-                scope.set_context('channel', {
-                    'id': ctx.channel.id, 'name': str(ctx.channel)
-                })
-                if ctx.guild is not None:
-                    scope.set_context('server', {
-                        'id': ctx.guild.id, 'name': str(ctx.guild)
-                    })
-                sentry_sdk.capture_exception(error)
+            self.handle_error(ctx, error)
 
     async def on_guild_join(self, server):
         data.Server.register(server)
@@ -157,6 +136,31 @@ class Somsiad(Bot):
                 activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
             )
             await asyncio.sleep(15)
+
+    def handle_error(self, ctx, error):
+        if configuration['sentry_dsn'] is None: raise error
+        with sentry_sdk.push_scope() as scope:
+            scope.user = {
+                'id': ctx.author.id, 'username': str(ctx.author),
+                'activities': (
+                    ', '.join((activity.name for activity in ctx.author.activities))
+                    if ctx.guild is not None else None
+                )
+            }
+            scope.set_tag('command', ctx.command.qualified_name)
+            scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
+            scope.set_context('message', {
+                'prefix': ctx.prefix, 'content': ctx.message.content,
+                'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
+            })
+            scope.set_context('channel', {
+                'id': ctx.channel.id, 'name': str(ctx.channel)
+            })
+            if ctx.guild is not None:
+                scope.set_context('server', {
+                    'id': ctx.guild.id, 'name': str(ctx.guild)
+                })
+            sentry_sdk.capture_exception(error)
 
     def _get_prefix(self, bot: Bot, message: discord.Message) -> List[str]:
         user_id = bot.user.id
