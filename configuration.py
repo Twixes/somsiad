@@ -73,7 +73,7 @@ class Configuration:
             setting.set_value_with_env()
         self.settings = {setting.name: setting for setting in settings}
 
-    def __getitem__(self, key: str):
+    def __getitem__(self, key: str) -> Any:
         try:
             return self.settings[key].value
         except KeyError:
