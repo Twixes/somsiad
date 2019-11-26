@@ -31,10 +31,11 @@ class Setting:
 
     def human_value(self) -> str:
         if self.value is None:
-            return 'brak!' if self.default_value is None else 'brak'
-        if self.unit is not None:
+            return 'brak'
+        elif self.unit is not None:
             return f'{self.value} {self.unit}'
-        return str(self.value)
+        else:
+            return str(self.value)
 
     def set_value_with_env(self):
         try:
