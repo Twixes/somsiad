@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # Copyright 2019 Twixes
 
@@ -19,7 +19,7 @@ import json
 
 
 def migrate_from_json_to_env():
-    print('Migrating configuration from .json to .env... ', end='')
+    print('Migrating configuration from .json to .env... ')
     json_f_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.json')
     env_f_path = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), '.env')
     if os.path.exists(json_f_path):
@@ -34,4 +34,5 @@ def migrate_from_json_to_env():
         print(f'Skipped: no file at {json_f_path}')
 
 
-migrate_from_json_to_env()
+if __name__ == '__main__':
+    migrate_from_json_to_env()
