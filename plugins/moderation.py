@@ -430,7 +430,7 @@ async def purge(ctx, number_of_messages_to_delete: int = 1):
         color=somsiad.COLOR
     )
 
-    await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
+    await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS)
 
 
 @purge.error
@@ -441,11 +441,11 @@ async def purge_error(ctx, error):
             description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia',
             description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS)

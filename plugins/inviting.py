@@ -75,7 +75,9 @@ async def invite(ctx, *, argument = ''):
                 description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
                 color=somsiad.COLOR
             )
-            await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
+            await ctx.send(
+                ctx.author.mention, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS
+            )
         else:
             if max_uses == 0:
                 max_uses_info = ' o nieskończonej liczbie użyć'
@@ -99,4 +101,4 @@ async def invite(ctx, *, argument = ''):
             description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
+        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS)
