@@ -1,21 +1,22 @@
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence
 import locale
 import os
 from dotenv import load_dotenv
 
 
 class Setting:
-    __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'value')
+    __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'optional', 'value')
 
     def __init__(
             self, name: str, *, description: str, unit: Sequence[str] = None, value_type = str,
-            default_value: Any = None
+            default_value: Any = None, optional: Optional[bool] = None
     ):
         self.name = name
         self.description = description
         self.unit = unit
         self.value_type = value_type
         self.default_value = default_value
+        self.optional = optional or default_value is not None
 
     def __repr__(self) -> str:
         return (
@@ -36,7 +37,15 @@ class Setting:
         return str(self.value)
 
     def set_value_with_env(self):
-        value_obtained = os.getenv(self.name.upper(), self.default_value)
+        try:
+            value_obtained = os.environ[self.name.upper()]
+        except KeyError:
+            if self.optional:
+                value_obtained = self.default_value
+            else:
+                raise Exception(
+                    f'mandatory setting {self.name.upper()} could not be loaded from os.environ nor from .env'
+                )
         self.value = self._convert_value_to_type(value_obtained)
 
     def _convert_value_to_type(self, value: Any) -> Any:
@@ -65,7 +74,10 @@ class Configuration:
         self.settings = {setting.name: setting for setting in settings}
 
     def __getitem__(self, key: str):
-        return self.settings[key].value
+        try:
+            return self.settings[key].value
+        except KeyError:
+            return os.getenv(key.upper())
 
 
 SETTINGS = (
