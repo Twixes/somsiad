@@ -11,121 +11,93 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Optional, Sequence
 import io
 import discord
-from core import somsiad
-from server_data import server_data_manager
+from core import somsiad, Help
 from utilities import first_url, word_number_form
 from configuration import configuration
+import data
 
 
-class PinArchivesManager:
-    def __init__(self):
-        """Sets up the table in the database."""
-        server_data_manager.servers_db_cursor.execute(
-            '''CREATE TABLE IF NOT EXISTS pin_archive_channels(
-                server_id INTEGER NOT NULL PRIMARY KEY,
-                channel_id INTEGER NOT NULL
-            )'''
-        )
-        server_data_manager.servers_db.commit()
+class PinArchive(data.Base):
+    __tablename__ = 'pin_archives'
 
-    def set_archive_channel_id(self, server_id: int, channel_id: int):
-        """Sets the ID of the server's pin archive channel."""
-        if self.get_archive_channel_id(server_id) is None:
-            server_data_manager.servers_db_cursor.execute(
-                'INSERT INTO pin_archive_channels(server_id, channel_id) VALUES(?, ?)',
-                (server_id, channel_id)
+    server_id = data.Column(data.BigInteger, data.ForeignKey('servers.id'), primary_key=True)
+    channel_id = data.Column(data.BigInteger)
+
+    @property
+    def server(self) -> discord.Guild:
+        return somsiad.get_guild(self.server_id)
+
+    @property
+    def channel(self) -> Optional[discord.TextChannel]:
+        return somsiad.get_channel(self.channel_id) if self.channel_id is not None else None
+
+    async def archive(self, messages: Sequence[discord.Message]):
+        """Archives the provided message."""
+        channel = self.channel
+        for message in messages:
+            pin_embed = discord.Embed(
+                description=message.content,
+                color=somsiad.COLOR,
+                timestamp=message.created_at
             )
-        else:
-            server_data_manager.servers_db_cursor.execute(
-                'UPDATE pin_archive_channels SET channel_id = ? WHERE server_id = ?',
-                (channel_id, server_id)
+            pin_embed.set_author(
+                name=message.author.display_name,
+                url=message.jump_url,
+                icon_url=message.author.avatar_url
             )
-        server_data_manager.servers_db.commit()
+            pin_embed.set_footer(text=f'#{message.channel}')
 
-    def get_archive_channel_id(self, server_id: int) -> int:
-        """Gets the ID of the server's pin archive channel."""
-        server_data_manager.servers_db_cursor.execute(
-            'SELECT channel_id FROM pin_archive_channels WHERE server_id = ?',
-            (server_id,)
-        )
-        archive_channel_id = server_data_manager.servers_db_cursor.fetchone()
+            files = []
+            for attachment in message.attachments:
+                filename = attachment.filename
+                fp = io.BytesIO()
+                await attachment.save(fp)
+                file = discord.File(fp, filename)
+                files.append(file)
 
-        if archive_channel_id is None:
-            return None
-        else:
-            return archive_channel_id[0]
-
-    @staticmethod
-    async def archive_pin(pin: discord.Message, archive_channel: discord.TextChannel):
-        """Archives the provided message in the provided channel."""
-        pin_embed = discord.Embed(
-            description=pin.content,
-            color=somsiad.COLOR,
-            timestamp=pin.created_at
-        )
-        pin_embed.set_author(
-            name=pin.author.display_name,
-            url=pin.jump_url,
-            icon_url=pin.author.avatar_url
-        )
-        pin_embed.set_footer(text=f'#{pin.channel}')
-
-        files = []
-        for attachment in pin.attachments:
-            filename = attachment.filename
-            fp = io.BytesIO()
-            await attachment.save(fp)
-            file = discord.File(fp, filename)
-            files.append(file)
-
-        if len(files) == 1:
-            if pin.attachments[0].height is not None:
-                pin_embed.set_image(url=f'attachment://{pin.attachments[0].filename}')
-            await archive_channel.send(embed=pin_embed, file=files[0])
-        elif len(files) > 1:
-            await archive_channel.send(embed=pin_embed, files=files)
-        else:
-            url_from_content = first_url(pin.content)
-            if url_from_content is not None:
-                pin_embed.set_image(url=url_from_content)
-            await archive_channel.send(embed=pin_embed)
+            if len(files) == 1:
+                if message.attachments[0].height is not None:
+                    pin_embed.set_image(url=f'attachment://{message.attachments[0].filename}')
+                await channel.send(embed=pin_embed, file=files[0])
+            elif len(files) > 1:
+                await channel.send(embed=pin_embed, files=files)
+            else:
+                url_from_content = first_url(message.content)
+                if url_from_content is not None:
+                    pin_embed.set_image(url=url_from_content)
+                await channel.send(embed=pin_embed)
 
 
-pin_archives_manager = PinArchivesManager()
+data.create_table(PinArchive)
+
+GROUP = Help.Command(('przypinki', 'piny'), (), 'Grupa komend związanych z archiwizacją przypinek.')
+COMMANDS = (
+    Help.Command(
+        ('kanał', 'kanal'), '?kanał',
+        'Jeśli podano <?kanał>, ustawia go jako serwerowy kanał archiwum przypiętych wiadomości. '
+        'W przeciwnym razie pokazuje jaki kanał obecnie jest archiwum przypiętych wiadomości.'
+    ),
+    Help.Command(
+        ('archiwizuj', 'zarchiwizuj'), (),
+        'Archiwizuje wiadomości przypięte na kanale na którym użyto komendy przez zapisanie ich na kanale archiwum.'
+    ),
+    Help.Command(
+        ('wyczyść', 'wyczysc'), (), 'Odpina wszystkie wiadomości na kanale.'
+    )
+)
+HELP = Help(COMMANDS, group=GROUP)
 
 
-@somsiad.group(aliases=['przypinki'], invoke_without_command=True, case_insensitive=True)
+@somsiad.group(aliases=['przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def pins(ctx):
     """A group of pin-related commands."""
-    embed = discord.Embed(
-        title=f'Podkomendy {configuration["command_prefix"]}{ctx.invoked_with}',
-        description=f'Użycie: {configuration["command_prefix"]}{ctx.invoked_with} <podkomenda>',
-        color=somsiad.COLOR
-    )
-    embed.add_field(
-        name='kanał (kanal) <?kanał>',
-        value='Ustawia <kanał> jako kanał archiwum przypiętych wiadomości. Jeśli nie podano <?kanału>, '
-        'przyjmuje kanał na którym użyto komendy.',
-        inline=False
-    )
-    embed.add_field(
-        name='zarchiwizuj',
-        value='Archiwizuje wiadomości przypięte na kanale na którym użyto komendy przez zapisanie ich '
-        'na kanale archiwum.',
-        inline=False
-    )
-    embed.add_field(
-        name='wyczyść (wyczysc)',
-        value='Odpina wszystkie wiadomości na kanale.',
-        inline=False
-    )
-
-    await ctx.send(ctx.author.mention, embed=embed)
+    await HELP.send(ctx)
 
 
 @pins.command(aliases=['kanał', 'kanal'])
@@ -136,20 +108,52 @@ async def pins(ctx):
 @discord.ext.commands.has_permissions(manage_channels=True)
 async def pins_channel(ctx, channel: discord.TextChannel = None):
     """Sets the pin archive channel of the server."""
-    channel = channel or ctx.channel
-
-    pin_archives_manager.set_archive_channel_id(ctx.guild.id, channel.id)
-
-
-    embed = discord.Embed(
-        title=f':white_check_mark: Ustawiono #{channel} jako kanał archiwum przypiętych wiadomości',
-        color=somsiad.COLOR
-    )
-
+    session = data.Session()
+    pin_archive = session.query(PinArchive).get(ctx.guild.id)
+    if channel is not None:
+        if pin_archive:
+            pin_archive.channel_id = channel.id
+        else:
+            pin_archive = PinArchive(server_id=ctx.guild.id, channel_id=channel.id)
+            session.add(pin_archive)
+        session.commit()
+        session.close()
+        embed = discord.Embed(
+            title=f':white_check_mark: Ustawiono #{channel} jako kanał archiwum przypiętych wiadomości',
+            color=somsiad.COLOR
+        )
+    else:
+        if pin_archive.channel_id is not None:
+            embed = discord.Embed(
+                title=f':card_box: Kanałem archiwum przypiętych wiadomości jest #{pin_archive.channel}',
+                color=somsiad.COLOR
+            )
+        else:
+            embed = discord.Embed(
+                title=':card_box: Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości',
+                color=somsiad.COLOR
+            )
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@pins.command(aliases=['zarchiwizuj'])
+@pins_channel.error
+async def pins_channel_error(ctx, error):
+    if isinstance(error, discord.ext.commands.BadArgument):
+        embed = discord.Embed(
+            title=':warning: Nie znaleziono podanego kanału na serwerze',
+            color=somsiad.COLOR
+        )
+        await ctx.send(ctx.author.mention, embed=embed)
+    elif isinstance(error, discord.ext.commands.MissingPermissions):
+        embed = discord.Embed(
+            title=':warning: Do sprawdzenia lub zmiany kanału archiwum przypiętych wiadomości potrzebne są '
+            'uprawnienia do zarządzania kanałami',
+            color=somsiad.COLOR
+        )
+        await ctx.send(ctx.author.mention, embed=embed)
+
+
+@pins.command(aliases=['archiwizuj', 'zarchiwizuj'])
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
@@ -157,39 +161,35 @@ async def pins_channel(ctx, channel: discord.TextChannel = None):
 @discord.ext.commands.has_permissions(manage_messages=True)
 async def pins_archive(ctx):
     """Archives pins in the channel where the command was invoked."""
-    archive_channel_id = pin_archives_manager.get_archive_channel_id(ctx.guild.id)
-
-    if archive_channel_id:
-        archive_channel = ctx.guild.get_channel(archive_channel_id)
-        if archive_channel:
+    session = data.Session()
+    pin_archive = session.query(PinArchive).get(ctx.guild.id)
+    if pin_archive is None or pin_archive.channel_id is None:
+        result_embed = discord.Embed(
+            title=':warning: Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości',
+            color=somsiad.COLOR
+        )
+    else:
+        pin_archive_channel = pin_archive.channel
+        if pin_archive_channel is None:
+            result_embed = discord.Embed(
+                title=':warning: Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje',
+                color=somsiad.COLOR
+            )
+        else:
             pins = await ctx.channel.pins()
-            if pins:
-                async with ctx.typing():
-                    reversed_pins = reversed(pins)
-                    for pin in reversed_pins:
-                        await pin_archives_manager.archive_pin(pin, archive_channel)
-
+            if not pins:
+                result_embed = discord.Embed(
+                    title=':red_circle: Brak przypiętych wiadomości do zarchiwizowania',
+                    color=somsiad.COLOR
+                )
+            else:
+                async with ctx.typing(): await pin_archive.archive(reversed(pins))
                 result_embed = discord.Embed(
                     title=':white_check_mark: Zarchiwizowano '
                     f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
                     color=somsiad.COLOR
                 )
-            else:
-                result_embed = discord.Embed(
-                    title=':red_circle: Brak przypiętych wiadomości do zarchiwizowania',
-                    color=somsiad.COLOR
-                )
-        else:
-            result_embed = discord.Embed(
-                title=f':warning: Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje!',
-                color=somsiad.COLOR
-            )
-    else:
-        result_embed = discord.Embed(
-            title=f':warning: Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości!',
-            color=somsiad.COLOR
-        )
-
+    session.close()
     await ctx.send(ctx.author.mention, embed=result_embed)
 
 
@@ -202,11 +202,8 @@ async def pins_archive(ctx):
 async def pins_clear(ctx):
     """Unpins all pins in the channel."""
     pins = await ctx.channel.pins()
-
     if pins:
-        for pin in pins:
-            await pin.unpin()
-
+        for pin in pins: await pin.unpin()
         result_embed = discord.Embed(
             title=':white_check_mark: Odpięto '
             f'{word_number_form(len(pins), "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
@@ -217,5 +214,4 @@ async def pins_clear(ctx):
             title=':red_circle: Brak przypiętych wiadomości do odpięcia',
             color=somsiad.COLOR
         )
-
     await ctx.send(ctx.author.mention, embed=result_embed)
