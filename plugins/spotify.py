@@ -19,7 +19,7 @@ from configuration import configuration
 from plugins.youtube import youtube
 
 
-@somsiad.command(aliases=['kanał', 'kanal'])
+@somsiad.command()
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
