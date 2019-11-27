@@ -40,6 +40,7 @@ class Somsiad(Bot):
         '🛰️', '⚓', '🏖️', '✨', '🌈', '💡', '💈', '🔭', '🎈', '🎉', '💯', '💝', '☢️', '🆘', '♨️', '💭'
     ]
     IGNORED_ERRORS = (
+        discord.ext.commands.CommandOnCooldown,
         discord.ext.commands.CommandNotFound,
         discord.ext.commands.MissingRequiredArgument,
         discord.ext.commands.BadArgument
