@@ -74,8 +74,8 @@ https://www.reddit.com/prefs/apps
   * libffi  
   * libnacl  
   * libopus  
+  * libjpeg  
   * ffmpeg  
-  * libjpeg
 
   A także paczkę wsparcia języka polskiego dla twojego systemu.  
 Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `apt`:  
@@ -175,8 +175,8 @@ https://www.reddit.com/prefs/apps
   * libffi  
   * libnacl  
   * libopus  
-  * ffmpeg
-  * libjpeg
+  * libjpeg  
+  * ffmpeg  
 
   And also whatever the Polish language support package is for your system.  
 On Debian-based systems you can satisfy those dependencies with `apt`:  
