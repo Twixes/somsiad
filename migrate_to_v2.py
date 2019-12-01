@@ -18,7 +18,6 @@ import sys
 import os
 import sqlite3
 import json
-from pprint import pprint
 import data
 
 
@@ -142,8 +141,6 @@ class ServerDataManager:
 
 
 class PinArchive(data.Base):
-    __tablename__ = 'pin_archives'
-
     server_id = data.Column(data.BigInteger, data.ForeignKey('servers.id'), primary_key=True)
     channel_id = data.Column(data.BigInteger)
 

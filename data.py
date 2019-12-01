@@ -14,14 +14,32 @@
 from typing import Any, Union, Sequence, Dict
 from sqlalchemy import create_engine, Column, BigInteger, String, DateTime, ForeignKey
 from sqlalchemy.orm import Session as _Session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.dialects import postgresql
 import discord
 from configuration import configuration
 
 engine = create_engine(configuration['database_url'])
-Base = declarative_base()
 Session = sessionmaker(bind=engine)
+
+
+class Base:
+    @declared_attr
+    def __tablename__(cls):
+        class_name = cls.__name__
+        class_name_case = tuple(map(lambda char: char.isupper(), class_name))
+        table_name_chars = []
+        for i, char in enumerate(class_name):
+            if class_name_case[i]:
+                if i > 0: table_name_chars.append('_')
+                table_name_chars.append(char.lower())
+            else:
+                table_name_chars.append(char)
+        table_name_chars.append('s')
+        return ''.join(table_name_chars)
+
+
+Base = declarative_base(cls=Base)
 
 
 def create_table(model):
@@ -50,8 +68,6 @@ def insert_or_ignore(model: Base, values: Union[Sequence[Dict[str, Any]], Dict[s
 
 
 class Server(Base):
-    __tablename__ = 'servers'
-
     COMMAND_PREFIX_MAX_LENGTH = 12
 
     id = Column(BigInteger, primary_key=True)
