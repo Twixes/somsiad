@@ -138,3 +138,13 @@ async def shutdown(ctx):
     print(f'Zatrzymuję działanie programu na żądanie {ctx.author}...')
     await ctx.bot.close()
     sys.exit()
+
+
+@somsiad.command(aliases=['błąd', 'blad', 'błont', 'blont'])
+@discord.ext.commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+)
+@discord.ext.commands.is_owner()
+async def error(ctx):
+    """Causes an error."""
+    await ctx.send(1 / 0)
