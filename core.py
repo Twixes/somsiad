@@ -14,6 +14,7 @@
 from typing import Optional, Union, Sequence, Tuple, List
 import os
 import sys
+import traceback
 import asyncio
 import platform
 import random
@@ -139,29 +140,31 @@ class Somsiad(Bot):
             await asyncio.sleep(15)
 
     def handle_error(self, ctx, error):
-        if configuration['sentry_dsn'] is None: raise error
-        with sentry_sdk.push_scope() as scope:
-            scope.user = {
-                'id': ctx.author.id, 'username': str(ctx.author),
-                'activities': (
-                    ', '.join((activity.name for activity in ctx.author.activities))
-                    if ctx.guild is not None else None
-                )
-            }
-            scope.set_tag('command', ctx.command.qualified_name)
-            scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
-            scope.set_context('message', {
-                'prefix': ctx.prefix, 'content': ctx.message.content,
-                'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
-            })
-            scope.set_context('channel', {
-                'id': ctx.channel.id, 'name': str(ctx.channel)
-            })
-            if ctx.guild is not None:
-                scope.set_context('server', {
-                    'id': ctx.guild.id, 'name': str(ctx.guild)
+        if configuration['sentry_dsn'] is None:
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+        else:
+            with sentry_sdk.push_scope() as scope:
+                scope.user = {
+                    'id': ctx.author.id, 'username': str(ctx.author),
+                    'activities': (
+                        ', '.join((activity.name for activity in ctx.author.activities))
+                        if ctx.guild is not None else None
+                    )
+                }
+                scope.set_tag('command', ctx.command.qualified_name)
+                scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
+                scope.set_context('message', {
+                    'prefix': ctx.prefix, 'content': ctx.message.content,
+                    'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
                 })
-            sentry_sdk.capture_exception(error)
+                scope.set_context('channel', {
+                    'id': ctx.channel.id, 'name': str(ctx.channel)
+                })
+                if ctx.guild is not None:
+                    scope.set_context('server', {
+                        'id': ctx.guild.id, 'name': str(ctx.guild)
+                    })
+                sentry_sdk.capture_exception(error)
 
     def _get_prefix(self, bot: Bot, message: discord.Message) -> List[str]:
         user_id = bot.user.id
