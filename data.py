@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Any, Union, Sequence, Dict
-from sqlalchemy import create_engine, Column, BigInteger, String, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, BigInteger, String, DateTime, ForeignKey
 from sqlalchemy.orm import Session as _Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.dialects import postgresql
@@ -42,8 +42,8 @@ class Base:
 Base = declarative_base(cls=Base)
 
 
-def create_table(model):
-    Base.metadata.create_all(engine, tables=[model.__table__])
+def create_all_tables():
+    Base.metadata.create_all(engine)
 
 
 def insert_or_ignore(model: Base, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], *, session: _Session = None):
@@ -83,6 +83,3 @@ class Server(Base):
     def register_all(cls, servers: Sequence[discord.Guild]):
         values = [{'id': server.id, 'joined_at': server.me.joined_at} for server in servers]
         insert_or_ignore(cls, values)
-
-
-create_table(Server)

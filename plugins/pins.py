@@ -91,8 +91,6 @@ HELP = Help(COMMANDS, group=GROUP)
 
 channels_being_processed_on_servers = defaultdict(lambda: None)
 
-data.create_table(PinArchive)
-
 
 @somsiad.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
 @discord.ext.commands.cooldown(
