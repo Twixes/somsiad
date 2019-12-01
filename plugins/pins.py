@@ -11,28 +11,17 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Sequence
+from typing import Sequence
 import io
 from collections import defaultdict
 import discord
-from core import somsiad, Help
+from core import ServerSpecific, ChannelRelated, somsiad, Help
 from utilities import first_url, word_number_form
 from configuration import configuration
 import data
 
 
-class PinArchive(data.Base):
-    server_id = data.Column(data.BigInteger, data.ForeignKey('servers.id'), primary_key=True)
-    channel_id = data.Column(data.BigInteger)
-
-    @property
-    def server(self) -> discord.Guild:
-        return somsiad.get_guild(self.server_id)
-
-    @property
-    def channel(self) -> Optional[discord.TextChannel]:
-        return somsiad.get_channel(self.channel_id) if self.channel_id is not None else None
-
+class PinArchive(data.Base, ServerSpecific, ChannelRelated):
     async def archive(self, messages: Sequence[discord.Message]):
         """Archives the provided message."""
         channel = self.channel

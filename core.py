@@ -255,6 +255,67 @@ class Help:
             await destination.send(embed=embed)
 
 
+class ServerRelated:
+    __abstract__ = True
+
+    @data.declared_attr
+    def server_id(cls):
+        return data.Column(data.BigInteger, data.ForeignKey('servers.id'))
+
+    @property
+    def server(self) -> Optional[discord.Guild]:
+        return somsiad.get_guild(self.server_id) if self.server_id is not None else None
+
+
+class ServerSpecific(ServerRelated):
+    @data.declared_attr
+    def server_id(cls):
+        return data.Column(data.BigInteger, data.ForeignKey('servers.id'), primary_key=True)
+
+
+class ChannelRelated:
+    __abstract__ = True
+
+    @data.declared_attr
+    def channel_id(cls):
+        return data.Column(data.BigInteger)
+
+    @property
+    def channel(self) -> Optional[discord.Guild]:
+        return somsiad.get_channel(self.channel_id) if self.channel_id is not None else None
+
+
+class ChannelSpecific(ChannelRelated):
+    @data.declared_attr
+    def channel_id(cls):
+        return data.Column(data.BigInteger, primary_key=True)
+
+
+class UserRelated:
+    __abstract__ = True
+
+    @data.declared_attr
+    def user_id(cls):
+        return data.Column(data.BigInteger)
+
+    @property
+    def user(self) -> Optional[discord.Guild]:
+        return somsiad.get_user(self.user_id) if self.user_id is not None else None
+
+
+class UserSpecific(UserRelated):
+    @data.declared_attr
+    def user_id(cls):
+        return data.Column(data.BigInteger, primary_key=True)
+
+
+class MemberSpecific(ServerSpecific, UserSpecific):
+    @property
+    def member(self) -> Optional[discord.Member]:
+        server = self.server
+        return server.get_member(self.user_id) if server is not None else server
+
+
 somsiad = Somsiad()
 
 
