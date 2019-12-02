@@ -84,18 +84,28 @@ class Somsiad(Bot):
             pass
         elif isinstance(error, discord.ext.commands.NoPrivateMessage):
             embed = discord.Embed(
-                title=f':warning: Ta komenda nie może być użyta w prywatnych wiadomościach',
+                title=':warning: Ta komenda nie może być użyta w prywatnych wiadomościach',
                 color=self.COLOR
             )
             await ctx.send(embed=embed)
         elif isinstance(error, discord.ext.commands.DisabledCommand):
             embed = discord.Embed(
-                title=f':warning: Ta komenda jest wyłączona',
+                title=':warning: Ta komenda jest wyłączona',
                 color=self.COLOR
             )
             await ctx.send(ctx.author.mention, embed=embed)
         else:
-            self.handle_error(ctx, error)
+            description = (
+                'Zajście zostało zarejestrowane do analizy.' if configuration['sentry_dsn'] is not None
+                else None
+            )
+            embed = discord.Embed(
+                title=':warning: Podczas wykonywania komendy wystąpił błąd',
+                description=description,
+                color=self.COLOR
+            )
+            await ctx.send(ctx.author.mention, embed=embed)
+            self.register_error(ctx, error)
 
     async def on_guild_join(self, server):
         data.Server.register(server)
@@ -139,7 +149,7 @@ class Somsiad(Bot):
             )
             await asyncio.sleep(15)
 
-    def handle_error(self, ctx, error):
+    def register_error(self, ctx, error):
         if configuration['sentry_dsn'] is None:
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
         else:
