@@ -82,10 +82,10 @@ async def calculate(ctx, *, data):
                 return await ctx.send(ctx.author.mention, embed=embed)
 
     if expression is not None:
-        input_info = '\n'.join(
+        input_info = '```Python\n' + '``````Python\n'.join(
             [expression[0]] +
             [f'{variable[0]} = {variable[1]}' for variable in variables_dict.items()]
-        )
+        ) + '```'
         try:
             result = expression[1].evaluate(variables_dict)
         except Exception:
@@ -98,11 +98,12 @@ async def calculate(ctx, *, data):
                 )
             else:
                 embed = discord.Embed(
-                    title=':1234: Uproszczono wyrażenie',
+                    title=':1234: Zapamiętano i uproszczono wyrażenie',
                     color=somsiad.COLOR
                 )
-                embed.add_field(name='Wejście', value=f'```Matlab\n{input_info}```', inline=False)
-                embed.add_field(name='Wyjście', value=f'```Matlab\n{result}```', inline=False)
+                result = f'```Python\n{result}```'
+                embed.add_field(name='Wejście', value=input_info, inline=False)
+                embed.add_field(name='Wyjście', value=result, inline=False)
         else:
             input_details = 'Wejście (zastosowano poprzednie wyrażenie)' if used_previous_expression else 'Wejście'
 
@@ -129,11 +130,12 @@ async def calculate(ctx, *, data):
                     )
 
             embed = discord.Embed(
-                title=':1234: Obliczono wartość wyrażenia',
+                title=':1234: Zapamiętano wyrażenie i obliczono wartość',
                 color=somsiad.COLOR
             )
-            embed.add_field(name=input_details, value=f'```Matlab\n{input_info}```', inline=False)
-            embed.add_field(name=output_details, value=f'```Matlab\n{result}```', inline=False)
+            result = f'```Python\n{result}```'
+            embed.add_field(name=input_details, value=input_info, inline=False)
+            embed.add_field(name=output_details, value=result, inline=False)
 
     return await ctx.send(ctx.author.mention, embed=embed)
 
