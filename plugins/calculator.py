@@ -98,14 +98,19 @@ async def calculate(ctx, *, data):
                 )
             else:
                 embed = discord.Embed(
-                    title=':1234: Zapamiętano i uproszczono wyrażenie',
+                    title=':1234: Uproszczono wyrażenie',
                     color=somsiad.COLOR
                 )
                 result = f'```Python\n{result}```'
-                embed.add_field(name='Wejście', value=input_info, inline=False)
+                embed.add_field(
+                    name='Wejście (zapamiętano do przyszłego zastosowania)', value=input_info, inline=False
+                )
                 embed.add_field(name='Wyjście', value=result, inline=False)
         else:
-            input_details = 'Wejście (zastosowano poprzednie wyrażenie)' if used_previous_expression else 'Wejście'
+            if used_previous_expression:
+                input_details = 'Wejście (zastosowano poprzednie wyrażenie)'
+            else:
+                input_details = 'Wejście (zapamiętano do przyszłego zastosowania)'
 
             output_details = 'Wyjście'
 
@@ -130,7 +135,7 @@ async def calculate(ctx, *, data):
                     )
 
             embed = discord.Embed(
-                title=':1234: Zapamiętano wyrażenie i obliczono wartość',
+                title=':1234: Obliczono wartość wyrażenia',
                 color=somsiad.COLOR
             )
             result = f'```Python\n{result}```'
