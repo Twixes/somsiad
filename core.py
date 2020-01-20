@@ -268,7 +268,7 @@ class Help:
 class ServerRelated:
     @data.declared_attr
     def server_id(cls):
-        return data.Column(data.BigInteger, data.ForeignKey('servers.id'))
+        return data.Column(data.BigInteger, data.ForeignKey('servers.id'), index=True)
 
     @property
     def server(self) -> Optional[discord.Guild]:
@@ -282,7 +282,7 @@ class ServerSpecific(ServerRelated):
 
 
 class ChannelRelated:
-    channel_id = data.Column(data.BigInteger)
+    channel_id = data.Column(data.BigInteger, index=True)
 
     @property
     def channel(self) -> Optional[discord.Guild]:
@@ -294,7 +294,7 @@ class ChannelSpecific(ChannelRelated):
 
 
 class UserRelated:
-    user_id = data.Column(data.BigInteger)
+    user_id = data.Column(data.BigInteger, index=True)
 
     @property
     def user(self) -> Optional[discord.Guild]:
