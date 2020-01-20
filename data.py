@@ -12,7 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Any, Union, Sequence, Dict
-from sqlalchemy import create_engine, Column, Integer, BigInteger, String, DateTime, ForeignKey
+from contextlib import contextmanager
+from sqlalchemy import func, create_engine, Column, Integer, BigInteger, String, DateTime, ForeignKey
 from sqlalchemy.orm import Session as _Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.dialects import postgresql
@@ -21,6 +22,19 @@ from configuration import configuration
 
 engine = create_engine(configuration['database_url'])
 Session = sessionmaker(bind=engine)
+
+
+@contextmanager
+def session(*, commit: bool = False):
+    _session = Session()
+    try:
+        yield _session
+        if commit: _session.commit()
+    except:
+        _session.rollback()
+        raise
+    finally:
+        _session.close()
 
 
 class Base:
