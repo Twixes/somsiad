@@ -140,22 +140,58 @@ class ServerDataManager:
         self.load_server(server_id, load_own_db=True)
 
 
-class PinArchive(data.Base):
-    server_id = data.Column(data.BigInteger, data.ForeignKey('servers.id'), primary_key=True)
-    channel_id = data.Column(data.BigInteger)
+class ServerRelated:
+    @data.declared_attr
+    def server_id(cls):
+        return data.Column(data.BigInteger, data.ForeignKey('servers.id'), index=True)
 
+
+class ServerSpecific(ServerRelated):
+    @data.declared_attr
+    def server_id(cls):
+        return data.Column(data.BigInteger, data.ForeignKey('servers.id'), primary_key=True)
+
+
+class ChannelRelated:
+    channel_id = data.Column(data.BigInteger, index=True)
+
+
+class ChannelSpecific(ChannelRelated):
+    channel_id = data.Column(data.BigInteger, primary_key=True)
+
+
+class UserRelated:
+    user_id = data.Column(data.BigInteger, index=True)
+
+
+class UserSpecific(UserRelated):
+    user_id = data.Column(data.BigInteger, primary_key=True)
+
+
+class MemberSpecific(ServerSpecific, UserSpecific):
+    pass
+
+
+class PinArchive(data.Base, ServerSpecific, ChannelRelated):
+    pass
+
+
+data.create_all_tables()
 
 server_data_manager = ServerDataManager()
 server_data_manager.servers.pop('ids')
 
 def migrate_from_db_to_sqlalchemy_pins():
+    print('Migrating pins from .db files to SQLAlchemy... ')
     session = data.Session()
     session.add_all([
-        PinArchive(server_id=server_id, channel_id=x['pin_channel_id'])
-        for server_id, x in server_data_manager.servers.items() if 'pin_channel_id' in x
+        PinArchive(server_id=server_id, channel_id=server['pin_channel_id'])
+        for server_id, server in server_data_manager.servers.items()
+        if 'pin_channel_id' in server
     ])
     session.commit()
     session.close()
+    print('Done: pins migrated')
 
 
 def migrate_from_json_to_env():
