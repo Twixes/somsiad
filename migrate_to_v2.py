@@ -176,6 +176,10 @@ class PinArchive(data.Base, ServerSpecific, ChannelRelated):
     pass
 
 
+class Oofer(data.Base, MemberSpecific):
+    oofs = data.Column(data.Integer, nullable=False, default=1)
+
+
 data.create_all_tables()
 
 server_data_manager = ServerDataManager()
@@ -192,6 +196,19 @@ def migrate_from_db_to_sqlalchemy_pins():
     session.commit()
     session.close()
     print('Done: pins migrated')
+
+def migrate_from_db_to_sqlalchemy_oof():
+    print('Migrating oof from .db files to SQLAlchemy... ')
+    session = data.Session()
+    session.add_all([
+        Oofer(server_id=server_id, user_id=user['user_id'], oofs=user['oofs'])
+        for server_id, server in server_data_manager.servers.items()
+        if 'oof' in server
+        for user in server['oof']
+    ])
+    session.commit()
+    session.close()
+    print('Done: oof migrated')
 
 
 def migrate_from_json_to_env():
@@ -212,4 +229,5 @@ def migrate_from_json_to_env():
 
 if __name__ == '__main__':
     migrate_from_db_to_sqlalchemy_pins()
+    migrate_from_db_to_sqlalchemy_oofs()
     migrate_from_json_to_env()

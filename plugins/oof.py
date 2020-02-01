@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,80 +11,15 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import List, Dict, Union, Optional
 import discord
-from core import somsiad
-from server_data import server_data_manager
+from core import MemberSpecific, somsiad
 from utilities import word_number_form
 from configuration import configuration
+import data
 
 
-class Oof:
-    TABLE_NAME = 'oof'
-    TABLE_COLUMNS = (
-        'user_id INTEGER NOT NULL PRIMARY KEY',
-        'oofs INTEGER NOT NULL DEFAULT 0'
-    )
-
-    @classmethod
-    def get_oofs(cls, server: discord.Guild, user: Union[discord.User, discord.Member] = None) -> Optional[int]:
-        """Returns the number of times the provided user oofed on the provided server.
-        If not provided a user, returns the total number of oofs on the server.
-        """
-        server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
-        if user is None:
-            server_data_manager.servers[server.id]['db_cursor'].execute(
-                'SELECT oofs FROM oof',
-            )
-            result = server_data_manager.servers[server.id]['db_cursor'].fetchall()
-            if result:
-                oofs = 0
-                for oofer in result:
-                    oofs += oofer['oofs']
-            else:
-                oofs = None
-        else:
-            server_data_manager.servers[server.id]['db_cursor'].execute(
-                'SELECT oofs FROM oof WHERE user_id = ?',
-                (user.id,)
-            )
-            result = server_data_manager.servers[server.id]['db_cursor'].fetchone()
-            oofs = None if result is None else result['oofs']
-        return oofs
-
-    @classmethod
-    def get_oofers(cls, server: discord.Guild) -> List[Dict[str, int]]:
-        """Returns a tuple of users who have oofed on the provided server, sorted by the number of oofs, descending."""
-        server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
-        server_data_manager.servers[server.id]['db_cursor'].execute(
-            'SELECT user_id, oofs FROM oof'
-        )
-        rows = (
-            server_data_manager.dict_from_row(row)
-            for row in server_data_manager.servers[server.id]['db_cursor'].fetchall()
-        )
-        sorted_rows = sorted(rows, key=lambda row: row['oofs'], reverse=True)
-        return sorted_rows
-
-    @classmethod
-    def ensure_user_registration(cls, server: discord.Guild, user: Union[discord.User, discord.Member]):
-        """Ensure that the provided user is a registered oofer on the provided server."""
-        if cls.get_oofs(server, user) is None:
-            server_data_manager.servers[server.id]['db_cursor'].execute(
-                'INSERT INTO oof(user_id) VALUES(?)',
-                (user.id,)
-            )
-            server_data_manager.servers[server.id]['db'].commit()
-
-    @classmethod
-    def increment(cls, server: discord.Guild, user: Union[discord.User, discord.Member]):
-        """Increments the number of oofs by 1 for the provided user on the provided server."""
-        cls.ensure_user_registration(server, user)
-        server_data_manager.servers[server.id]['db_cursor'].execute(
-            'UPDATE oof SET oofs = oofs + 1 WHERE user_id = ?',
-            (user.id,)
-        )
-        server_data_manager.servers[server.id]['db'].commit()
+class Oofer(data.Base, MemberSpecific):
+    oofs = data.Column(data.Integer, nullable=False, default=1)
 
 
 @somsiad.group(invoke_without_command=True, case_insensitive=True)
@@ -93,7 +28,13 @@ class Oof:
 )
 @discord.ext.commands.guild_only()
 async def oof(ctx):
-    Oof.increment(ctx.guild, ctx.author)
+    with data.session(commit=True) as session:
+        oofer = session.query(Oofer).get({'server_id': ctx.guild.id, 'user_id': ctx.author.id})
+        if oofer is not None:
+            oofer.oofs = Oofer.oofs + 1
+        else:
+            oofer = Oofer(server_id=ctx.guild.id, user_id=ctx.author.id)
+            session.add(oofer)
     await ctx.send('Oof!')
 
 
@@ -113,9 +54,9 @@ async def oof_how_many(ctx, member: discord.Member = None):
 @discord.ext.commands.guild_only()
 async def oof_how_many_member(ctx, member: discord.Member = None):
     member = member or ctx.author
-
-    oofs = Oof.get_oofs(ctx.guild, member)
-    oofs = 0 if oofs is None else oofs
+    with data.session() as session:
+        oofer = session.query(Oofer).get({'server_id': ctx.guild.id, 'user_id': member.id})
+        oofs = oofer.oofs if oofer is not None else 0
 
     if member == ctx.author:
         embed = discord.Embed(
@@ -158,23 +99,27 @@ async def oof_how_many_server(ctx):
 )
 @discord.ext.commands.guild_only()
 async def oof_server(ctx):
-    oofers = Oof.get_oofers(ctx.guild)
-    total_oofs = Oof.get_oofs(ctx.guild)
-    total_oofs = 0 if total_oofs is None else total_oofs
+    with data.session() as session:
+        total_oofs = session.query(data.func.sum(Oofer.oofs)).scalar()
+        top_results = session.query(
+            Oofer,
+            data.func.dense_rank().over(order_by = Oofer.oofs.desc()).label('rank')
+        ).limit(10).all()
 
-    top_oofers = []
-    for oofer in enumerate(oofers[:5]):
-        top_oofers.append(
-            f'{oofer[0]+1}. <@{oofer[1]["user_id"]}> – '
-            f'{word_number_form(oofer[1]["oofs"], "oofnięcie", "oofnięcia", "oofnięć")}'
+    ranking = []
+    for result in top_results:
+        if result.rank > 5:
+            break
+        ranking.append(
+            f'{result.rank}. <@{result.Oofer.user_id}> – '
+            f'{word_number_form(result.Oofer.oofs, "oofnięcie", "oofnięcia", "oofnięć")}'
         )
-    top_oofers_string = '\n'.join(top_oofers)
 
     embed = discord.Embed(
         title=f'Do tej pory oofnięto na serwerze {word_number_form(total_oofs, "raz", "razy")}',
         color=somsiad.COLOR
     )
-    if top_oofers:
-        embed.add_field(name='Najaktywniejsi ooferzy', value=top_oofers_string, inline=False)
+    if ranking:
+        embed.add_field(name='Najaktywniejsi ooferzy', value='\n'.join(ranking), inline=False)
 
     await ctx.send(ctx.author.mention, embed=embed)
