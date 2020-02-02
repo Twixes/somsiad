@@ -215,6 +215,8 @@ class Somsiad(Bot):
         if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
             prefixes.append(configuration['command_prefix'] + ' ')
             prefixes.append(configuration['command_prefix'])
+        if data_server is None:
+            prefixes.append('')
         return prefixes
 
 
@@ -259,7 +261,7 @@ class Help:
             title = f'Dostępne podkomendy {" ".join(filter(None, (group.name, group.aliases)))}'
         if description is None:
             description = (
-                'Używając ich pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
+                'Używając ich na serwerach pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
                 f'`{configuration["command_prefix"]}prefiks sprawdź`).\n'
                 'W (nawiasach okrągłych) podane są aliasy komend.\n'
                 'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
