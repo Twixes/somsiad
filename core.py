@@ -149,6 +149,28 @@ class Somsiad(Bot):
             )
             await asyncio.sleep(15)
 
+    async def send(
+            self, ctx: discord.ext.commands.Context, text: Optional[str] = None,
+            *, direct: bool = False, embed: Optional[discord.Embed] = None,
+            embeds: Optional[Sequence[discord.Embed]] = None, file: Optional[discord.File] = None,
+            files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None
+    ):
+        if embed and embeds:
+            raise ValueError('embed and embeds cannot be both passed at the same time')
+        embeds = embeds or []
+        if embed:
+            embeds.append(embed)
+        destination = ctx.author if direct else ctx.channel
+        content_elements = tuple(filter(None, (ctx.author.mention if not direct else None, text)))
+        content = '\n'.join(content_elements) if content_elements else None
+        if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
+            await ctx.message.add_reaction('📫')
+        await destination.send(
+            content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
+        )
+        for embed in embeds[1:]:
+            await destination.send(embed=embed, delete_after=delete_after)
+
     def register_error(self, ctx, error):
         if configuration['sentry_dsn'] is None:
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
@@ -256,14 +278,6 @@ class Help:
             inline=False
         )
 
-    async def send(self, ctx: discord.ext.commands.Context, *, privately: bool = False):
-        destination = ctx.author if privately else ctx.channel
-        if privately and not isinstance(ctx.channel, discord.abc.PrivateChannel):
-            await ctx.message.add_reaction('📫')
-        await destination.send(None if privately else ctx.author.mention, embed=self.embeds[0])
-        for embed in self.embeds[1:]:
-            await destination.send(embed=embed)
-
 
 class ServerRelated:
     @data.declared_attr
@@ -347,7 +361,7 @@ prefix_usage_example = lambda example_prefix: f'Przykład użycia: `{example_pre
 )
 async def prefix(ctx):
     """Command prefix commands."""
-    await HELP.send(ctx)
+    await somsiad.send(ctx, embeds=HELP.embeds)
 
 
 @prefix.command(aliases=['sprawdź', 'sprawdz'])

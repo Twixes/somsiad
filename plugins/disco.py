@@ -203,7 +203,7 @@ HELP = Help(COMMANDS, group=GROUP)
 )
 @discord.ext.commands.guild_only()
 async def disco(ctx):
-    await HELP.send(ctx)
+    await somsiad.send(ctx, embeds=HELP.embeds)
 
 
 @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])

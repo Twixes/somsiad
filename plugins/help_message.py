@@ -205,6 +205,7 @@ DESCRIPTION = (
     'oznacza to, że jest to argument opcjonalny.\n'
     f'By dowiedzieć się o mnie więcej, wejdź na {somsiad.WEBSITE_URL}.'
 )
+HELP = Help(COMMANDS, title='Dobry!', description=DESCRIPTION)
 
 
 @somsiad.command(aliases=['help', 'pomocy', 'pomoc'])
@@ -212,4 +213,4 @@ DESCRIPTION = (
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def help_message(ctx):
-    await Help(COMMANDS, title='Dobry!', description=DESCRIPTION).send(ctx, privately=True)
+    await somsiad.send(ctx, direct=True, embeds=HELP.embeds)

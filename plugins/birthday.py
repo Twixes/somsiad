@@ -173,7 +173,7 @@ HELP = Help(COMMANDS, group=GROUP)
 @discord.ext.commands.guild_only()
 async def birthday(ctx, *, member: discord.Member = None):
     if member is None:
-        await HELP.send(ctx)
+        await somsiad.send(ctx, embeds=HELP.embeds)
     else:
         await ctx.invoke(birthday_when)
 

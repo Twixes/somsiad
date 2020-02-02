@@ -256,7 +256,7 @@ HELP = Help(COMMANDS, group=GROUP)
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 async def trade_sundays(ctx):
-    await HELP.send(ctx)
+    await somsiad.send(ctx, embeds=HELP.embeds)
 
 
 @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])

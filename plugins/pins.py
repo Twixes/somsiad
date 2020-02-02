@@ -110,7 +110,7 @@ HELP = Help(COMMANDS, group=GROUP)
 )
 async def pins(ctx):
     """A group of pin-related commands."""
-    await HELP.send(ctx)
+    await somsiad.send(ctx, embeds=HELP.embeds)
 
 
 @pins.command(aliases=['kanał', 'kanal'])
