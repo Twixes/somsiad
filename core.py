@@ -160,6 +160,8 @@ class Somsiad(Bot):
         embeds = embeds or []
         if embed:
             embeds.append(embed)
+        if len(embeds) > 10:
+            raise ValueError('no more than 10 embeds can be sent at the same time')
         destination = ctx.author if direct else ctx.channel
         content_elements = tuple(filter(None, (ctx.author.mention if not direct else None, text)))
         content = '\n'.join(content_elements) if content_elements else None
@@ -168,8 +170,8 @@ class Somsiad(Bot):
         await destination.send(
             content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
         )
-        for embed in embeds[1:]:
-            await destination.send(embed=embed, delete_after=delete_after)
+        for extra_embed in embeds[1:]:
+            await destination.send(embed=extra_embed, delete_after=delete_after)
 
     def register_error(self, ctx, error):
         if configuration['sentry_dsn'] is None:
