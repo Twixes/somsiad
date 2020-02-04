@@ -352,7 +352,7 @@ GROUP = Help.Command(('prefiks', 'prefix', 'przedrostek'), (), 'Grupa komend zwi
 COMMANDS = (
     Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks.'),
     Help.Command(('ustaw'), (), 'Ustawia na serwerze podany prefiks.'),
-    Help.Command(('usuń', 'usun'), (), 'Przywraca na serwerze domyślny prefiks.')
+    Help.Command(('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks.')
 )
 HELP = Help(COMMANDS, group=GROUP)
 
@@ -436,13 +436,13 @@ async def prefix_set_error(ctx, error):
         await ctx.send(ctx.author.mention, embed=embed)
 
 
-@prefix.command(aliases=['usuń', 'usun'])
+@prefix.command(aliases=['przywróć', 'przywroc'])
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
 )
 @discord.ext.commands.guild_only()
 @discord.ext.commands.has_permissions(administrator=True)
-async def prefix_remove(ctx):
+async def prefix_restore(ctx):
     """Reverts to the default command prefix."""
     session = data.Session()
     data_server = session.query(data.Server).get(ctx.guild.id)
@@ -458,8 +458,8 @@ async def prefix_remove(ctx):
     await ctx.send(ctx.author.mention, embed=embed)
 
 
-@prefix_remove.error
-async def prefix_remove_error(ctx, error):
+@prefix_restore.error
+async def prefix_restore_error(ctx, error):
     """Handles reverting to the default command prefix errors."""
     embed = None
     if isinstance(error, discord.ext.commands.MissingPermissions):
