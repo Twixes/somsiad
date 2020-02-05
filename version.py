@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018-2019 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -14,7 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 __version__ = '2.0.0'
-__copyright__ = '© 2018-2019 ondondil, Twixes et al.'
+__copyright__ = '© 2018-2020 ondondil, Twixes et al.'
 
 if __name__ == '__main__':
     print(__version__, end='')
