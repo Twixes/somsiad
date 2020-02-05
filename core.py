@@ -1,4 +1,4 @@
-# Copyright 2018-2019 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -288,7 +288,7 @@ class ServerRelated:
     def server_id(cls):
         return data.Column(data.BigInteger, data.ForeignKey(data.Server.id), index=True)
 
-    @property
+    @data.declared_attr
     def server(self):
         return data.relationship(data.Server)
 
