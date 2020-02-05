@@ -1,4 +1,4 @@
-# Copyright 2019 Twixes
+# Copyright 2019-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -13,8 +13,8 @@
 
 from typing import Any, Union, Sequence, Dict
 from contextlib import contextmanager
-from sqlalchemy import func, create_engine, Column, Integer, BigInteger, String, DateTime, ForeignKey
-from sqlalchemy.orm import Session as _Session, sessionmaker
+from sqlalchemy import func, create_engine, Column, Integer, BigInteger, String, Date, DateTime, ForeignKey
+from sqlalchemy.orm import Session as RawSession, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.dialects import postgresql
 import discord
@@ -60,7 +60,9 @@ def create_all_tables():
     Base.metadata.create_all(engine)
 
 
-def insert_or_ignore(model: Base, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], *, session: _Session = None):
+def insert_or_ignore(
+        model: Base, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], *, session: RawSession = None
+):
     use_own_session = session is None
     if use_own_session:
         session = Session()
