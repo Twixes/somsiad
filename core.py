@@ -302,6 +302,10 @@ class ServerSpecific(ServerRelated):
     def server_id(cls):
         return data.Column(data.BigInteger, data.ForeignKey(data.Server.id), primary_key=True)
 
+    @property
+    def discord_server(self):
+        return somsiad.get_guild(self.server_id)
+
 
 class ChannelRelated:
     channel_id = data.Column(data.BigInteger, index=True)
@@ -313,6 +317,10 @@ class ChannelRelated:
 
 class ChannelSpecific(ChannelRelated):
     channel_id = data.Column(data.BigInteger, primary_key=True)
+
+    @property
+    def discord_channel(self):
+        return somsiad.get_channel(self.channel_id)
 
 
 class UserRelated:
@@ -326,12 +334,16 @@ class UserRelated:
 class UserSpecific(UserRelated):
     user_id = data.Column(data.BigInteger, primary_key=True)
 
+    @property
+    def discord_user(self) -> Optional[discord.Guild]:
+        return somsiad.get_user(self.user_id)
+
 
 class MemberSpecific(ServerSpecific, UserSpecific):
     @property
     def discord_member(self) -> Optional[discord.Member]:
         server = self.discord_server
-        return server.get_member(self.user_id) if server is not None else server
+        return server.get_member(self.user_id) if server is not None else None
 
 
 somsiad = Somsiad()
