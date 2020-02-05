@@ -198,7 +198,7 @@ DESCRIPTION = (
     'Somsiad jestem. Pomagam ludziom w różnych kwestiach. '
     'By skorzystać z mojej pomocy wystarczy wysłać komendę w miejscu, w którym będę mógł ją zobaczyć. '
     'Lista komend wraz z ich opisami znajduje się poniżej. '
-    'Używając ich pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
+    'Używając ich na serwerach pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
     f'`{configuration["command_prefix"]}prefiks sprawdź`).\n'
     'W (nawiasach okrągłych) podane są aliasy komend.\n'
     'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '

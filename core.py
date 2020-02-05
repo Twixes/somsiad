@@ -18,7 +18,6 @@ import traceback
 import asyncio
 import platform
 import random
-import math
 import itertools
 import datetime as dt
 import sentry_sdk
@@ -264,11 +263,11 @@ class Help:
             title = f'Dostępne podkomendy {" ".join(filter(None, (group.name, group.aliases)))}'
         if description is None:
             description = (
-                'Używając ich na serwerach pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
+                '*Używając ich na serwerach pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
                 f'`{configuration["command_prefix"]}prefiks sprawdź`).\n'
                 'W (nawiasach okrągłych) podane są aliasy komend.\n'
                 'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
-                'oznacza to, że jest to argument opcjonalny.'
+                'oznacza to, że jest to argument opcjonalny.*'
             )
         self.embeds = [discord.Embed(title=title, description=description, color=somsiad.COLOR)]
         for command in commands:
@@ -287,24 +286,28 @@ class Help:
 class ServerRelated:
     @data.declared_attr
     def server_id(cls):
-        return data.Column(data.BigInteger, data.ForeignKey('servers.id'), index=True)
+        return data.Column(data.BigInteger, data.ForeignKey(data.Server.id), index=True)
 
     @property
-    def server(self) -> Optional[discord.Guild]:
+    def server(self):
+        return data.relationship(data.Server)
+
+    @property
+    def discord_server(self):
         return somsiad.get_guild(self.server_id) if self.server_id is not None else None
 
 
 class ServerSpecific(ServerRelated):
     @data.declared_attr
     def server_id(cls):
-        return data.Column(data.BigInteger, data.ForeignKey('servers.id'), primary_key=True)
+        return data.Column(data.BigInteger, data.ForeignKey(data.Server.id), primary_key=True)
 
 
 class ChannelRelated:
     channel_id = data.Column(data.BigInteger, index=True)
 
     @property
-    def channel(self) -> Optional[discord.Guild]:
+    def discord_channel(self):
         return somsiad.get_channel(self.channel_id) if self.channel_id is not None else None
 
 
@@ -316,7 +319,7 @@ class UserRelated:
     user_id = data.Column(data.BigInteger, index=True)
 
     @property
-    def user(self) -> Optional[discord.Guild]:
+    def discord_user(self) -> Optional[discord.Guild]:
         return somsiad.get_user(self.user_id) if self.user_id is not None else None
 
 
@@ -326,8 +329,8 @@ class UserSpecific(UserRelated):
 
 class MemberSpecific(ServerSpecific, UserSpecific):
     @property
-    def member(self) -> Optional[discord.Member]:
-        server = self.server
+    def discord_member(self) -> Optional[discord.Member]:
+        server = self.discord_server
         return server.get_member(self.user_id) if server is not None else server
 
 
@@ -357,7 +360,12 @@ COMMANDS = (
 )
 HELP = Help(COMMANDS, group=GROUP)
 
-prefix_usage_example = lambda example_prefix: f'Przykład użycia: `{example_prefix}wersja` lub `{example_prefix} oof`.'
+
+def prefix_usage_example(example_prefix: str) -> str:
+    return (
+        f'Przykład użycia: `{example_prefix}wersja` lub `{example_prefix} oof`.\n'
+        'W wiadomościach prywatnych prefiks jest opcjonalny.'
+    )
 
 
 @somsiad.group(aliases=['prefiks', 'przedrostek'], invoke_without_command=True)
