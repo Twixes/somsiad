@@ -476,7 +476,7 @@ async def prefix_restore_error(ctx, error):
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def version(ctx, x = None):
+async def version(ctx, *, x = None):
     """Responds with current version of the bot."""
     if x and 'fccchk' in x.lower():
         emoji = '👺'
@@ -499,7 +499,7 @@ async def version(ctx, x = None):
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def info(ctx, x = None):
+async def info(ctx, *, x = None):
     """Responds with current version of the bot."""
     if x and 'fccchk' in x.lower():
         emoji = '👺'

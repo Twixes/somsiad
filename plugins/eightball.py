@@ -45,14 +45,14 @@ class Ball:
 )
 async def eightball(ctx, *, question: discord.ext.commands.clean_content(fix_channel_mentions=True) = ''):
     """Returns an 8-Ball answer."""
-    stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?')
+    stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?').lower()
     if stripped_question == '':
         await ctx.send(
             f'{ctx.author.mention}\nMagiczna kula potrafi odpowiadać tylko na pytania! '
             'Aby zadać pytanie musisz użyć *słów*.'
         )
     else:
-        if 'fccchk' in stripped_question.lower():
+        if 'fccchk' in stripped_question or '‽' in stripped_question:
             await ctx.send(f'{ctx.author.mention}\n:japanese_goblin: {Ball.AsK()}')
         else:
             await ctx.send(f'{ctx.author.mention}\n:8ball: {Ball.ask()}')
