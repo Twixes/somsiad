@@ -18,6 +18,7 @@ import traceback
 import asyncio
 import platform
 import random
+import math
 import itertools
 import datetime as dt
 import sentry_sdk
@@ -34,11 +35,11 @@ class Somsiad(Bot):
     USER_AGENT = f'SomsiadBot/{__version__}'
     WEBSITE_URL = 'https://somsiad.net'
     EMOJIS = [
-        '🐜', '🅱️', '🔥', '🐸', '🤔', '💥', '👌', '💩', '🐇', '🐰', '🦅', '🙃', '😎', '😩', '👹', '👺', '🤖', '✌️',
+        '🐜', '🅱️', '🔥', '🐸', '🤔', '💥', '👌', '💩', '🐇', '🐰', '🦅', '🙃', '😎', '😩', '👹', '🤖', '✌️', '💭',
         '🙌', '👋', '💪', '👀', '👷', '🕵️', '💃', '🎩', '🤠', '🐕', '🐈', '🐹', '🐨', '🐽', '🐙', '🐧', '🐔', '🐎',
         '🦄', '🐝', '🐢', '🐬', '🐋', '🐐', '🌵', '🌻', '🌞', '☄️', '⚡', '🦆', '🦉', '🦊', '🍎', '🍉', '🍇', '🍑',
         '🍍', '🍆', '🍞', '🧀', '🍟', '🎂', '🍬', '🍭', '🍪', '🥑', '🥔', '🎨', '🎷', '🎺', '👾', '🎯', '🥁', '🚀',
-        '🛰️', '⚓', '🏖️', '✨', '🌈', '💡', '💈', '🔭', '🎈', '🎉', '💯', '💝', '☢️', '🆘', '♨️', '💭'
+        '🛰️', '⚓', '🏖️', '✨', '🌈', '💡', '💈', '🔭', '🎈', '🎉', '💯', '💝', '☢️', '🆘', '♨️'
     ]
     IGNORED_ERRORS = (
         discord.ext.commands.CommandOnCooldown,
@@ -475,14 +476,22 @@ async def prefix_restore_error(ctx, error):
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def version(ctx):
+async def version(ctx, x = None):
     """Responds with current version of the bot."""
+    if x and 'fccchk' in x.lower():
+        emoji = '👺'
+        title = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
+        footer = '© ???-??? ???'
+    else:
+        emoji = random.choice(somsiad.EMOJIS)
+        title = f'Somsiad {__version__}'
+        footer = __copyright__
     embed = discord.Embed(
-        title=f'{random.choice(somsiad.EMOJIS)} Somsiad {__version__}',
+        title=f'{emoji} {title}',
         url=somsiad.WEBSITE_URL,
         color=somsiad.COLOR
     )
-    embed.set_footer(text=__copyright__)
+    embed.set_footer(text=footer)
     await ctx.send(ctx.author.mention, embed=embed)
 
 
@@ -490,20 +499,37 @@ async def version(ctx):
 @discord.ext.commands.cooldown(
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
-async def info(ctx):
+async def info(ctx, x = None):
     """Responds with current version of the bot."""
+    if x and 'fccchk' in x.lower():
+        emoji = '👺'
+        title = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
+        footer = '© ???-??? ???'
+        psi = 2**18
+        omega = psi * psi
+        number_of_servers = random.randint(0, psi)
+        number_of_users = number_of_servers * random.randint(0, psi)
+        runtime = human_amount_of_time(random.randint(0, omega))
+        instance_owner = '???'
+    else:
+        emoji = 'ℹ️'
+        title = f'Somsiad {__version__}'
+        footer = __copyright__
+        number_of_servers = len(somsiad.guilds)
+        number_of_users = len(set(somsiad.get_all_members()))
+        runtime = human_amount_of_time(dt.datetime.now() - somsiad.run_datetime)
+        application_info = await somsiad.application_info()
+        instance_owner = application_info.owner.mention
     embed = discord.Embed(
-        title=f':information_source: Somsiad {__version__}',
+        title=f'{emoji} {title}',
         url=somsiad.WEBSITE_URL,
         color=somsiad.COLOR
     )
-    embed.add_field(name='Liczba serwerów', value=len(somsiad.guilds))
-    embed.add_field(name='Liczba użytkowników', value=len(set(somsiad.get_all_members())))
-    embed.add_field(
-        name='Czas pracy', value=human_amount_of_time(dt.datetime.now() - somsiad.run_datetime)
-    )
-    embed.add_field(name='Właściciel instancji', value=(await somsiad.application_info()).owner.mention)
-    embed.set_footer(text=__copyright__)
+    embed.add_field(name='Liczba serwerów', value=number_of_servers)
+    embed.add_field(name='Liczba użytkowników', value=number_of_users)
+    embed.add_field(name='Czas pracy', value=runtime)
+    embed.add_field(name='Właściciel instancji', value=instance_owner)
+    embed.set_footer(text=footer)
     await ctx.send(ctx.author.mention, embed=embed)
 
 
