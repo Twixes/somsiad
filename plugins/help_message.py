@@ -91,24 +91,21 @@ COMMANDS = (
         ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
     ),
     Help.Command(
-        ('disco', 'd'), 'podkomenda',
+        ('disco', 'd'), '?podkomenda',
         'Grupa komend związanych z odtwarzaniem muzyki na kanale głosowym. '
-        f'Użyj disco (d) bez podkomendy, by dowiedzieć się więcej.',
+        'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
-        'stat', 'podkomenda',
-        'Grupa komend związanych ze statystykami na serwerze. '
-        f'Użyj stat bez podkomendy, by dowiedzieć się więcej.',
+        'stat', '?podkomenda',
+        'Grupa komend związanych ze statystykami na serwerze. Użyj stat bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
-        'urodziny', 'podkomenda',
-        'Grupa komend związanych z datami urodzin. '
-        f'Użyj urodziny bez podkomendy, by dowiedzieć się więcej.',
+        'urodziny', '?podkomenda',
+        'Grupa komend związanych z datami urodzin. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
-        ('handlowe', 'niedzielehandlowe'), 'podkomenda',
-        'Grupa komend związanych z niedzielami handlowymi. '
-        f'Użyj handlowe bez podkomendy, by dowiedzieć się więcej.',
+        ('handlowe', 'niedzielehandlowe'), '?podkomenda',
+        'Grupa komend związanych z niedzielami handlowymi. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         ('spal', 'burn'),
@@ -116,9 +113,9 @@ COMMANDS = (
         'Usuwa wiadomość po podanej liczbie sekund lub o podanym czasie.'
     ),
     Help.Command(
-        'przypinki', 'podkomenda',
+        'przypinki', '?podkomenda',
         'Grupa komend związanych z archiwizacją przypiętych widadomości. '
-        f'Użyj przypinki bez podkomendy, by dowiedzieć się więcej.',
+        'Użyj bez <podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         ('głosowanie', 'glosowanie'), ('?liczba minut do ogłoszenia wyniku/godzina', 'sprawa'),
@@ -147,7 +144,7 @@ COMMANDS = (
         'oof ile', '?użytkownik Discorda',
         'Zlicza oofnięcia dla <?użytkownika Discorda> lub, jeśli nie podano <?użytkownika Discorda>, dla ciebie. '
     ),
-    Help.Command( 'oof serwer', (), 'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'),
+    Help.Command('oof serwer', (), 'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'),
     Help.Command(
         ('obróć', 'obroc', 'niewytrzymie'), '?ile razy',
         'Obraca ostatni załączony na kanale obrazek <?ile razy> (domyślnie 1) zgodnie z ruchem wskazówek zegara.'
