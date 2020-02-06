@@ -149,16 +149,28 @@ class Somsiad(Bot):
             )
             await asyncio.sleep(15)
 
+    def generate_embed(
+            self, emoji: str, notice: str, description: str = discord.Embed.Empty,
+            url: str = discord.Embed.Empty, timestamp: dt.datetime = discord.Embed.Empty
+    ):
+        return discord.Embed(
+            title=f'{emoji} {notice}',
+            url=url,
+            timestamp=timestamp,
+            description=description,
+            color=somsiad.COLOR
+        )
+
     async def send(
             self, ctx: discord.ext.commands.Context, text: Optional[str] = None,
             *, direct: bool = False, embed: Optional[discord.Embed] = None,
             embeds: Optional[Sequence[discord.Embed]] = None, file: Optional[discord.File] = None,
             files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None
     ):
-        if embed and embeds:
+        if embed is not None and embeds:
             raise ValueError('embed and embeds cannot be both passed at the same time')
         embeds = embeds or []
-        if embed:
+        if embed is not None:
             embeds.append(embed)
         if len(embeds) > 10:
             raise ValueError('no more than 10 embeds can be sent at the same time')
