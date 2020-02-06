@@ -26,7 +26,6 @@ if configuration['sentry_dsn'] is not None:
 
 from core import somsiad
 from utilities import setlocale
-import server_data
 from data import create_all_tables
 from plugins import *
 
