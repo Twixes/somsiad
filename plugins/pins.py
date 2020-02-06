@@ -19,36 +19,20 @@ from utilities import first_url, word_number_form
 from configuration import configuration
 import data
 
-
-class NoPinnedMessages(Exception):
-    """No pinned messages were found."""
-
-
-class LockInPlace(Exception):
-    """Server or just channel is locked up due to ongoing archivization."""
-
-
 channels_being_processed_for_servers = defaultdict(lambda: None)
 
 
 class PinArchive(data.Base, ServerSpecific, ChannelRelated):
     async def archive(self, channel: discord.TextChannel) -> int:
         """Archives the provided message."""
-        archive_channel = self.channel
+        archive_channel = self.discord_channel
         messages = await channel.pins()
         if not messages:
-            raise NoPinnedMessages
-        if channels_being_processed_for_servers[channel.guild.id] is not None:
-            raise LockInPlace
+            raise ValueError
         channels_being_processed_for_servers[channel.guild.id] = channel
-        try:
-            for message in reversed(messages): await self._archive_message(archive_channel, message)
-        except Exception as e:
-            raise e
-        else:
-            return len(messages)
-        finally:
-            channels_being_processed_for_servers[channel.guild.id] = None
+        for message in reversed(messages):
+            await self._archive_message(archive_channel, message)
+        return len(messages)
 
     async def _archive_message(self, archive_channel: discord.TextChannel, message: discord.Message):
         pin_embed = discord.Embed(
@@ -138,7 +122,7 @@ async def pins_channel(ctx, channel: discord.TextChannel = None):
     else:
         if pin_archive is not None and pin_archive.channel_id is not None:
             embed = discord.Embed(
-                title=f':card_box: Kanałem archiwum przypiętych wiadomości jest #{pin_archive.channel}',
+                title=f':card_box: Kanałem archiwum przypiętych wiadomości jest #{pin_archive.discord_channel}',
                 color=somsiad.COLOR
             )
         else:
@@ -182,33 +166,40 @@ async def pins_archive(ctx):
             color=somsiad.COLOR
         )
     else:
-        pin_archive_channel = pin_archive.channel
+        pin_archive_channel = pin_archive.discord_channel
         if pin_archive_channel is None:
             embed = discord.Embed(
                 title=':warning: Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje',
                 color=somsiad.COLOR
             )
         else:
-            async with ctx.typing():
+            if channels_being_processed_for_servers[ctx.guild.id] is None:
+                channels_being_processed_for_servers[ctx.guild.id] = pin_archive.discord_channel
                 try:
-                    archived = await pin_archive.archive(ctx.channel)
-                except NoPinnedMessages:
-                    embed = discord.Embed(
-                        title=':red_circle: Brak przypiętych wiadomości do zarchiwizowania',
-                        color=somsiad.COLOR
-                    )
-                except LockInPlace:
-                    embed = discord.Embed(
-                        title=':red_circle: Na serwerze właśnie trwa przetwarzanie kanału '
-                        f'#{channels_being_processed_for_servers[ctx.guild.id]}',
-                        color=somsiad.COLOR
-                    )
-                else:
-                    embed = discord.Embed(
-                        title=':white_check_mark: Zarchiwizowano '
-                        f'{word_number_form(archived, "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
-                        color=somsiad.COLOR
-                    )
+                    async with ctx.typing():
+                        try:
+                            archived = await pin_archive.archive(ctx.channel)
+                        except ValueError:
+                            embed = discord.Embed(
+                                title=':red_circle: Brak przypiętych wiadomości do zarchiwizowania',
+                                color=somsiad.COLOR
+                            )
+                        else:
+                            embed = discord.Embed(
+                                title=':white_check_mark: Zarchiwizowano '
+                                f'{word_number_form(archived, "przypiętą wiadomość", "przypięte wiadomości", "przypiętych wiadomości")}',
+                                color=somsiad.COLOR
+                            )
+                except:
+                    raise
+                finally:
+                    channels_being_processed_for_servers[ctx.guild.id] = None
+            else:
+                embed = discord.Embed(
+                    title=':red_circle: Na serwerze właśnie trwa przetwarzanie kanału '
+                    f'#{channels_being_processed_for_servers[ctx.guild.id]}',
+                    color=somsiad.COLOR
+                )
     session.close()
     await ctx.send(ctx.author.mention, embed=embed)
 
