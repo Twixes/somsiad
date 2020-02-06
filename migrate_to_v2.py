@@ -18,6 +18,7 @@ import sys
 import os
 import sqlite3
 import json
+import datetime as dt
 import data
 
 
@@ -180,10 +181,21 @@ class Oofer(data.Base, MemberSpecific):
     oofs = data.Column(data.Integer, nullable=False, default=1)
 
 
+class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
+    __tablename__ = 'entries'
+
+    id = data.Column(data.BigInteger, primary_key=True)
+    type = data.Column(data.String(50), nullable=False)
+    executing_user_id = data.Column(data.BigInteger, index=True)
+    details = data.Column(data.String(2000))
+    occurred_at = data.Column(data.DateTime, nullable=False, default=dt.datetime.utcnow)
+
+
 data.create_all_tables()
 
 server_data_manager = ServerDataManager()
 server_data_manager.servers.pop('ids')
+
 
 def migrate_from_db_to_sqlalchemy_pins():
     print('Migrating pins from .db files to SQLAlchemy... ')
@@ -211,6 +223,24 @@ def migrate_from_db_to_sqlalchemy_oof():
     print('Done: oof migrated')
 
 
+def migrate_from_db_to_sqlalchemy_moderation():
+    print('Migrating moderation from .db files to SQLAlchemy... ')
+    session = data.Session()
+    session.add_all([
+        Event(
+            server_id=server_id, type=event['event_type'], user_id=event['subject_user_id'],
+            channel_id=event['channel_id'], executing_user_id=event['executing_user_id'], details=event['reason'],
+            occurred_at=dt.datetime.fromtimestamp(event['posix_timestamp']).replace(tzinfo=dt.timezone.utc)
+        )
+        for server_id, server in server_data_manager.servers.items()
+        if 'files' in server
+        for event in server['files']
+    ])
+    session.commit()
+    session.close()
+    print('Done: moderation migrated')
+
+
 def migrate_from_json_to_env():
     print('Migrating configuration from .json to .env... ')
     json_f_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.json')
@@ -229,5 +259,6 @@ def migrate_from_json_to_env():
 
 if __name__ == '__main__':
     migrate_from_db_to_sqlalchemy_pins()
-    migrate_from_db_to_sqlalchemy_oofs()
+    migrate_from_db_to_sqlalchemy_oof()
+    migrate_from_db_to_sqlalchemy_moderation()
     migrate_from_json_to_env()

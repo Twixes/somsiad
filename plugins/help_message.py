@@ -178,6 +178,11 @@ COMMANDS = (
         'Banuje <użytkownika Discorda>. Działa tylko dla członków serwera mających uprawnienia do banowania innych.'
     ),
     Help.Command(
+        ('przebacz', 'pardon'), ('użytkownik Discorda'),
+        'Usuwa wszystkie ostrzeżenia <użytkownika Discorda> na serwerze. '
+        'Działa tylko dla członków serwera mających uprawnienia administratora.'
+    ),
+    Help.Command(
         'kartoteka', ('?użytkownik Discorda', '?typy zdarzeń'),
         'Sprawdza kartotekę <?użytkownika Discorda> pod kątem <?typów zdarzeń>. '
         'Jeśli nie podano <?użytkownika Discorda>, przyjmuje ciebie. '
