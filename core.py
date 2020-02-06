@@ -44,6 +44,7 @@ class Somsiad(commands.Bot):
         commands.CommandNotFound,
         commands.MissingRequiredArgument,
         commands.BadArgument,
+        commands.BadUnionArgument,
         commands.CommandOnCooldown
     )
     MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS = 5
