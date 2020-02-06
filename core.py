@@ -527,16 +527,18 @@ async def info(ctx, *, x = None):
         footer = '© ???-??? ???'
         psi = 2**18
         omega = psi * psi
-        number_of_servers = random.randint(0, psi)
-        number_of_users = number_of_servers * random.randint(0, psi)
+        server_count = random.randint(0, psi)
+        user_count = server_count * random.randint(0, psi)
         runtime = human_amount_of_time(random.randint(0, omega))
         instance_owner = '???'
     else:
         emoji = 'ℹ️'
         title = f'Somsiad {__version__}'
         footer = __copyright__
-        number_of_servers = len(somsiad.guilds)
-        number_of_users = len(set(somsiad.get_all_members()))
+        server_count = len([server.id for server in somsiad.guilds if 'bot' not in server.name.lower()])
+        user_count = len({
+            member.id for server in somsiad.guilds for member in server.members if 'bot' not in server.name.lower()
+        })
         runtime = human_amount_of_time(dt.datetime.now() - somsiad.run_datetime)
         application_info = await somsiad.application_info()
         instance_owner = application_info.owner.mention
@@ -545,8 +547,8 @@ async def info(ctx, *, x = None):
         url=somsiad.WEBSITE_URL,
         color=somsiad.COLOR
     )
-    embed.add_field(name='Liczba serwerów', value=number_of_servers)
-    embed.add_field(name='Liczba użytkowników', value=number_of_users)
+    embed.add_field(name='Liczba serwerów', value=server_count)
+    embed.add_field(name='Liczba użytkowników', value=user_count)
     embed.add_field(name='Czas pracy', value=runtime)
     embed.add_field(name='Właściciel instancji', value=instance_owner)
     embed.set_footer(text=footer)
