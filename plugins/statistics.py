@@ -22,7 +22,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 import discord
-from core import somsiad
+from discord.ext import commands
+from core import Help, somsiad
 from configuration import configuration
 from utilities import word_number_form, human_timedelta
 
@@ -84,7 +85,7 @@ class Report:
         elif isinstance(subject, discord.TextChannel):
             # raise a BadArgument exception if the requesting user doesn't have access to the channel
             if not self.subject.permissions_for(self.requesting_member).read_messages:
-                raise discord.ext.commands.BadArgument
+                raise commands.BadArgument
             self._prepare_active_channels(self.guild, self.subject)
             self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
         elif isinstance(subject, discord.Member):
@@ -551,115 +552,93 @@ class Report:
         return ax
 
 
-@somsiad.group(invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def stat(ctx, *, subject: Union[discord.Member, discord.TextChannel] = None):
-    if subject is None:
-        embed = discord.Embed(
-            title=f'Dostępne podkomendy {configuration["command_prefix"]}{ctx.invoked_with}',
-            description=f'Użycie: {configuration["command_prefix"]}{ctx.invoked_with} <podkomenda> lub '
-            f'{configuration["command_prefix"]}{ctx.invoked_with} <użytkownik/kanał>',
-            color=somsiad.COLOR
+class Statistics(commands.Cog):
+    GROUP = Help.Command('stat', (), 'Grupa komend związanych ze statystykami na serwerze.')
+    COMMANDS = (
+        Help.Command('serwer', (), 'Wysyła raport o serwerze.'),
+        Help.Command(('kanał', 'kanal'), '?kanał', 'Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.'),
+        Help.Command(
+            ('użytkownik', 'uzytkownik', 'user'), '?użytkownik',
+            'Wysyła raport o użytkowniku. Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.'
         )
-        embed.add_field(
-            name=f'serwer',
-            value='Wysyła raport o serwerze.',
-            inline=False
-        )
-        embed.add_field(
-            name=f'kanał <?kanał>',
-            value='Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.',
-            inline=False
-        )
-        embed.add_field(
-            name=f'użytkownik <?użytkownik>',
-            value='Wysyła raport o użytkowniku. '
-            'Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.',
-            inline=False
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
-    else:
+    )
+    HELP = Help(COMMANDS, group=GROUP)
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.group(invoke_without_command=True, case_insensitive=True)
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def stat(self, ctx, *, subject: Union[discord.Member, discord.TextChannel] = None):
+        if subject is None:
+            await self.bot.send(ctx, embeds=self.HELP.embeds)
+        else:
+            async with ctx.typing():
+                report = Report(ctx.message.id, ctx.author, subject)
+                await report.analyze_subject()
+                report.render_activity_chart()
+            await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
+
+    @stat.error
+    async def stat_error(self, ctx, error):
+        if isinstance(error, commands.BadUnionArgument):
+            await self.bot.send(
+                ctx, embeds=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika ani kanału')
+            )
+
+    @stat.command(aliases=['server', 'serwer'])
+    @commands.cooldown(
+        1, Report.COOLDOWN, commands.BucketType.channel
+    )
+    @commands.guild_only()
+    async def stat_server(self, ctx):
         async with ctx.typing():
-            report = Report(ctx.message.id, ctx.author, subject)
+            report = Report(ctx.message.id, ctx.author, ctx.guild)
             await report.analyze_subject()
             report.render_activity_chart()
+        await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
 
-        await ctx.send(ctx.author.mention, embed=report.embed, file=report.activity_chart_file)
+    @stat.command(aliases=['channel', 'kanał', 'kanal'])
+    @commands.cooldown(
+        1, Report.COOLDOWN, commands.BucketType.user
+    )
+    @commands.guild_only()
+    async def stat_channel(self, ctx, *, channel: discord.TextChannel = None):
+        channel = channel or ctx.channel
+        async with ctx.typing():
+            report = Report(ctx.message.id, ctx.author, channel)
+            await report.analyze_subject()
+            report.render_activity_chart()
+        await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
 
+    @stat_channel.error
+    async def stat_channel_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await self.bot.send(
+                ctx, embeds=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
+            )
 
-@stat.error
-async def stat_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadUnionArgument):
-        embed = discord.Embed(
-            title=f':warning: Nie znaleziono pasującego użytkownika ani kanału!',
-            color=somsiad.COLOR
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
+    @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
+    @commands.cooldown(
+        1, Report.COOLDOWN, commands.BucketType.user
+    )
+    @commands.guild_only()
+    async def stat_member(self, ctx, *, member: discord.Member = None):
+        member = member or ctx.author
+        async with ctx.typing():
+            report = Report(ctx.message.id, ctx.author, member)
+            await report.analyze_subject()
+            report.render_activity_chart()
+        await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
 
-
-@stat.command(aliases=['server', 'serwer'])
-@discord.ext.commands.cooldown(
-    1, Report.COOLDOWN, discord.ext.commands.BucketType.channel
-)
-@discord.ext.commands.guild_only()
-async def stat_server(ctx):
-    async with ctx.typing():
-        report = Report(ctx.message.id, ctx.author, ctx.guild)
-        await report.analyze_subject()
-        report.render_activity_chart()
-
-    await ctx.send(ctx.author.mention, embed=report.embed, file=report.activity_chart_file)
-
-
-@stat.command(aliases=['channel', 'kanał', 'kanal'])
-@discord.ext.commands.cooldown(
-    1, Report.COOLDOWN, discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def stat_channel(ctx, *, channel: discord.TextChannel = None):
-    channel = channel or ctx.channel
-
-    async with ctx.typing():
-        report = Report(ctx.message.id, ctx.author, channel)
-        await report.analyze_subject()
-        report.render_activity_chart()
-
-    await ctx.send(ctx.author.mention, embed=report.embed, file=report.activity_chart_file)
-
-
-@stat_channel.error
-async def stat_channel_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=f':warning: Nie znaleziono pasującego kanału!',
-            color=somsiad.COLOR
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
+    @stat_member.error
+    async def stat_member_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await self.bot.send(
+                ctx, embeds=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+            )
 
 
-@stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
-@discord.ext.commands.cooldown(
-    1, Report.COOLDOWN, discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def stat_member(ctx, *, member: discord.Member = None):
-    member = member or ctx.author
-
-    async with ctx.typing():
-        report = Report(ctx.message.id, ctx.author, member)
-        await report.analyze_subject()
-        report.render_activity_chart()
-
-    await ctx.send(ctx.author.mention, embed=report.embed, file=report.activity_chart_file)
-
-
-@stat_member.error
-async def stat_member_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.COLOR
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
+somsiad.add_cog(Statistics(somsiad))
