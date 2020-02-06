@@ -18,6 +18,7 @@ import random
 import itertools
 import datetime as dt
 import discord
+from discord.ext import commands
 from core import somsiad, Help, ServerSpecific, UserSpecific, ChannelRelated
 from utilities import word_number_form
 from configuration import configuration
@@ -121,7 +122,7 @@ class BirthdayNotifier(data.Base, ServerSpecific, ChannelRelated):
         return birthdays_today
 
 
-class Birthday(discord.ext.commands.Cog):
+class Birthday(commands.Cog):
     DATE_WITH_YEAR_FORMATS = ('%d %m %Y', '%Y %m %d', '%d %B %Y', '%d %b %Y')
     DATE_WITHOUT_YEAR_FORMATS = ('%d %m', '%d %B', '%d %b')
     MONTH_FORMATS = ('%m', '%B', '%b')
@@ -173,7 +174,7 @@ class Birthday(discord.ext.commands.Cog):
         'i upublicznili tu ich datę.'
     )
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @staticmethod
@@ -217,13 +218,13 @@ class Birthday(discord.ext.commands.Cog):
             await self.send_all_birthday_today_notifications()
             first_time = False
 
-    @discord.ext.commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_ready(self):
         await self.initiate_notification_cycle()
 
-    @discord.ext.commands.group(aliases=['urodziny'], invoke_without_command=True, case_insensitive=True)
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.group(aliases=['urodziny'], invoke_without_command=True, case_insensitive=True)
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday(self, ctx, *, member: discord.Member = None):
         if member is None:
@@ -233,7 +234,7 @@ class Birthday(discord.ext.commands.Cog):
 
     @birthday.error
     async def birthday_error(self, ctx, error):
-        if isinstance(error, discord.ext.commands.BadArgument):
+        if isinstance(error, commands.BadArgument):
             embed = discord.Embed(
                 title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
                 color=somsiad.COLOR
@@ -241,8 +242,8 @@ class Birthday(discord.ext.commands.Cog):
             await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.command(aliases=['zapamiętaj', 'zapamietaj', 'ustaw'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_remember(self, ctx, *, raw_date_string):
         try:
@@ -251,12 +252,12 @@ class Birthday(discord.ext.commands.Cog):
             try:
                 date = self.comprehend_date_with_year(raw_date_string)
             except ValueError:
-                raise discord.ext.commands.BadArgument('could not comprehend date')
+                raise commands.BadArgument('could not comprehend date')
             else:
                 if date.year <= BornPerson.EDGE_YEAR:
-                    raise discord.ext.commands.BadArgument('date is in too distant past')
+                    raise commands.BadArgument('date is in too distant past')
                 elif date > dt.date.today():
-                    raise discord.ext.commands.BadArgument('date is in the future')
+                    raise commands.BadArgument('date is in the future')
         with data.session(commit=True) as session:
             born_person = session.query(BornPerson).get(ctx.author.id)
             if born_person is not None:
@@ -281,12 +282,12 @@ class Birthday(discord.ext.commands.Cog):
     @birthday_remember.error
     async def birthday_remember_error(self, ctx, error):
         notice = None
-        if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        if isinstance(error, commands.MissingRequiredArgument):
             embed = discord.Embed(
                 title=':warning: Nie podano daty!',
                 color=somsiad.COLOR
             )
-        elif isinstance(error, discord.ext.commands.BadArgument):
+        elif isinstance(error, commands.BadArgument):
             if str(error) == 'could not comprehend date':
                 notice = 'Nie rozpoznano formatu daty'
             elif str(error) == 'date is in too distant past':
@@ -301,8 +302,8 @@ class Birthday(discord.ext.commands.Cog):
             await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.command(aliases=['zapomnij'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_forget(self, ctx):
         forgotten = False
@@ -328,10 +329,10 @@ class Birthday(discord.ext.commands.Cog):
         await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.command(aliases=['upublicznij'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
-    @discord.ext.commands.guild_only()
+    @commands.guild_only()
     async def birthday_make_public(self, ctx):
         with data.session(commit=True) as session:
             born_person = session.query(BornPerson).get(ctx.author.id)
@@ -363,10 +364,10 @@ class Birthday(discord.ext.commands.Cog):
         await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.command(aliases=['utajnij'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
-    @discord.ext.commands.guild_only()
+    @commands.guild_only()
     async def birthday_make_secret(self, ctx):
         with data.session(commit=True) as session:
             born_person = session.query(BornPerson).get(ctx.author.id)
@@ -402,8 +403,8 @@ class Birthday(discord.ext.commands.Cog):
         await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.command(aliases=['gdzie'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_where(self, ctx):
         with data.session() as session:
@@ -419,8 +420,8 @@ class Birthday(discord.ext.commands.Cog):
         await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.command(aliases=['kiedy'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_when(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
@@ -460,7 +461,7 @@ class Birthday(discord.ext.commands.Cog):
 
     @birthday_when.error
     async def birthday_when_error(self, ctx, error):
-        if isinstance(error, discord.ext.commands.BadArgument):
+        if isinstance(error, commands.BadArgument):
             embed = discord.Embed(
                 title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
                 color=somsiad.COLOR
@@ -468,8 +469,8 @@ class Birthday(discord.ext.commands.Cog):
             await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.command(aliases=['wiek'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_age(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
@@ -517,7 +518,7 @@ class Birthday(discord.ext.commands.Cog):
 
     @birthday_age.error
     async def birthday_age_error(self, ctx, error):
-        if isinstance(error, discord.ext.commands.BadArgument):
+        if isinstance(error, commands.BadArgument):
             embed = discord.Embed(
                 title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
                 color=somsiad.COLOR
@@ -525,17 +526,17 @@ class Birthday(discord.ext.commands.Cog):
             await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday.group(aliases=['powiadomienia'], invoke_without_command=True, case_insensitive=True)
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
-    @discord.ext.commands.guild_only()
-    @discord.ext.commands.has_permissions(administrator=True)
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
     async def birthday_notifications(self, ctx):
         await somsiad.send(ctx, embeds=self.NOTIFICATIONS_HELP.embeds)
 
     @birthday_notifications.command(aliases=['status'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_notifications_status(self, ctx, *, channel: discord.TextChannel = None):
         channel = channel or ctx.channel
@@ -551,8 +552,8 @@ class Birthday(discord.ext.commands.Cog):
         await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday_notifications.command(aliases=['włącz', 'wlacz'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_notifications_enable(self, ctx, *, channel: discord.TextChannel = None):
         channel = channel or ctx.channel
@@ -571,8 +572,8 @@ class Birthday(discord.ext.commands.Cog):
         await ctx.send(ctx.author.mention, embed=embed)
 
     @birthday_notifications.command(aliases=['wyłącz', 'wylacz'])
-    @discord.ext.commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
     async def birthday_notifications_disable(self, ctx):
         with data.session(commit=True) as session:
