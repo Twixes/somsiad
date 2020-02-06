@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, List
+from typing import Union, Optional, List
 import datetime as dt
 import discord
 from discord.ext import commands
@@ -91,7 +91,7 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
 
 
 class Moderation(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -278,22 +278,33 @@ class Moderation(commands.Cog):
     )
     @commands.guild_only()
     async def file(
-            self, ctx, member: discord.Member = None, *, event_types: Event.comprehend_types = None
+            self, ctx, member: Union[discord.Member, int] = None, *, event_types: Event.comprehend_types = None
     ):
         """Responds with a list of the user's files events on the server."""
-        member = member or ctx.author
+        if isinstance(member, int):
+            member_id = member
+            try:
+                member = await self.bot.fetch_user(member)
+            except discord.NotFound:
+                member = None
+        else:
+            member = member or ctx.author
+            member_id = member.id
         with data.session() as session:
             events = session.query(Event)
             if event_types is None:
                 events = events.filter(
-                    Event.server_id == ctx.guild.id, Event.user_id == member.id
+                    Event.server_id == ctx.guild.id, Event.user_id == member_id
                 )
             else:
                 events = events.filter(
-                    Event.server_id == ctx.guild.id, Event.user_id == member.id, Event.type.in_(event_types)
+                    Event.server_id == ctx.guild.id, Event.user_id == member_id, Event.type.in_(event_types)
                 )
             events = events.order_by(Event.occurred_at).all()
-        address = 'Twoja kartoteka' if member == ctx.author else f'Kartoteka {member}'
+            if member == ctx.author:
+                address = 'Twoja kartoteka'
+            else:
+                address = f'Kartoteka {member if member else "usuniętego użytkownika"}'
         if events:
             if event_types is None:
                 event_types_description = ''
@@ -321,12 +332,10 @@ class Moderation(commands.Cog):
     @file.error
     async def file_error(self, ctx, error):
         notice = None
-        if isinstance(error, commands.BadArgument):
-            error_str = str(error)
-            if error_str.startswith('Member') and error_str.endswith('not found'):
-                notice = 'Nie znaleziono na serwerze pasującego użytkownika'
-            elif error_str == 'Converting to "comprehend_types" failed for parameter "event_types".':
-                notice = 'Nie rozpoznano żadnego typu zdarzenia'
+        if isinstance(error, commands.BadUnionArgument):
+            notice = 'Nie znaleziono na serwerze pasującego użytkownika'
+        elif isinstance(error, commands.BadArgument):
+            notice = 'Nie rozpoznano żadnego typu zdarzenia'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
         else:
