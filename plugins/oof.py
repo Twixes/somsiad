@@ -104,11 +104,11 @@ async def oof_server(ctx):
         top_results = session.query(
             Oofer,
             data.func.dense_rank().over(order_by = Oofer.oofs.desc()).label('rank')
-        ).limit(10).all()
+        ).limit(25).all()
 
     ranking = []
     for result in top_results:
-        if result.rank > 5:
+        if result.rank > 10:
             break
         ranking.append(
             f'{result.rank}. <@{result.Oofer.user_id}> – '
