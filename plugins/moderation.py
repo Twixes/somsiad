@@ -157,8 +157,6 @@ class Moderation(commands.Cog):
             notice = 'Nie znaleziono na serwerze pasującego użytkownika'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice, description))
-        else:
-            raise error
 
     @commands.command(aliases=['wyrzuć', 'wyrzuc'])
     @commands.cooldown(
@@ -194,8 +192,6 @@ class Moderation(commands.Cog):
             notice = 'Nie znaleziono na serwerze pasującego użytkownika'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
-        else:
-            raise error
 
     @commands.command(aliases=['zbanuj'])
     @commands.cooldown(
@@ -231,8 +227,6 @@ class Moderation(commands.Cog):
             notice = 'Nie znaleziono na serwerze pasującego użytkownika'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
-        else:
-            raise error
 
     @commands.command(aliases=['przebacz'])
     @commands.cooldown(
@@ -269,8 +263,6 @@ class Moderation(commands.Cog):
             notice = 'Nie znaleziono na serwerze pasującego użytkownika'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
-        else:
-            raise error
 
     @commands.command(aliases=['kartoteka'])
     @commands.cooldown(
@@ -338,8 +330,6 @@ class Moderation(commands.Cog):
             notice = 'Nie rozpoznano żadnego typu zdarzenia'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
-        else:
-            raise error
 
     @commands.command(aliases=['wyczyść', 'wyczysc'])
     @commands.cooldown(
@@ -369,16 +359,12 @@ class Moderation(commands.Cog):
 
     @purge.error
     async def purge_error(self, ctx, error):
-        notice = None
         if isinstance(error, commands.BadArgument):
             notice = 'Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia'
-        if notice is not None:
             await self.bot.send(
                 ctx, embed=self.bot.generate_embed('⚠️', notice),
                 delete_after=self.bot.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS
             )
-        else:
-            raise error
 
 
 somsiad.add_cog(Moderation(somsiad))

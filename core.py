@@ -497,8 +497,6 @@ class Prefix(discord.ext.commands.Cog):
             notice = f'Nowy prefiks nie może być dłuższy niż {character_form}'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
-        else:
-            raise error
 
     @prefix.command(aliases=['przywróć', 'przywroc'])
     @commands.cooldown(
