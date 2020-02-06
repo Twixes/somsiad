@@ -12,17 +12,23 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import string
+import operator
 from py_expression_eval import Parser
 import discord
 from core import somsiad
 from utilities import word_number_form
 from configuration import configuration
 
-
 parser = Parser()
+parser.ops2['^'] = operator.pow
+parser.ops2['**'] = operator.pow
+parser.functions['pow'] = operator.pow
+parser.values['pow'] = operator.pow
+
 input_data_strip_chars = string.whitespace + ';'
 
 previous_expressions = {}
+
 
 @somsiad.command(aliases=['oblicz', 'policz'])
 @discord.ext.commands.cooldown(
