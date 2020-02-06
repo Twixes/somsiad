@@ -63,11 +63,11 @@ async def calculate(ctx, *, data):
             previous_expressions[ctx.channel.id] = {}
         previous_expressions[ctx.channel.id][ctx.author.id] = expression
 
-    roundDigits = None
+    round_digits = None
     variables_dict = {}
     if variables_list:
         try:
-            roundDigits = int(variables_list[-1])
+            round_digits = int(variables_list[-1])
         except ValueError:
             pass
         else:
@@ -123,21 +123,21 @@ async def calculate(ctx, *, data):
             if int(result) == result:
                 result = int(result)
 
-            if roundDigits is not None:
-                result = round(result, roundDigits)
-                if roundDigits <= 0:
+            if round_digits is not None:
+                result = round(result, round_digits)
+                if round_digits <= 0:
                     result = int(result)
-                    if roundDigits == 0:
+                    if round_digits == 0:
                         output_details = f'Wyjście zaokrąglone do całości'
                     else:
                         output_details = (
                             'Wyjście zaokrąglone do '
-                            f'{word_number_form(-roundDigits, "cyfry", "cyfr")} przed przecinkiem'
+                            f'{word_number_form(-round_digits, "cyfry", "cyfr")} przed przecinkiem'
                         )
                 else:
                     output_details = (
                         'Wyjście zaokrąglone do '
-                        f'{word_number_form(roundDigits, "cyfry", "cyfr")} po przecinku'
+                        f'{word_number_form(round_digits, "cyfry", "cyfr")} po przecinku'
                     )
 
             embed = discord.Embed(
