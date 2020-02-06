@@ -147,9 +147,10 @@ COMMANDS = (
         'oof ile', '?użytkownik Discorda',
         'Zlicza oofnięcia dla <?użytkownika Discorda> lub, jeśli nie podano <?użytkownika Discorda>, dla ciebie. '
     ),
+    Help.Command( 'oof serwer', (), 'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'),
     Help.Command(
-        'oof serwer', '?użytkownik Discorda',
-        'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'
+        ('obróć', 'obroc', 'niewytrzymie'), '?ile razy',
+        'Obraca ostatni załączony na kanale obrazek <?ile razy> (domyślnie 1) zgodnie z ruchem wskazówek zegara.'
     ),
     Help.Command(
         ('deepfry', 'usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'),
