@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Union
+from collections import defaultdict
 import io
 import datetime as dt
 import calendar
@@ -29,7 +30,7 @@ from utilities import word_number_form, human_timedelta
 class Report:
     """A statistics report. Can generate server, channel or member statistics."""
     COOLDOWN = max(float(configuration['command_cooldown_per_user_in_seconds']), 15.0)
-    BACKGROUND_COLOR = '#32363c'
+    BACKGROUND_COLOR = '#2f3136'
     FOREGROUND_COLOR = '#ffffff'
 
     statistics_cache = {}
@@ -67,7 +68,7 @@ class Report:
         self.total_character_count = 0
         self.messages_over_hour = [0 for hour in range(24)]
         self.messages_over_weekday = [0 for weekday in range(7)]
-        self.messages_over_date = {}
+        self.messages_over_date = defaultdict(lambda: 0)
         self.active_users = {}
         self.active_channels = {}
         self.embed = None
@@ -79,16 +80,16 @@ class Report:
         self.guild = requesting_member.guild
         if isinstance(subject, discord.Guild):
             self._prepare_active_channels(self.guild)
-            self._prepare_messages_over_date(self.subject.created_at)
+            self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
         elif isinstance(subject, discord.TextChannel):
-            # Raise a BadArgument exception if the requesting user doesn't have access to the channel
+            # raise a BadArgument exception if the requesting user doesn't have access to the channel
             if not self.subject.permissions_for(self.requesting_member).read_messages:
                 raise discord.ext.commands.BadArgument
             self._prepare_active_channels(self.guild, self.subject)
-            self._prepare_messages_over_date(self.subject.created_at)
+            self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
         elif isinstance(subject, discord.Member):
             self._prepare_active_channels(self.guild)
-            self._prepare_messages_over_date(self.subject.joined_at)
+            self.start_date = self.subject.joined_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
         if self.guild.id not in self.cache_update_queues:
             self.cache_update_queues[self.guild.id] = []
 
@@ -120,25 +121,33 @@ class Report:
             title = f'Aktywność użytkownika {self.subject}'
             subject_identification = f'server-{self.subject.guild.id}-user-{self.subject.id}'
 
-        # Initialize the chart
-        fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3)
+        if isinstance(self.subject, discord.TextChannel):
+            # initialize the chart
+            fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3, figsize=(12, 9))
+            # plot
+            ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
+            ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
+            ax_by_date = self._plot_activity_by_date(ax_by_date)
+        else:
+            # initialize the chart
+            fig, [ax_by_hour, ax_by_weekday, ax_by_date, ax_by_channel] = plt.subplots(4, figsize=(12, 12))
+            # plot
+            ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
+            ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
+            ax_by_date = self._plot_activity_by_date(ax_by_date)
+            ax_by_channel = self._plot_activity_by_channel(ax_by_channel)
 
-        # Plot
-        ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
-        ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
-        ax_by_date = self._plot_activity_by_date(ax_by_date)
-
-        # Make it look nice
+        # make it look nice
         fig.set_tight_layout(True)
         ax_by_hour.set_title(title, color=self.FOREGROUND_COLOR, fontsize=13, fontweight='bold', y=1.04)
 
-        # Save as bytes
+        # save as bytes
         chart_bytes = io.BytesIO()
         fig.savefig(chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
         plt.close(fig)
         chart_bytes.seek(0)
 
-        # Create a Discord file and embed it
+        # create a Discord file and embed it
         filename = f'activity-{subject_identification}-{self.init_datetime.strftime("%Y.%m.%dT%H.%M.%S")}.png'
         self.activity_chart_file = discord.File(
             fp=chart_bytes,
@@ -177,18 +186,6 @@ class Report:
             self.active_channels[channel.id] = {
                 'channel': channel, 'message_count': 0, 'word_count': 0, 'character_count': 0
             }
-
-    def _prepare_messages_over_date(self, start_utc_datetime: dt.datetime):
-        """Prepares the dictionary of messages over date."""
-        subject_creation_date = start_utc_datetime.replace(tzinfo=dt.timezone.utc).astimezone().date()
-        subject_existence_day_count = (dt.date.today() - subject_creation_date).days + 1
-        subject_existence_days = [
-            date for date in (
-                subject_creation_date + dt.timedelta(n) for n in range(subject_existence_day_count)
-            )
-        ]
-        for date in subject_existence_days:
-            self.messages_over_date[date.isoformat()] = 0
 
     async def _update_statistics_cache_for_channel(self, channel: discord.TextChannel):
         try:
@@ -395,7 +392,7 @@ class Report:
         self.embed.set_footer(text=footer_text)
 
     def _plot_activity_by_hour(self, ax):
-        # Plot the chart
+        # plot the chart
         ax.bar(
             [f'{hour}:00'.zfill(5) for hour in list(range(6, 24)) + list(range(0, 6))],
             self.messages_over_hour[6:] + self.messages_over_hour[:6],
@@ -405,25 +402,25 @@ class Report:
             align='edge'
         )
 
-        # Set proper X axis formatting
+        # set proper X axis formatting
         ax.set_xlim(0, 24)
         ax.set_xticklabels(
             [f'{hour}:00'.zfill(5) for hour in list(range(6, 24)) + list(range(0, 6))], rotation=30, ha='right'
         )
 
-        # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
+        # set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
         if max(self.messages_over_hour) >= 10:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
-        # Make it look nice
+        # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Godzina', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
         return ax
 
     def _plot_activity_by_weekday(self, ax):
-        # Plot the chart
+        # plot the chart
         ax.bar(
             calendar.day_abbr,
             self.messages_over_weekday,
@@ -432,16 +429,16 @@ class Report:
             width=1
         )
 
-        # Set proper X axis formatting
+        # set proper X axis formatting
         ax.set_xlim(-0.5, 6.5)
         ax.set_xticklabels(calendar.day_abbr, rotation=30, ha='right')
 
-        # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
+        # set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
         if max(self.messages_over_weekday) >= 10:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
-        # Make it look nice
+        # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Dzień tygodnia', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
         ax.set_ylabel(
@@ -451,28 +448,26 @@ class Report:
         return ax
 
     def _plot_activity_by_date(self, ax):
-        # Convert date strings provided to datetime objects
-        sorted_messages_over_date = sorted(
-            self.messages_over_date.items(), key=lambda date: dt.datetime.strptime(date[0], '%Y-%m-%d')
-        )
-        dates = [dt.datetime.strptime(date[0], '%Y-%m-%d') for date in sorted_messages_over_date]
-        messages_over_date = [date[1] for date in sorted_messages_over_date]
+        # convert date strings provided to datetime objects
+        earliest_message_date = dt.datetime.strptime(min(self.messages_over_date), '%Y-%m-%d').date()
+        start_date = min(self.start_date, earliest_message_date)
+        end_date = dt.date.today()
+        day_difference = (end_date - start_date).days
+        dates = [start_date + dt.timedelta(n) for n in range(day_difference + 1)]
+        messages = [self.messages_over_date[date.isoformat()] for date in dates]
 
-        # Plot the chart
+        # plot the chart
         ax.bar(
             dates,
-            messages_over_date,
+            messages,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1
         )
 
-        # Set proper ticker intervals on the X axis accounting for the range of time
-        start_date = dates[0]
-        end_date = dates[-1]
+        # set proper ticker intervals on the X axis accounting for the range of time
         year_difference = end_date.year - start_date.year
         month_difference = 12 * year_difference + end_date.month - start_date.month
-        day_difference = (end_date - start_date).days
 
         year_locator = mdates.YearLocator()
         month_locator = mdates.MonthLocator()
@@ -503,21 +498,55 @@ class Report:
             ax.xaxis.set_major_locator(day_locator)
             ax.xaxis.set_major_formatter(day_formatter)
 
+
+        # set proper X axis formatting
+        half_day = dt.timedelta(hours=12)
+        ax.set_xlim(
+            dt.datetime(start_date.year, start_date.month, start_date.day) - half_day,
+            dt.datetime(end_date.year, end_date.month, end_date.day) + half_day
+        )
         for tick in ax.get_xticklabels():
             tick.set_rotation(30)
             tick.set_horizontalalignment('right')
 
-        half_day = dt.timedelta(hours=12)
-        ax.set_xlim((start_date - half_day, end_date + half_day))
-
-        # Set proper ticker intervals on the Y axis accounting for the maximum number of messages
+        # set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
-        if max(messages_over_date) >= 10:
+        if max(messages) >= 10:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
-        # Make it look nice
+        # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Data', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+
+        return ax
+
+    def _plot_activity_by_channel(self, ax):
+        # plot the chart
+        channel_names = [f'#{somsiad.get_channel(channel)}' for channel in self.active_channels]
+        message_counts = [channel_stats['message_count'] for channel_stats in self.active_channels.values()]
+        ax.bar(
+            channel_names,
+            message_counts,
+            color=self.BACKGROUND_COLOR,
+            facecolor=self.FOREGROUND_COLOR,
+            width=1
+        )
+
+        # set proper X axis formatting
+        ax.set_xlim(-0.5, len(channel_names)-0.5)
+        ax.set_xticklabels(channel_names, rotation=30, ha='right')
+
+        # set proper ticker intervals on the Y axis accounting for the maximum number of messages
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
+        if max(message_counts) >= 10:
+            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
+
+        # make it look nice
+        ax.set_facecolor(self.BACKGROUND_COLOR)
+        ax.set_xlabel('Kanał', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        ax.set_ylabel(
+            'Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
+        )
 
         return ax
 
