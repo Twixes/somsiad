@@ -22,14 +22,14 @@ import itertools
 import datetime as dt
 import sentry_sdk
 import discord
-from discord.ext.commands import Bot
+from discord.ext import commands
 from version import __version__, __copyright__
 from utilities import word_number_form, human_amount_of_time
 from configuration import configuration
 import data
 
 
-class Somsiad(Bot):
+class Somsiad(commands.Bot):
     COLOR = 0x7289da
     USER_AGENT = f'SomsiadBot/{__version__}'
     WEBSITE_URL = 'https://somsiad.net'
@@ -41,10 +41,9 @@ class Somsiad(Bot):
         '🛰️', '⚓', '🏖️', '✨', '🌈', '💡', '💈', '🔭', '🎈', '🎉', '💯', '💝', '☢️', '🆘', '♨️'
     ]
     IGNORED_ERRORS = (
-        discord.ext.commands.CommandOnCooldown,
-        discord.ext.commands.CommandNotFound,
-        discord.ext.commands.MissingRequiredArgument,
-        discord.ext.commands.BadArgument
+        commands.CommandNotFound,
+        commands.MissingRequiredArgument,
+        commands.BadArgument
     )
     MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS = 5
     MESSAGE_AUTODESTRUCTION_NOTICE = (
@@ -80,32 +79,27 @@ class Somsiad(Bot):
         await self.cycle_presence()
 
     async def on_command_error(self, ctx, error):
-        if isinstance(error, self.IGNORED_ERRORS):
-            pass
-        elif isinstance(error, discord.ext.commands.NoPrivateMessage):
-            embed = discord.Embed(
-                title=':warning: Ta komenda nie może być użyta w prywatnych wiadomościach',
-                color=self.COLOR
-            )
-            await ctx.send(embed=embed)
-        elif isinstance(error, discord.ext.commands.DisabledCommand):
-            embed = discord.Embed(
-                title=':warning: Ta komenda jest wyłączona',
-                color=self.COLOR
-            )
-            await ctx.send(ctx.author.mention, embed=embed)
-        else:
-            description = (
-                'Zajście zostało zarejestrowane do analizy.' if configuration['sentry_dsn'] is not None
-                else None
-            )
-            embed = discord.Embed(
-                title=':warning: Podczas wykonywania komendy wystąpił błąd',
-                description=description,
-                color=self.COLOR
-            )
-            await ctx.send(ctx.author.mention, embed=embed)
+        direct = False
+        notice = None
+        description = ''
+        if isinstance(error, commands.NoPrivateMessage):
+            notice = 'Ta komenda nie może być użyta w prywatnych wiadomościach'
+        elif isinstance(error, commands.DisabledCommand):
+            notice = 'Ta komenda jest wyłączona'
+        elif isinstance(error, commands.MissingPermissions):
+            notice = 'Nie masz wymaganych do tego uprawnień'
+        elif isinstance(error, commands.BotMissingPermissions):
+            notice = 'Bot nie ma wymaganych do tego uprawnień'
+        elif isinstance(error, commands.CommandOnCooldown):
+            direct = True
+            notice = 'Zbyt często korzystasz z tej komendy'
+        elif not isinstance(error, self.IGNORED_ERRORS):
+            notice = 'Wystąpił nieznany błąd'
+            if configuration['sentry_dsn'] is not None:
+                description = 'Okoliczności zajścia zostały zarejestrowane do analizy.'
             self.register_error(ctx, error)
+        if notice is not None:
+            await self.send(ctx, direct=direct, embed=self.generate_embed('⚠️', notice, description))
 
     async def on_guild_join(self, server):
         data.Server.register(server)
@@ -158,11 +152,11 @@ class Somsiad(Bot):
             url=url,
             timestamp=timestamp,
             description=description,
-            color=somsiad.COLOR
+            color=self.COLOR
         )
 
     async def send(
-            self, ctx: discord.ext.commands.Context, text: Optional[str] = None,
+            self, ctx: commands.Context, text: Optional[str] = None,
             *, direct: bool = False, embed: Optional[discord.Embed] = None,
             embeds: Optional[Sequence[discord.Embed]] = None, file: Optional[discord.File] = None,
             files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None
@@ -212,13 +206,12 @@ class Somsiad(Bot):
                     })
                 sentry_sdk.capture_exception(error)
 
-    def _get_prefix(self, bot: Bot, message: discord.Message) -> List[str]:
+    def _get_prefix(self, bot: commands.Bot, message: discord.Message) -> List[str]:
         user_id = bot.user.id
         prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ']
         if message.guild is not None:
-            session = data.Session()
-            data_server = session.query(data.Server).get(message.guild.id)
-            session.close()
+            with data.session() as session:
+                data_server = session.query(data.Server).get(message.guild.id)
         else:
             data_server = None
         does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
@@ -281,13 +274,13 @@ class Help:
                 'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
                 'oznacza to, że jest to argument opcjonalny.*'
             )
-        self.embeds = [discord.Embed(title=title, description=description, color=somsiad.COLOR)]
+        self.embeds = [discord.Embed(title=title, description=description, color=Somsiad.COLOR)]
         for command in commands:
             self.append(command)
 
     def append(self, command: Command):
         if len(self.embeds[-1].fields) >= 25:
-            self.embeds.append(discord.Embed(color=somsiad.COLOR))
+            self.embeds.append(discord.Embed(color=Somsiad.COLOR))
         self.embeds[-1].add_field(
             name=str(command) if self.group is None else f'{self.group.name} {command}',
             value=command.description,
@@ -358,223 +351,174 @@ class MemberSpecific(ServerSpecific, UserSpecific):
         return server.get_member(self.user_id) if server is not None else None
 
 
+class Essentials(discord.ext.commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(aliases=['wersja', 'v'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def version(self, ctx, *, x = None):
+        """Responds with current version of the bot."""
+        if x and 'fccchk' in x.lower():
+            emoji = '👺'
+            notice = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
+            footer = '© ???-??? ???'
+        else:
+            emoji = random.choice(self.bot.EMOJIS)
+            notice = f'Somsiad {__version__}'
+            footer = __copyright__
+        embed = self.bot.generate_embed(emoji, notice, url=self.bot.WEBSITE_URL)
+        embed.set_footer(text=footer)
+        await self.bot.send(ctx, embed=embed)
+
+    @commands.command(aliases=['informacje'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def info(self, ctx, *, x = None):
+        """Responds with current version of the bot."""
+        if x and 'fccchk' in x.lower():
+            emoji = '👺'
+            notice = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
+            footer = '© ???-??? ???'
+            psi = 2**18
+            omega = psi * psi
+            server_count = random.randint(0, psi)
+            user_count = server_count * random.randint(0, psi)
+            runtime = human_amount_of_time(random.randint(0, omega))
+            instance_owner = '???'
+        else:
+            emoji = 'ℹ️'
+            notice = f'Somsiad {__version__}'
+            footer = __copyright__
+            server_count = len([server.id for server in self.bot.guilds if 'bot' not in server.name.lower()])
+            user_count = len({
+                member.id for server in self.bot.guilds for member in server.members if 'bot' not in server.name.lower()
+            })
+            runtime = human_amount_of_time(dt.datetime.now() - self.bot.run_datetime)
+            application_info = await self.bot.application_info()
+            instance_owner = application_info.owner.mention
+        embed = self.bot.generate_embed(emoji, notice, url=self.bot.WEBSITE_URL)
+        embed.add_field(name='Liczba serwerów', value=server_count)
+        embed.add_field(name='Liczba użytkowników', value=user_count)
+        embed.add_field(name='Czas pracy', value=runtime)
+        embed.add_field(name='Właściciel instancji', value=instance_owner)
+        embed.set_footer(text=footer)
+        await self.bot.send(ctx, embed=embed)
+
+    @commands.command()
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def ping(self, ctx):
+        """Pong!"""
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'))
+
+    @commands.command(aliases=['nope', 'nie'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def no(self, ctx, member: discord.Member = None):
+        """Removes the last message sent by the bot in the channel on the requesting user's request."""
+        member = member or ctx.author
+        if member == ctx.author or ctx.author.permissions_in(ctx.channel).manage_messages:
+            async for message in ctx.history(limit=10):
+                if message.author == ctx.me and member in message.mentions:
+                    await message.delete()
+                    break
+
+
+class Prefix(discord.ext.commands.Cog):
+    GROUP = Help.Command(('prefiks', 'prefix', 'przedrostek'), (), 'Grupa komend związanych z prefiksem.')
+    COMMANDS = (
+        Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks.'),
+        Help.Command(('ustaw'), (), 'Ustawia na serwerze podany prefiks. Wymaga uprawnień administratora.'),
+        Help.Command(
+            ('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks. Wymaga uprawnień administratora.'
+        )
+    )
+    HELP = Help(COMMANDS, group=GROUP)
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @staticmethod
+    def prefix_usage_example(example_prefix: str) -> str:
+        return (
+            f'Przykład użycia: `{example_prefix}wersja` lub `{example_prefix} oof`.\n'
+            'W wiadomościach prywatnych prefiks jest opcjonalny.'
+        )
+
+    @commands.group(aliases=['prefiks', 'przedrostek'], invoke_without_command=True)
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def prefix(self, ctx):
+        """Command prefix commands."""
+        await self.bot.send(ctx, embeds=self.HELP.embeds)
+
+    @prefix.command(aliases=['sprawdź', 'sprawdz'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
+    )
+    async def prefix_check(self, ctx):
+        """Presents the current command prefix."""
+        with data.session() as session:
+            data_server = session.query(data.Server).get(ctx.guild.id) if ctx.guild is not None else None
+            is_prefix_custom = data_server is not None and data_server.command_prefix is not None
+            current_prefix = data_server.command_prefix if is_prefix_custom else configuration["command_prefix"]
+            notice = f'Obowiązujący prefiks to "{current_prefix}"{" (wartość domyślna)" if not is_prefix_custom else ""}'
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🔧', notice, self.prefix_usage_example(current_prefix)))
+
+    @prefix.command(aliases=['ustaw'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
+    )
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def prefix_set(self, ctx, *, new_prefix: str):
+        """Sets a new command prefix."""
+        with data.session(commit=True) as session:
+            data_server = session.query(data.Server).get(ctx.guild.id)
+            if len(new_prefix) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
+                raise commands.BadArgument
+            data_server.command_prefix = new_prefix
+        notice = f'Ustawiono nowy prefiks "{new_prefix}"'
+        await self.bot.send(ctx, embed=self.bot.generate_embed('✅', notice, self.prefix_usage_example(new_prefix)))
+
+    @prefix_set.error
+    async def prefix_set_error(self, ctx, error):
+        """Handles new command prefix setting errors."""
+        notice = None
+        if isinstance(error, commands.MissingRequiredArgument):
+            notice = 'Nie podano nowego prefiksu'
+        elif isinstance(error, commands.BadArgument):
+            character_form = word_number_form(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")
+            notice = f'Nowy prefiks nie może być dłuższy niż {character_form}'
+        if notice is not None:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
+        else:
+            raise error
+
+    @prefix.command(aliases=['przywróć', 'przywroc'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
+    )
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def prefix_restore(self, ctx):
+        """Reverts to the default command prefix."""
+        with data.session(commit=True) as session:
+            data_server = session.query(data.Server).get(ctx.guild.id)
+            data_server.command_prefix = None
+            new_prefix = configuration['command_prefix']
+        await self.bot.send(ctx, embed=self.bot.generate_embed(
+            '✅', f'Przywrócono domyślny prefiks "{new_prefix}"', self.prefix_usage_example(new_prefix)
+        ))
+
+
 somsiad = Somsiad()
-
-
-@somsiad.command(aliases=['nope', 'nie'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def no(ctx, member: discord.Member = None):
-    """Removes the last message sent by the bot in the channel on the requesting user's request."""
-    member = member or ctx.author
-
-    if member == ctx.author or ctx.author.permissions_in(ctx.channel).manage_messages:
-        async for message in ctx.history(limit=10):
-            if message.author == ctx.me and member in message.mentions:
-                await message.delete()
-                break
-
-
-GROUP = Help.Command(('prefiks', 'prefix', 'przedrostek'), (), 'Grupa komend związanych z prefiksem.')
-COMMANDS = (
-    Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks.'),
-    Help.Command(('ustaw'), (), 'Ustawia na serwerze podany prefiks.'),
-    Help.Command(('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks.')
-)
-HELP = Help(COMMANDS, group=GROUP)
-
-
-def prefix_usage_example(example_prefix: str) -> str:
-    return (
-        f'Przykład użycia: `{example_prefix}wersja` lub `{example_prefix} oof`.\n'
-        'W wiadomościach prywatnych prefiks jest opcjonalny.'
-    )
-
-
-@somsiad.group(aliases=['prefiks', 'przedrostek'], invoke_without_command=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def prefix(ctx):
-    """Command prefix commands."""
-    await somsiad.send(ctx, embeds=HELP.embeds)
-
-
-@prefix.command(aliases=['sprawdź', 'sprawdz'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
-)
-async def prefix_check(ctx):
-    """Presents the current command prefix."""
-    session = data.Session()
-    data_server = session.query(data.Server).get(ctx.guild.id) if ctx.guild is not None else None
-    is_prefix_custom = data_server is not None and data_server.command_prefix is not None
-    current_prefix = data_server.command_prefix if is_prefix_custom else configuration["command_prefix"]
-    embed = discord.Embed(
-        title=':wrench: Obowiązujący prefiks to '
-        f'"{current_prefix}"{" (wartość domyślna)" if not is_prefix_custom else ""}',
-        description=prefix_usage_example(current_prefix),
-        color=somsiad.COLOR
-    )
-    session.close()
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@prefix.command(aliases=['ustaw'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(administrator=True)
-async def prefix_set(ctx, *, new_prefix: str):
-    """Sets a new command prefix."""
-    session = data.Session()
-    data_server = session.query(data.Server).get(ctx.guild.id)
-    if len(new_prefix) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
-        session.close()
-        raise discord.ext.commands.BadArgument
-    data_server.command_prefix = new_prefix
-    session.commit()
-    embed = discord.Embed(
-        title=f':white_check_mark: Ustawiono nowy prefiks "{new_prefix}"',
-        description=prefix_usage_example(new_prefix),
-        color=somsiad.COLOR
-    )
-    session.close()
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@prefix_set.error
-async def prefix_set_error(ctx, error):
-    """Handles new command prefix setting errors."""
-    embed = None
-    if isinstance(error, discord.ext.commands.MissingPermissions):
-        embed = discord.Embed(
-            title=':warning: Do ustawienia prefiksu potrzebne są uprawnienia adminstratora',
-            color=somsiad.COLOR
-        )
-    elif isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        embed = discord.Embed(
-            title=':warning: Nie podano nowego prefiksu',
-            color=somsiad.COLOR
-        )
-    elif isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Nowy prefiks nie może być dłuższy niż '
-            f'{word_number_form(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")}',
-            color=somsiad.COLOR
-        )
-    if embed is not None:
-        await ctx.send(ctx.author.mention, embed=embed)
-
-
-@prefix.command(aliases=['przywróć', 'przywroc'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(administrator=True)
-async def prefix_restore(ctx):
-    """Reverts to the default command prefix."""
-    session = data.Session()
-    data_server = session.query(data.Server).get(ctx.guild.id)
-    data_server.command_prefix = None
-    session.commit()
-    new_prefix = configuration['command_prefix']
-    embed = discord.Embed(
-        title=f':white_check_mark: Przywrócono domyślny prefiks "{new_prefix}"',
-        description=prefix_usage_example(new_prefix),
-        color=somsiad.COLOR
-    )
-    session.close()
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@prefix_restore.error
-async def prefix_restore_error(ctx, error):
-    """Handles reverting to the default command prefix errors."""
-    embed = None
-    if isinstance(error, discord.ext.commands.MissingPermissions):
-        embed = discord.Embed(
-            title=':warning: Do usunięcia prefiksu potrzebne są uprawnienia adminstratora',
-            color=somsiad.COLOR
-        )
-    if embed is not None:
-        await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.command(aliases=['wersja', 'v'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def version(ctx, *, x = None):
-    """Responds with current version of the bot."""
-    if x and 'fccchk' in x.lower():
-        emoji = '👺'
-        title = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
-        footer = '© ???-??? ???'
-    else:
-        emoji = random.choice(somsiad.EMOJIS)
-        title = f'Somsiad {__version__}'
-        footer = __copyright__
-    embed = discord.Embed(
-        title=f'{emoji} {title}',
-        url=somsiad.WEBSITE_URL,
-        color=somsiad.COLOR
-    )
-    embed.set_footer(text=footer)
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.command(aliases=['informacje'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def info(ctx, *, x = None):
-    """Responds with current version of the bot."""
-    if x and 'fccchk' in x.lower():
-        emoji = '👺'
-        title = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
-        footer = '© ???-??? ???'
-        psi = 2**18
-        omega = psi * psi
-        server_count = random.randint(0, psi)
-        user_count = server_count * random.randint(0, psi)
-        runtime = human_amount_of_time(random.randint(0, omega))
-        instance_owner = '???'
-    else:
-        emoji = 'ℹ️'
-        title = f'Somsiad {__version__}'
-        footer = __copyright__
-        server_count = len([server.id for server in somsiad.guilds if 'bot' not in server.name.lower()])
-        user_count = len({
-            member.id for server in somsiad.guilds for member in server.members if 'bot' not in server.name.lower()
-        })
-        runtime = human_amount_of_time(dt.datetime.now() - somsiad.run_datetime)
-        application_info = await somsiad.application_info()
-        instance_owner = application_info.owner.mention
-    embed = discord.Embed(
-        title=f'{emoji} {title}',
-        url=somsiad.WEBSITE_URL,
-        color=somsiad.COLOR
-    )
-    embed.add_field(name='Liczba serwerów', value=server_count)
-    embed.add_field(name='Liczba użytkowników', value=user_count)
-    embed.add_field(name='Czas pracy', value=runtime)
-    embed.add_field(name='Właściciel instancji', value=instance_owner)
-    embed.set_footer(text=footer)
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.command()
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def ping(ctx):
-    """Pong!"""
-    embed = discord.Embed(
-        title=':ping_pong: Pong!',
-        color=somsiad.COLOR
-    )
-    await ctx.send(ctx.author.mention, embed=embed)
+somsiad.add_cog(Essentials(somsiad))
+somsiad.add_cog(Prefix(somsiad))
