@@ -43,7 +43,8 @@ class Somsiad(commands.Bot):
     IGNORED_ERRORS = (
         commands.CommandNotFound,
         commands.MissingRequiredArgument,
-        commands.BadArgument
+        commands.BadArgument,
+        commands.CommandOnCooldown
     )
     MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS = 5
     MESSAGE_AUTODESTRUCTION_NOTICE = (
@@ -79,7 +80,6 @@ class Somsiad(commands.Bot):
         await self.cycle_presence()
 
     async def on_command_error(self, ctx, error):
-        direct = False
         notice = None
         description = ''
         if isinstance(error, commands.NoPrivateMessage):
@@ -90,16 +90,13 @@ class Somsiad(commands.Bot):
             notice = 'Nie masz wymaganych do tego uprawnień'
         elif isinstance(error, commands.BotMissingPermissions):
             notice = 'Bot nie ma wymaganych do tego uprawnień'
-        elif isinstance(error, commands.CommandOnCooldown):
-            direct = True
-            notice = 'Zbyt często korzystasz z tej komendy'
         elif not isinstance(error, self.IGNORED_ERRORS):
             notice = 'Wystąpił nieznany błąd'
             if configuration['sentry_dsn'] is not None:
                 description = 'Okoliczności zajścia zostały zarejestrowane do analizy.'
             self.register_error(ctx, error)
         if notice is not None:
-            await self.send(ctx, direct=direct, embed=self.generate_embed('⚠️', notice, description))
+            await self.send(ctx, embed=self.generate_embed('⚠️', notice, description))
 
     async def on_guild_join(self, server):
         data.Server.register(server)
