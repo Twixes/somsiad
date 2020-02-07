@@ -19,7 +19,7 @@ from utilities import first_url, word_number_form
 from configuration import configuration
 import data
 
-channels_being_processed_for_servers = defaultdict(lambda: None)
+channel_being_processed_for_servers = defaultdict()
 
 
 class PinArchive(data.Base, ServerSpecific, ChannelRelated):
@@ -29,7 +29,7 @@ class PinArchive(data.Base, ServerSpecific, ChannelRelated):
         messages = await channel.pins()
         if not messages:
             raise ValueError
-        channels_being_processed_for_servers[channel.guild.id] = channel
+        channel_being_processed_for_servers[channel.guild.id] = channel
         for message in reversed(messages):
             await self._archive_message(archive_channel, message)
         return len(messages)
@@ -173,8 +173,8 @@ async def pins_archive(ctx):
                 color=somsiad.COLOR
             )
         else:
-            if channels_being_processed_for_servers[ctx.guild.id] is None:
-                channels_being_processed_for_servers[ctx.guild.id] = pin_archive.discord_channel
+            if channel_being_processed_for_servers[ctx.guild.id] is None:
+                channel_being_processed_for_servers[ctx.guild.id] = pin_archive.discord_channel
                 try:
                     async with ctx.typing():
                         try:
@@ -193,11 +193,11 @@ async def pins_archive(ctx):
                 except:
                     raise
                 finally:
-                    channels_being_processed_for_servers[ctx.guild.id] = None
+                    channel_being_processed_for_servers[ctx.guild.id] = None
             else:
                 embed = discord.Embed(
                     title=':red_circle: Na serwerze właśnie trwa przetwarzanie kanału '
-                    f'#{channels_being_processed_for_servers[ctx.guild.id]}',
+                    f'#{channel_being_processed_for_servers[ctx.guild.id]}',
                     color=somsiad.COLOR
                 )
     session.close()
@@ -218,13 +218,13 @@ async def pins_clear(ctx):
             title=':red_circle: Brak przypiętych wiadomości do odpięcia',
             color=somsiad.COLOR
         )
-    elif channels_being_processed_for_servers[ctx.guild.id] == ctx.channel:
+    elif channel_being_processed_for_servers[ctx.guild.id] == ctx.channel:
         embed = discord.Embed(
             title=':red_circle: Ten kanał jest właśnie przetwarzany',
             color=somsiad.COLOR
         )
     else:
-        channels_being_processed_for_servers[ctx.guild.id] = ctx.channel
+        channel_being_processed_for_servers[ctx.guild.id] = ctx.channel
         try:
             for pin in messages: await pin.unpin()
         except Exception as e:
@@ -236,5 +236,5 @@ async def pins_clear(ctx):
                 color=somsiad.COLOR
             )
         finally:
-            channels_being_processed_for_servers[ctx.guild.id] = None
+            channel_being_processed_for_servers[ctx.guild.id] = None
     await ctx.send(ctx.author.mention, embed=embed)
