@@ -23,9 +23,21 @@ import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 import discord
 from discord.ext import commands
-from core import Help, somsiad
+from core import Help, ServerRelated, ChannelRelated, UserRelated, somsiad
 from configuration import configuration
 from utilities import word_number_form, human_timedelta
+import data
+
+
+class MessageMetadata(data.Base, ServerRelated, ChannelRelated, UserRelated):
+    __tablename__ = 'message_metadata_cache'
+
+    id = data.Column(data.BigInteger, primary_key=True)
+    word_count = data.Column(data.Integer, nullable=False)
+    character_count = data.Column(data.Integer, nullable=False)
+    hour = data.Column(data.SmallInteger, nullable=False)
+    weekday = data.Column(data.SmallInteger, nullable=False)
+    datetime = data.Column(data.DateTime, nullable=False)
 
 
 class Report:
@@ -34,29 +46,9 @@ class Report:
     BACKGROUND_COLOR = '#2f3136'
     FOREGROUND_COLOR = '#ffffff'
 
-    statistics_cache = {}
-    cache_update_queues = {}
+    cache_update_queues = defaultdict(list)
 
     plt.style.use('dark_background')
-
-    class Message:
-        def __init__(
-                self, message_id: int, author_id: int, channel_id: int, naive_datetime: dt.datetime,
-                local_datetime: dt.datetime, word_count: int, character_count: int
-        ):
-            self.message_id = message_id
-            self.author_id = author_id
-            self.channel_id = channel_id
-            self.naive_datetime = naive_datetime
-            self.local_datetime = local_datetime
-            self.word_count = word_count
-            self.character_count = character_count
-
-        def __eq__(self, other):
-            try:
-                return self.message_id == other.message_id
-            except AttributeError:
-                return False
 
     def __init__(
             self, request_message_id: int, requesting_member: discord.Member,
@@ -69,46 +61,77 @@ class Report:
         self.total_character_count = 0
         self.messages_over_hour = [0 for hour in range(24)]
         self.messages_over_weekday = [0 for weekday in range(7)]
-        self.messages_over_date = defaultdict(lambda: 0)
-        self.active_users = {}
-        self.active_channels = {}
+        self.messages_over_date = defaultdict(int)
+        self.active_user_stats = defaultdict(lambda: {'message_count': 0, 'word_count': 0, 'character_count': 0})
+        self.relevant_channel_stats = defaultdict(
+            lambda: {'message_count': 0, 'word_count': 0, 'character_count': 0}
+        )
         self.embed = None
         self.activity_chart_file = None
-        self.init_datetime = dt.datetime.now().astimezone()
+        self.init_datetime = dt.datetime.now()
         self.request_message_id = request_message_id
         self.requesting_member = requesting_member
         self.subject = subject
         self.guild = requesting_member.guild
+        self.earliest_relevant_message_datetime = None # only applies to member reports
         if isinstance(subject, discord.Guild):
-            self._prepare_active_channels(self.guild)
             self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
+            self._generate_relevant_embed = self._generate_server_embed
         elif isinstance(subject, discord.TextChannel):
-            # raise a BadArgument exception if the requesting user doesn't have access to the channel
+            # raise an exception if the requesting user doesn't have access to the channel
             if not self.subject.permissions_for(self.requesting_member).read_messages:
                 raise commands.BadArgument
-            self._prepare_active_channels(self.guild, self.subject)
             self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
+            self._generate_relevant_embed = self._generate_channel_embed
         elif isinstance(subject, discord.Member):
-            self._prepare_active_channels(self.guild)
             self.start_date = self.subject.joined_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
-        if self.guild.id not in self.cache_update_queues:
-            self.cache_update_queues[self.guild.id] = []
+            self._generate_relevant_embed = self._generate_member_embed
 
     async def analyze_subject(self) -> discord.Embed:
         """Selects the right type of analysis depending on the subject."""
         self.cache_update_queues[self.guild.id].append(self.request_message_id)
-        while not self.cache_update_queues[self.guild.id][0] == self.request_message_id:
-            await asyncio.sleep(1)
-            self.seconds_in_queue += 1
-        if isinstance(self.subject, discord.Guild):
-            await self._analyze_server()
-        elif isinstance(self.subject, discord.TextChannel):
-            await self._analyze_channel()
-        elif isinstance(self.subject, discord.Member):
-            await self._analyze_member()
-        self.cache_update_queues[self.guild.id].remove(self.request_message_id)
-        self._embed_analysis_metastatistics()
-        return self.embed
+        try:
+            while not self.cache_update_queues[self.guild.id][0] == self.request_message_id:
+                await asyncio.sleep(1)
+                self.seconds_in_queue += 1
+            with data.session() as session:
+                # remove message metadata from nonexistent channels
+                existent_channels = self.guild.text_channels
+                existent_channel_ids = [channel.id for channel in existent_channels]
+                session.query(MessageMetadata).filter(MessageMetadata.channel_id.notin_(existent_channel_ids)).delete(
+                    synchronize_session='fetch'
+                )
+                # process subject type
+                if isinstance(self.subject, discord.Guild):
+                    for channel in existent_channels:
+                        await self._update_metadata_cache(channel, session)
+                    relevant_message_metadata = session.query(MessageMetadata).filter(
+                        MessageMetadata.server_id == self.guild.id
+                    ).order_by(MessageMetadata.id.asc())
+                elif isinstance(self.subject, discord.TextChannel):
+                    await self._update_metadata_cache(self.subject, session)
+                    relevant_message_metadata = session.query(MessageMetadata).filter(
+                        MessageMetadata.channel_id == self.subject.id
+                    ).order_by(MessageMetadata.id.asc())
+                elif isinstance(self.subject, discord.Member):
+                    for channel in existent_channels:
+                        await self._update_metadata_cache(channel, session)
+                    relevant_message_metadata = session.query(MessageMetadata).filter(
+                        MessageMetadata.server_id == self.guild.id, MessageMetadata.user_id == self.subject.id
+                    ).order_by(MessageMetadata.id.asc())
+                    # check if the user sent any relevant messages before last join
+                    self.earliest_relevant_message_datetime = relevant_message_metadata.first().datetime
+                    self.start_date = min(self.start_date, self.earliest_relevant_message_datetime.date())
+                # generate statistics from metadata cache
+                for message_metadata in relevant_message_metadata.all():
+                    self._update_running_stats(message_metadata)
+            self._generate_relevant_embed()
+            self._embed_analysis_metastats()
+            return self.embed
+        except:
+            raise
+        finally:
+            self.cache_update_queues[self.guild.id].remove(self.request_message_id)
 
     def render_activity_chart(self) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
@@ -158,94 +181,96 @@ class Report:
 
         return self.activity_chart_file
 
-    def _prepare_statistics_cache(self, server: discord.Guild, channel: discord.TextChannel = None):
-        if server.id not in self.statistics_cache:
-            self.statistics_cache[server.id] = {}
-
-        if channel is None:
-            # if no channel was specified prepare for caching all channels
-            for server_channel in server.text_channels:
-                if server_channel.id not in self.statistics_cache[server.id]:
-                    self.statistics_cache[server.id][server_channel.id] = []
-            # remove nonexistent channels from the cache
-            existent_channels = tuple(map(lambda channel: channel.id, server.text_channels))
-            nonexistent_channels = [
-                server_id for server_id in self.statistics_cache[server.id].keys() if server_id not in existent_channels
-            ]
-            for nonexistent_channel in nonexistent_channels:
-                self.statistics_cache[server.id].pop(nonexistent_channel)
-        elif channel.id not in self.statistics_cache[server.id]:
-            self.statistics_cache[server.id][channel.id] = []
-
-    def _prepare_active_channels(self, server: discord.Guild, channel: discord.TextChannel = None):
-        if channel is None:
-            for server_channel in server.text_channels:
-                self.active_channels[server_channel.id] = {
-                    'channel': server_channel, 'message_count': 0, 'word_count': 0, 'character_count': 0
-                }
-        else:
-            self.active_channels[channel.id] = {
-                'channel': channel, 'message_count': 0, 'word_count': 0, 'character_count': 0
-            }
-
-    async def _update_statistics_cache_for_channel(self, channel: discord.TextChannel):
+    async def _update_metadata_cache(self, channel: discord.TextChannel, session: data.RawSession):
         try:
-            if self.statistics_cache[channel.guild.id][channel.id]:
-                after = self.statistics_cache[channel.guild.id][channel.id][-1].naive_datetime
+            relevant_message_metadata = session.query(MessageMetadata).filter(
+                MessageMetadata.channel_id == channel.id
+            ).order_by(MessageMetadata.id.desc())
+            last_cached_message_metadata = relevant_message_metadata.first()
+            if last_cached_message_metadata is not None:
+                after = discord.utils.snowflake_time(last_cached_message_metadata.id)
             else:
                 after = None
-            cache_update = []
+            metadata_cache_update = []
             async for message in channel.history(limit=None, after=after):
                 if message.type == discord.MessageType.default:
                     message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
-                    message_object = self.Message(
-                        message.id, message.author.id, message.channel.id, message.created_at, message_local_datetime,
-                        len(message.clean_content.split()), len(message.clean_content)
+                    message_metadata = MessageMetadata(
+                        id=message.id, server_id=message.guild.id, channel_id=channel.id, user_id=message.author.id,
+                        word_count=len(message.clean_content.split()), character_count= len(message.clean_content),
+                        hour=message_local_datetime.hour, weekday=message_local_datetime.weekday(),
+                        datetime=message_local_datetime
                     )
-                    cache_update.append(message_object)
-            self.messages_cached += len(cache_update)
-            self.statistics_cache[channel.guild.id][channel.id] += reversed(cache_update)
+                    metadata_cache_update.append(message_metadata)
+            self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()
+            metadata_cache_update.reverse()
+            self.messages_cached += len(metadata_cache_update)
+            session.bulk_save_objects(metadata_cache_update)
+            session.commit()
         except discord.Forbidden:
             pass
 
-    async def _update_statistics_cache(self, server: discord.Guild, channel: discord.TextChannel = None):
-        """Updates the statistics cache."""
-        self._prepare_statistics_cache(server, channel)
-        if channel is None:
-            for server_channel in server.text_channels:
-                await self._update_statistics_cache_for_channel(server_channel)
-        else:
-            await self._update_statistics_cache_for_channel(channel)
-
-    def _update_message_stats(self, message: Message):
-        """Updates message statistics."""
+    def _update_running_stats(self, message: MessageMetadata):
+        """Updates running message statistics."""
         self.total_message_count += 1
         self.total_word_count += message.word_count
         self.total_character_count += message.character_count
-        self.messages_over_hour[message.local_datetime.hour] += 1
-        self.messages_over_weekday[message.local_datetime.weekday()] += 1
-        try:
-            self.messages_over_date[message.local_datetime.strftime('%Y-%m-%d')] += 1
-        except KeyError:
-            pass
+        self.messages_over_hour[message.hour] += 1
+        self.messages_over_weekday[message.weekday] += 1
+        self.messages_over_date[message.datetime.strftime('%Y-%m-%d')] += 1
+        self.active_user_stats[message.user_id]['message_count'] += 1
+        self.active_user_stats[message.user_id]['word_count'] += message.word_count
+        self.active_user_stats[message.user_id]['character_count'] += message.character_count
+        self.relevant_channel_stats[message.channel_id]['message_count'] += 1
+        self.relevant_channel_stats[message.channel_id]['word_count'] += message.word_count
+        self.relevant_channel_stats[message.channel_id]['character_count'] += message.character_count
 
-    def _update_active_channels(self, message: Message):
-        """Updates the dictionary of active channels."""
-        self.active_channels[message.channel_id]['message_count'] += 1
-        self.active_channels[message.channel_id]['word_count'] += message.word_count
-        self.active_channels[message.channel_id]['character_count'] += message.character_count
+    def _generate_server_embed(self):
+        """Analyzes the subject as a server."""
+        self.embed = discord.Embed(
+            title=f':white_check_mark: Przygotowano raport o serwerze',
+            color=somsiad.COLOR
+        )
+        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
+        self.embed.add_field(name='Właściciel', value=self.subject.owner.mention)
+        self.embed.add_field(name='Ról', value=len(self.subject.roles))
+        self.embed.add_field(name='Emoji', value=len(self.subject.emojis))
+        self.embed.add_field(name='Kanałów tekstowych', value=len(self.subject.text_channels))
+        self.embed.add_field(name='Kanałów głosowych', value=len(self.subject.voice_channels))
+        self.embed.add_field(name='Członków', value=self.subject.member_count)
+        self._embed_general_message_stats()
+        self._embed_top_visible_channel_stats()
+        self._embed_top_active_user_stats()
 
-    def _update_active_users(self, message: Message):
-        """Updates the dictionary of active users."""
-        if message.author_id not in self.active_users:
-            self.active_users[message.author_id] = {
-                'author_id': message.author_id, 'message_count': 0, 'word_count': 0, 'character_count': 0
-            }
-        self.active_users[message.author_id]['message_count'] += 1
-        self.active_users[message.author_id]['word_count'] += message.word_count
-        self.active_users[message.author_id]['character_count'] += message.character_count
+    def _generate_channel_embed(self):
+        """Analyzes the subject as a channel."""
+        self.embed = discord.Embed(
+            title=f':white_check_mark: Przygotowano raport o kanale #{self.subject}',
+            color=somsiad.COLOR
+        )
+        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
+        if self.subject.category is not None:
+            self.embed.add_field(name='Kategoria', value=self.subject.category.name)
+        self.embed.add_field(name='Członków', value=len(self.subject.members))
+        self._embed_general_message_stats()
+        self._embed_top_active_user_stats()
 
-    def _embed_message_stats(self):
+    def _generate_member_embed(self):
+        """Analyzes the subject as a member."""
+        self.embed = discord.Embed(
+            title=f':white_check_mark: Przygotowano raport o użytkowniku {self.subject}',
+            color=somsiad.COLOR
+        )
+        self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
+        self.embed.add_field(name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False)
+        self.embed.add_field(
+            name='Wysłał pierwszą wiadomość',
+            value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+        )
+        self._embed_general_message_stats()
+        self._embed_top_visible_channel_stats()
+
+    def _embed_general_message_stats(self):
         """Adds the usual message statistics to the report embed."""
         self.embed.add_field(
             name='Wysłanych wiadomości',
@@ -253,142 +278,74 @@ class Report:
         )
         self.embed.add_field(name='Wysłanych słów', value=self.total_word_count)
         self.embed.add_field(name='Wysłanych znaków', value=self.total_character_count)
+        days_of_existence = (self.init_datetime.date() - self.start_date).days + 1
         self.embed.add_field(
             name='Średnio wiadomości dziennie',
-            value=int(round(self.total_message_count / len(self.messages_over_date)))
+            value=int(round(self.total_message_count / days_of_existence))
         )
 
-    def _embed_top_active_channels(self):
+    def _embed_top_visible_channel_stats(self):
         """Adds the list of top active channels to the report embed."""
-        sorted_active_channels = sorted(
-            list(self.active_channels.values()), key=lambda active_channel: active_channel['message_count'],
-            reverse=True
-        )
-        filtered_sorted_active_channels = [
-            channel for channel in sorted_active_channels
-            if channel['channel'].permissions_for(self.requesting_member).read_messages
+        visible_channel_ids = [
+            channel_id for channel_id in self.relevant_channel_stats
+            if somsiad.get_channel(channel_id).permissions_for(self.requesting_member).read_messages
         ]
-
-        top_active_channels = []
-        for channel in enumerate(filtered_sorted_active_channels[:5]):
-            if channel[1]['message_count'] > 0:
-                top_active_channels.append(
-                    f'{channel[0]+1}. {channel[1]["channel"].mention} – '
-                    f'{word_number_form(channel[1]["message_count"], "wiadomość", "wiadomości")}, '
-                    f'{word_number_form(channel[1]["word_count"], "słowo", "słowa", "słów")}, '
-                    f'{word_number_form(channel[1]["character_count"], "znak", "znaki", "znaków")}'
+        visible_channel_ids.sort(
+            key=lambda channel_id: tuple(self.relevant_channel_stats[channel_id].values())
+        )
+        visible_channel_ids.reverse()
+        top_visible_channel_stats = []
+        for i, this_visible_channel_id in enumerate(visible_channel_ids[:5]):
+            this_visible_channel_stats = self.relevant_channel_stats[this_visible_channel_id]
+            if this_visible_channel_stats['message_count'] > 0:
+                top_visible_channel_stats.append(
+                    f'{i+1}. <#{this_visible_channel_id}> – '
+                    f'{word_number_form(this_visible_channel_stats["message_count"], "wiadomość", "wiadomości")}, '
+                    f'{word_number_form(this_visible_channel_stats["word_count"], "słowo", "słowa", "słów")}, '
+                    f'{word_number_form(this_visible_channel_stats["character_count"], "znak", "znaki", "znaków")}'
                 )
-        if top_active_channels:
+        if top_visible_channel_stats:
             field_name = (
                 'Najaktywniejszy na kanałach' if isinstance(self.subject, discord.Member) else 'Najaktywniejsze kanały'
             )
-            top_active_channels_string = '\n'.join(top_active_channels)
-            self.embed.add_field(name=field_name, value=top_active_channels_string, inline=False)
+            self.embed.add_field(name=field_name, value='\n'.join(top_visible_channel_stats), inline=False)
 
-    def _embed_top_active_users(self):
+    def _embed_top_active_user_stats(self):
         """Adds the list of top active users to the report embed."""
-        sorted_active_users = sorted(
-            list(self.active_users.values()), key=lambda active_user: active_user['message_count'], reverse=True
+        active_user_ids = list(self.active_user_stats)
+        active_user_ids.sort(
+            key=lambda active_user: tuple(self.active_user_stats[active_user].values())
         )
-        top_active_users = []
-        for active_user in enumerate(sorted_active_users[:5]):
-            top_active_users.append(
-                f'{active_user[0]+1}. <@{active_user[1]["author_id"]}> – '
-                f'{word_number_form(active_user[1]["message_count"], "wiadomość", "wiadomości")}, '
-                f'{word_number_form(active_user[1]["word_count"], "słowo", "słowa", "słów")}, '
-                f'{word_number_form(active_user[1]["character_count"], "znak", "znaki", "znaków")}'
+        active_user_ids.reverse()
+        top_active_user_stats = []
+        for i, this_active_user_id in enumerate(active_user_ids[:5]):
+            this_active_user_stats = self.active_user_stats[this_active_user_id]
+            top_active_user_stats.append(
+                f'{i+1}. <@{this_active_user_id}> – '
+                f'{word_number_form(this_active_user_stats["message_count"], "wiadomość", "wiadomości")}, '
+                f'{word_number_form(this_active_user_stats["word_count"], "słowo", "słowa", "słów")}, '
+                f'{word_number_form(this_active_user_stats["character_count"], "znak", "znaki", "znaków")}'
             )
-        if top_active_users:
-            top_active_users_string = '\n'.join(top_active_users)
-            self.embed.add_field(name='Najaktywniejsi użytkownicy', value=top_active_users_string, inline=False)
+        if top_active_user_stats:
+            self.embed.add_field(
+                name='Najaktywniejsi użytkownicy', value='\n'.join(top_active_user_stats), inline=False
+            )
 
-    async def _analyze_server(self):
-        """Analyzes the subject as a server."""
-        await self._update_statistics_cache(self.subject)
-        for channel in self.statistics_cache[self.subject.id].values():
-            for message in channel:
-                self._update_message_stats(message)
-                self._update_active_channels(message)
-                self._update_active_users(message)
-
-        server_creation_datetime_information = human_timedelta(self.subject.created_at)
-
-        self.embed = discord.Embed(
-            title=f':white_check_mark: Przygotowano raport o serwerze',
-            color=somsiad.COLOR
-        )
-        self.embed.add_field(name='Utworzono', value=server_creation_datetime_information)
-        self.embed.add_field(name='Właściciel', value=self.subject.owner.mention)
-        self.embed.add_field(name='Ról', value=len(self.subject.roles))
-        self.embed.add_field(name='Emoji', value=len(self.subject.emojis))
-        self.embed.add_field(name='Kanałów tekstowych', value=len(self.subject.text_channels))
-        self.embed.add_field(name='Kanałów głosowych', value=len(self.subject.voice_channels))
-        self.embed.add_field(name='Członków', value=self.subject.member_count, inline=False)
-        self._embed_message_stats()
-        self._embed_top_active_channels()
-        self._embed_top_active_users()
-
-    async def _analyze_channel(self):
-        """Analyzes the subject as a channel."""
-        await self._update_statistics_cache(self.subject.guild, self.subject)
-        for message in self.statistics_cache[self.subject.guild.id][self.subject.id]:
-            self._update_message_stats(message)
-            self._update_active_channels(message)
-            self._update_active_users(message)
-
-        self.embed = discord.Embed(
-            title=f':white_check_mark: Przygotowano raport o kanale #{self.subject}',
-            color=somsiad.COLOR
-        )
-        self.embed.add_field(
-            name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False
-        )
-        if self.subject.category is not None:
-            self.embed.add_field(name='Kategoria', value=self.subject.category.name, inline=False)
-        self.embed.add_field(name='Członków', value=len(self.subject.members), inline=False)
-        self._embed_message_stats()
-        self._embed_top_active_users()
-
-    async def _analyze_member(self):
-        """Analyzes the subject as a member."""
-        await self._update_statistics_cache(self.subject.guild)
-        for channel in self.statistics_cache[self.subject.guild.id].values():
-            for message in channel:
-                if message.author_id == self.subject.id:
-                    self._update_message_stats(message)
-                    self._update_active_channels(message)
-                    self._update_active_users(message)
-
-        self.embed = discord.Embed(
-            title=f':white_check_mark: Przygotowano raport o użytkowniku {self.subject}',
-            color=somsiad.COLOR
-        )
-        self.embed.add_field(
-            name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False
-        )
-        self.embed.add_field(
-            name='Dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False
-        )
-        self._embed_message_stats()
-        self._embed_top_active_channels()
-
-    def _embed_analysis_metastatistics(self):
+    def _embed_analysis_metastats(self):
         """Adds information about analysis time as the report embed's footer."""
-        analysis_time = dt.datetime.now().astimezone() - self.init_datetime
+        analysis_timedelta = dt.datetime.now() - self.init_datetime
+        analysis_seconds = round(analysis_timedelta.total_seconds(), 1)
+        new_messages_form = word_number_form(
+            self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
+        )
         if self.seconds_in_queue:
             footer_text = (
-                f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s '
-                f'(z czego {self.seconds_in_queue} s oczekiwania na zakończenie pracy innych wątków analizy na '
-                f'''serwerze) buforując {word_number_form(
-                    self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
-                )}'''
+                f'Wygenerowano w {locale.str(analysis_seconds)} s (z czego {self.seconds_in_queue} s oczekiwania '
+                f'na zakończenie pracy innych wątków analizy na serwerze) buforując {new_messages_form}'
             )
         else:
             footer_text = (
-                f'Wygenerowano w {locale.str(round(analysis_time.total_seconds(), 1))} s buforując '
-                f'''{word_number_form(
-                    self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
-                )}'''
+                f'Wygenerowano w {locale.str(analysis_seconds)} s buforując {new_messages_form}'
             )
         self.embed.set_footer(text=footer_text)
 
@@ -450,9 +407,8 @@ class Report:
 
     def _plot_activity_by_date(self, ax):
         # convert date strings provided to datetime objects
-        earliest_message_date = dt.datetime.strptime(min(self.messages_over_date), '%Y-%m-%d').date()
-        start_date = min(self.start_date, earliest_message_date)
-        end_date = dt.date.today()
+        start_date = self.start_date
+        end_date = self.init_datetime.date()
         day_difference = (end_date - start_date).days
         dates = [start_date + dt.timedelta(n) for n in range(day_difference + 1)]
         messages = [self.messages_over_date[date.isoformat()] for date in dates]
@@ -523,8 +479,8 @@ class Report:
 
     def _plot_activity_by_channel(self, ax):
         # plot the chart
-        channel_names = [f'#{somsiad.get_channel(channel)}' for channel in self.active_channels]
-        message_counts = [channel_stats['message_count'] for channel_stats in self.active_channels.values()]
+        channel_names = [f'#{somsiad.get_channel(channel)}' for channel in self.relevant_channel_stats]
+        message_counts = [channel_stats['message_count'] for channel_stats in self.relevant_channel_stats.values()]
         ax.bar(
             channel_names,
             message_counts,
@@ -585,7 +541,7 @@ class Statistics(commands.Cog):
     async def stat_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
             await self.bot.send(
-                ctx, embeds=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika ani kanału')
+                ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika ani kanału')
             )
 
     @stat.command(aliases=['server', 'serwer'])
@@ -617,7 +573,7 @@ class Statistics(commands.Cog):
     async def stat_channel_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await self.bot.send(
-                ctx, embeds=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
+                ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
             )
 
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
@@ -637,7 +593,7 @@ class Statistics(commands.Cog):
     async def stat_member_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await self.bot.send(
-                ctx, embeds=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+                ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             )
 
 
