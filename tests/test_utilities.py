@@ -13,7 +13,6 @@
 
 import unittest
 import datetime as dt
-import locale
 from utilities import (
     first_url, text_snippet, with_preposition_form, word_number_form, human_amount_of_time, human_timedelta,
     interpret_str_as_datetime, setlocale
@@ -211,7 +210,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
         ):
             with self.subTest(number=number):
                 returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
-                expected_variant_with_number = f'{number} klocki'
+                expected_variant_with_number = f'{number:n} klocki'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_plural_noun_5_to_1(self):
@@ -223,7 +222,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
         ):
             with self.subTest(number=number):
                 returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
-                expected_variant_with_number = f'{number} klocków'
+                expected_variant_with_number = f'{number:n} klocków'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_plural_noun_12_to_14(self):
@@ -235,7 +234,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
         ):
             with self.subTest(number=number):
                 returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
-                expected_variant_with_number = f'{number} klocków'
+                expected_variant_with_number = f'{number:n} klocków'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_fractional_noun(self):
@@ -249,7 +248,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
                 returned_variant_with_number = word_number_form(
                     number, 'klocek', 'klocki', 'klocków', 'klocka'
                 )
-                expected_variant_with_number = f'{locale.str(number)} klocka'
+                expected_variant_with_number = f'{number:n} klocka'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_singular_verb(self):
@@ -266,7 +265,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
         ):
             with self.subTest(number=number):
                 returned_variant_with_number = word_number_form(number, 'skoczył', 'skoczyło')
-                expected_variant_with_number = f'{number} skoczyło'
+                expected_variant_with_number = f'{number:n} skoczyło'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
 
@@ -277,7 +276,7 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
                 returned_time_difference = human_timedelta(
                     NOW_OVERRIDE - dt.timedelta(n), naive=False, now_override=NOW_OVERRIDE
                 )
-                expected_time_difference = f'{24 - n} grudnia 2013 o 12:00, {n} dni temu'
+                expected_time_difference = f'{24 - n} grudnia 2013 o 12:00, {n:n} dni temu'
                 self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_day_before_yesterday(self):
@@ -356,7 +355,7 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
                 returned_time_difference = human_timedelta(
                     NOW_OVERRIDE + dt.timedelta(n), naive=False, now_override=NOW_OVERRIDE
                 )
-                expected_time_difference = f'{24 + n} grudnia 2013 o 12:00, za {n} dni'
+                expected_time_difference = f'{24 + n} grudnia 2013 o 12:00, za {n:n} dni'
                 self.assertEqual(returned_time_difference, expected_time_difference)
 
 

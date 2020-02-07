@@ -12,7 +12,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
-import locale
 import discord
 from core import somsiad
 from utilities import word_number_form, days_as_weeks
@@ -96,7 +95,7 @@ async def how_much_longer(ctx):
                 description=f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
                 color=somsiad.COLOR
             )
-            embed.add_field(name='Postęp', value=f'{locale.str(round(current_school_period.fraction_passed * 100, 1))}%')
+            embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
     else:
         days_left_as_weeks = days_as_weeks(current_school_period.days_left)
         embed = discord.Embed(
@@ -107,7 +106,7 @@ async def how_much_longer(ctx):
             color=somsiad.COLOR
         )
         embed.add_field(
-            name='Postęp', value=f'{locale.str(round(current_school_period.fraction_passed * 100, 1))}%'
+            name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%'
         )
 
     embed.add_field(name='Data rozpoczęcia', value=current_school_period.start_date.strftime('%-d %B %Y'))

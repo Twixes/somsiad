@@ -11,7 +11,6 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import locale
 import aiohttp
 import discord
 from core import somsiad
@@ -78,8 +77,8 @@ async def goodreads(ctx, *, query):
                     main_url = main_url.replace(' ', '%20').replace('(', '%28').replace(')', '%29')
                     embed = discord.Embed(title=f'{books[0]["title"]}', url=main_url, color=somsiad.COLOR)
                     embed.set_author(name=books[0]["author"])
-                    embed.add_field(name='Ocena', value=f'{locale.str(float(books[0]["average_rating"]))}/5')
-                    embed.add_field(name='Liczba głosów', value=books[0]["ratings_count"])
+                    embed.add_field(name='Ocena', value=f'{float(books[0]["average_rating"]):n} / 5')
+                    embed.add_field(name='Liczba głosów', value=f'{books[0]["ratings_count"]:n}')
                     embed.set_thumbnail(url=books[0]['image_url'])
                     if len(books) > 1:
                         sec_results = []
@@ -87,7 +86,7 @@ async def goodreads(ctx, *, query):
                             sec_url = template_url + i['id']
                             sec_results.append(
                                 f'• [{i["title"]}]({sec_url}) – {i["author"]} – '
-                                f'{locale.str(float(i["average_rating"]))}/5'
+                                f'{float(i["average_rating"]):n} / 5'
                             )
                             sec_results_str = '\n'.join(sec_results)
                         embed.add_field(name='Pozostałe trafienia', value=sec_results_str, inline=False)

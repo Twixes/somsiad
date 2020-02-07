@@ -195,13 +195,9 @@ class Somsiad(commands.Bot):
                     'prefix': ctx.prefix, 'content': ctx.message.content,
                     'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
                 })
-                scope.set_context('channel', {
-                    'id': ctx.channel.id, 'name': str(ctx.channel)
-                })
+                scope.set_context('channel', {'id': ctx.channel.id, 'name': str(ctx.channel)})
                 if ctx.guild is not None:
-                    scope.set_context('server', {
-                        'id': ctx.guild.id, 'name': str(ctx.guild)
-                    })
+                    scope.set_context('server', {'id': ctx.guild.id, 'name': str(ctx.guild)})
                 sentry_sdk.capture_exception(error)
 
     def _get_prefix(self, bot: commands.Bot, message: discord.Message) -> List[str]:
@@ -399,8 +395,8 @@ class Essentials(discord.ext.commands.Cog):
             application_info = await self.bot.application_info()
             instance_owner = application_info.owner.mention
         embed = self.bot.generate_embed(emoji, notice, url=self.bot.WEBSITE_URL)
-        embed.add_field(name='Liczba serwerów', value=server_count)
-        embed.add_field(name='Liczba użytkowników', value=user_count)
+        embed.add_field(name='Liczba serwerów', value=f'{server_count:n}')
+        embed.add_field(name='Liczba użytkowników', value=f'{user_count:n}')
         embed.add_field(name='Czas pracy', value=runtime)
         embed.add_field(name='Właściciel instancji', value=instance_owner)
         embed.set_footer(text=footer)
