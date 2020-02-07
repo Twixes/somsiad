@@ -26,7 +26,7 @@ async def roll_dice(ctx, *args):
     number_of_sides_on_a_die = 6
     try:
         if len(args) == 1:
-            argument = args[0].lower()
+            argument = args[0].lower().replace('k', 'd')
             if len(args[0].lower().split('d')) >= 2 and args[0].lower().split('d')[0] != '':
                 # Handle the argument if it's in the format {number_of_dice}d{number_of_sides_on_a_die}
                 argument = args[0].lower().split('d')
@@ -40,8 +40,8 @@ async def roll_dice(ctx, *args):
                     number_of_dice = abs(int(argument))
         elif len(args) >= 2:
             # Handle the arguments if there's 2 or more of them
-            first_argument = args[0].lower()
-            second_argument = args[1].lower()
+            first_argument = args[0].lower().replace('k', 'd')
+            second_argument = args[1].lower().replace('k', 'd')
             if first_argument.startswith('d'):
                 number_of_dice = abs(int(second_argument))
                 number_of_sides_on_a_die = abs(int(first_argument.strip('d')))
@@ -57,10 +57,7 @@ async def roll_dice(ctx, *args):
         # Limit the number of sides on a die to 100 million or less
         number_of_sides_on_a_die = min(number_of_sides_on_a_die, 100000000)
         # Generate random results
-        results = []
-        for _ in range(number_of_dice):
-            result = random.randint(1, number_of_sides_on_a_die)
-            results.append(result)
+        results = [random.randint(1, number_of_sides_on_a_die) for _ in range(number_of_dice)]
         # Send the results
         if number_of_dice == 1:
             number_of_sides_description = (
