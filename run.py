@@ -18,10 +18,11 @@ from configuration import configuration
 if configuration['sentry_dsn'] is not None:
     import sentry_sdk
     from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from sentry_sdk.integrations.aiohttp import AioHttpIntegration
     from version import __version__
     sentry_sdk.init(
         configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
-        integrations=[SqlalchemyIntegration()]
+        integrations=[SqlalchemyIntegration(), AioHttpIntegration()]
     )
 
 from core import somsiad
