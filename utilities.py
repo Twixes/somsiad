@@ -88,7 +88,7 @@ def word_number_form(
     if include_with:
         parts.append(with_preposition_form(number))
     if include_number:
-        parts.append(locale.str(number))
+        parts.append(f'{number:n}')
     parts.append(proper_form)
 
     return ' '.join(parts)
@@ -135,7 +135,6 @@ def human_timedelta(
     return ', '.join(time_difference_parts)
 
 
-
 def human_amount_of_time(time: Union[dt.timedelta, Number]) -> str:
     """Return the provided amoutt of in Polish."""
     if isinstance(time, dt.timedelta):
@@ -157,13 +156,13 @@ def human_amount_of_time(time: Union[dt.timedelta, Number]) -> str:
     seconds = total_seconds
     information = []
     if days >= 1:
-        information.append(f'{days} d')
+        information.append(f'{days:n} d')
     if hours >= 1:
-        information.append(f'{hours} h')
+        information.append(f'{hours:n} h')
     if minutes >= 1:
-        information.append(f'{minutes} min')
+        information.append(f'{minutes:n} min')
     if seconds >= 1:
-        information.append(f'{seconds} s')
+        information.append(f'{seconds:n} s')
 
     return ' '.join(information)
 

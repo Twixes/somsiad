@@ -16,7 +16,6 @@ from collections import defaultdict
 import io
 import datetime as dt
 import calendar
-import locale
 import asyncio
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -241,11 +240,11 @@ class Report:
                 value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
             )
         self.embed.add_field(name='Właściciel', value=self.subject.owner.mention)
-        self.embed.add_field(name='Ról', value=len(self.subject.roles))
-        self.embed.add_field(name='Emoji', value=len(self.subject.emojis))
-        self.embed.add_field(name='Kanałów tekstowych', value=len(self.subject.text_channels))
-        self.embed.add_field(name='Kanałów głosowych', value=len(self.subject.voice_channels))
-        self.embed.add_field(name='Członków', value=self.subject.member_count)
+        self.embed.add_field(name='Ról', value=f'{len(self.subject.roles):n}')
+        self.embed.add_field(name='Emoji', value=f'{len(self.subject.emojis):n}')
+        self.embed.add_field(name='Kanałów tekstowych', value=f'{len(self.subject.text_channels):n}')
+        self.embed.add_field(name='Kanałów głosowych', value=f'{len(self.subject.voice_channels):n}')
+        self.embed.add_field(name='Członków', value=f'{self.subject.member_count:n}')
         self._embed_general_message_stats()
         self._embed_top_visible_channel_stats()
         self._embed_top_active_user_stats()
@@ -264,7 +263,7 @@ class Report:
             )
         if self.subject.category is not None:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name)
-        self.embed.add_field(name='Członków', value=len(self.subject.members))
+        self.embed.add_field(name='Członków', value=f'{len(self.subject.members):n}')
         self._embed_general_message_stats()
         self._embed_top_active_user_stats()
 
@@ -286,17 +285,13 @@ class Report:
 
     def _embed_general_message_stats(self):
         """Adds the usual message statistics to the report embed."""
-        self.embed.add_field(
-            name='Wysłanych wiadomości',
-            value=self.total_message_count
-        )
-        self.embed.add_field(name='Wysłanych słów', value=self.total_word_count)
-        self.embed.add_field(name='Wysłanych znaków', value=self.total_character_count)
-        days_of_existence = (self.init_datetime.date() - self.start_date).days + 1
-        self.embed.add_field(
-            name='Średnio wiadomości dziennie',
-            value=int(round(self.total_message_count / days_of_existence))
-        )
+        self.embed.add_field(name='Wysłanych wiadomości', value=f'{self.total_message_count:n}')
+        self.embed.add_field(name='Wysłanych słów', value=f'{self.total_word_count:n}')
+        self.embed.add_field(name='Wysłanych znaków', value=f'{self.total_character_count:n}')
+        if self.total_message_count:
+            days_of_existence = (self.init_datetime.date() - self.start_date).days + 1
+            average_daily_message_count = round(self.total_message_count / days_of_existence, 1)
+            self.embed.add_field(name='Średnio wiadomości dziennie', value=f'{average_daily_message_count:n}')
 
     def _embed_top_visible_channel_stats(self):
         """Adds the list of top active channels to the report embed."""
@@ -354,12 +349,12 @@ class Report:
         )
         if self.seconds_in_queue:
             footer_text = (
-                f'Wygenerowano w {locale.str(analysis_seconds)} s (z czego {self.seconds_in_queue} s oczekiwania '
+                f'Wygenerowano w {analysis_seconds:n} s (z czego {self.seconds_in_queue:n} s oczekiwania '
                 f'na zakończenie pracy innych wątków analizy na serwerze) buforując {new_messages_form}'
             )
         else:
             footer_text = (
-                f'Wygenerowano w {locale.str(analysis_seconds)} s buforując {new_messages_form}'
+                f'Wygenerowano w {analysis_seconds:n} s buforując {new_messages_form}'
             )
         self.embed.set_footer(text=footer_text)
 
@@ -413,9 +408,7 @@ class Report:
         # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Dzień tygodnia', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
-        ax.set_ylabel(
-            'Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
-        )
+        ax.set_ylabel('Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
         return ax
 
@@ -515,9 +508,7 @@ class Report:
         # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Kanał', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
-        ax.set_ylabel(
-            'Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
-        )
+        ax.set_ylabel('Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
         return ax
 
