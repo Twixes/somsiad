@@ -403,9 +403,6 @@ class Essentials(discord.ext.commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @commands.command()
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
     async def ping(self, ctx):
         """Pong!"""
         await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'))
