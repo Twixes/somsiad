@@ -73,7 +73,7 @@ class Report:
         self.requesting_member = requesting_member
         self.subject = subject
         self.guild = requesting_member.guild
-        self.earliest_relevant_message_datetime = None # only applies to member reports
+        self.earliest_relevant_message_datetime = None
         if isinstance(subject, discord.Guild):
             self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
             self._generate_relevant_embed = self._generate_server_embed
@@ -95,34 +95,35 @@ class Report:
                 await asyncio.sleep(1)
                 self.seconds_in_queue += 1
             with data.session() as session:
-                # remove message metadata from nonexistent channels
                 existent_channels = self.guild.text_channels
-                existent_channel_ids = [channel.id for channel in existent_channels]
-                session.query(MessageMetadata).filter(MessageMetadata.channel_id.notin_(existent_channel_ids)).delete(
-                    synchronize_session='fetch'
-                )
                 # process subject type
                 if isinstance(self.subject, discord.Guild):
                     for channel in existent_channels:
                         await self._update_metadata_cache(channel, session)
                     relevant_message_metadata = session.query(MessageMetadata).filter(
                         MessageMetadata.server_id == self.guild.id
-                    ).order_by(MessageMetadata.id.asc())
+                    )
                 elif isinstance(self.subject, discord.TextChannel):
                     await self._update_metadata_cache(self.subject, session)
                     relevant_message_metadata = session.query(MessageMetadata).filter(
                         MessageMetadata.channel_id == self.subject.id
-                    ).order_by(MessageMetadata.id.asc())
+                    )
                 elif isinstance(self.subject, discord.Member):
                     for channel in existent_channels:
                         await self._update_metadata_cache(channel, session)
                     relevant_message_metadata = session.query(MessageMetadata).filter(
                         MessageMetadata.server_id == self.guild.id, MessageMetadata.user_id == self.subject.id
-                    ).order_by(MessageMetadata.id.asc())
-                    # check if the user sent any relevant messages before last join
-                    self.earliest_relevant_message_datetime = relevant_message_metadata.first().datetime
-                    self.start_date = min(self.start_date, self.earliest_relevant_message_datetime.date())
+                    )
+                # remove message metadata from nonexistent channels
+                existent_channel_ids = [channel.id for channel in existent_channels]
+                relevant_message_metadata.filter(MessageMetadata.channel_id.notin_(existent_channel_ids)).delete(
+                    synchronize_session='fetch'
+                )
                 # generate statistics from metadata cache
+                earliest_relevant_message = relevant_message_metadata.order_by(MessageMetadata.id.asc()).first()
+                if earliest_relevant_message is not None:
+                    self.earliest_relevant_message_datetime = earliest_relevant_message.datetime
+                    self.start_date = min(self.start_date, self.earliest_relevant_message_datetime.date())
                 for message_metadata in relevant_message_metadata.all():
                     self._update_running_stats(message_metadata)
             self._generate_relevant_embed()
@@ -135,6 +136,8 @@ class Report:
 
     def render_activity_chart(self) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
+        if not self.total_message_count:
+            return None
         if isinstance(self.subject, discord.Guild):
             title = f'Aktywność na serwerze {self.subject}'
             subject_identification = f'server-{self.subject.id}'
@@ -232,6 +235,11 @@ class Report:
             color=somsiad.COLOR
         )
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
+        if self.earliest_relevant_message_datetime is not None:
+            self.embed.add_field(
+                name='Wysłano pierwszą wiadomość',
+                value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+            )
         self.embed.add_field(name='Właściciel', value=self.subject.owner.mention)
         self.embed.add_field(name='Ról', value=len(self.subject.roles))
         self.embed.add_field(name='Emoji', value=len(self.subject.emojis))
@@ -249,6 +257,11 @@ class Report:
             color=somsiad.COLOR
         )
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
+        if self.earliest_relevant_message_datetime is not None:
+            self.embed.add_field(
+                name='Wysłano pierwszą wiadomość',
+                value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+            )
         if self.subject.category is not None:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name)
         self.embed.add_field(name='Członków', value=len(self.subject.members))
@@ -263,10 +276,11 @@ class Report:
         )
         self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
         self.embed.add_field(name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False)
-        self.embed.add_field(
-            name='Wysłał pierwszą wiadomość',
-            value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
-        )
+        if self.earliest_relevant_message_datetime is not None:
+            self.embed.add_field(
+                name='Wysłał pierwszą wiadomość na serwerze',
+                value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+            )
         self._embed_general_message_stats()
         self._embed_top_visible_channel_stats()
 
@@ -553,8 +567,8 @@ class Statistics(commands.Cog):
         async with ctx.typing():
             report = Report(ctx.message.id, ctx.author, ctx.guild)
             await report.analyze_subject()
-            report.render_activity_chart()
-        await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
+            activity_chart_file = report.render_activity_chart()
+        await somsiad.send(ctx, embed=report.embed, file=activity_chart_file)
 
     @stat.command(aliases=['channel', 'kanał', 'kanal'])
     @commands.cooldown(
@@ -566,8 +580,8 @@ class Statistics(commands.Cog):
         async with ctx.typing():
             report = Report(ctx.message.id, ctx.author, channel)
             await report.analyze_subject()
-            report.render_activity_chart()
-        await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
+            activity_chart_file = report.render_activity_chart()
+        await somsiad.send(ctx, embed=report.embed, file=activity_chart_file)
 
     @stat_channel.error
     async def stat_channel_error(self, ctx, error):
@@ -586,8 +600,8 @@ class Statistics(commands.Cog):
         async with ctx.typing():
             report = Report(ctx.message.id, ctx.author, member)
             await report.analyze_subject()
-            report.render_activity_chart()
-        await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
+            activity_chart_file = report.render_activity_chart()
+        await somsiad.send(ctx, embed=report.embed, file=activity_chart_file)
 
     @stat_member.error
     async def stat_member_error(self, ctx, error):
