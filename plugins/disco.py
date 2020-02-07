@@ -47,8 +47,6 @@ class DiscoManager:
     }
 
     def __init__(self):
-        if not discord.opus.is_loaded():
-            discord.opus.load_opus('opus')
         if not os.path.exists(self._CACHE_DIR_PATH):
             os.makedirs(self._CACHE_DIR_PATH)
         self._youtube_dl = youtube_dl.YoutubeDL(self._YOUTUBE_DL_OPTIONS)
