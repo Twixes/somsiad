@@ -11,13 +11,14 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, Optional
+from typing import Union, Optional, Sequence
 from numbers import Number
+from collections import namedtuple
 import locale
 import calendar
 import re
-from collections import namedtuple
 import datetime as dt
+import numpy as np
 
 DatetimeFormat = namedtuple('DatetimeFormat', ('format', 'imply_year', 'imply_month', 'imply_day'))
 
@@ -211,6 +212,14 @@ def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: 
     else:
         raise ValueError
     return datetime.astimezone()
+
+
+def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant') -> np.ndarray:
+    data = np.pad(data, roll // 2, pad_mode)
+    data = np.cumsum(data)
+    data[roll:] = data[roll:] - data[:-roll]
+    data = data[roll - 1:] / roll
+    return data
 
 
 def setlocale(locale_index: int = 0):
