@@ -29,8 +29,10 @@ from utilities import setlocale
 from data import create_all_tables
 from plugins import *
 
+ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
+
 if __name__ == '__main__':
     print('Budzenie Somsiada...')
-    setlocale()
+    setlocale(ACCEPTED_LOCALES)
     create_all_tables()
     somsiad.controlled_run()

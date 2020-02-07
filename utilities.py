@@ -28,7 +28,6 @@ DATETIME_FORMATS = (
     DatetimeFormat('%dT%H.%M', True, True, False),
     DatetimeFormat('%H.%M', True, True, True)
 )
-ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 URL_REGEX = re.compile(r'(https?://[\S]+\.[\S]+)')
 
 
@@ -222,14 +221,14 @@ def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant
     return data
 
 
-def setlocale(locale_index: int = 0):
+def setlocale(accepted_locales: Sequence[str], locale_index: int = 0):
     """Set program locale and first day of the week."""
     try:
-        locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[locale_index])
+        locale.setlocale(locale.LC_ALL, accepted_locales[locale_index])
     except locale.Error:
-        return setlocale(locale_index + 1)
+        return setlocale(accepted_locales, locale_index + 1)
     except IndexError:
         raise Exception(
-            f'no locale from the list of accepted ones ({", ".join(ACCEPTED_LOCALES)}) was found in the system'
+            f'no locale from the list of accepted ones ({", ".join(accepted_locales)}) was found in the system'
         )
     return calendar.setfirstweekday(calendar.MONDAY)
