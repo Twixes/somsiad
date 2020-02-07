@@ -80,6 +80,9 @@ class Somsiad(commands.Bot):
         data.Server.register_all(self.guilds)
         await self.cycle_presence()
 
+    async def on_error(self, event_method, *args, **kwargs):
+        self.register_error(event_method, sys.exc_info()[1])
+
     async def on_command_error(self, ctx, error):
         notice = None
         description = ''
@@ -95,7 +98,7 @@ class Somsiad(commands.Bot):
             notice = 'Wystąpił nieznany błąd'
             if configuration['sentry_dsn'] is not None:
                 description = 'Okoliczności zajścia zostały zarejestrowane do analizy.'
-            self.register_error(ctx, error)
+            self.register_error('on_command', error, ctx)
         if notice is not None:
             await self.send(ctx, embed=self.generate_embed('⚠️', notice, description))
 
@@ -177,27 +180,29 @@ class Somsiad(commands.Bot):
         for extra_embed in embeds[1:]:
             await destination.send(embed=extra_embed, delete_after=delete_after)
 
-    def register_error(self, ctx, error):
+    def register_error(self, event_method: str, error: Exception, ctx: Optional[commands.Context] = None):
         if configuration['sentry_dsn'] is None:
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
         else:
             with sentry_sdk.push_scope() as scope:
-                scope.user = {
-                    'id': ctx.author.id, 'username': str(ctx.author),
-                    'activities': (
-                        ', '.join((activity.name for activity in ctx.author.activities))
-                        if ctx.guild is not None else None
-                    )
-                }
-                scope.set_tag('command', ctx.command.qualified_name)
-                scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
-                scope.set_context('message', {
-                    'prefix': ctx.prefix, 'content': ctx.message.content,
-                    'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
-                })
-                scope.set_context('channel', {'id': ctx.channel.id, 'name': str(ctx.channel)})
-                if ctx.guild is not None:
-                    scope.set_context('server', {'id': ctx.guild.id, 'name': str(ctx.guild)})
+                scope.set_tag('event_method', event_method)
+                if ctx is not None:
+                    scope.user = {
+                        'id': ctx.author.id, 'username': str(ctx.author),
+                        'activities': (
+                            ', '.join((activity.name for activity in ctx.author.activities))
+                            if ctx.guild is not None else None
+                        )
+                    }
+                    scope.set_tag('command', ctx.command.qualified_name)
+                    scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
+                    scope.set_context('message', {
+                        'prefix': ctx.prefix, 'content': ctx.message.content,
+                        'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
+                    })
+                    scope.set_context('channel', {'id': ctx.channel.id, 'name': str(ctx.channel)})
+                    if ctx.guild is not None:
+                        scope.set_context('server', {'id': ctx.guild.id, 'name': str(ctx.guild)})
                 sentry_sdk.capture_exception(error)
 
     def _get_prefix(self, bot: commands.Bot, message: discord.Message) -> List[str]:
