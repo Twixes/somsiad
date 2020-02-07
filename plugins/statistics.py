@@ -23,7 +23,7 @@ import discord
 from discord.ext import commands
 from core import Help, ServerRelated, ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import word_number_form, human_timedelta
+from utilities import word_number_form, human_timedelta, rolling_average
 import data
 
 
@@ -45,6 +45,7 @@ class Report:
     COOLDOWN = max(float(configuration['command_cooldown_per_user_in_seconds']), 15.0)
     BACKGROUND_COLOR = '#2f3136'
     FOREGROUND_COLOR = '#ffffff'
+    ROLL = 7
 
     send_queues = defaultdict(deque)
 
@@ -70,12 +71,14 @@ class Report:
         self.activity_chart_file = None
         self.init_datetime = dt.datetime.now()
         self.out_of_queue_datetime = None
+        self.initiated_queue_processing = False
         self.request_message_id = request_message_id
         self.requesting_member = requesting_member
         self.subject = subject
         self.guild = requesting_member.guild
         self.earliest_relevant_message_datetime = None
-        self.initiated_queue_processing = False
+        self.days_of_subject_relevancy = None
+        self.average_daily_message_count = None
         if isinstance(subject, discord.Guild):
             self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
             self._generate_relevant_embed = self._generate_server_embed
@@ -141,12 +144,14 @@ class Report:
                 synchronize_session='fetch'
             )
             # generate statistics from metadata cache
-            earliest_relevant_message = relevant_message_metadata.order_by(MessageMetadata.id.asc()).first()
-            if earliest_relevant_message is not None:
-                self.earliest_relevant_message_datetime = earliest_relevant_message.datetime
+            relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc()).all()
+            if relevant_message_metadata:
+                self.earliest_relevant_message_datetime = relevant_message_metadata[0].datetime
                 self.start_date = min(self.start_date, self.earliest_relevant_message_datetime.date())
-            for message_metadata in relevant_message_metadata.all():
-                self._update_running_stats(message_metadata)
+                for message_metadata in relevant_message_metadata:
+                    self._update_running_stats(message_metadata)
+                self.days_of_subject_relevancy = (self.init_datetime.date() - self.start_date).days + 1
+                self.average_daily_message_count = round(self.total_message_count / self.days_of_subject_relevancy, 1)
         self._generate_relevant_embed()
         self._embed_analysis_metastats()
         return self.embed
@@ -296,9 +301,15 @@ class Report:
         self.embed.add_field(name='Wysłanych słów', value=f'{self.total_word_count:n}')
         self.embed.add_field(name='Wysłanych znaków', value=f'{self.total_character_count:n}')
         if self.total_message_count:
-            days_of_existence = (self.init_datetime.date() - self.start_date).days + 1
-            average_daily_message_count = round(self.total_message_count / days_of_existence, 1)
-            self.embed.add_field(name='Średnio wiadomości dziennie', value=f'{average_daily_message_count:n}')
+            max_daily_message_date_isoformat, max_daily_message_count = max(
+                self.messages_over_date.items(), key=lambda pair: pair[1]
+            )
+            max_daily_message_date = dt.datetime.strptime(max_daily_message_date_isoformat, '%Y-%m-%d').date()
+            self.embed.add_field(
+                name='Maksymalnie wiadomości dziennie',
+                value=f'{max_daily_message_count:n} ({max_daily_message_date.strftime("%-d %B %Y")})'
+            )
+            self.embed.add_field(name='Średnio wiadomości dziennie', value=f'{self.average_daily_message_count:n}')
 
     def _embed_top_visible_channel_stats(self):
         """Adds the list of top active channels to the report embed."""
@@ -425,20 +436,21 @@ class Report:
         # convert date strings provided to datetime objects
         start_date = self.start_date
         end_date = self.init_datetime.date()
-        day_difference = (end_date - start_date).days
-        dates = [start_date + dt.timedelta(n) for n in range(day_difference + 1)]
+        dates = [start_date + dt.timedelta(n) for n in range(self.days_of_subject_relevancy)]
         messages = [self.messages_over_date[date.isoformat()] for date in dates]
+        messages_rolling_average = rolling_average(messages, self.ROLL)
 
         # plot the chart
         ax.bar(
             dates,
-            messages,
+            messages_rolling_average,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1
         )
 
         # set proper ticker intervals on the X axis accounting for the range of time
+        day_difference = self.days_of_subject_relevancy - 1
         year_difference = end_date.year - start_date.year
         month_difference = 12 * year_difference + end_date.month - start_date.month
 
@@ -471,7 +483,6 @@ class Report:
             ax.xaxis.set_major_locator(day_locator)
             ax.xaxis.set_major_formatter(day_formatter)
 
-
         # set proper X axis formatting
         half_day = dt.timedelta(hours=12)
         ax.set_xlim(
@@ -483,13 +494,13 @@ class Report:
             tick.set_horizontalalignment('right')
 
         # set proper ticker intervals on the Y axis accounting for the maximum number of messages
-        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
-        if max(messages) >= 10:
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10]))
+        if max(messages_rolling_average) >= 10:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
         # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
-        ax.set_xlabel('Data', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        ax.set_xlabel('Data (tygodniowa średnia ruchoma)', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
         return ax
 
