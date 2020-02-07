@@ -251,7 +251,7 @@ class Moderation(commands.Cog):
                 session.add(event)
             else:
                 emoji = 'ℹ️'
-                notice = f'Brak ostrzeżeń u {subject_user}, więc nie ma co usuwać'
+                notice = f'{subject_user} nie ma na ostrzeżeń do usunięcia'
         await self.bot.send(ctx, embed=self.bot.generate_embed(emoji, notice))
 
     @pardon.error
