@@ -61,14 +61,14 @@ async def youtube_search(ctx, *, query = ''):
     if result:
         video_id = result[0]['id']['videoId']
         video_url = f'https://www.youtube.com/watch?v={video_id}'
-        await ctx.send(f'{ctx.author.mention}\n{video_url}')
+        await somsiad.send(ctx, video_url)
     else:
         embed = discord.Embed(
             title=f':slight_frown: Brak wyników dla zapytania "{query}"',
             color=somsiad.COLOR
         )
         embed.set_footer(icon_url=YouTube.FOOTER_ICON_URL, text=YouTube.FOOTER_TEXT)
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
 
 @somsiad.group(invoke_without_command=True, case_insensitive=True)

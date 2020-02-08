@@ -95,11 +95,11 @@ async def currency(ctx, *, query):
         )
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @currency.error
 async def currency_error(ctx, error):
     if isinstance(error, discord.ext.commands.MissingRequiredArgument):
         embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', color=somsiad.COLOR)
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

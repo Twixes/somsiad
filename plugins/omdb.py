@@ -178,4 +178,4 @@ async def omdb(ctx, *args):
                         color=somsiad.COLOR
                     )
     embed.set_footer(text=OMDb.FOOTER_TEXT)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)

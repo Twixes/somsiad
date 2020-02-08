@@ -37,7 +37,7 @@ async def enter(ctx, *, server_name):
             break
 
     if invite is not None:
-        await ctx.send(f'{ctx.author.mention}\n{invite.url}')
+        await somsiad.send(ctx, invite.url)
 
 
 @somsiad.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
@@ -134,7 +134,7 @@ async def shutdown(ctx):
         title=':stop_button: Wyłączanie bota...',
         color=somsiad.COLOR
     )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
     print(f'Zatrzymuję działanie programu na żądanie {ctx.author}...')
     await ctx.bot.close()
     sys.exit()
@@ -147,4 +147,4 @@ async def shutdown(ctx):
 @discord.ext.commands.is_owner()
 async def error(ctx):
     """Causes an error."""
-    await ctx.send(1 / 0)
+    await somsiad.send(ctx, 1 / 0)

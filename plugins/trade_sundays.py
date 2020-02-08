@@ -291,7 +291,7 @@ async def trade_sundays_nearest(ctx):
         description=embed_description,
         color=somsiad.COLOR
     )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @trade_sundays.command(aliases=['terminarz', 'lista', 'spis'])
@@ -322,7 +322,7 @@ async def trade_sundays_list(ctx, year: Optional[int], month: Optional[int]):
                 name=month_names[i_month[0]],
                 value=', '.join(i_month[1])
             )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @trade_sundays_list.error
@@ -332,4 +332,4 @@ async def trade_sundays_list_error(ctx, error):
             title=f':warning: {error}!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

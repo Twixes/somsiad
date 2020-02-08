@@ -167,7 +167,7 @@ class Wikipedia:
 async def wikipedia(ctx, language, *, title = 'Wikipedia'):
     """The Wikipedia search command."""
     embed = await Wikipedia.embed_search_result(language, title)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 @wikipedia.error
 async def wikipedia_error(ctx, error):
@@ -181,4 +181,4 @@ async def wikipedia_error(ctx, error):
             icon_url=Wikipedia.FOOTER_ICON_URL
         )
 
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

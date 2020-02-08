@@ -88,7 +88,7 @@ async def roll_dice(ctx, *args):
             color=somsiad.COLOR
         )
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @roll_dice.error
@@ -100,4 +100,4 @@ async def roll_dice_error(ctx, error):
             color=somsiad.COLOR
         )
 
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

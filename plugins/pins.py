@@ -130,7 +130,7 @@ async def pins_channel(ctx, channel: discord.TextChannel = None):
                 title=':card_box: Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości',
                 color=somsiad.COLOR
             )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @pins_channel.error
@@ -140,14 +140,14 @@ async def pins_channel_error(ctx, error):
             title=':warning: Nie znaleziono podanego kanału na serwerze',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
     elif isinstance(error, discord.ext.commands.MissingPermissions):
         embed = discord.Embed(
             title=':warning: Do sprawdzenia lub zmiany kanału archiwum przypiętych wiadomości potrzebne są '
             'uprawnienia do zarządzania kanałami',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
 
 @pins.command(aliases=['archiwizuj', 'zarchiwizuj'])
@@ -201,7 +201,7 @@ async def pins_archive(ctx):
                     color=somsiad.COLOR
                 )
     session.close()
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @pins.command(aliases=['wyczyść', 'wyczysc'])
@@ -237,4 +237,4 @@ async def pins_clear(ctx):
             )
         finally:
             channel_being_processed_for_servers[ctx.guild.id] = None
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)

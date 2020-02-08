@@ -35,7 +35,7 @@ async def oof(ctx):
         else:
             oofer = Oofer(server_id=ctx.guild.id, user_id=ctx.author.id)
             session.add(oofer)
-    await ctx.send('Oof!')
+    await somsiad.send(ctx, 'Oof!')
 
 
 @oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
@@ -71,7 +71,7 @@ async def oof_how_many_member(ctx, member: discord.Member = None):
             color=somsiad.COLOR
         )
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @oof_how_many_member.error
@@ -81,7 +81,7 @@ async def oof_how_many_member_error(ctx, error):
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
 
 @oof_how_many.command(aliases=['server', 'serwer'])
@@ -122,4 +122,4 @@ async def oof_server(ctx):
     if ranking:
         embed.add_field(name='Najaktywniejsi ooferzy', value='\n'.join(ranking), inline=False)
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)

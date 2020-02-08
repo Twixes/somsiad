@@ -145,7 +145,7 @@ async def last_fm(ctx, *, user):
         text=LastFM.FOOTER_TEXT,
         icon_url=LastFM.FOOTER_ICON_URL
     )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @last_fm.error
@@ -159,7 +159,7 @@ async def last_fm_error(ctx, error):
             text=LastFM.FOOTER_TEXT,
             icon_url=LastFM.FOOTER_ICON_URL
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
     elif isinstance(error, discord.ext.commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono takiego użytkownika Last.fm!',
@@ -169,4 +169,4 @@ async def last_fm_error(ctx, error):
             text=LastFM.FOOTER_TEXT,
             icon_url=LastFM.FOOTER_ICON_URL
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

@@ -22,7 +22,7 @@ from configuration import configuration
 )
 async def lennyface(ctx):
     """( ͡° ͜ʖ ͡°)"""
-    await ctx.send('( ͡° ͜ʖ ͡°)')
+    await somsiad.send(ctx, '( ͡° ͜ʖ ͡°)', mention=False)
 
 
 @somsiad.command(aliases=['lenno'])
@@ -31,7 +31,7 @@ async def lennyface(ctx):
 )
 async def lennoface(ctx):
     """( ͡ʘ ͜ʖ ͡ʘ)"""
-    await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
+    await somsiad.send(ctx, '( ͡ʘ ͜ʖ ͡ʘ)', mention=False)
 
 
 @somsiad.command(aliases=['wywróć'])
@@ -40,7 +40,7 @@ async def lennoface(ctx):
 )
 async def tableflip(ctx):
     """(╯°□°）╯︵ ┻━┻"""
-    await ctx.send('(╯°□°）╯︵ ┻━┻')
+    await somsiad.send(ctx, '(╯°□°）╯︵ ┻━┻', mention=False)
 
 
 @somsiad.command(aliases=['odstaw'])
@@ -49,7 +49,7 @@ async def tableflip(ctx):
 )
 async def unflip(ctx):
     """┬─┬ ノ( ゜-゜ノ)"""
-    await ctx.send('┬─┬ ノ( ゜-゜ノ)')
+    await somsiad.send(ctx, '┬─┬ ノ( ゜-゜ノ)', mention=False)
 
 
 @somsiad.command()
@@ -58,7 +58,7 @@ async def unflip(ctx):
 )
 async def shrug(ctx):
     r"""¯\_(ツ)_/¯"""
-    await ctx.send(r'¯\_(ツ)_/¯')
+    await somsiad.send(ctx, r'¯\_(ツ)_/¯', mention=False)
 
 
 @somsiad.command(aliases=['dej'])
@@ -68,11 +68,11 @@ async def shrug(ctx):
 async def gib(ctx, *, thing = None):
     """༼ つ ◕_◕ ༽つ"""
     if thing is None:
-        await ctx.send('༼ つ ◕_◕ ༽つ')
+        await somsiad.send(ctx, '༼ つ ◕_◕ ༽つ', mention=False)
     elif 'fccchk' in thing:
-        await ctx.send(f'༼ つ :japanese_goblin: ༽つ {thing}')
+        await somsiad.send(ctx, f'༼ つ :japanese_goblin: ༽つ {thing}', mention=False)
     else:
-        await ctx.send(f'༼ つ ◕_◕ ༽つ {thing}')
+        await somsiad.send(ctx, f'༼ つ ◕_◕ ༽つ {thing}', mention=False)
 
 
 @somsiad.command()
@@ -81,4 +81,4 @@ async def gib(ctx, *, thing = None):
 )
 async def fccchk(ctx):
     """:japanese_goblin:"""
-    await ctx.send(':japanese_goblin:')
+    await somsiad.send(ctx, ':japanese_goblin:', mention=False)

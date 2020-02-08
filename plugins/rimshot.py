@@ -23,4 +23,4 @@ from configuration import configuration
 async def rimshot(ctx):
     """Ba dum tss!"""
     file = discord.File(fp='./data/BA-DUM-TSS.mp3')
-    await ctx.send(file=file)
+    await somsiad.send(ctx, file=file)

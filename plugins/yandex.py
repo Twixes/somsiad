@@ -103,7 +103,7 @@ class Yandex:
 async def translate(ctx, source_language_code, target_language_code, *, text):
     """The Wikipedia search command."""
     embed = await Yandex.translation_embed(text, target_language_code, source_language_code)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @translate.error
@@ -133,4 +133,4 @@ async def translate_error(ctx, error):
             text=Yandex.FOOTER_TEXT,
             icon_url=Yandex.FOOTER_ICON_URL
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

@@ -26,7 +26,7 @@ async def subreddit(ctx, *, subreddit=None):
         url = 'https://old.reddit.com/r/all'
     else:
         url = f'https://old.reddit.com/r/{subreddit.replace(" ", "_")}'
-    await ctx.send(f'{ctx.author.mention}\n{url}')
+    await somsiad.send(ctx, url)
 
 
 @somsiad.command(aliases=['u'])
@@ -39,4 +39,4 @@ async def reddit_user(ctx, *, username=None):
         url = f'https://old.reddit.com/u/{configuration["reddit_username"]}'
     else:
         url = f'https://old.reddit.com/u/{username.replace(" ", "_")}'
-    await ctx.send(f'{ctx.author.mention}\n{url}')
+    await somsiad.send(ctx, url)

@@ -34,7 +34,7 @@ async def invite(ctx, *, argument = ''):
             description='http://discord.gg/xRCpDs7',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
     elif is_user_permitted_to_invite:
         max_uses = 0
@@ -75,9 +75,7 @@ async def invite(ctx, *, argument = ''):
                 description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
                 color=somsiad.COLOR
             )
-            await ctx.send(
-                ctx.author.mention, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS
-            )
+            await somsiad.send(ctx, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS)
         else:
             if max_uses == 0:
                 max_uses_info = ' o nieskończonej liczbie użyć'
@@ -93,7 +91,7 @@ async def invite(ctx, *, argument = ''):
                 description=invite.url,
                 color=somsiad.COLOR
             )
-            await ctx.send(ctx.author.mention, embed=embed)
+            await somsiad.send(ctx, embed=embed)
 
     else:
         embed = discord.Embed(
@@ -101,4 +99,4 @@ async def invite(ctx, *, argument = ''):
             description=somsiad.MESSAGE_AUTODESTRUCTION_NOTICE,
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS)
+        await somsiad.send(ctx, embed=embed, delete_after=somsiad.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS)

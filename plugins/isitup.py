@@ -69,7 +69,7 @@ async def isitup(ctx, *, query):
                 )
 
     embed.set_footer(text=FOOTER_TEXT)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @isitup.error
@@ -79,4 +79,4 @@ async def isitup_error(ctx, error):
             title=f':warning: Nie podano adresu strony do sprawdzenia!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

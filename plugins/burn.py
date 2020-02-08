@@ -67,7 +67,7 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
     else:
         raise TypeError(f'countdown_time must be int or datetime.datetime, not {type(countdown_time).__name__}')
 
-    notice = await ctx.send(ctx.author.mention, embed=embed_before)
+    notice = await somsiad.send(ctx, embed=embed_before)
 
     await asyncio.sleep(countdown_seconds)
     try:
@@ -79,6 +79,6 @@ async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_s
             'bo nie ma uprawnień do zarządzania wiadomościami na kanale!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed_warning)
+        await somsiad.send(ctx, embed=embed_warning)
     else:
         await notice.edit(embed=embed_after)

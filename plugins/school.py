@@ -112,4 +112,4 @@ async def how_much_longer(ctx):
     embed.add_field(name='Data rozpoczęcia', value=current_school_period.start_date.strftime('%-d %B %Y'))
     embed.add_field(name='Data zakończenia', value=current_school_period.end_date.strftime('%-d %B %Y'))
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)

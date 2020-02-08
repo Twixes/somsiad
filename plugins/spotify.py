@@ -74,4 +74,4 @@ async def spotify(ctx, member: discord.Member = None):
             'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
         )
 
-    await ctx.send(f'{ctx.author.mention}', embed=embed)
+    await somsiad.send(ctx, embed=embed)

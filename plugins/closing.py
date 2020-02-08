@@ -131,7 +131,7 @@ async def close(ctx, countdown_seconds: Optional[Union[float, locale.atof, inter
                 title=':warning: Odliczanie do zamknięcia kanału nie może trwać powyżej 2 tygodni!',
                 color=somsiad.COLOR
             )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
     else:
         await asyncio.gather(
             closing.timeout_handler(), closing.countdown_handler()

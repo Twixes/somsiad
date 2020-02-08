@@ -224,7 +224,7 @@ async def disco_play(ctx, *, query):
                 ctx.author.voice.channel, query
             )
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @disco_play.error
@@ -234,7 +234,7 @@ async def disco_play_error(ctx, error):
             title=f':warning: Nie podano zapytania ani linku!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
 
 @disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
@@ -262,7 +262,7 @@ async def disco_again(ctx):
                 ctx.author.voice.channel, disco_manager.servers[ctx.guild.id]['song_url']
             )
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @disco.command(aliases=['pauza', 'spauzuj', 'pauzuj', 'pause'])
@@ -298,7 +298,7 @@ async def disco_pause(ctx):
             title=f':pause_button: Spauzowano utwór',
             color=somsiad.COLOR
         )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @disco.command(aliases=['wznów', 'wznow', 'odpauzuj', 'unpause', 'resume'])
@@ -334,7 +334,7 @@ async def disco_resume(ctx):
             title=f':arrow_forward: Wznowiono odtwarzanie utworu',
             color=somsiad.COLOR
         )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @disco.command(aliases=['pomiń', 'pomin', 'skip'])
@@ -360,7 +360,7 @@ async def disco_skip(ctx):
             title=f':fast_forward: Pominięto utwór',
             color=somsiad.COLOR
         )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @disco.command(aliases=['rozłącz', 'rozlacz', 'stop'])
@@ -386,7 +386,7 @@ async def disco_disconnect(ctx):
             title=f':stop_button: Rozłączono z kanałem {voice_channel}',
             color=somsiad.COLOR
         )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @disco.command(aliases=['głośność', 'glosnosc', 'poziom', 'volume', 'vol'])
@@ -420,7 +420,7 @@ async def disco_volume(ctx, volume_percentage: Union[int, locale.atoi] = None):
                 f'{int(disco_manager.servers[ctx.guild.id]["volume"] * 100)}%',
                 color=somsiad.COLOR
             )
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @disco_volume.error
@@ -430,4 +430,4 @@ async def disco_volume_error(ctx, error):
             title=f':warning: Podana wartość nie jest liczbą całkowitą!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

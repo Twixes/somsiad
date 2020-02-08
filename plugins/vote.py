@@ -87,7 +87,7 @@ async def vote(
     else:
         options = ('✅', '🔴')
 
-    message = await ctx.send(ctx.author.mention, embed=embed)
+    message = await somsiad.send(ctx, embed=embed)
     for option_emoji in options:
         await message.add_reaction(option_emoji)
 
@@ -145,7 +145,7 @@ async def vote(
                 )
 
             await message_final.edit(embed=embed_results)
-            await ctx.send(ctx.author.mention, embed=embed_results)
+            await somsiad.send(ctx, embed=embed_results)
 
 
 @vote.error
@@ -155,4 +155,4 @@ async def vote_error(ctx, error):
             title=f':warning: Nie podano sprawy w jakiej ma się odbyć głosowanie!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

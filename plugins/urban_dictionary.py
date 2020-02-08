@@ -68,7 +68,7 @@ async def urban_dictionary(ctx, *, query):
                 )
     embed.set_footer(text=FOOTER_TEXT)
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @urban_dictionary.error
@@ -81,4 +81,4 @@ async def urban_dictionary_error(ctx, error):
     )
     embed.set_footer(text=FOOTER_TEXT)
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)

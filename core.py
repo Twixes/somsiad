@@ -146,7 +146,7 @@ class Somsiad(commands.Bot):
 
     def generate_embed(
             self, emoji: str, notice: str, description: str = discord.Embed.Empty,
-            url: str = discord.Embed.Empty, timestamp: dt.datetime = discord.Embed.Empty
+            *, url: str = discord.Embed.Empty, timestamp: dt.datetime = discord.Embed.Empty
     ):
         return discord.Embed(
             title=f'{emoji} {notice}',
@@ -160,8 +160,8 @@ class Somsiad(commands.Bot):
             self, ctx: commands.Context, text: Optional[str] = None,
             *, direct: bool = False, embed: Optional[discord.Embed] = None,
             embeds: Optional[Sequence[discord.Embed]] = None, file: Optional[discord.File] = None,
-            files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None
-    ):
+            files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None, mention: bool = True
+    ) -> Union[discord.Message, List[discord.Message]]:
         if embed is not None and embeds:
             raise ValueError('embed and embeds cannot be both passed at the same time')
         embeds = embeds or []
@@ -170,15 +170,17 @@ class Somsiad(commands.Bot):
         if len(embeds) > 10:
             raise ValueError('no more than 10 embeds can be sent at the same time')
         destination = ctx.author if direct else ctx.channel
-        content_elements = tuple(filter(None, (ctx.author.mention if not direct else None, text)))
+        content_elements = tuple(filter(None, (ctx.author.mention if not direct or not mention else None, text)))
         content = '\n'.join(content_elements) if content_elements else None
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
             await ctx.message.add_reaction('📫')
-        await destination.send(
+        messages = []
+        messages.append(await destination.send(
             content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
-        )
+        ))
         for extra_embed in embeds[1:]:
-            await destination.send(embed=extra_embed, delete_after=delete_after)
+            messages.append(await destination.send(embed=extra_embed, delete_after=delete_after))
+        return messages[0] if len(messages) == 1 else messages
 
     def register_error(self, event_method: str, error: Exception, ctx: Optional[commands.Context] = None):
         if configuration['sentry_dsn'] is None:

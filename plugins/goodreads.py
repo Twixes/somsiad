@@ -95,7 +95,7 @@ async def goodreads(ctx, *, query):
                     title=':warning: Nie można połączyć się z serwisem!', color=somsiad.COLOR)
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @goodreads.error
@@ -105,4 +105,4 @@ async def goodreads_error(ctx, error):
             title=':warning: Nie podano szukanego hasła!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

@@ -48,10 +48,10 @@ async def random_choice(ctx, *, raw_options = ''):
         else:
             chosen_option = random.choice(options)
         category = random.choice(categories)
-        answer = random.choice(choice_answers[category]).format(f':point_right: {chosen_option} :point_left:')
-        await ctx.send(f'{ctx.author.mention}\n{answer}')
+        answer = random.choice(choice_answers[category]).format(f'👉 {chosen_option} 👈')
+        await somsiad.send(ctx, answer)
     else:
-        await ctx.send(
-            f'{ctx.author.mention}\nChętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych '
-            'przecinkami, średnikami, "lub", "albo" lub "czy" opcji!'
+        await somsiad.send(
+            ctx, 'Chętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych przecinkami, średnikami, "lub", '
+            '"albo" lub "czy" opcji!'
         )

@@ -94,7 +94,7 @@ async def google(ctx, *, query):
             pass
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @somsiad.command(aliases=['googleimage', 'gi', 'i'])
@@ -136,7 +136,7 @@ async def google_image(ctx, *, query):
         )
 
     embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await somsiad.send(ctx, embed=embed)
 
 
 @google.error
@@ -146,7 +146,7 @@ async def google_error(ctx, error):
             title=':warning: Nie podano szukanego hasła!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
 
 @google_image.error
@@ -156,4 +156,4 @@ async def google_image_error(ctx, error):
             title=':warning: Nie podano szukanego hasła!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

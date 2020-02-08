@@ -85,7 +85,7 @@ async def calculate(ctx, *, data):
                     title=f':warning: Błąd w zmiennej `{variable}`!',
                     color=somsiad.COLOR
                 )
-                return await ctx.send(ctx.author.mention, embed=embed)
+                return await somsiad.send(ctx, embed=embed)
 
     if expression is not None:
         input_info = '```Python\n' + '``````Python\n'.join(
@@ -148,7 +148,7 @@ async def calculate(ctx, *, data):
             embed.add_field(name=input_details, value=input_info, inline=False)
             embed.add_field(name=output_details, value=result, inline=False)
 
-    return await ctx.send(ctx.author.mention, embed=embed)
+    return await somsiad.send(ctx, embed=embed)
 
 @calculate.error
 async def calculate_error(ctx, error):
@@ -157,4 +157,4 @@ async def calculate_error(ctx, error):
             title=':warning: Nie podano wyrażenia ani zmiennych!',
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)

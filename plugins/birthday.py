@@ -102,10 +102,10 @@ class BirthdayNotifier(data.Base, ServerSpecific, ChannelRelated):
             random.shuffle(wishes)
             for birthday_today, wish in zip(self.birthdays_today(), itertools.cycle(wishes)):
                 if birthday_today.age:
-                    title = f':birthday: {wish} z okazji {birthday_today.age}. urodzin!'
+                    notice = f'{wish} z okazji {birthday_today.age}. urodzin!'
                 else:
-                    title = f':birthday: {wish} z okazji urodzin!'
-                embed = discord.Embed(title=title, color=somsiad.COLOR)
+                    notice = f'{wish} z okazji urodzin!'
+                embed = somsiad.generate_embed('🎂', notice)
                 await self.discord_channel.send(birthday_today.discord_user.mention, embed=embed)
 
     def birthdays_today(self) -> List[BirthdayToday]:
@@ -170,7 +170,7 @@ class Birthday(commands.Cog):
     )
     NOTIFICATIONS_HELP = Help(NOTIFICATIONS_COMMANDS, group=NOTIFICATIONS_GROUP)
     NOTIFICATIONS_EXPLANATION = (
-        'Wiadomości wysyłane są o 8 rano dla członków serwera, którzy obchodzą tego dnia urodziny '
+        'Wiadomości z życzeniami wysyłane są o 8 rano dla członków serwera, którzy obchodzą tego dnia urodziny '
         'i upublicznili tu ich datę.'
     )
 
@@ -235,11 +235,8 @@ class Birthday(commands.Cog):
     @birthday.error
     async def birthday_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
-            embed = discord.Embed(
-                title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-                color=somsiad.COLOR
-            )
-            await ctx.send(ctx.author.mention, embed=embed)
+            embed = somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+            await somsiad.send(ctx, embed=embed)
 
     @birthday.command(aliases=['zapamiętaj', 'zapamietaj', 'ustaw'])
     @commands.cooldown(
@@ -270,14 +267,12 @@ class Birthday(commands.Cog):
                 born_person.birthday_public_servers.append(this_server)
             date_presentation = date.strftime('%-d %B' if date.year == BornPerson.EDGE_YEAR else '%-d %B %Y')
             birthday_public_servers_presentation, _ = born_person.birthday_public_servers_presentation(
-                on_server_id=ctx.guild.id if ctx.guild else None, period=False
+                on_server_id=ctx.guild.id if ctx.guild else None
             )
-            embed = discord.Embed(
-                title=f':white_check_mark: Ustawiono twoją datę urodzin na {date_presentation}',
-                description=birthday_public_servers_presentation,
-                color=somsiad.COLOR
+            embed = somsiad.generate_embed(
+                '✅', f'Ustawiono twoją datę urodzin na {date_presentation}', birthday_public_servers_presentation
             )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
     @birthday_remember.error
     async def birthday_remember_error(self, ctx, error):
@@ -295,11 +290,8 @@ class Birthday(commands.Cog):
             elif str(error) == 'date is in the future':
                 notice = 'Podaj przeszłą datę urodzin'
         if notice is not None:
-            embed = discord.Embed(
-                title=f':warning: {notice}!',
-                color=somsiad.COLOR
-            )
-            await ctx.send(ctx.author.mention, embed=embed)
+            embed = somsiad.generate_embed('⚠️', notice)
+            await somsiad.send(ctx, embed=embed)
 
     @birthday.command(aliases=['zapomnij'])
     @commands.cooldown(
@@ -317,16 +309,10 @@ class Birthday(commands.Cog):
                 born_person = BornPerson(user_id=ctx.author.id)
                 session.add(born_person)
         if forgotten:
-            embed = discord.Embed(
-                title=':white_check_mark: Zapomniano twoją datę urodzin',
-                color=somsiad.COLOR
-            )
+            embed = somsiad.generate_embed('✅', 'Zapomniano twoją datę urodzin')
         else:
-            embed = discord.Embed(
-                title=':information_source: Brak daty urodzin do zapomnienia',
-                color=somsiad.COLOR
-            )
-        await ctx.send(ctx.author.mention, embed=embed)
+            embed = somsiad.generate_embed('ℹ️', 'Brak daty urodzin do zapomnienia')
+        await somsiad.send(ctx, embed=embed)
 
     @birthday.command(aliases=['upublicznij'])
     @commands.cooldown(
@@ -338,30 +324,25 @@ class Birthday(commands.Cog):
             born_person = session.query(BornPerson).get(ctx.author.id)
             this_server = session.query(data.Server).get(ctx.guild.id)
             if born_person is None or born_person.birthday is None:
-                embed = discord.Embed(
-                    title=':information_source: Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać',
-                    color=somsiad.COLOR
+                embed = somsiad.generate_embed(
+                    'ℹ️', 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać'
                 )
             elif this_server in born_person.birthday_public_servers:
                 birthday_public_servers_presentation, _ = born_person.birthday_public_servers_presentation(
                     on_server_id=ctx.guild.id
                 )
-                embed = discord.Embed(
-                    title=':information_source: Twoja data urodzin już była publiczna na tym serwerze',
-                    description=birthday_public_servers_presentation,
-                    color=somsiad.COLOR
+                embed = somsiad.generate_embed(
+                    'ℹ️', 'Twoja data urodzin już była publiczna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.append(this_server)
                 birthday_public_servers_presentation, _ = born_person.birthday_public_servers_presentation(
                     on_server_id=ctx.guild.id
                 )
-                embed = discord.Embed(
-                    title=':white_check_mark: Upubliczniono twoją datę urodzin na tym serwerze',
-                    description=birthday_public_servers_presentation,
-                    color=somsiad.COLOR
+                embed = somsiad.generate_embed(
+                    '✅', 'Upubliczniono twoją datę urodzin na tym serwerze', birthday_public_servers_presentation
                 )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
     @birthday.command(aliases=['utajnij'])
     @commands.cooldown(
@@ -373,34 +354,25 @@ class Birthday(commands.Cog):
             born_person = session.query(BornPerson).get(ctx.author.id)
             this_server = session.query(data.Server).get(ctx.guild.id)
             if born_person is None or born_person.birthday is None:
-                birthday_public_servers_presentation, _ = born_person.birthday_public_servers_presentation(
-                    on_server_id=ctx.guild.id
-                )
-                embed = discord.Embed(
-                    title=':information_source: Nie ustawiłeś swojej daty urodzin, więc nie ma czego utajniać',
-                    description=birthday_public_servers_presentation,
-                    color=somsiad.COLOR
+                embed = somsiad.generate_embed(
+                    'ℹ️', 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego utajniać'
                 )
             elif this_server not in born_person.birthday_public_servers:
                 birthday_public_servers_presentation, _ = born_person.birthday_public_servers_presentation(
                     on_server_id=ctx.guild.id
                 )
-                embed = discord.Embed(
-                    title=':information_source: Twoja data urodzin już była tajna na tym serwerze',
-                    description=birthday_public_servers_presentation,
-                    color=somsiad.COLOR
+                embed = somsiad.generate_embed(
+                    'ℹ️', 'Twoja data urodzin już była tajna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.remove(this_server)
                 birthday_public_servers_presentation, _ = born_person.birthday_public_servers_presentation(
                     on_server_id=ctx.guild.id
                 )
-                embed = discord.Embed(
-                    title=':white_check_mark: Utajniono twoją datę urodzin na tym serwerze',
-                    description=birthday_public_servers_presentation,
-                    color=somsiad.COLOR
+                embed = somsiad.generate_embed(
+                    '✅', 'Utajniono twoją datę urodzin na tym serwerze', birthday_public_servers_presentation
                 )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
     @birthday.command(aliases=['gdzie'])
     @commands.cooldown(
@@ -417,7 +389,7 @@ class Birthday(commands.Cog):
             description=extra,
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
     @birthday.command(aliases=['kiedy'])
     @commands.cooldown(
@@ -457,7 +429,7 @@ class Birthday(commands.Cog):
                     title=f':{emoji}: {address} się {date_presentation}',
                     color=somsiad.COLOR
                 )
-        return await ctx.send(ctx.author.mention, embed=embed)
+        return await somsiad.send(ctx, embed=embed)
 
     @birthday_when.error
     async def birthday_when_error(self, ctx, error):
@@ -466,7 +438,7 @@ class Birthday(commands.Cog):
                 title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
                 color=somsiad.COLOR
             )
-            await ctx.send(ctx.author.mention, embed=embed)
+            await somsiad.send(ctx, embed=embed)
 
     @birthday.command(aliases=['wiek'])
     @commands.cooldown(
@@ -514,7 +486,7 @@ class Birthday(commands.Cog):
                     title=f':{emoji}: {address} {word_number_form(age, "rok", "lata", "lat")}',
                     color=somsiad.COLOR
                 )
-        return await ctx.send(ctx.author.mention, embed=embed)
+        return await somsiad.send(ctx, embed=embed)
 
     @birthday_age.error
     async def birthday_age_error(self, ctx, error):
@@ -523,7 +495,7 @@ class Birthday(commands.Cog):
                 title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
                 color=somsiad.COLOR
             )
-            await ctx.send(ctx.author.mention, embed=embed)
+            await somsiad.send(ctx, embed=embed)
 
     @birthday.group(aliases=['powiadomienia'], invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(
@@ -549,7 +521,7 @@ class Birthday(commands.Cog):
                 title = f'🔴 Powiadomienia o urodzinach są wyłączone'
                 description = None
         embed = discord.Embed(title=title, description=description, color=somsiad.COLOR)
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
     @birthday_notifications.command(aliases=['włącz', 'wlacz'])
     @commands.cooldown(
@@ -559,7 +531,7 @@ class Birthday(commands.Cog):
         channel = channel or ctx.channel
         with data.session(commit=True) as session:
             birthday_notifier = session.query(BirthdayNotifier).get(ctx.guild.id)
-            title = f'✅ Włączono powiodomienia o urodzinach na #{channel}'
+            title = f'✅ Włączono powiadomienia o urodzinach na #{channel}'
             if birthday_notifier is not None:
                 if birthday_notifier.channel_id != channel.id:
                     birthday_notifier.channel_id = channel.id
@@ -569,7 +541,7 @@ class Birthday(commands.Cog):
                 birthday_notifier = BirthdayNotifier(server_id=ctx.guild.id, channel_id=channel.id)
                 session.add(birthday_notifier)
         embed = discord.Embed(title=title, description=self.NOTIFICATIONS_EXPLANATION, color=somsiad.COLOR)
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
     @birthday_notifications.command(aliases=['wyłącz', 'wylacz'])
     @commands.cooldown(
@@ -590,7 +562,7 @@ class Birthday(commands.Cog):
             title=title,
             color=somsiad.COLOR
         )
-        await ctx.send(ctx.author.mention, embed=embed)
+        await somsiad.send(ctx, embed=embed)
 
 
 somsiad.add_cog(Birthday(somsiad))
