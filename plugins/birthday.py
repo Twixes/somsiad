@@ -398,7 +398,7 @@ class Birthday(commands.Cog):
     async def birthday_when(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
         with data.session() as session:
-            born_person = session.query(BornPerson).get(ctx.author.id)
+            born_person = session.query(BornPerson).get(member.id)
             is_birthday_unset = born_person is None or born_person.birthday is None
             is_birthday_public = born_person.is_birthday_public(session, ctx.guild)
             if is_birthday_unset:
@@ -447,7 +447,7 @@ class Birthday(commands.Cog):
     async def birthday_age(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
         with data.session() as session:
-            born_person = session.query(BornPerson).get(ctx.author.id)
+            born_person = session.query(BornPerson).get(member.id)
             is_birthday_public = born_person.is_birthday_public(session, ctx.guild)
             if born_person is None or born_person.birthday is None:
                 age = None
