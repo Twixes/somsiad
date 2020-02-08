@@ -96,12 +96,13 @@ COMMANDS = (
         'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
-        'stat', '?podkomenda',
-        'Grupa komend związanych ze statystykami na serwerze. Użyj stat bez <?podkomendy>, by dowiedzieć się więcej.',
+        'stat', '?podkomenda/użytkownik/kanał',
+        'Grupa komend związanych ze statystykami na serwerze. '
+        'Użyj bez <?podkomendy/użytkownika/kanału>, by dowiedzieć się więcej.',
     ),
     Help.Command(
-        'urodziny', '?podkomenda',
-        'Grupa komend związanych z datami urodzin. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
+        'urodziny', '?podkomenda/użytkownik',
+        'Grupa komend związanych z datami urodzin. Użyj bez <?podkomendy/użytkownika>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         ('handlowe', 'niedzielehandlowe'), '?podkomenda',
@@ -115,7 +116,7 @@ COMMANDS = (
     Help.Command(
         'przypinki', '?podkomenda',
         'Grupa komend związanych z archiwizacją przypiętych widadomości. '
-        'Użyj bez <podkomendy>, by dowiedzieć się więcej.',
+        'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         ('głosowanie', 'glosowanie'), ('?liczba minut do ogłoszenia wyniku/godzina', 'sprawa'),
@@ -191,6 +192,10 @@ COMMANDS = (
         'Usuwa <?liczbę> ostatnich wiadomości z kanału lub, jeśli nie podano <?liczby>, jedną ostatnią wiadomość '
         'z kanału na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienia '
         'do zarządzania wiadomościami na kanale.'
+    ),
+    Help.Command(
+        ('prefiks', 'prefix'), '?podkomenda',
+        'Grupa komend związanych z prefiksem komend. Użyj bez <?podkomendy>, by dowiedzieć się więcej.'
     ),
     Help.Command('ping', (), 'Pong!'),
     Help.Command(('wersja', 'v'), (), 'Działająca wersja bota.'),
