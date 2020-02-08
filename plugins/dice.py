@@ -29,18 +29,18 @@ async def roll_dice(ctx, *args):
         if len(args) == 1:
             argument = args[0].lower().replace('k', 'd')
             if len(args[0].lower().split('d')) >= 2 and args[0].lower().split('d')[0] != '':
-                # Handle the argument if it's in the format {number_of_dice}d{number_of_sides_on_a_die}
+                # handle the argument if it's in the format {number_of_dice}d{number_of_sides_on_a_die}
                 argument = args[0].lower().split('d')
                 number_of_dice = int(argument[0])
                 number_of_sides_on_a_die = int(argument[1])
             else:
-                # Handle the argument if only either number_of_dice or number_of_sides_on_a_die were given
+                # handle the argument if only either number_of_dice or number_of_sides_on_a_die were given
                 if argument.startswith('d'):
                     number_of_sides_on_a_die = abs(int(argument.strip('d')))
                 else:
                     number_of_dice = abs(int(argument))
         elif len(args) >= 2:
-            # Handle the arguments if there's 2 or more of them
+            # handle the arguments if there's 2 or more of them
             first_argument = args[0].lower().replace('k', 'd')
             second_argument = args[1].lower().replace('k', 'd')
             if first_argument.startswith('d'):
@@ -53,13 +53,13 @@ async def roll_dice(ctx, *args):
         raise commands.BadArgument
 
     if number_of_sides_on_a_die > 1:
-        # Limit the number of dice to 100 or less
+        # limit the number of dice to 100 or less
         number_of_dice = min(number_of_dice, 100)
-        # Limit the number of sides on a die to 100 million or less
+        # limit the number of sides on a die to 100 million or less
         number_of_sides_on_a_die = min(number_of_sides_on_a_die, 100000000)
-        # Generate random results
+        # generate random results
         results = [random.randint(1, number_of_sides_on_a_die) for _ in range(number_of_dice)]
-        # Send the results
+        # send the results
         if number_of_dice == 1:
             number_of_sides_description = (
                 'sześcienną' if number_of_sides_on_a_die == 6 else f'{number_of_sides_on_a_die}-ścienną'
@@ -71,7 +71,7 @@ async def roll_dice(ctx, *args):
                 color=somsiad.COLOR
             )
         else:
-            # Convert results to strings and concatenate them
+            # convert results to strings and concatenate them
             results_string = ', '.join(list(map(str, results[:-1])))
             results_string = f'{results_string} i {results[-1]}'
             number_of_sides_description = (

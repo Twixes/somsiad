@@ -59,7 +59,7 @@ class Wikipedia:
         search_result = cls.SearchResult(language)
         try:
             async with aiohttp.ClientSession() as session:
-                # Use OpenSearch API first to get accurate page title of the result
+                # use OpenSearch API first to get accurate page title of the result
                 async with session.get(
                         cls.link(language, 'w/api.php'), headers=cls.headers, params=params
                 ) as title_request:
@@ -69,7 +69,7 @@ class Wikipedia:
                         title_data = await title_request.json()
 
                         if title_data[1]:
-                            # Use the title retrieved from the OpenSearch response as a search term in the REST request
+                            # use the title retrieved from the OpenSearch response as a search term in the REST request
                             query = title_data[1][0]
 
                             async with session.get(
@@ -82,7 +82,7 @@ class Wikipedia:
                                     search_result.url = article_data['content_urls']['desktop']['page']
 
                                     if article_data['type'] == 'disambiguation':
-                                        # Use results from OpenSearch to create a list of links from disambiguation page
+                                        # use results from OpenSearch to create a list of links from disambiguation page
                                         for i, option in enumerate(title_data[1][1:]):
                                             article_url = title_data[3][i+1].replace('(', '%28').replace(')', '%29')
                                             search_result.articles.append({

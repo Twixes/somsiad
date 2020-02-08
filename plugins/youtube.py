@@ -33,14 +33,14 @@ class YouTube:
 
     def search(self, query, max_number_of_results=1, search_type='video'):
         try:
-            # Call the search.list method to retrieve results matching the specified query term.
+            # call the search.list method to retrieve results matching the specified query term
             search_response = self._youtube_client.search().list(
                 q=query,
                 part='snippet',
                 maxResults=max_number_of_results,
                 type=search_type
             ).execute()
-            # Output results if there are any
+            # output results if there are any
             results = search_response.get('items')
             return results
         except HttpError as e:

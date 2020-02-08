@@ -38,7 +38,7 @@ async def isitup(ctx, *, query):
         async with session.get(url) as r:
             if r.status == 200:
                 res = await r.json()
-                # Website online
+                # website online
                 if res['status_code'] == 1:
                     res_code_wikipedia_url = RESPONSE_CODE_WIKIPEDIA_URLS[int(str(res['response_code'])[0])]
                     res_time = res['response_time'] * 1000
@@ -50,14 +50,14 @@ async def isitup(ctx, *, query):
                         f'w czasie {int(res_time)} ms.',
                         color=somsiad.COLOR
                     )
-                # Website offline
+                # website offline
                 elif res['status_code'] == 2:
                     embed = discord.Embed(
                         title=f':red_circle: Strona {res["domain"]} jest niedostępna',
                         url=f'http://{res["domain"]}',
                         color=somsiad.COLOR
                     )
-                # Wrong URL
+                # wrong URL
                 elif res['status_code'] == 3:
                     embed = discord.Embed(
                         title=':warning: Podany adres jest niepoprawny!',

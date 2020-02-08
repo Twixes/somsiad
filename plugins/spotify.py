@@ -54,10 +54,10 @@ async def spotify(ctx, member: discord.Member = None):
             name='Długość', value=human_amount_of_time(spotify_activity.duration.total_seconds())
         )
 
-        # Search for the song on YouTube
+        # search for the song on YouTube
         youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
         youtube_search_result = youtube.search(youtube_search_query)
-        # Add a link to a YouTube video if a match was found
+        # add a link to a YouTube video if a match was found
         if (
                 youtube_search_result and
                 SequenceMatcher(None, youtube_search_query, youtube_search_result[0]['snippet']['title']).ratio() > 0.25

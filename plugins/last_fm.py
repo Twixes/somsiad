@@ -41,7 +41,7 @@ class LastFM:
 
         try:
             async with aiohttp.ClientSession() as session:
-                # Use OpenSearch API first to get accurate page title of the result
+                # use OpenSearch API first to get accurate page title of the result
                 async with session.get(self.API_URL, headers=self.headers, params=params) as request:
                     if request.status == 200:
                         user_info = await request.json()
@@ -116,10 +116,10 @@ async def last_fm(ctx, *, user):
                     f'{user_recent_tracks[0]["album"]["#text"].replace(" ", "+").replace("/", "%2F")})'
                 )
 
-            # Search for the song on YouTube
+            # search for the song on YouTube
             youtube_search_query = f'{user_recent_tracks[0]["name"]} {user_recent_tracks[0]["artist"]["#text"]}'
             youtube_search_result = youtube.search(youtube_search_query)
-            # Add a link to a YouTube video if a match was found
+            # add a link to a YouTube video if a match was found
             if (
                     youtube_search_result and
                     SequenceMatcher(

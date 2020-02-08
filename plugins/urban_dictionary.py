@@ -37,7 +37,7 @@ async def urban_dictionary(ctx, *, query):
                 resp = await r.json()
                 bra_pat = re.compile(r'[\[\]]')
                 if resp['list']:
-                    top_def = resp['list'][0] # Get top definition
+                    top_def = resp['list'][0] # get top definition
                     word = top_def['word']
                     definition = top_def['definition']
                     definition = bra_pat.sub(r'', definition)
@@ -48,7 +48,7 @@ async def urban_dictionary(ctx, *, query):
                     example = text_snippet(example, 400)
                     t_up = top_def['thumbs_up']
                     t_down = top_def['thumbs_down']
-                    # Output results
+                    # output results
                     embed = discord.Embed(
                         title=word,
                         url=link,
