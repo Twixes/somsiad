@@ -43,8 +43,8 @@ async def oof(ctx):
     1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
 )
 @discord.ext.commands.guild_only()
-async def oof_how_many(ctx, member: discord.Member = None):
-    await ctx.invoke(oof_how_many_member, member)
+async def oof_how_many(ctx, *, member: discord.Member = None):
+    await ctx.invoke(oof_how_many_member, member=member)
 
 
 @oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])

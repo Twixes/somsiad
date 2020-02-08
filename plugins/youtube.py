@@ -69,21 +69,3 @@ async def youtube_search(ctx, *, query = ''):
         )
         embed.set_footer(icon_url=YouTube.FOOTER_ICON_URL, text=YouTube.FOOTER_TEXT)
         await somsiad.send(ctx, embed=embed)
-
-
-@somsiad.group(invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def alexa(ctx):
-    pass
-
-
-@alexa.command(aliases=['play'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def alexa_play(ctx):
-    await youtube_search.invoke(ctx)

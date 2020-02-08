@@ -230,7 +230,7 @@ class Birthday(commands.Cog):
         if member is None:
             await somsiad.send(ctx, embeds=self.HELP.embeds)
         else:
-            await ctx.invoke(self.birthday_when)
+            await ctx.invoke(self.birthday_when, member=member)
 
     @birthday.error
     async def birthday_error(self, ctx, error):
