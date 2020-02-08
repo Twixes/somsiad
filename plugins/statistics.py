@@ -315,7 +315,8 @@ class Report:
         """Adds the list of top active channels to the report embed."""
         visible_channel_ids = [
             channel_id for channel_id in self.relevant_channel_stats
-            if somsiad.get_channel(channel_id).permissions_for(self.requesting_member).read_messages
+            if somsiad.get_channel(channel_id).permissions_for(self.requesting_member).read_messages and
+            self.relevant_channel_stats[channel_id]['message_count']
         ]
         visible_channel_ids.sort(
             key=lambda channel_id: tuple(self.relevant_channel_stats[channel_id].values())
@@ -324,13 +325,12 @@ class Report:
         top_visible_channel_stats = []
         for i, this_visible_channel_id in enumerate(visible_channel_ids[:5]):
             this_visible_channel_stats = self.relevant_channel_stats[this_visible_channel_id]
-            if this_visible_channel_stats['message_count'] > 0:
-                top_visible_channel_stats.append(
-                    f'{i+1}. <#{this_visible_channel_id}> – '
-                    f'{word_number_form(this_visible_channel_stats["message_count"], "wiadomość", "wiadomości")}, '
-                    f'{word_number_form(this_visible_channel_stats["word_count"], "słowo", "słowa", "słów")}, '
-                    f'{word_number_form(this_visible_channel_stats["character_count"], "znak", "znaki", "znaków")}'
-                )
+            top_visible_channel_stats.append(
+                f'{i+1}. <#{this_visible_channel_id}> – '
+                f'{word_number_form(this_visible_channel_stats["message_count"], "wiadomość", "wiadomości")}, '
+                f'{word_number_form(this_visible_channel_stats["word_count"], "słowo", "słowa", "słów")}, '
+                f'{word_number_form(this_visible_channel_stats["character_count"], "znak", "znaki", "znaków")}'
+            )
         if top_visible_channel_stats:
             field_name = (
                 'Najaktywniejszy na kanałach' if isinstance(self.subject, discord.Member) else 'Najaktywniejsze kanały'
