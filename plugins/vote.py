@@ -18,6 +18,7 @@ import locale
 import datetime as dt
 import string
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import human_amount_of_time, interpret_str_as_datetime
 from configuration import configuration
@@ -30,13 +31,13 @@ LETTER_EMOIJS = {
 
 
 @somsiad.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def vote(
         ctx, duration: Optional[Union[int, locale.atoi, interpret_str_as_datetime]] = None,
-        *, statement: discord.ext.commands.clean_content(fix_channel_mentions=True)
+        *, statement: commands.clean_content(fix_channel_mentions=True)
     ):
     """Holds a vote."""
     now_datetime = dt.datetime.now().astimezone()
@@ -150,7 +151,7 @@ async def vote(
 
 @vote.error
 async def vote_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=f':warning: Nie podano sprawy w jakiej ma się odbyć głosowanie!',
             color=somsiad.COLOR

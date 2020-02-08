@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
+from discord.ext import commands
 from core import somsiad, Help
 from configuration import configuration
 
@@ -217,8 +218,8 @@ HELP = Help(COMMANDS, title='Dobry!', description=DESCRIPTION)
 
 
 @somsiad.command(aliases=['help', 'pomocy', 'pomoc'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def help_message(ctx):
     await somsiad.send(ctx, direct=True, embeds=HELP.embeds)

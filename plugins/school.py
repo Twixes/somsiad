@@ -13,6 +13,7 @@
 
 import datetime as dt
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import word_number_form, days_as_weeks
 from configuration import configuration
@@ -68,8 +69,8 @@ class SchoolPeriod:
 
 
 @somsiad.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def how_much_longer(ctx):
     """Says how much of the school year or summer break is left."""

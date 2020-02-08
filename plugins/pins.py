@@ -14,6 +14,7 @@
 import io
 from collections import defaultdict
 import discord
+from discord.ext import commands
 from core import ServerSpecific, ChannelRelated, somsiad, Help
 from utilities import first_url, word_number_form
 from configuration import configuration
@@ -89,8 +90,8 @@ HELP = Help(COMMANDS, group=GROUP)
 
 
 @somsiad.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def pins(ctx):
     """A group of pin-related commands."""
@@ -98,11 +99,11 @@ async def pins(ctx):
 
 
 @pins.command(aliases=['kanał', 'kanal'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(manage_channels=True)
+@commands.guild_only()
+@commands.has_permissions(manage_channels=True)
 async def pins_channel(ctx, channel: discord.TextChannel = None):
     """Sets the pin archive channel of the server."""
     session = data.Session()
@@ -135,13 +136,13 @@ async def pins_channel(ctx, channel: discord.TextChannel = None):
 
 @pins_channel.error
 async def pins_channel_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
+    if isinstance(error, commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono podanego kanału na serwerze',
             color=somsiad.COLOR
         )
         await somsiad.send(ctx, embed=embed)
-    elif isinstance(error, discord.ext.commands.MissingPermissions):
+    elif isinstance(error, commands.MissingPermissions):
         embed = discord.Embed(
             title=':warning: Do sprawdzenia lub zmiany kanału archiwum przypiętych wiadomości potrzebne są '
             'uprawnienia do zarządzania kanałami',
@@ -151,11 +152,11 @@ async def pins_channel_error(ctx, error):
 
 
 @pins.command(aliases=['archiwizuj', 'zarchiwizuj'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(manage_messages=True)
+@commands.guild_only()
+@commands.has_permissions(manage_messages=True)
 async def pins_archive(ctx):
     """Archives pins in the channel where the command was invoked."""
     session = data.Session()
@@ -205,11 +206,11 @@ async def pins_archive(ctx):
 
 
 @pins.command(aliases=['wyczyść', 'wyczysc'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(manage_messages=True)
+@commands.guild_only()
+@commands.has_permissions(manage_messages=True)
 async def pins_clear(ctx):
     """Unpins all pins in the channel."""
     messages = await ctx.channel.pins()

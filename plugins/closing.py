@@ -17,6 +17,7 @@ import asyncio
 import locale
 import datetime as dt
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import human_amount_of_time, interpret_str_as_datetime
 from configuration import configuration
@@ -25,7 +26,7 @@ from configuration import configuration
 class Closing:
     STEPS = (0, 1, 2, 3, 4, 5, 10, 15, 30, 60, 120, 180, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400)
 
-    def __init__(self, ctx: discord.ext.commands.Context, countdown_time: Union[Number, dt.datetime]):
+    def __init__(self, ctx: commands.Context, countdown_time: Union[Number, dt.datetime]):
         self.init_datetime = dt.datetime.now().astimezone()
         self.countdown_active = True
         self.ctx = ctx
@@ -110,12 +111,12 @@ class Closing:
 
 
 @somsiad.command(aliases=['zamknij'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(manage_channels=True)
-@discord.ext.commands.bot_has_permissions(manage_channels=True)
+@commands.guild_only()
+@commands.has_permissions(manage_channels=True)
+@commands.bot_has_permissions(manage_channels=True)
 async def close(ctx, countdown_seconds: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = 3600):
     """Counts down to channel removal."""
     try:

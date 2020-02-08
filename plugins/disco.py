@@ -16,6 +16,7 @@ from numbers import Number
 import os
 import locale
 import discord
+from discord.ext import commands
 import youtube_dl
 from core import somsiad, Help
 from utilities import human_amount_of_time
@@ -196,19 +197,19 @@ HELP = Help(COMMANDS, group=GROUP)
 
 
 @somsiad.group(aliases=['d'], invoke_without_command=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco(ctx):
     await somsiad.send(ctx, embeds=HELP.embeds)
 
 
 @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco_play(ctx, *, query):
     """Starts playing music on the voice channel where the invoking user currently resides."""
     disco_manager.ensure_server_registration(ctx.guild)
@@ -229,7 +230,7 @@ async def disco_play(ctx, *, query):
 
 @disco_play.error
 async def disco_play_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=f':warning: Nie podano zapytania ani linku!',
             color=somsiad.COLOR
@@ -238,10 +239,10 @@ async def disco_play_error(ctx, error):
 
 
 @disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco_again(ctx):
     """Starts playing music on the voice channel where the invoking user currently resides."""
     disco_manager.ensure_server_registration(ctx.guild)
@@ -266,10 +267,10 @@ async def disco_again(ctx):
 
 
 @disco.command(aliases=['pauza', 'spauzuj', 'pauzuj', 'pause'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco_pause(ctx):
     """Pauses the currently played song."""
     if ctx.voice_client is None:
@@ -302,10 +303,10 @@ async def disco_pause(ctx):
 
 
 @disco.command(aliases=['wznów', 'wznow', 'odpauzuj', 'unpause', 'resume'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco_resume(ctx):
     """Resumes playing song."""
     if ctx.voice_client is None:
@@ -338,10 +339,10 @@ async def disco_resume(ctx):
 
 
 @disco.command(aliases=['pomiń', 'pomin', 'skip'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco_skip(ctx):
     """Skips the currently played song."""
     if ctx.voice_client is None:
@@ -364,10 +365,10 @@ async def disco_skip(ctx):
 
 
 @disco.command(aliases=['rozłącz', 'rozlacz', 'stop'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco_disconnect(ctx):
     """Disconnects from the server."""
     if ctx.voice_client is None:
@@ -390,10 +391,10 @@ async def disco_disconnect(ctx):
 
 
 @disco.command(aliases=['głośność', 'glosnosc', 'poziom', 'volume', 'vol'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def disco_volume(ctx, volume_percentage: Union[int, locale.atoi] = None):
     """Sets the volume."""
     disco_manager.ensure_server_registration(ctx.guild)
@@ -425,7 +426,7 @@ async def disco_volume(ctx, volume_percentage: Union[int, locale.atoi] = None):
 
 @disco_volume.error
 async def disco_volume_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadUnionArgument):
+    if isinstance(error, commands.BadUnionArgument):
         embed = discord.Embed(
             title=f':warning: Podana wartość nie jest liczbą całkowitą!',
             color=somsiad.COLOR

@@ -12,13 +12,14 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
 
 @somsiad.command(aliases=['badum', 'badumtss'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def rimshot(ctx):
     """Ba dum tss!"""

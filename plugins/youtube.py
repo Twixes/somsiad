@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
+from discord.ext import commands
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from core import somsiad
@@ -50,10 +51,10 @@ youtube = YouTube(configuration['google_key'])
 
 
 @somsiad.command(aliases=['youtube', 'yt', 'tuba'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def youtube_search(ctx, *, query = ''):
     """Returns first matching result from YouTube."""
     result = youtube.search(query)

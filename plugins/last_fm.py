@@ -14,6 +14,7 @@
 from difflib import SequenceMatcher
 import aiohttp
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 from plugins.youtube import youtube
@@ -82,13 +83,13 @@ last_fm_api = LastFM(configuration['last_fm_key'])
 
 
 @somsiad.group(aliases=['lastfm', 'last', 'fm', 'lfm'], invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def last_fm(ctx, *, user):
     user_info = await last_fm_api.get_user_info(user)
     if user_info is None:
-        raise discord.ext.commands.BadArgument
+        raise commands.BadArgument
     else:
         user_recent_tracks = await last_fm_api.get_user_recent_tracks(user)
         if user_recent_tracks:
@@ -150,7 +151,7 @@ async def last_fm(ctx, *, user):
 
 @last_fm.error
 async def last_fm_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano użytkownika Last.fm!',
             color=somsiad.COLOR
@@ -160,7 +161,7 @@ async def last_fm_error(ctx, error):
             icon_url=LastFM.FOOTER_ICON_URL
         )
         await somsiad.send(ctx, embed=embed)
-    elif isinstance(error, discord.ext.commands.BadArgument):
+    elif isinstance(error, commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono takiego użytkownika Last.fm!',
             color=somsiad.COLOR

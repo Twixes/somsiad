@@ -13,13 +13,14 @@
 
 import random
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
 
 @somsiad.command(aliases=['roll', 'rzuć', 'rzuc'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def roll_dice(ctx, *args):
     number_of_dice = 1
@@ -49,7 +50,7 @@ async def roll_dice(ctx, *args):
                 number_of_dice = abs(int(first_argument))
                 number_of_sides_on_a_die = abs(int(second_argument.strip('d')))
     except ValueError:
-        raise discord.ext.commands.BadArgument
+        raise commands.BadArgument
 
     if number_of_sides_on_a_die > 1:
         # Limit the number of dice to 100 or less
@@ -93,7 +94,7 @@ async def roll_dice(ctx, *args):
 
 @roll_dice.error
 async def roll_dice_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
+    if isinstance(error, commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Podano nieprawidłowy argument!',
             description='Ta komenda przyjmuje argumenty w formacie <?liczba kości> <?liczba ścianek kości>.',

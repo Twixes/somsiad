@@ -352,7 +352,7 @@ class MemberSpecific(ServerSpecific, UserSpecific):
         return server.get_member(self.user_id) if server is not None else None
 
 
-class Essentials(discord.ext.commands.Cog):
+class Essentials(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -428,7 +428,7 @@ class Essentials(discord.ext.commands.Cog):
                     break
 
 
-class Prefix(discord.ext.commands.Cog):
+class Prefix(commands.Cog):
     GROUP = Help.Command(('prefiks', 'prefix', 'przedrostek'), (), 'Grupa komend związanych z prefiksem.')
     COMMANDS = (
         Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks.'),

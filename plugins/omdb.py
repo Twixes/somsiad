@@ -15,6 +15,7 @@ import locale
 import aiohttp
 import re
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import word_number_form
 from configuration import configuration
@@ -32,10 +33,10 @@ class OMDb:
 
 
 @somsiad.command(aliases=['film'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.default
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def omdb(ctx, *args):
     """OMDb search. Responds with the most popular movies and TV series matching the query."""
     if (

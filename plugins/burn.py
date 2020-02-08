@@ -16,14 +16,15 @@ import asyncio
 import locale
 import datetime as dt
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import human_amount_of_time, human_timedelta, interpret_str_as_datetime
 from configuration import configuration
 
 
 @somsiad.command(aliases=['spal'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_str_as_datetime]] = 300):
     """Removes the message after a specified mount time."""

@@ -14,14 +14,15 @@
 import re
 import aiohttp
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import text_snippet
 from configuration import configuration
 
 
 @somsiad.command(aliases=['urbandictionary', 'urban'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def urban_dictionary(ctx, *, query):
     """Returns Urban Dictionary word definition."""

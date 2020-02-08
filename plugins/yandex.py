@@ -14,6 +14,7 @@
 from typing import Optional
 import aiohttp
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
@@ -97,8 +98,8 @@ class Yandex:
 
 
 @somsiad.command(aliases=['tłumacz', 'tlumacz', 'translator'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def translate(ctx, source_language_code, target_language_code, *, text):
     """The Wikipedia search command."""
@@ -110,7 +111,7 @@ async def translate(ctx, source_language_code, target_language_code, *, text):
 async def translate_error(ctx, error):
     print(error)
     embed = None
-    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
+    if isinstance(error, commands.errors.MissingRequiredArgument):
         if error.param.name == 'source_language_code':
             embed = discord.Embed(
                 title=':warning: Nie podano kodu języka źródłowego!',

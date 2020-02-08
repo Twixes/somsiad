@@ -13,6 +13,7 @@
 
 import aiohttp
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import text_snippet
 from configuration import configuration
@@ -161,8 +162,8 @@ class Wikipedia:
 
 
 @somsiad.command(aliases=['wiki', 'w'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def wikipedia(ctx, language, *, title = 'Wikipedia'):
     """The Wikipedia search command."""
@@ -171,7 +172,7 @@ async def wikipedia(ctx, language, *, title = 'Wikipedia'):
 
 @wikipedia.error
 async def wikipedia_error(ctx, error):
-    if isinstance(error, discord.ext.commands.errors.MissingRequiredArgument):
+    if isinstance(error, commands.errors.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano wersji językowej Wikipedii!',
             color=somsiad.COLOR

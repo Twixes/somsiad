@@ -15,6 +15,7 @@ import string
 import operator
 from py_expression_eval import Parser
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import word_number_form
 from configuration import configuration
@@ -31,8 +32,8 @@ previous_expressions = {}
 
 
 @somsiad.command(aliases=['oblicz', 'policz'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def calculate(ctx, *, data):
     """Calculates the provided expressions and sends the results.
@@ -152,7 +153,7 @@ async def calculate(ctx, *, data):
 
 @calculate.error
 async def calculate_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano wyrażenia ani zmiennych!',
             color=somsiad.COLOR

@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
+from discord.ext import commands
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from core import somsiad
@@ -52,10 +53,10 @@ google_cse = GoogleCSE(configuration['google_key'], configuration['google_custom
 
 
 @somsiad.command(aliases=['g', 'gugiel'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def google(ctx, *, query):
     """Returns first matching website from Google using the provided Custom Search Engine."""
     FOOTER_TEXT = 'Google'
@@ -98,10 +99,10 @@ async def google(ctx, *, query):
 
 
 @somsiad.command(aliases=['googleimage', 'gi', 'i'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def google_image(ctx, *, query):
     """Returns first matching image from Google using the provided Custom Search Engine."""
     FOOTER_TEXT = 'Google'
@@ -141,7 +142,7 @@ async def google_image(ctx, *, query):
 
 @google.error
 async def google_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano szukanego hasła!',
             color=somsiad.COLOR
@@ -151,7 +152,7 @@ async def google_error(ctx, error):
 
 @google_image.error
 async def google_image_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano szukanego hasła!',
             color=somsiad.COLOR

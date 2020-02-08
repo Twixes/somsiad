@@ -13,15 +13,16 @@
 
 import sys
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
 
 @somsiad.command(aliases=['wejdź'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.is_owner()
+@commands.is_owner()
 async def enter(ctx, *, server_name):
     """Generates an invite to the provided server."""
     invite = None
@@ -41,19 +42,19 @@ async def enter(ctx, *, server_name):
 
 
 @somsiad.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.is_owner()
+@commands.is_owner()
 async def announce(ctx):
     pass
 
 
 @announce.command(aliases=['globalnie'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.is_owner()
+@commands.is_owner()
 async def announce_globally(ctx, *, raw_announcement):
     """Makes an announcement on all servers smaller than 10000 members not containing "bot" in their name."""
     announcement = raw_announcement.replace('\\n','\n').strip(';').split(';')
@@ -91,11 +92,11 @@ async def announce_globally(ctx, *, raw_announcement):
 
 
 @announce.command(aliases=['lokalnie'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.is_owner()
-@discord.ext.commands.guild_only()
+@commands.is_owner()
+@commands.guild_only()
 async def announce_locally(ctx, *, raw_announcement):
     """Makes an announcement only on the server where the command was invoked."""
     announcement = raw_announcement.replace('\\n','\n').strip(';').split(';')
@@ -124,10 +125,10 @@ async def announce_locally(ctx, *, raw_announcement):
 
 
 @somsiad.command(aliases=['wyłącz', 'wylacz', 'stop'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.is_owner()
+@commands.is_owner()
 async def shutdown(ctx):
     """Shuts down the bot."""
     embed = discord.Embed(
@@ -141,10 +142,10 @@ async def shutdown(ctx):
 
 
 @somsiad.command(aliases=['błąd', 'blad', 'błont', 'blont'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.is_owner()
+@commands.is_owner()
 async def error(ctx):
     """Causes an error."""
     await somsiad.send(ctx, 1 / 0)

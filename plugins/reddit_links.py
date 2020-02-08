@@ -12,13 +12,14 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
 
 @somsiad.command(aliases=['r', 'sub'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def subreddit(ctx, *, subreddit=None):
     """Responds with the URL of the given subreddit."""
@@ -30,8 +31,8 @@ async def subreddit(ctx, *, subreddit=None):
 
 
 @somsiad.command(aliases=['u'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def reddit_user(ctx, *, username=None):
     """Responds with the URL of the given Reddit user."""

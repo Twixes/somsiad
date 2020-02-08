@@ -13,6 +13,7 @@
 
 from difflib import SequenceMatcher
 import discord
+from discord.ext import commands
 from core import somsiad
 from utilities import human_amount_of_time
 from configuration import configuration
@@ -20,10 +21,10 @@ from plugins.youtube import youtube
 
 
 @somsiad.command()
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def spotify(ctx, member: discord.Member = None):
     """Shares the song currently played on Spotify by the provided user (or if not provided, by the invoking user)."""
     member = member or ctx.author

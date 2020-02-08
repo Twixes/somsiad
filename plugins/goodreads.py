@@ -13,18 +13,19 @@
 
 import aiohttp
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 from defusedxml import ElementTree
 
 
 @somsiad.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
-@discord.ext.commands.cooldown(
+@commands.cooldown(
     1,
     configuration['command_cooldown_per_user_in_seconds']
     if float(configuration['command_cooldown_per_user_in_seconds']) > 1.0 else 1.0
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def goodreads(ctx, *, query):
     """Goodreads search. Responds with for the most popular books matching the query."""
     FOOTER_TEXT = 'goodreads'
@@ -100,7 +101,7 @@ async def goodreads(ctx, *, query):
 
 @goodreads.error
 async def goodreads_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(
             title=':warning: Nie podano szukanego hasła!',
             color=somsiad.COLOR

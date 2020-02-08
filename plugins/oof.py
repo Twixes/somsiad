@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
+from discord.ext import commands
 from core import MemberSpecific, somsiad
 from utilities import word_number_form
 from configuration import configuration
@@ -23,10 +24,10 @@ class Oofer(data.Base, MemberSpecific):
 
 
 @somsiad.group(invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def oof(ctx):
     with data.session(commit=True) as session:
         oofer = session.query(Oofer).get({'server_id': ctx.guild.id, 'user_id': ctx.author.id})
@@ -39,19 +40,19 @@ async def oof(ctx):
 
 
 @oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def oof_how_many(ctx, *, member: discord.Member = None):
     await ctx.invoke(oof_how_many_member, member=member)
 
 
 @oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def oof_how_many_member(ctx, member: discord.Member = None):
     member = member or ctx.author
     with data.session() as session:
@@ -76,7 +77,7 @@ async def oof_how_many_member(ctx, member: discord.Member = None):
 
 @oof_how_many_member.error
 async def oof_how_many_member_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
+    if isinstance(error, commands.BadArgument):
         embed = discord.Embed(
             title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
             color=somsiad.COLOR
@@ -85,19 +86,19 @@ async def oof_how_many_member_error(ctx, error):
 
 
 @oof_how_many.command(aliases=['server', 'serwer'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def oof_how_many_server(ctx):
     await ctx.invoke(oof_server)
 
 
 @oof.command(aliases=['server', 'serwer'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
-@discord.ext.commands.guild_only()
+@commands.guild_only()
 async def oof_server(ctx):
     with data.session() as session:
         total_oofs = session.query(data.func.sum(Oofer.oofs)).scalar()

@@ -14,6 +14,7 @@
 from typing import List, Optional
 import datetime as dt
 import discord
+from discord.ext import commands
 from core import somsiad, Help
 from configuration import configuration
 
@@ -252,16 +253,16 @@ HELP = Help(COMMANDS, group=GROUP)
 
 
 @somsiad.group(aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def trade_sundays(ctx):
     await somsiad.send(ctx, embeds=HELP.embeds)
 
 
 @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def trade_sundays_nearest(ctx):
     nearest_sunday_date = determine_nearest_sunday_after_date_inclusive()
@@ -295,8 +296,8 @@ async def trade_sundays_nearest(ctx):
 
 
 @trade_sundays.command(aliases=['terminarz', 'lista', 'spis'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def trade_sundays_list(ctx, year: Optional[int], month: Optional[int]):
     month_names = [
@@ -305,9 +306,9 @@ async def trade_sundays_list(ctx, year: Optional[int], month: Optional[int]):
     ]
     year = year or dt.date.today().year
     if not 1990 <= year <= 9999:
-        raise discord.ext.commands.BadArgument('Rok musi być w przedziale od 1990 do 9999 włącznie')
+        raise commands.BadArgument('Rok musi być w przedziale od 1990 do 9999 włącznie')
     if month is not None and not 1 <= month <= 12:
-        raise discord.ext.commands.BadArgument('Miesiąc musi być w przedziale od 1 do 12 włącznie')
+        raise commands.BadArgument('Miesiąc musi być w przedziale od 1 do 12 włącznie')
     trade_sunday_dates = determine_trade_sunday_dates(year, month)
     trade_sunday_dates_by_month = [[] for _ in range(12)]
     for trade_sunday_date in trade_sunday_dates:
@@ -327,7 +328,7 @@ async def trade_sundays_list(ctx, year: Optional[int], month: Optional[int]):
 
 @trade_sundays_list.error
 async def trade_sundays_list_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
+    if isinstance(error, commands.BadArgument):
         embed = discord.Embed(
             title=f':warning: {error}!',
             color=somsiad.COLOR

@@ -14,13 +14,14 @@
 import re
 import aiohttp
 import discord
+from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
 
 @somsiad.command(aliases=['exchange', 'kantor', 'kurs'])
-@discord.ext.commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
+@commands.cooldown(
+    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 async def currency(ctx, *, query):
     """Provides (crypto)currency exchange rates."""
@@ -100,6 +101,6 @@ async def currency(ctx, *, query):
 
 @currency.error
 async def currency_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+    if isinstance(error, commands.MissingRequiredArgument):
         embed = discord.Embed(title=':warning: Błąd', description=f'Nie podano szukanego hasła!', color=somsiad.COLOR)
         await somsiad.send(ctx, embed=embed)
