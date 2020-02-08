@@ -46,7 +46,7 @@ async def enter(ctx, *, server_name):
     1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
 )
 @commands.is_owner()
-async def announce(ctx):
+async def announce(_: commands.Context):
     pass
 
 

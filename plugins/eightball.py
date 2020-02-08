@@ -14,7 +14,6 @@
 import os
 import random
 import json
-import discord
 from discord.ext import commands
 from core import somsiad
 from configuration import configuration

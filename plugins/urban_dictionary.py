@@ -75,11 +75,10 @@ async def urban_dictionary(ctx, *, query):
 @urban_dictionary.error
 async def urban_dictionary_error(ctx, error):
     FOOTER_TEXT = 'Urban Dictionary'
-
-    embed = discord.Embed(
-        title=':warning: Musisz podać termin do sprawdzenia!',
-        color=somsiad.COLOR
-    )
-    embed.set_footer(text=FOOTER_TEXT)
-
-    await somsiad.send(ctx, embed=embed)
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed = discord.Embed(
+            title=':warning: Musisz podać termin do sprawdzenia!',
+            color=somsiad.COLOR
+        )
+        embed.set_footer(text=FOOTER_TEXT)
+        await somsiad.send(ctx, embed=embed)

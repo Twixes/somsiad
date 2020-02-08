@@ -43,7 +43,7 @@ class YouTube:
             # output results if there are any
             results = search_response.get('items')
             return results
-        except HttpError as e:
+        except HttpError:
             return None
 
 
