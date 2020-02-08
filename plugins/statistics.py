@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Union
-from collections import defaultdict, deque, namedtuple
+from collections import defaultdict, deque
 import io
 import datetime as dt
 import calendar
@@ -40,14 +40,12 @@ class MessageMetadata(data.Base, ServerRelated, ChannelRelated, UserRelated):
 
 class Report:
     """A statistics report. Can generate server, channel or member statistics."""
-    QueueItem = namedtuple('QueueItem', ('report', 'ctx'))
-
     COOLDOWN = max(float(configuration['command_cooldown_per_user_in_seconds']), 15.0)
     BACKGROUND_COLOR = '#2f3136'
     FOREGROUND_COLOR = '#ffffff'
     ROLL = 7
 
-    send_queues = defaultdict(deque)
+    queues = defaultdict(deque)
 
     plt.style.use('dark_background')
 
@@ -87,30 +85,39 @@ class Report:
         self.earliest_relevant_message_datetime = None
         self.days_of_subject_relevancy = None
         self.average_daily_message_count = None
+        self.caching_progress_message = None
 
     @classmethod
     async def process_next_in_queue(cls, server_id: int):
-        item = cls.send_queues[server_id][0]
-        report, ctx = item.report, item.ctx
+        report = cls.queues[server_id][0]
         report.out_of_queue_datetime = dt.datetime.now()
         try:
             await report.analyze_subject()
         except:
             raise
         finally:
-            cls.send_queues[server_id].popleft()
-            if cls.send_queues[server_id]:
+            cls.queues[server_id].popleft()
+            if cls.queues[server_id]:
                 somsiad.loop.create_task(cls.process_next_in_queue(server_id))
         if report.total_message_count:
             await somsiad.loop.run_in_executor(None, report.render_activity_chart)
-        await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
+        await report.send()
 
-    async def enqueue_send(self):
-        server_send_queue = self.send_queues[self.ctx.guild.id]
-        self.initiated_queue_processing = not server_send_queue
-        server_send_queue.append(self.QueueItem(report=self, ctx=self.ctx))
+    async def enqueue(self):
+        server_queue = self.queues[self.ctx.guild.id]
+        self.initiated_queue_processing = not server_queue
+        server_queue.append(self)
         if self.initiated_queue_processing:
             await self.process_next_in_queue(self.ctx.guild.id)
+
+    async def send(self):
+        if self.caching_progress_message is not None:
+            new_messages_form = word_number_form(
+                self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
+            )
+            caching_progress_embed = somsiad.generate_embed('✅', f'Zbuforowano {new_messages_form}')
+            await self.caching_progress_message.edit(embed=caching_progress_embed)
+        await somsiad.send(self.ctx, embed=self.embed, file=self.activity_chart_file)
 
     async def analyze_subject(self) -> discord.Embed:
         """Selects the right type of analysis depending on the subject."""
@@ -218,9 +225,11 @@ class Report:
                         datetime=message_local_datetime
                     )
                     metadata_cache_update.append(message_metadata)
+                    self.messages_cached += 1
+                    if self.messages_cached % 10_000 == 0:
+                        await self._send_or_update_progress()
             self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()
             metadata_cache_update.reverse()
-            self.messages_cached += len(metadata_cache_update)
             session.bulk_save_objects(metadata_cache_update)
             session.commit()
         except discord.Forbidden:
@@ -240,6 +249,16 @@ class Report:
         self.relevant_channel_stats[message.channel_id]['message_count'] += 1
         self.relevant_channel_stats[message.channel_id]['word_count'] += message.word_count
         self.relevant_channel_stats[message.channel_id]['character_count'] += message.character_count
+
+    async def _send_or_update_progress(self):
+        embed = somsiad.generate_embed(
+            '⌛', f'Buforowanie nowych wiadomości, do tej pory {self.messages_cached:n}…',
+            'Proces ten może trochę zająć z powodu limitów Discorda.'
+        )
+        if self.caching_progress_message is None:
+            self.caching_progress_message = await somsiad.send(self.ctx, embed=embed)
+        else:
+            await self.caching_progress_message.edit(embed=embed)
 
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
@@ -550,8 +569,8 @@ class Statistics(commands.Cog):
             await self.bot.send(ctx, embeds=self.HELP.embeds)
         else:
             async with ctx.typing():
-                report = Report(ctx.author, subject)
-                await report.enqueue_send()
+                report = Report(ctx, subject)
+                await report.enqueue()
 
     @stat.error
     async def stat_error(self, ctx, error):
@@ -568,7 +587,7 @@ class Statistics(commands.Cog):
     async def stat_server(self, ctx):
         async with ctx.typing():
             report = Report(ctx, ctx.guild)
-            await report.enqueue_send()
+            await report.enqueue()
 
     @stat.command(aliases=['channel', 'kanał', 'kanal'])
     @commands.cooldown(
@@ -579,7 +598,7 @@ class Statistics(commands.Cog):
         channel = channel or ctx.channel
         async with ctx.typing():
             report = Report(ctx, channel)
-            await report.enqueue_send()
+            await report.enqueue()
 
     @stat_channel.error
     async def stat_channel_error(self, ctx, error):
@@ -597,7 +616,7 @@ class Statistics(commands.Cog):
         member = member or ctx.author
         async with ctx.typing():
             report = Report(ctx, member)
-            await report.enqueue_send()
+            await report.enqueue()
 
     @stat_member.error
     async def stat_member_error(self, ctx, error):
