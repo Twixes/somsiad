@@ -22,8 +22,6 @@ import data
 
 
 class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
-    __tablename__ = 'entries'
-
     id = data.Column(data.BigInteger, primary_key=True)
     type = data.Column(data.String(50), nullable=False)
     executing_user_id = data.Column(data.BigInteger, index=True)
