@@ -51,10 +51,22 @@ class Report:
 
     plt.style.use('dark_background')
 
-    def __init__(
-            self, request_message_id: int, requesting_member: discord.Member,
-            subject: Union[discord.Guild, discord.TextChannel]
-    ):
+    def __init__(self, ctx: commands.Context, subject: Union[discord.Guild, discord.TextChannel]):
+        self.ctx = ctx
+        self.subject = subject
+        if isinstance(subject, discord.Guild):
+            start_date_naive_utc = subject.created_at
+            self._generate_relevant_embed = self._generate_server_embed
+        elif isinstance(subject, discord.TextChannel):
+            # raise an exception if the requesting user doesn't have access to the channel
+            if not subject.permissions_for(self.ctx.author).read_messages:
+                raise commands.BadArgument
+            start_date_naive_utc = subject.created_at
+            self._generate_relevant_embed = self._generate_channel_embed
+        elif isinstance(subject, discord.Member):
+            start_date_naive_utc = subject.joined_at
+            self._generate_relevant_embed = self._generate_member_embed
+        self.start_date = start_date_naive_utc.replace(tzinfo=dt.timezone.utc).astimezone().date()
         self.seconds_in_queue = 0
         self.messages_cached = 0
         self.total_message_count = 0
@@ -72,25 +84,9 @@ class Report:
         self.init_datetime = dt.datetime.now()
         self.out_of_queue_datetime = None
         self.initiated_queue_processing = False
-        self.request_message_id = request_message_id
-        self.requesting_member = requesting_member
-        self.subject = subject
-        self.guild = requesting_member.guild
         self.earliest_relevant_message_datetime = None
         self.days_of_subject_relevancy = None
         self.average_daily_message_count = None
-        if isinstance(subject, discord.Guild):
-            self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
-            self._generate_relevant_embed = self._generate_server_embed
-        elif isinstance(subject, discord.TextChannel):
-            # raise an exception if the requesting user doesn't have access to the channel
-            if not self.subject.permissions_for(self.requesting_member).read_messages:
-                raise commands.BadArgument
-            self.start_date = self.subject.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
-            self._generate_relevant_embed = self._generate_channel_embed
-        elif isinstance(subject, discord.Member):
-            self.start_date = self.subject.joined_at.replace(tzinfo=dt.timezone.utc).astimezone().date()
-            self._generate_relevant_embed = self._generate_member_embed
 
     @classmethod
     async def process_next_in_queue(cls, server_id: int):
@@ -109,23 +105,24 @@ class Report:
             await somsiad.loop.run_in_executor(None, report.render_activity_chart)
         await somsiad.send(ctx, embed=report.embed, file=report.activity_chart_file)
 
-    async def enqueue_send(self, ctx: commands.Context):
-        server_send_queue = self.send_queues[self.guild.id]
+    async def enqueue_send(self):
+        server_send_queue = self.send_queues[self.ctx.guild.id]
         self.initiated_queue_processing = not server_send_queue
-        server_send_queue.append(self.QueueItem(report=self, ctx=ctx))
+        server_send_queue.append(self.QueueItem(report=self, ctx=self.ctx))
         if self.initiated_queue_processing:
-            await self.process_next_in_queue(self.guild.id)
+            await self.process_next_in_queue(self.ctx.guild.id)
 
     async def analyze_subject(self) -> discord.Embed:
         """Selects the right type of analysis depending on the subject."""
         with data.session() as session:
-            existent_channels = self.guild.text_channels
+            existent_channels = self.ctx.guild.text_channels
+            existent_channel_ids = [channel.id for channel in existent_channels]
             # process subject type
             if isinstance(self.subject, discord.Guild):
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.server_id == self.guild.id
+                    MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
             elif isinstance(self.subject, discord.TextChannel):
                 await self._update_metadata_cache(self.subject, session)
@@ -136,13 +133,9 @@ class Report:
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.server_id == self.guild.id, MessageMetadata.user_id == self.subject.id
+                    MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.user_id == self.subject.id,
+                    MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
-            # remove message metadata from nonexistent channels
-            existent_channel_ids = [channel.id for channel in existent_channels]
-            relevant_message_metadata.filter(MessageMetadata.channel_id.notin_(existent_channel_ids)).delete(
-                synchronize_session='fetch'
-            )
             # generate statistics from metadata cache
             relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc()).all()
             if relevant_message_metadata:
@@ -315,7 +308,7 @@ class Report:
         """Adds the list of top active channels to the report embed."""
         visible_channel_ids = [
             channel_id for channel_id in self.relevant_channel_stats
-            if somsiad.get_channel(channel_id).permissions_for(self.requesting_member).read_messages and
+            if somsiad.get_channel(channel_id).permissions_for(self.ctx.author).read_messages and
             self.relevant_channel_stats[channel_id]['message_count']
         ]
         visible_channel_ids.sort(
@@ -557,8 +550,8 @@ class Statistics(commands.Cog):
             await self.bot.send(ctx, embeds=self.HELP.embeds)
         else:
             async with ctx.typing():
-                report = Report(ctx.message.id, ctx.author, subject)
-                await report.enqueue_send(ctx)
+                report = Report(ctx.author, subject)
+                await report.enqueue_send()
 
     @stat.error
     async def stat_error(self, ctx, error):
@@ -574,8 +567,8 @@ class Statistics(commands.Cog):
     @commands.guild_only()
     async def stat_server(self, ctx):
         async with ctx.typing():
-            report = Report(ctx.message.id, ctx.author, ctx.guild)
-            await report.enqueue_send(ctx)
+            report = Report(ctx, ctx.guild)
+            await report.enqueue_send()
 
     @stat.command(aliases=['channel', 'kanał', 'kanal'])
     @commands.cooldown(
@@ -585,8 +578,8 @@ class Statistics(commands.Cog):
     async def stat_channel(self, ctx, *, channel: discord.TextChannel = None):
         channel = channel or ctx.channel
         async with ctx.typing():
-            report = Report(ctx.message.id, ctx.author, channel)
-            await report.enqueue_send(ctx)
+            report = Report(ctx, channel)
+            await report.enqueue_send()
 
     @stat_channel.error
     async def stat_channel_error(self, ctx, error):
@@ -603,8 +596,8 @@ class Statistics(commands.Cog):
     async def stat_member(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
         async with ctx.typing():
-            report = Report(ctx.message.id, ctx.author, member)
-            await report.enqueue_send(ctx)
+            report = Report(ctx, member)
+            await report.enqueue_send()
 
     @stat_member.error
     async def stat_member_error(self, ctx, error):
