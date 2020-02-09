@@ -3,4 +3,5 @@
 __pycache__
 .env
 .DS_Store
-profile.log
+somsiad.log
+somsiad.cprof
