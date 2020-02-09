@@ -168,15 +168,12 @@ class Report:
 
     def render_activity_chart(self) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
+        show_by_weekday_and_date = self.subject_relevancy_length > 1
+        show_by_channels = True
         if self.type == self.Type.CHANNEL:
             title = f'Aktywność na kanale #{self.subject.name}'
             subject_identification = f'server-{self.ctx.guild.id}-channel-{self.subject_id}'
-            # initialize the chart
-            fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3, figsize=(12, 9))
-            # plot
-            ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
-            ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
-            ax_by_date = self._plot_activity_by_date(ax_by_date)
+            show_by_channels = False
         else:
             if self.type == self.Type.SERVER:
                 title = f'Aktywność na serwerze {self.subject}'
@@ -187,13 +184,17 @@ class Report:
                     title = f'Aktywność użytkownika {self.subject}'
                 elif self.type == self.Type.DELETED_USER:
                     title = f'Aktywność usuniętego użytkownika ID {self.subject_id}'
-            # initialize the chart
-            fig, [ax_by_hour, ax_by_weekday, ax_by_date, ax_by_channel] = plt.subplots(4, figsize=(12, 12))
-            # plot
-            ax_by_hour = self._plot_activity_by_hour(ax_by_hour)
-            ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
-            ax_by_date = self._plot_activity_by_date(ax_by_date)
-            ax_by_channel = self._plot_activity_by_channel(ax_by_channel)
+        # initialize the chart
+        subplots = 1 + 2 * show_by_weekday_and_date + show_by_channels
+        fig, ax_or_axes = plt.subplots(subplots, figsize=(12, subplots * 3))
+
+        # plot
+        ax_by_hour = self._plot_activity_by_hour(ax_or_axes[0] if subplots > 1 else ax_or_axes)
+        if show_by_weekday_and_date:
+            self._plot_activity_by_weekday(ax_or_axes[1])
+            self._plot_activity_by_date(ax_or_axes[2])
+        if show_by_channels:
+            self._plot_activity_by_channel(ax_or_axes[3 if show_by_weekday_and_date else 1])
 
         # make it look nice
         fig.set_tight_layout(True)
