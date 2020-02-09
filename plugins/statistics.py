@@ -13,6 +13,7 @@
 
 from typing import Union
 from collections import defaultdict, deque
+import enum
 import io
 import datetime as dt
 import calendar
@@ -49,22 +50,21 @@ class Report:
 
     plt.style.use('dark_background')
 
-    def __init__(self, ctx: commands.Context, subject: Union[discord.Guild, discord.TextChannel]):
+    class Type(enum.Enum):
+        SERVER = enum.auto()
+        CHANNEL = enum.auto()
+        MEMBER = enum.auto()
+        USER = enum.auto()
+        DELETED_USER = enum.auto()
+
+    def __init__(
+            self, ctx: commands.Context,
+            subject: Union[discord.Guild, discord.TextChannel, discord.Member, discord.User, int]
+    ):
         self.ctx = ctx
-        self.subject = subject
-        if isinstance(subject, discord.Guild):
-            start_date_naive_utc = subject.created_at
-            self._generate_relevant_embed = self._generate_server_embed
-        elif isinstance(subject, discord.TextChannel):
-            # raise an exception if the requesting user doesn't have access to the channel
-            if not subject.permissions_for(self.ctx.author).read_messages:
-                raise commands.BadArgument
-            start_date_naive_utc = subject.created_at
-            self._generate_relevant_embed = self._generate_channel_embed
-        elif isinstance(subject, discord.Member):
-            start_date_naive_utc = subject.joined_at
-            self._generate_relevant_embed = self._generate_member_embed
-        self.start_date = start_date_naive_utc.replace(tzinfo=dt.timezone.utc).astimezone().date()
+        self.user_by_id = isinstance(subject, int)
+        self.subject = subject if not self.user_by_id else None
+        self.subject_id = subject.id if not self.user_by_id else subject
         self.seconds_in_queue = 0
         self.messages_cached = 0
         self.total_message_count = 0
@@ -86,6 +86,7 @@ class Report:
         self.days_of_subject_relevancy = None
         self.average_daily_message_count = None
         self.caching_progress_message = None
+        self.timeframe_start_date = None
 
     @classmethod
     async def process_next_in_queue(cls, server_id: int):
@@ -115,55 +116,58 @@ class Report:
 
     async def analyze_subject(self) -> discord.Embed:
         """Selects the right type of analysis depending on the subject."""
+        await self._fill_in_details()
         with data.session() as session:
             existent_channels = self.ctx.guild.text_channels
             existent_channel_ids = [channel.id for channel in existent_channels]
             # process subject type
-            if isinstance(self.subject, discord.Guild):
+            if self.type == self.Type.SERVER:
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
                     MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
-            elif isinstance(self.subject, discord.TextChannel):
+            elif self.type == self.Type.CHANNEL:
                 await self._update_metadata_cache(self.subject, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.channel_id == self.subject.id
+                    MessageMetadata.channel_id == self.subject_id
                 )
-            elif isinstance(self.subject, discord.Member):
+            elif self.type in (self.Type.MEMBER, self.Type.USER, self.Type.DELETED_USER):
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.user_id == self.subject.id,
+                    MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.user_id == self.subject_id,
                     MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
             await self._finalize_progress()
             # generate statistics from metadata cache
             relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc()).all()
+            was_user_found = True
             if relevant_message_metadata:
                 self.earliest_relevant_message_datetime = relevant_message_metadata[0].datetime
-                self.start_date = min(self.start_date, self.earliest_relevant_message_datetime.date())
+                self.latest_relevant_message_datetime = relevant_message_metadata[-1].datetime
+                if self.timeframe_start_date is not None:
+                    self.timeframe_start_date = min(self.timeframe_start_date, self.earliest_relevant_message_datetime.date())
+                else:
+                    self.timeframe_start_date = self.earliest_relevant_message_datetime.date()
                 for message_metadata in relevant_message_metadata:
                     self._update_running_stats(message_metadata)
-                self.days_of_subject_relevancy = (self.init_datetime.date() - self.start_date).days + 1
+                self.days_of_subject_relevancy = (self.init_datetime.date() - self.timeframe_start_date).days + 1
                 self.average_daily_message_count = round(self.total_message_count / self.days_of_subject_relevancy, 1)
-        self._generate_relevant_embed()
-        self._embed_analysis_metastats()
+            elif self.type == self.Type.DELETED_USER:
+                was_user_found = False
+        if was_user_found:
+            self._generate_relevant_embed()
+            self._embed_analysis_metastats()
+        else:
+            self.embed = somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
         return self.embed
 
     def render_activity_chart(self) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
-        if isinstance(self.subject, discord.Guild):
-            title = f'Aktywność na serwerze {self.subject}'
-            subject_identification = f'server-{self.subject.id}'
-        elif isinstance(self.subject, discord.TextChannel):
+        if self.type == self.Type.CHANNEL:
             title = f'Aktywność na kanale #{self.subject.name}'
-            subject_identification = f'server-{self.subject.guild.id}-channel-{self.subject.id}'
-        elif isinstance(self.subject, discord.Member):
-            title = f'Aktywność użytkownika {self.subject}'
-            subject_identification = f'server-{self.subject.guild.id}-user-{self.subject.id}'
-
-        if isinstance(self.subject, discord.TextChannel):
+            subject_identification = f'server-{self.ctx.guild.id}-channel-{self.subject_id}'
             # initialize the chart
             fig, [ax_by_hour, ax_by_weekday, ax_by_date] = plt.subplots(3, figsize=(12, 9))
             # plot
@@ -171,6 +175,15 @@ class Report:
             ax_by_weekday = self._plot_activity_by_weekday(ax_by_weekday)
             ax_by_date = self._plot_activity_by_date(ax_by_date)
         else:
+            if self.type == self.Type.SERVER:
+                title = f'Aktywność na serwerze {self.subject}'
+                subject_identification = f'server-{self.subject_id}'
+            else:
+                subject_identification = f'server-{self.ctx.guild.id}-user-{self.subject_id}'
+                if self.type in (self.Type.MEMBER, self.Type.USER):
+                    title = f'Aktywność użytkownika {self.subject}'
+                elif self.type == self.Type.DELETED_USER:
+                    title = f'Aktywność usuniętego użytkownika ID {self.subject_id}'
             # initialize the chart
             fig, [ax_by_hour, ax_by_weekday, ax_by_date, ax_by_channel] = plt.subplots(4, figsize=(12, 12))
             # plot
@@ -198,6 +211,38 @@ class Report:
         self.embed.set_image(url=f'attachment://{filename}')
 
         return self.activity_chart_file
+
+    async def _fill_in_details(self):
+        timeframe_start_date_utc = None
+        if self.user_by_id:
+            try:
+                self.subject = await somsiad.fetch_user(self.subject_id)
+            except discord.NotFound:
+                self.type = self.Type.DELETED_USER
+                self._generate_relevant_embed = self._generate_deleted_user_embed
+            else:
+                self.type = self.Type.USER
+                self._generate_relevant_embed = self._generate_user_embed
+        elif isinstance(self.subject, discord.Guild):
+            self.type = self.Type.SERVER
+            self._generate_relevant_embed = self._generate_server_embed
+            timeframe_start_date_utc = self.subject.created_at
+        elif isinstance(self.subject, discord.TextChannel):
+            self.type = self.Type.CHANNEL
+            # raise an exception if the requesting user doesn't have access to the channel
+            if not self.subject.permissions_for(self.ctx.author).read_messages:
+                raise commands.BadArgument
+            self._generate_relevant_embed = self._generate_channel_embed
+            timeframe_start_date_utc = self.subject.created_at
+        elif isinstance(self.subject, discord.Member):
+            self.type = self.Type.MEMBER
+            self._generate_relevant_embed = self._generate_member_embed
+            timeframe_start_date_utc = self.subject.joined_at
+        elif isinstance(self.subject, discord.User):
+            self.type = self.Type.USER
+            self._generate_relevant_embed = self._generate_member_embed
+        if timeframe_start_date_utc is not None:
+            self.timeframe_start_date = timeframe_start_date_utc.replace(tzinfo=dt.timezone.utc).astimezone().date()
 
     async def _update_metadata_cache(self, channel: discord.TextChannel, session: data.RawSession):
         try:
@@ -267,7 +312,7 @@ class Report:
         """Analyzes the subject as a server."""
         self.embed = somsiad.generate_embed('✅', 'Przygotowano raport o serwerze')
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
-        if self.earliest_relevant_message_datetime is not None:
+        if self.total_message_count is not None:
             self.embed.add_field(
                 name='Wysłano pierwszą wiadomość',
                 value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
@@ -286,7 +331,7 @@ class Report:
         """Analyzes the subject as a channel."""
         self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o kanale #{self.subject}')
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
-        if self.earliest_relevant_message_datetime is not None:
+        if self.total_message_count is not None:
             self.embed.add_field(
                 name='Wysłano pierwszą wiadomość',
                 value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
@@ -301,11 +346,31 @@ class Report:
         """Analyzes the subject as a member."""
         self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o użytkowniku {self.subject}')
         self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
-        self.embed.add_field(name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False)
-        if self.earliest_relevant_message_datetime is not None:
+        self.embed.add_field(
+            name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False
+        )
+        self._embed_personal_stats()
+
+    def _generate_user_embed(self):
+        """Analyzes the subject as a user."""
+        self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o użytkowniku {self.subject}')
+        self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
+        self._embed_personal_stats()
+
+    def _generate_deleted_user_embed(self):
+        """Analyzes the subject as a user."""
+        self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}')
+        self._embed_personal_stats()
+
+    def _embed_personal_stats(self):
+        if self.total_message_count is not None:
             self.embed.add_field(
                 name='Wysłał pierwszą wiadomość na serwerze',
                 value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+            )
+            self.embed.add_field(
+                name='Wysłał ostatnią wiadomość na serwerze',
+                value=human_timedelta(self.latest_relevant_message_datetime, naive=False), inline=False
             )
         self._embed_general_message_stats()
         self._embed_top_visible_channel_stats()
@@ -347,9 +412,10 @@ class Report:
                 f'{word_number_form(this_visible_channel_stats["character_count"], "znak", "znaki", "znaków")}'
             )
         if top_visible_channel_stats:
-            field_name = (
-                'Najaktywniejszy na kanałach' if isinstance(self.subject, discord.Member) else 'Najaktywniejsze kanały'
-            )
+            if self.type in (self.Type.MEMBER, self.Type.USER, self.Type.DELETED_USER):
+                field_name = 'Najaktywniejszy na kanałach'
+            else:
+                field_name = 'Najaktywniejsze kanały'
             self.embed.add_field(name=field_name, value='\n'.join(top_visible_channel_stats), inline=False)
 
     def _embed_top_active_user_stats(self):
@@ -449,14 +515,14 @@ class Report:
 
     def _plot_activity_by_date(self, ax):
         # calculate timeframe
-        start_date = self.start_date
-        end_date = self.init_datetime.date()
+        timeframe_start_date = self.timeframe_start_date
+        timeframe_end_date = self.init_datetime.date()
         day_difference = self.days_of_subject_relevancy - 1
-        year_difference = end_date.year - start_date.year
-        month_difference = 12 * year_difference + end_date.month - start_date.month
+        year_difference = timeframe_end_date.year - timeframe_start_date.year
+        month_difference = 12 * year_difference + timeframe_end_date.month - timeframe_start_date.month
 
         # convert date strings provided to datetime objects
-        dates = [start_date + dt.timedelta(n) for n in range(self.days_of_subject_relevancy)]
+        dates = [timeframe_start_date + dt.timedelta(n) for n in range(self.days_of_subject_relevancy)]
         messages = [self.messages_over_date[date.isoformat()] for date in dates]
         is_rolling_average = day_difference > 21
         if is_rolling_average:
@@ -504,8 +570,8 @@ class Report:
         # set proper X axis formatting
         half_day = dt.timedelta(hours=12)
         ax.set_xlim(
-            dt.datetime(start_date.year, start_date.month, start_date.day) - half_day,
-            dt.datetime(end_date.year, end_date.month, end_date.day) + half_day
+            dt.datetime(timeframe_start_date.year, timeframe_start_date.month, timeframe_start_date.day) - half_day,
+            dt.datetime(timeframe_end_date.year, timeframe_end_date.month, timeframe_end_date.day) + half_day
         )
         for tick in ax.get_xticklabels():
             tick.set_rotation(30)
@@ -558,7 +624,10 @@ class Statistics(commands.Cog):
     GROUP = Help.Command('stat', (), 'Grupa komend związanych ze statystykami na serwerze.')
     COMMANDS = (
         Help.Command('serwer', (), 'Wysyła raport o serwerze.'),
-        Help.Command(('kanał', 'kanal'), '?kanał', 'Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.'),
+        Help.Command(
+            ('kanał', 'kanal'), '?kanał',
+            'Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.'
+        ),
         Help.Command(
             ('użytkownik', 'uzytkownik', 'user'), '?użytkownik',
             'Wysyła raport o użytkowniku. Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.'
@@ -573,7 +642,7 @@ class Statistics(commands.Cog):
     @commands.cooldown(
         1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
-    async def stat(self, ctx, *, subject: Union[discord.Member, discord.TextChannel] = None):
+    async def stat(self, ctx, *, subject: Union[discord.TextChannel, discord.Member, discord.User, int] = None):
         if subject is None:
             await self.bot.send(ctx, embeds=self.HELP.embeds)
         else:
@@ -621,7 +690,7 @@ class Statistics(commands.Cog):
         1, Report.COOLDOWN, commands.BucketType.user
     )
     @commands.guild_only()
-    async def stat_member(self, ctx, *, member: discord.Member = None):
+    async def stat_member(self, ctx, *, member: Union[discord.Member, discord.User, int] = None):
         member = member or ctx.author
         async with ctx.typing():
             report = Report(ctx, member)
