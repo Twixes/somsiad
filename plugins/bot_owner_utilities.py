@@ -132,11 +132,11 @@ async def announce_locally(ctx, *, raw_announcement):
 async def shutdown(ctx):
     """Shuts down the bot."""
     embed = discord.Embed(
-        title=':stop_button: Wyłączanie bota...',
+        title=':stop_button: Wyłączanie bota…',
         color=somsiad.COLOR
     )
     await somsiad.send(ctx, embed=embed)
-    print(f'Zatrzymuję działanie programu na żądanie {ctx.author}...')
+    print(f'\nZatrzymuję działanie programu na żądanie {ctx.author}…')
     await ctx.bot.close()
     sys.exit()
 

@@ -64,7 +64,7 @@ async def currency(ctx, *, query):
                         # if response_data['Response'] == 'Error' and response_data['Type'] == 1: <- what is this for?
                         embed = discord.Embed(
                             title=':warning: Niewłaściwie skonstruowane zapytanie!',
-                            description='Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 WALUTA3 ...", '
+                            description='Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 WALUTA3 …", '
                             'gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody walut ISO 4217]'
                             '(https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody kryptowalut. '
                             'Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.',
@@ -88,7 +88,7 @@ async def currency(ctx, *, query):
     else:
         embed = discord.Embed(
             title=':warning: Niewłaściwie skonstruowane zapytanie!',
-            description='Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 WALUTA3 ...", '
+            description='Zapytanie musi mieć formę "X WALUTA1 w WALUTA2 WALUTA3 …", '
             'gdzie X to wartość wyrażona w liczbach, a WALUTY to [kody walut ISO 4217]'
             '(https://en.wikipedia.org/wiki/ISO_4217#Active_codes) lub kody kryptowalut. '
             'Wartość X oraz fragment WALUTA2 WALUTA3 są opcjonalne.',
