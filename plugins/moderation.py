@@ -272,12 +272,14 @@ class Moderation(commands.Cog):
     ):
         """Responds with a list of the user's files events on the server."""
         if isinstance(member, int):
+            search_by_non_member_id = True
             member_id = member
             try:
                 member = await self.bot.fetch_user(member)
             except discord.NotFound:
                 member = None
         else:
+            search_by_non_member_id = False
             member = member or ctx.author
             member_id = member.id
         with data.session() as session:
@@ -315,8 +317,11 @@ class Moderation(commands.Cog):
                     inline=False
                 )
         else:
-            notice = 'jest pusta' if event_types is None else 'nie zawiera zdarzeń podanego typu'
-            embed = self.bot.generate_embed('📂', f'{address} {notice}')
+            if search_by_non_member_id:
+                embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+            else:
+                notice = 'jest pusta' if event_types is None else 'nie zawiera zdarzeń podanego typu'
+                embed = self.bot.generate_embed('📂', f'{address} {notice}')
         await self.bot.send(ctx, embed=embed)
 
     @file.error
