@@ -111,12 +111,6 @@ class Report:
             await self.process_next_in_queue(self.ctx.guild.id)
 
     async def send(self):
-        if self.caching_progress_message is not None:
-            new_messages_form = word_number_form(
-                self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
-            )
-            caching_progress_embed = somsiad.generate_embed('✅', f'Zbuforowano {new_messages_form}')
-            await self.caching_progress_message.edit(embed=caching_progress_embed)
         await somsiad.send(self.ctx, embed=self.embed, file=self.activity_chart_file)
 
     async def analyze_subject(self) -> discord.Embed:
@@ -143,6 +137,7 @@ class Report:
                     MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.user_id == self.subject.id,
                     MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
+            await self._finalize_progress()
             # generate statistics from metadata cache
             relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc()).all()
             if relevant_message_metadata:
@@ -259,6 +254,14 @@ class Report:
             self.caching_progress_message = await somsiad.send(self.ctx, embed=embed)
         else:
             await self.caching_progress_message.edit(embed=embed)
+
+    async def _finalize_progress(self):
+        if self.caching_progress_message is not None:
+            new_messages_form = word_number_form(
+                self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
+            )
+            caching_progress_embed = somsiad.generate_embed('✅', f'Zbuforowano {new_messages_form}')
+            await self.caching_progress_message.edit(embed=caching_progress_embed)
 
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
@@ -445,27 +448,30 @@ class Report:
         return ax
 
     def _plot_activity_by_date(self, ax):
-        # convert date strings provided to datetime objects
+        # calculate timeframe
         start_date = self.start_date
         end_date = self.init_datetime.date()
+        day_difference = self.days_of_subject_relevancy - 1
+        year_difference = end_date.year - start_date.year
+        month_difference = 12 * year_difference + end_date.month - start_date.month
+
+        # convert date strings provided to datetime objects
         dates = [start_date + dt.timedelta(n) for n in range(self.days_of_subject_relevancy)]
         messages = [self.messages_over_date[date.isoformat()] for date in dates]
-        messages_rolling_average = rolling_average(messages, self.ROLL)
+        is_rolling_average = day_difference > 21
+        if is_rolling_average:
+            messages = rolling_average(messages, self.ROLL)
 
         # plot the chart
         ax.bar(
             dates,
-            messages_rolling_average,
+            messages,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1
         )
 
-        # set proper ticker intervals on the X axis accounting for the range of time
-        day_difference = self.days_of_subject_relevancy - 1
-        year_difference = end_date.year - start_date.year
-        month_difference = 12 * year_difference + end_date.month - start_date.month
-
+        # set proper ticker intervals on the X axis accounting for the timeframe
         year_locator = mdates.YearLocator()
         month_locator = mdates.MonthLocator()
         quarter_locator = mdates.MonthLocator(bymonth=[1,4,7,10])
@@ -507,12 +513,15 @@ class Report:
 
         # set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10]))
-        if max(messages_rolling_average) >= 10:
+        if max(messages) >= 10:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
         # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
-        ax.set_xlabel('Data (tygodniowa średnia ruchoma)', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        ax.set_xlabel(
+            'Data (tygodniowa średnia ruchoma)' if is_rolling_average else 'Data',
+            color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
+        )
 
         return ax
 
