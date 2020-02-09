@@ -83,10 +83,11 @@ class Report:
         self.out_of_queue_datetime = None
         self.initiated_queue_processing = False
         self.earliest_relevant_message_datetime = None
-        self.days_of_subject_relevancy = None
+        self.subject_relevancy_length = None
         self.average_daily_message_count = None
         self.caching_progress_message = None
         self.timeframe_start_date = None
+        self.timeframe_end_date = self.init_datetime.date()
 
     @classmethod
     async def process_next_in_queue(cls, server_id: int):
@@ -147,13 +148,15 @@ class Report:
                 self.earliest_relevant_message_datetime = relevant_message_metadata[0].datetime
                 self.latest_relevant_message_datetime = relevant_message_metadata[-1].datetime
                 if self.timeframe_start_date is not None:
-                    self.timeframe_start_date = min(self.timeframe_start_date, self.earliest_relevant_message_datetime.date())
+                    self.timeframe_start_date = min(
+                        self.timeframe_start_date, self.earliest_relevant_message_datetime.date()
+                    )
                 else:
                     self.timeframe_start_date = self.earliest_relevant_message_datetime.date()
                 for message_metadata in relevant_message_metadata:
                     self._update_running_stats(message_metadata)
-                self.days_of_subject_relevancy = (self.init_datetime.date() - self.timeframe_start_date).days + 1
-                self.average_daily_message_count = round(self.total_message_count / self.days_of_subject_relevancy, 1)
+                self.subject_relevancy_length = (self.init_datetime.date() - self.timeframe_start_date).days + 1
+                self.average_daily_message_count = round(self.total_message_count / self.subject_relevancy_length, 1)
             elif self.type == self.Type.DELETED_USER:
                 was_user_found = False
         if was_user_found:
@@ -484,6 +487,7 @@ class Report:
         # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Godzina', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        ax.set_ylabel('Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
         return ax
 
@@ -516,13 +520,13 @@ class Report:
     def _plot_activity_by_date(self, ax):
         # calculate timeframe
         timeframe_start_date = self.timeframe_start_date
-        timeframe_end_date = self.init_datetime.date()
-        day_difference = self.days_of_subject_relevancy - 1
+        timeframe_end_date = self.timeframe_end_date
+        day_difference = self.subject_relevancy_length - 1
         year_difference = timeframe_end_date.year - timeframe_start_date.year
         month_difference = 12 * year_difference + timeframe_end_date.month - timeframe_start_date.month
 
         # convert date strings provided to datetime objects
-        dates = [timeframe_start_date + dt.timedelta(n) for n in range(self.days_of_subject_relevancy)]
+        dates = [timeframe_start_date + dt.timedelta(n) for n in range(self.subject_relevancy_length)]
         messages = [self.messages_over_date[date.isoformat()] for date in dates]
         is_rolling_average = day_difference > 21
         if is_rolling_average:
@@ -578,7 +582,7 @@ class Report:
             tick.set_horizontalalignment('right')
 
         # set proper ticker intervals on the Y axis accounting for the maximum number of messages
-        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10]))
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
         if max(messages) >= 10:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
@@ -588,16 +592,25 @@ class Report:
             'Data (tygodniowa średnia ruchoma)' if is_rolling_average else 'Data',
             color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
         )
+        ax.set_ylabel('Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
         return ax
 
     def _plot_activity_by_channel(self, ax):
         # plot the chart
-        channel_names = [f'#{somsiad.get_channel(channel)}' for channel in self.relevant_channel_stats]
-        message_counts = [channel_stats['message_count'] for channel_stats in self.relevant_channel_stats.values()]
+        channels = [somsiad.get_channel(channel) for channel in self.relevant_channel_stats]
+        channels_existence_lengths = (
+            (self.timeframe_end_date - channel.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()).days + 1
+            for channel in channels
+        )
+        average_daily_message_counts = [
+            channel_stats['message_count'] / channel_existence_length for channel_stats, channel_existence_length
+            in zip(self.relevant_channel_stats.values(), channels_existence_lengths)
+        ]
+        channel_names = [f'#{channel}' for channel in channels]
         ax.bar(
             channel_names,
-            message_counts,
+            average_daily_message_counts,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1
@@ -609,13 +622,15 @@ class Report:
 
         # set proper ticker intervals on the Y axis accounting for the maximum number of messages
         ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[10], integer=True))
-        if max(message_counts) >= 10:
+        if max(average_daily_message_counts) >= 10:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(n=10))
 
         # make it look nice
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel('Kanał', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
-        ax.set_ylabel('Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
+        ax.set_ylabel(
+            'Średnio wysłanych\nwiadomości dziennie', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
+        )
 
         return ax
 
