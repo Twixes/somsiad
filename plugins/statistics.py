@@ -24,7 +24,7 @@ import discord
 from discord.ext import commands
 from core import Help, ServerRelated, ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import word_number_form, human_timedelta, rolling_average
+from utilities import word_number_form, human_timedelta, md_link, rolling_average
 import data
 
 
@@ -82,7 +82,8 @@ class Report:
         self.init_datetime = dt.datetime.now()
         self.out_of_queue_datetime = None
         self.initiated_queue_processing = False
-        self.earliest_relevant_message_datetime = None
+        self.earliest_relevant_message = None
+        self.latest_relevant_message = None
         self.subject_relevancy_length = None
         self.average_daily_message_count = None
         self.caching_progress_message = None
@@ -145,14 +146,14 @@ class Report:
             relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc()).all()
             was_user_found = True
             if relevant_message_metadata:
-                self.earliest_relevant_message_datetime = relevant_message_metadata[0].datetime
-                self.latest_relevant_message_datetime = relevant_message_metadata[-1].datetime
+                self.earliest_relevant_message = relevant_message_metadata[0]
+                self.latest_relevant_message = relevant_message_metadata[-1]
                 if self.timeframe_start_date is not None:
                     self.timeframe_start_date = min(
-                        self.timeframe_start_date, self.earliest_relevant_message_datetime.date()
+                        self.timeframe_start_date, self.earliest_relevant_message.datetime.date()
                     )
                 else:
-                    self.timeframe_start_date = self.earliest_relevant_message_datetime.date()
+                    self.timeframe_start_date = self.earliest_relevant_message.datetime.date()
                 for message_metadata in relevant_message_metadata:
                     self._update_running_stats(message_metadata)
                 self.subject_relevancy_length = (self.init_datetime.date() - self.timeframe_start_date).days + 1
@@ -316,10 +317,15 @@ class Report:
         """Analyzes the subject as a server."""
         self.embed = somsiad.generate_embed('✅', 'Przygotowano raport o serwerze')
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
-        if self.total_message_count is not None:
+        if self.total_message_count:
+            earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name='Wysłano pierwszą wiadomość',
-                value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+                value=md_link(
+                    human_timedelta(earliest.datetime, naive=False),
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                ),
+                inline=False
             )
         self.embed.add_field(name='Właściciel', value=self.subject.owner.mention)
         self.embed.add_field(name='Ról', value=f'{len(self.subject.roles):n}')
@@ -335,10 +341,10 @@ class Report:
         """Analyzes the subject as a channel."""
         self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o kanale #{self.subject}')
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
-        if self.total_message_count is not None:
+        if self.total_message_count:
             self.embed.add_field(
                 name='Wysłano pierwszą wiadomość',
-                value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+                value=human_timedelta(self.earliest_relevant_message.datetime, naive=False), inline=False
             )
         if self.subject.category is not None:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name)
@@ -367,15 +373,26 @@ class Report:
         self._embed_personal_stats()
 
     def _embed_personal_stats(self):
-        if self.total_message_count is not None:
+        if self.total_message_count:
+            earliest = self.earliest_relevant_message
+            latest = self.latest_relevant_message
             self.embed.add_field(
                 name='Wysłał pierwszą wiadomość na serwerze',
-                value=human_timedelta(self.earliest_relevant_message_datetime, naive=False), inline=False
+                value=md_link(
+                    human_timedelta(earliest.datetime, naive=False),
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                ),
+                inline=False
             )
-            self.embed.add_field(
-                name='Wysłał ostatnią wiadomość na serwerze',
-                value=human_timedelta(self.latest_relevant_message_datetime, naive=False), inline=False
-            )
+            if self.ctx.author != self.subject:
+                self.embed.add_field(
+                    name='Wysłał ostatnią wiadomość na serwerze',
+                    value=md_link(
+                        human_timedelta(latest.datetime, naive=False),
+                        f'https://discordapp.com/channels/{latest.server_id}/{latest.channel_id}/{latest.id}'
+                    ),
+                    inline=False
+                )
         self._embed_general_message_stats()
         self._embed_top_visible_channel_stats()
 

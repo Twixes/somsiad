@@ -213,6 +213,10 @@ def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: 
     return datetime.astimezone()
 
 
+def md_link(text: str, url: str) -> str:
+    return f'[{text}]({url})'
+
+
 def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant') -> np.ndarray:
     data = np.pad(data, roll // 2, pad_mode)
     data = np.cumsum(data)
