@@ -93,31 +93,31 @@ class Moderation(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: discord.Member):
         """Adds the joining event to the member's file."""
         with data.session(commit=True) as session:
             event = Event(type='joined', server_id=member.guild.id, user_id=member.id)
             session.add(event)
 
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: discord.Member):
         """Adds the removal event to the member's file."""
         with data.session(commit=True) as session:
             event = Event(type='left', server_id=member.guild.id, user_id=member.id)
             session.add(event)
 
     @commands.Cog.listener()
-    async def on_member_ban(self, server, member):
+    async def on_member_ban(self, server: discord.Guild, user: discord.User):
         """Adds the ban event to the member's file."""
         with data.session(commit=True) as session:
-            event = Event(type='banned', server_id=member.guild.id, user_id=member.id)
+            event = Event(type='banned', server_id=server.id, user_id=user.id)
             session.add(event)
 
     @commands.Cog.listener()
-    async def on_member_unban(self, server, member):
+    async def on_member_unban(self, server: discord.Guild, user: discord.User):
         """Adds the unban event to the member's file."""
         with data.session(commit=True) as session:
-            event = Event(type='unbanned', server_id=member.guild.id, user_id=member.id)
+            event = Event(type='unbanned', server_id=server.id, user_id=user.id)
             session.add(event)
 
     @commands.command(aliases=['ostrzeż', 'ostrzez'])
