@@ -72,7 +72,6 @@ class EightBall(commands.Cog):
         aNSwEr = ''.join(random.choice([letter.lower(), letter.upper()]) for letter in self.ask())
         return aNSwEr
 
-
     @commands.command(aliases=['8ball', '8-ball', '8', 'czy'])
     @commands.cooldown(
         1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
@@ -82,14 +81,12 @@ class EightBall(commands.Cog):
         stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?').lower()
         if stripped_question:
             if 'fccchk' in stripped_question or '‽' in stripped_question:
-                embed = somsiad.generate_embed('👺', self.AsK())
+                text = f'👺 {self.AsK()}'
             else:
-                embed = somsiad.generate_embed('🎱', self.ask())
+                text = f'🎱 {self.ask()}'
         else:
-            embed = somsiad.generate_embed(
-                '⚠️', 'By zadać magicznej kuli pytanie musisz użyć *słów*'
-            )
-        await somsiad.send(ctx, embed=embed)
+            text = '⚠️ By zadać magicznej kuli pytanie musisz użyć *słów*'
+        await self.bot.send(ctx,text)
 
 
 somsiad.add_cog(EightBall(somsiad))
