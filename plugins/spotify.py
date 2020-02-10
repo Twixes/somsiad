@@ -14,10 +14,9 @@
 from difflib import SequenceMatcher
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import somsiad, youtube_client
 from utilities import human_amount_of_time
 from configuration import configuration
-from plugins.youtube import youtube
 
 
 @somsiad.command()
@@ -56,18 +55,16 @@ async def spotify(ctx, member: discord.Member = None):
 
         # search for the song on YouTube
         youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
-        youtube_search_result = youtube.search(youtube_search_query)
+        youtube_search_result = await youtube_client.search(youtube_search_query)
         # add a link to a YouTube video if a match was found
         if (
-                youtube_search_result and
-                SequenceMatcher(None, youtube_search_query, youtube_search_result[0]['snippet']['title']).ratio() > 0.25
+                youtube_search_result is not None and
+                SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
         ):
-            video_id = youtube_search_result[0]['id']['videoId']
-            video_thumbnail_url = youtube_search_result[0]['snippet']['thumbnails']['medium']['url']
             embed.add_field(
-                name='Posłuchaj na YouTube', value=f'https://www.youtube.com/watch?v={video_id}', inline=False
+                name='Posłuchaj na YouTube', value=youtube_search_result.url, inline=False
             )
-            embed.set_image(url=video_thumbnail_url)
+            embed.set_image(url=youtube_search_result.thumbnail_url)
 
         embed.set_footer(
             text='Spotify',

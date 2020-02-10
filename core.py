@@ -24,7 +24,7 @@ import sentry_sdk
 import discord
 from discord.ext import commands
 from version import __version__, __copyright__
-from utilities import word_number_form, human_amount_of_time
+from utilities import YouTubeClient, word_number_form, human_amount_of_time
 from configuration import configuration
 import data
 
@@ -518,3 +518,4 @@ class Prefix(commands.Cog):
 somsiad = Somsiad()
 somsiad.add_cog(Essentials(somsiad))
 somsiad.add_cog(Prefix(somsiad))
+youtube_client = YouTubeClient(configuration['google_key'], somsiad.loop)

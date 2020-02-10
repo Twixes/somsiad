@@ -14,11 +14,14 @@
 from typing import Union, Optional, Sequence
 from numbers import Number
 from collections import namedtuple
+import asyncio
 import locale
 import calendar
 import re
 import datetime as dt
 import numpy as np
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 DatetimeFormat = namedtuple('DatetimeFormat', ('format', 'imply_year', 'imply_month', 'imply_day'))
 
@@ -29,6 +32,47 @@ DATETIME_FORMATS = (
     DatetimeFormat('%H.%M', True, True, True)
 )
 URL_REGEX = re.compile(r'(https?://[\S]+\.[\S]+)')
+
+
+class YouTubeClient:
+    class SearchResult:
+        __slots__ = ('id', 'title', 'thumbnail_url')
+
+        def __init__(self, id: str, title: str, thumbnail_url: str):
+            self.id = id
+            self.title = title
+            self.thumbnail_url = thumbnail_url
+
+        @property
+        def url(self) -> str:
+            return f'https://www.youtube.com/watch?v={self.id}'
+
+    FOOTER_ICON_URL = (
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/'
+        'YouTube_full-color_icon_%282017%29.svg/60px-YouTube_full-color_icon_%282017%29.svg.png'
+    )
+    FOOTER_TEXT = 'YouTube'
+
+    def __init__(self, developer_key: str, loop: asyncio.AbstractEventLoop):
+        self._client = build('youtube', 'v3', developerKey=developer_key)
+        self._loop = loop
+
+    async def search(self, query: str) -> Optional[SearchResult]:
+        try:
+            query = self._client.search().list(
+                q=query, part='snippet', maxResults=1, type='video'
+            )
+            response = await self._loop.run_in_executor(None, query.execute)
+            items = response.get('items')
+            if items:
+                return self.SearchResult(
+                    items[0]['id']['videoId'], items[0]['snippet']['title'],
+                    items[0]['snippet']['thumbnails']['medium']['url']
+                )
+            else:
+                return None
+        except HttpError:
+            return None
 
 
 def first_url(string: str) -> Optional[str]:

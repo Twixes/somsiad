@@ -11,62 +11,33 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import discord
 from discord.ext import commands
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from core import somsiad
+from core import somsiad, youtube_client
 from configuration import configuration
 
 
-class YouTube:
-    FOOTER_TEXT = 'YouTube'
-    FOOTER_ICON_URL = (
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/'
-        'YouTube_full-color_icon_%282017%29.svg/60px-YouTube_full-color_icon_%282017%29.svg.png'
+class YouTube(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(aliases=['youtube', 'yt', 'tuba'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
-
-    _youtube_client = None
-
-    def __init__(self, developer_key):
-        self._youtube_client = build('youtube', 'v3', developerKey=developer_key)
-
-    def search(self, query, max_number_of_results=1, search_type='video'):
-        try:
-            # call the search.list method to retrieve results matching the specified query term
-            search_response = self._youtube_client.search().list(
-                q=query,
-                part='snippet',
-                maxResults=max_number_of_results,
-                type=search_type
-            ).execute()
-            # output results if there are any
-            results = search_response.get('items')
-            return results
-        except HttpError:
-            return None
+    @commands.guild_only()
+    async def youtube_search(self, ctx, *, query = None):
+        """Returns first matching result from YouTube."""
+        if query is None:
+            result_url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+        else:
+            result = await youtube_client.search(query)
+            result_url = result.url if result is not None else None
+        if result_url is not None:
+            await self.bot.send(ctx, result_url)
+        else:
+            embed = somsiad.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
+            embed.set_footer(icon_url=youtube_client.FOOTER_ICON_URL, text=youtube_client.FOOTER_TEXT)
+            await self.bot.send(ctx, embed=embed)
 
 
-youtube = YouTube(configuration['google_key'])
-
-
-@somsiad.command(aliases=['youtube', 'yt', 'tuba'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def youtube_search(ctx, *, query = ''):
-    """Returns first matching result from YouTube."""
-    result = youtube.search(query)
-
-    if result:
-        video_id = result[0]['id']['videoId']
-        video_url = f'https://www.youtube.com/watch?v={video_id}'
-        await somsiad.send(ctx, video_url)
-    else:
-        embed = discord.Embed(
-            title=f':slight_frown: Brak wyników dla zapytania "{query}"',
-            color=somsiad.COLOR
-        )
-        embed.set_footer(icon_url=YouTube.FOOTER_ICON_URL, text=YouTube.FOOTER_TEXT)
-        await somsiad.send(ctx, embed=embed)
+somsiad.add_cog(YouTube(somsiad))

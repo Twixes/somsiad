@@ -5,7 +5,7 @@ psycopg2==2.8.4
 python-dotenv==0.10.3
 defusedxml==0.6.0
 google-api-python-client==1.7.11
-youtube-dl==2020.1.24
+pytube3==9.6.1
 praw==6.4.0
 matplotlib==3.1.2
 py_expression_eval==0.3.9
