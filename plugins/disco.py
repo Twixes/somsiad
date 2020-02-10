@@ -80,7 +80,7 @@ class DiscoManager:
 
     async def channel_play_song(self, voice_channel: discord.VoiceChannel, query: str) -> Optional[dict]:
         await self.channel_connect(voice_channel)
-        song_info = self._youtube_dl.extract_info(query, download=False)
+        song_info = await somsiad.loop.run_in_executor(None, self._youtube_dl.extract_info, query, False)
 
         if song_info is not None:
 
@@ -90,8 +90,7 @@ class DiscoManager:
                 song_filename = song_info["id"]
 
             if not os.path.isfile(os.path.join(self._CACHE_DIR_PATH, song_filename)):
-                with self._youtube_dl:
-                    self._youtube_dl.download([query])
+                await somsiad.loop.run_in_executor(None, self._youtube_dl.download, [query])
 
             if os.path.isfile(os.path.join(self._CACHE_DIR_PATH, song_filename)):
                 song_path = os.path.join(self._CACHE_DIR_PATH, song_filename)
