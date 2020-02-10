@@ -11,48 +11,73 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import random
-import json
 from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
-with open(os.path.join(somsiad.bot_dir_path, 'data', 'choice_answers.json'), 'r') as f:
-    choice_answers = json.load(f)
 
-categories = ['definitive' for _ in range(49)] + ['enigmatic']
+class Choice(commands.Cog):
+    CATEGORIES_POOL = ['definitive'] * 49 + ['enigmatic']
+    ANSWERS = {
+        'definitive': [
+            'Z mojej strony zdecydowane {0}.',
+            'Nie znam się, ale myślę, że najlepszą opcją jest {0}.',
+            '{0}, choć bez przekonania…',
+            'Może {0}?',
+            'Sugerowałbym {0}.',
+            'Muszę powiedzieć, że {0} brzmi nieźle.',
+            'Zdecydowanie {0}.',
+            '{0}, bez dwóch zdań.',
+            'To oczywiste, że {0}.',
+            'Wiem coś o tym i z czystym sumieniem mogę doradzić {0}.',
+            'Nie ma nad czym się tutaj zastanawiać: {0}.',
+            'Dla mnie sprawa jest prosta: {0}.',
+            'W razie wątpliwości zawsze wybieraj {0}.',
+            'Na twoim miejscu spróbowałbym {0}.'
+        ], 'enigmatic': [
+            'Żadna z opcji nie wygląda ciekawie.',
+            'Wszystkie opcje brzmią kusząco.',
+            'Przecież już znasz odpowiedź.',
+            'Tak.',
+            'Nie.'
+        ]
+    }
 
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-@somsiad.command(aliases=['choose', 'wybierz'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def random_choice(ctx, *, raw_options = ''):
-    """Randomly chooses one of provided options."""
-    raw_options = raw_options.replace(';', ',').replace('|', ',')
-    options_words = []
-    for word in raw_options.strip('?').split():
-        if word.lower() in ('or', 'czy', 'albo', 'lub'):
-            options_words.append(',')
+    @commands.command(aliases=['choose', 'wybierz'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def random_choice(self, ctx, *, raw_options = ''):
+        """Randomly chooses one of provided options."""
+        raw_options = raw_options.replace(';', ',').replace('|', ',')
+        options_words = []
+        for word in raw_options.strip('?').split():
+            if word.lower() in ('or', 'czy', 'albo', 'lub'):
+                options_words.append(',')
+            else:
+                options_words.append(word)
+        options = [option.strip() for option in ' '.join(options_words).split(',') if option.strip() != '']
+        if len(options) >= 2:
+            if 'trebuchet' in options:
+                chosen_option = 'trebuchet'
+            elif 'trebusz' in options:
+                chosen_option = 'trebusz'
+            elif 'trebuszet' in options:
+                chosen_option = 'trebuszet'
+            else:
+                chosen_option = random.choice(options)
+            category = random.choice(self.CATEGORIES_POOL)
+            answer = random.choice(self.ANSWERS[category]).format(f'👉 {chosen_option} 👈')
+            await self.bot.send(ctx, answer)
         else:
-            options_words.append(word)
+            await self.bot.send(
+                ctx, 'Chętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych przecinkami, średnikami, '
+                '"lub", "albo" lub "czy" opcji!'
+            )
 
-    options = [option.strip() for option in ' '.join(options_words).split(',') if option.strip() != '']
-    if len(options) >= 2:
-        if 'trebuchet' in options:
-            chosen_option = 'trebuchet'
-        elif 'trebusz' in options:
-            chosen_option = 'trebusz'
-        elif 'trebuszet' in options:
-            chosen_option = 'trebuszet'
-        else:
-            chosen_option = random.choice(options)
-        category = random.choice(categories)
-        answer = random.choice(choice_answers[category]).format(f'👉 {chosen_option} 👈')
-        await somsiad.send(ctx, answer)
-    else:
-        await somsiad.send(
-            ctx, 'Chętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych przecinkami, średnikami, "lub", '
-            '"albo" lub "czy" opcji!'
-        )
+
+somsiad.add_cog(Choice(somsiad))
