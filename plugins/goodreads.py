@@ -79,7 +79,7 @@ async def goodreads(ctx, *, query):
                     embed = discord.Embed(title=f'{books[0]["title"]}', url=main_url, color=somsiad.COLOR)
                     embed.set_author(name=books[0]["author"])
                     embed.add_field(name='Ocena', value=f'{float(books[0]["average_rating"]):n} / 5')
-                    embed.add_field(name='Liczba głosów', value=f'{books[0]["ratings_count"]:n}')
+                    embed.add_field(name='Liczba głosów', value=f'{int(books[0]["ratings_count"]):n}')
                     embed.set_thumbnail(url=books[0]['image_url'])
                     if len(books) > 1:
                         sec_results = []
