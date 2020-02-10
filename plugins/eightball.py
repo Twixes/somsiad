@@ -11,47 +11,85 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import random
-import json
 from discord.ext import commands
 from core import somsiad
 from configuration import configuration
 
 
-class Ball:
-    with open(os.path.join(somsiad.bot_dir_path, 'data', 'eightball_answers.json')) as f:
-        eightball_answers = json.load(f)
+class EightBall(commands.Cog):
+    CATEGORIES_POOL = ['definitive'] * 49 + ['enigmatic'] * 1
+    DEFINITIVE_SUBCATEGORIES_POOL = ['affirmative', 'negative']
+    ANSWERS = {
+        'affirmative': [
+            'Jak najbardziej tak.',
+            'Z całą pewnością tak.',
+            'Bez wątpienia tak.',
+            'Niestety tak.',
+            'Na szczęście tak.',
+            'Chyba tak.',
+            'Wszystko wskazuje na to, że tak.',
+            'Mój wywiad donosi: TAK.',
+            'YES, YES, YES!',
+            'Yep.',
+            'Ja!',
+            'Dа.'
+        ], 'negative': [
+            'Zdecydowanie nie.',
+            'Absolutnie nie.',
+            'Nie ma mowy.',
+            'Niestety nie.',
+            'Na szczęście nie.',
+            'Raczej nie.',
+            'Nie wydaje mi się.',
+            'Mój wywiad donosi: NIE.',
+            'Nope.',
+            'Nein!',
+            'Niet.'
+        ], 'enigmatic': [
+            'Zbyt wcześnie, by powiedzieć.',
+            'Kto wie?',
+            'Być może.',
+            'Mój wywiad donosi: MOŻE?',
+            'Trudno powiedzieć.',
+            'To pytanie jest dla mnie zbyt głębokie.',
+            'Przecież już znasz odpowiedź.'
+        ]
+    }
 
-    categories = ['definitive' for _ in range(49)] + ['enigmatic']
-    definitive_categories = ('affirmative', 'negative')
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-    @classmethod
-    def ask(cls) -> str:
-        category = random.choice(cls.categories)
-        specific_category = 'enigmatic' if category == 'enigmatic' else random.choice(cls.definitive_categories)
-        answer = random.choice(cls.eightball_answers[specific_category])
+    def ask(self) -> str:
+        category = random.choice(self.CATEGORIES_POOL)
+        specific_category = 'enigmatic' if category == 'enigmatic' else random.choice(
+            self.DEFINITIVE_SUBCATEGORIES_POOL
+        )
+        answer = random.choice(self.ANSWERS[specific_category])
         return answer
 
-    @classmethod
-    def AsK(cls) -> str:
-        aNSwEr = ''.join(random.choice([letter.lower(), letter.upper()]) for letter in cls.ask())
+    def AsK(self) -> str:
+        aNSwEr = ''.join(random.choice([letter.lower(), letter.upper()]) for letter in self.ask())
         return aNSwEr
 
 
-@somsiad.command(aliases=['8ball', '8-ball', '8', 'czy'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def eightball(ctx, *, question: commands.clean_content(fix_channel_mentions=True) = ''):
-    """Returns an 8-Ball answer."""
-    stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?').lower()
-    if stripped_question == '':
-        await somsiad.send(
-            ctx, 'Magiczna kula potrafi odpowiadać tylko na pytania! Aby zadać pytanie musisz użyć *słów*.'
-        )
-    else:
-        if 'fccchk' in stripped_question or '‽' in stripped_question:
-            await somsiad.send(ctx, f':japanese_goblin: {Ball.AsK()}')
+    @commands.command(aliases=['8ball', '8-ball', '8', 'czy'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def eightball(self, ctx, *, question: commands.clean_content(fix_channel_mentions=True) = ''):
+        """Returns an 8-Ball answer."""
+        stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?').lower()
+        if stripped_question:
+            if 'fccchk' in stripped_question or '‽' in stripped_question:
+                embed = somsiad.generate_embed('👺', self.AsK())
+            else:
+                embed = somsiad.generate_embed('🎱', self.ask())
         else:
-            await somsiad.send(ctx, f':8ball: {Ball.ask()}')
+            embed = somsiad.generate_embed(
+                '⚠️', 'By zadać magicznej kuli pytanie musisz użyć *słów*'
+            )
+        await somsiad.send(ctx, embed=embed)
+
+
+somsiad.add_cog(EightBall(somsiad))
