@@ -24,14 +24,6 @@ COMMANDS = (
     ),
     Help.Command(('rzuć', 'rzuc'), ('?liczba kości', '?liczba ścianek kości'), 'Rzuca kością/koścmi.'),
     Help.Command(
-        ('oblicz', 'policz'), ('wyrażenie', '?zmienne', '?poziom zaokrąglenia'),
-        'Oblicza wartość podanego wyrażenia. '
-        'Przyjmuje również oddzielone średnikami zmienne. Po średniku można też podać liczbę miejsc po przecinku do jakiej ma zostać zaokrąglony wynik. '
-        f'Przykładowo `oblicz 71 / x; x = 58; 2` zwróci 71/100 '
-        'zaokrąglone do 2 cyfr po przecinku. '
-        'Jeśli podane dane nie są wystarczające do obliczenia wartości równania, próbuje je uprościć.'
-    ),
-    Help.Command(
         ('google', 'gugiel', 'g'), 'zapytanie',
         'Wysyła <zapytanie> do [Google](https://www.google.com) i zwraca najlepiej pasującą stronę.'
     ),
@@ -77,8 +69,9 @@ COMMANDS = (
         'Sprawdza znaczenie <wyrażenia> w [Urban Dictionary](https://www.urbandictionary.com).'
     ),
     Help.Command(
-        ('kantor', 'kurs'), ('?liczba', 'trzyliterowy kod waluty początkowej', 'trzyliterowy kod waluty docelowej'),
-        'Konwertuje waluty za pomocą serwisu [CryptoCompare](https://www.cryptocompare.com).'
+        ('wolframalpha', 'wolfram', 'wa', 'kalkulator', 'oblicz', 'policz', 'przelicz', 'konwertuj'), ('zapytanie',),
+        '[Wolfram Alpha](https://www.wolframalpha.com/) – oblicza, przelicza, podaje najróżniejsze informacje. '
+        'Usługa po angielsku.'
     ),
     Help.Command(
         'isitup', 'url', 'Za pomocą serwisu [isitup.org](https://isitup.org) sprawdza status danej strony.'
