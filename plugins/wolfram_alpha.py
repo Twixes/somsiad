@@ -19,6 +19,8 @@ from configuration import configuration
 
 
 class WolframAlpha(commands.Cog):
+    FOOTER_TEXT = 'Wolfram Alpha'
+    FOOTER_ICON_URL = 'https://cdn.iconscout.com/icon/free/png-512/wolfram-alpha-2-569293.png'
     API_URL = 'https://api.wolframalpha.com/v2/query'
     API_PARAMS = {
         'appid': configuration['wolfram_alpha_app_id'],
@@ -54,11 +56,11 @@ class WolframAlpha(commands.Cog):
     async def wolfram_alpha(self, ctx, *, query):
         async with ctx.typing():
             pods = await self.fetch_pods(query)
-            embed = self.bot.generate_embed('🧠', 'Wyniki z Wolfram Alpha')
             thumbnail = None
             image = None
             entries = 0
             if pods:
+                embed = self.bot.generate_embed('🧠', 'Zinterpretowano zapytanie')
                 for pod in pods[:15]:
                     subpods_data = [
                         f'```Mathematica\n{subpod["plaintext"]}```' for subpod in pod['subpods']
@@ -86,7 +88,8 @@ class WolframAlpha(commands.Cog):
                 if image is not None:
                     embed.set_image(url=image['src'])
             else:
-                embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
+                embed = self.bot.generate_embed('🙁', f'Nie udało się zinterpretować zapytania "{query}"')
+        embed.set_footer(text=self.FOOTER_TEXT, icon_url=self.FOOTER_ICON_URL)
         await self.bot.send(ctx, embed=embed)
 
 
