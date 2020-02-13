@@ -32,6 +32,7 @@ import data
 class Somsiad(commands.Bot):
     COLOR = 0x7289da
     USER_AGENT = f'SomsiadBot/{__version__}'
+    HEADERS = {'User-Agent': USER_AGENT}
     WEBSITE_URL = 'https://somsiad.net'
     EMOJIS = [
         '🐜', '🅱️', '🔥', '🐸', '🤔', '💥', '👌', '💩', '🐇', '🐰', '🦅', '🙃', '😎', '😩', '👹', '🤖', '✌️', '💭',
