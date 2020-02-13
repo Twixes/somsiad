@@ -8,13 +8,13 @@ class Setting:
     __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'optional', 'value')
 
     def __init__(
-            self, name: str, *, description: str, unit: Sequence[str] = None, value_type = str,
+            self, name: str, *, description: str, unit: Optional[Sequence[str]] = None, value_type = Optional[str],
             default_value: Any = None, optional: Optional[bool] = None
     ):
         self.name = name
         self.description = description
         self.unit = unit
-        self.value_type = value_type
+        self.value_type = value_type or (type(default_value) if default_value is not None else str)
         self.default_value = default_value
         self.optional = optional or default_value is not None
 
@@ -86,12 +86,13 @@ SETTINGS = (
     Setting('command_prefix', description='Domyślny prefiks komend', default_value='!'),
     Setting(
         'command_cooldown_per_user_in_seconds', description='Cooldown wywołania komendy przez użytkownika',
-        unit='s', value_type=float, default_value=1.0
+        unit='s', default_value=1.0
     ),
     Setting('database_url', description='URL bazy danych'),
     Setting('sentry_dsn', description='DSN Sentry', optional=True),
     Setting('google_key', description='Klucz API Google'),
     Setting('google_custom_search_engine_id', description='Identyfikator CSE Google'),
+    Setting('wolfram_alpha_app_id', description='Identyfikator aplikacji Wolfram Alpha'),
     Setting('goodreads_key', description='Klucz API Goodreads'),
     Setting('omdb_key', description='Klucz API OMDb'),
     Setting('last_fm_key', description='Klucz API Last.fm'),
@@ -101,8 +102,7 @@ SETTINGS = (
     Setting('reddit_username', description='Redditowa nazwa użytkownika'),
     Setting('reddit_password', description='Hasło do konta na Reddicie'),
     Setting(
-        'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', value_type=int,
-        default_value=16
+        'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', default_value=16
     )
 )
 
