@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -36,9 +36,8 @@ async def goodreads(ctx, *, query):
         'q': query,
         'key': configuration['goodreads_key']
     }
-    headers = {'User-Agent': somsiad.USER_AGENT}
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers, params=params) as response:
+        async with session.get(url, headers=somsiad.HEADERS, params=params) as response:
             if response.status == 200:
                 tree = ElementTree.fromstring(await response.text())
                 node = tree.find('.//total-results')

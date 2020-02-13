@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -29,10 +29,9 @@ async def urban_dictionary(ctx, *, query):
     FOOTER_TEXT = 'Urban Dictionary'
 
     api_url = 'https://api.urbandictionary.com/v0/define'
-    headers = {'User-Agent': somsiad.USER_AGENT}
     params = {'term': query}
     async with aiohttp.ClientSession() as session:
-        async with session.get(api_url, headers=headers, params=params) as r:
+        async with session.get(api_url, headers=somsiad.HEADERS, params=params) as r:
             if r.status == 200:
                 resp = await r.json()
                 bra_pat = re.compile(r'[\[\]]')

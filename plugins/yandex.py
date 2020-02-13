@@ -1,4 +1,4 @@
-# Copyright 2019 Twixes
+# Copyright 2019-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -23,7 +23,6 @@ class Yandex:
     """Handles Yandex stuff."""
     FOOTER_TEXT = 'Yandex'
     FOOTER_ICON_URL = 'https://tech.yandex.com/favicon_en.ico'
-    HEADERS = { 'User-Agent': somsiad.USER_AGENT }
     TRANSLATE_API_URL = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
 
     @classmethod
@@ -37,7 +36,7 @@ class Yandex:
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(cls.TRANSLATE_API_URL, headers=cls.HEADERS, params=params) as request:
+                async with session.get(cls.TRANSLATE_API_URL, headers=somsiad.HEADERS, params=params) as request:
                     return await request.json()
         except aiohttp.client_exceptions.ClientConnectorError:
             return None

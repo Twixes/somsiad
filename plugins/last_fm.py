@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -24,7 +24,6 @@ class LastFM:
     FOOTER_TEXT = 'Last.fm'
     FOOTER_ICON_URL = 'https://www.last.fm/static/images/lastfm_avatar_twitter.png'
     API_URL = 'https://ws.audioscrobbler.com/2.0/'
-    headers = {'User-Agent': somsiad.USER_AGENT}
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -41,7 +40,7 @@ class LastFM:
         try:
             async with aiohttp.ClientSession() as session:
                 # use OpenSearch API first to get accurate page title of the result
-                async with session.get(self.API_URL, headers=self.headers, params=params) as request:
+                async with session.get(self.API_URL, headers=somsiad.HEADERS, params=params) as request:
                     if request.status == 200:
                         user_info = await request.json()
                         if 'error' in user_info:
@@ -65,7 +64,7 @@ class LastFM:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(self.API_URL, headers=self.headers, params=params) as request:
+                async with session.get(self.API_URL, headers=somsiad.HEADERS, params=params) as request:
                     if request.status == 200:
                         user_recent_tracks = await request.json()
                         if 'error' in user_recent_tracks:

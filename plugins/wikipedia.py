@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -25,7 +25,6 @@ class Wikipedia:
     FOOTER_ICON_URL = (
         'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/60px-Wikipedia%27s_W.svg.png'
     )
-    headers = {'User-Agent': somsiad.USER_AGENT}
 
     class SearchResult:
         """Wikipedia search results."""
@@ -61,7 +60,7 @@ class Wikipedia:
             async with aiohttp.ClientSession() as session:
                 # use OpenSearch API first to get accurate page title of the result
                 async with session.get(
-                        cls.link(language, 'w/api.php'), headers=cls.headers, params=params
+                        cls.link(language, 'w/api.php'), headers=somsiad.HEADERS, params=params
                 ) as title_request:
                     search_result.status = title_request.status
 
@@ -73,7 +72,7 @@ class Wikipedia:
                             query = title_data[1][0]
 
                             async with session.get(
-                                    cls.link(language, f'api/rest_v1/page/summary/{query}'), headers=cls.headers
+                                    cls.link(language, f'api/rest_v1/page/summary/{query}'), headers=somsiad.HEADERS
                             ) as article_request:
                                 search_result.status = article_request.status
                                 if article_request.status == 200:

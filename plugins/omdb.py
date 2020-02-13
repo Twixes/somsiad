@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -81,12 +81,11 @@ async def omdb(ctx, *args):
             query = ' '.join(args)
             params = {'apikey': configuration['omdb_key'], 't': query}
 
-        headers = {'User-Agent': somsiad.USER_AGENT}
         URL = 'http://www.omdbapi.com/'
         BASIC_INFO = ['Rated', 'Runtime', 'Released', 'Country']
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(URL, headers=headers, params=params) as r:
+            async with session.get(URL, headers=somsiad.HEADERS, params=params) as r:
                 if r.status == 200:
                     res = await r.json()
                     if res['Response'] == 'True':
