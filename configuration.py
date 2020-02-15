@@ -8,8 +8,8 @@ class Setting:
     __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'optional', 'value')
 
     def __init__(
-            self, name: str, *, description: str, unit: Optional[Sequence[str]] = None, value_type = Optional[str],
-            default_value: Any = None, optional: Optional[bool] = None
+            self, name: str, *, description: str, unit: Optional[Sequence[str]] = None,
+            value_type: Optional[type] = None, default_value: Any = None, optional: Optional[bool] = None
     ):
         self.name = name
         self.description = description
@@ -54,14 +54,14 @@ class Setting:
             return None
         if self.value_type == int:
             try:
-                return int(value)
-            except ValueError:
                 return locale.atoi(value)
+            except ValueError:
+                return int(value)
         if self.value_type == float:
             try:
-                return float(value)
-            except ValueError:
                 return locale.atof(value)
+            except ValueError:
+                return float(value)
         return self.value_type(value)
 
 
