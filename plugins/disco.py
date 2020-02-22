@@ -62,7 +62,7 @@ class DiscoManager:
             video = await somsiad.loop.run_in_executor(None, pytube.YouTube, video_url)
             embed = self.generate_embed(channel, video, 'Pobieranie', '⏳')
             message = await somsiad.send(ctx, embed=embed)
-            streams = video.streams.filter(only_audio=True).order_by('abr').desc().all()
+            streams = video.streams.filter(only_audio=True).order_by('abr').desc()
             stream = streams[0]
             i = 0
             while stream.filesize > configuration['disco_max_file_size_in_mib'] * 1_048_576:
@@ -110,8 +110,8 @@ class DiscoManager:
         embed.set_thumbnail(url=video.thumbnail_url)
         embed.add_field(name='Status', value=status)
         embed.add_field(name='Kanał', value=channel.name)
-        embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))
         embed.add_field(name='Głośność', value=f'{int(self.servers[channel.guild.id]["volume"] * 100)}%')
+        embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))
         embed.set_footer(icon_url=youtube_client.FOOTER_ICON_URL, text=youtube_client.FOOTER_TEXT)
         return embed
 
