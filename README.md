@@ -19,7 +19,7 @@ Polski bot discordowy. Napisany w Pythonie.
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku  
-* wyszukiwanie filmów i seriali w [OMDb](https://www.omdbapi.com/)  
+* wyszukiwanie filmów i seriali w [TMDb](https://www.themoviedb.org/)  
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
 * tłumaczenie tekstu z [Yandex](https://translate.yandex.com/)  
 * udostępnianie obecnie słuchanego na Spotify utworu  
@@ -53,8 +53,8 @@ wyszukiwarki, usunąć dodaną stronę i zaznaczyć pola: "Wyszukiwarka grafiki"
 * Klucz API goodreads:  
 https://www.goodreads.com/api  
 
-* Klucz API OMDb:  
-https://www.omdbapi.com/apikey.aspx  
+* Klucz API TMDb:  
+https://developers.themoviedb.org/3/getting-started/introduction  
 
 * Klucz API Yandex Translate:  
 https://translate.yandex.com/developers/keys  
@@ -120,7 +120,7 @@ The Polish Discord bot. Written in Python.
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
-* [OMDb](https://www.omdbapi.com/) movie and TV show search  
+* [TMDb](https://www.themoviedb.org/) movie and TV show search  
 * [goodreads](https://www.goodreads.com) book search  
 * text translation powered by [Yandex](https://translate.yandex.com/)  
 * sharing the song currently played on Spotify  
@@ -154,8 +154,8 @@ check boxes: "Image search" and "Search the entire web".
 * A goodreads API key:  
 https://www.goodreads.com/api  
 
-* An OMDb API key:  
-https://www.omdbapi.com/apikey.aspx  
+* A TMDb API key:  
+https://developers.themoviedb.org/3/getting-started/introduction  
 
 * A Yandex Translate API key:  
 https://translate.yandex.com/developers/keys  

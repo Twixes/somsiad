@@ -40,10 +40,9 @@ COMMANDS = (
         'Sprawdza znaczenie <hasła> w danej wersji językowej [Wikipedii](https://www.wikipedia.org/).'
     ),
     Help.Command(
-        ('omdb', 'film'), ('?sezon i odcinek', 'tytuł'),
-        'Zwraca z [OMDb](https://www.omdbapi.com/) informacje na temat filmu lub serialu najlepiej pasującego '
-        'do <tytułu>. Jeśli chcesz znaleźć informacje na temat konkretnego odcinka serialu, podaj przed tytułem '
-        '<?sezon i odcinek> w formacie s<sezon>e<odcinek>, np. "s05e14 breaking bad".'
+        'tmdb', 'zapytanie/podkomenda',
+        'Zwraca z [TMDb](https://www.themoviedb.org/) najlepiej pasujący do <?zapytania> film/serial/osobę. '
+        'Użyj bez <?zapytania/podkomendy>, by dowiedzieć się więcej.'
     ),
     Help.Command(
         ('tłumacz', 'tlumacz', 'translator'), ('kod języka źródłowego', 'kod języka docelowego', 'tekst'),

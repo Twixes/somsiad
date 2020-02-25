@@ -14,6 +14,6 @@
 __all__ = [
     'birthday', 'bot_owner_utilities', 'burn', 'choice', 'closing', 'dice', 'disco', 'eightball', 'emoticons',
     'goodreads', 'google_search', 'help_message', 'imaging', 'inviting', 'isitup', 'last_fm', 'moderation', 'oof',
-    'omdb', 'pins', 'reactions', 'reddit_links', 'rimshot', 'school', 'spotify', 'statistics', 'trade_sundays',
+    'pins', 'reactions', 'reddit_links', 'rimshot', 'school', 'spotify', 'statistics', 'tmdb', 'trade_sundays',
     'urban_dictionary', 'vote', 'wikipedia', 'wolfram_alpha', 'yandex', 'youtube'
 ]
