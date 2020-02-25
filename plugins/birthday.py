@@ -143,9 +143,9 @@ class Birthday(commands.Cog):
             'wiek', '?użytkownik', 'Zwraca wiek <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
         ),
         Help.Command(
-            'powiadomienia', '?subkomenda',
+            'powiadomienia', '?podkomenda',
             'Grupa komend związanych z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
-            'Użyj bez <?subkomendy>, by poznać opcje. Wymaga uprawnień administratora.'
+            'Użyj bez <?podkomendy>, by poznać opcje. Wymaga uprawnień administratora.'
         )
     )
     HELP = Help(COMMANDS, group=GROUP)

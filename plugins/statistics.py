@@ -672,9 +672,7 @@ class Statistics(commands.Cog):
         self.bot = bot
 
     @commands.group(invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.channel)
     async def stat(self, ctx, *, subject: Union[discord.TextChannel, discord.Member, discord.User, int] = None):
         if subject is None:
             await self.bot.send(ctx, embeds=self.HELP.embeds)
@@ -691,9 +689,7 @@ class Statistics(commands.Cog):
             )
 
     @stat.command(aliases=['server', 'serwer'])
-    @commands.cooldown(
-        1, Report.COOLDOWN, commands.BucketType.channel
-    )
+    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.channel)
     @commands.guild_only()
     async def stat_server(self, ctx):
         async with ctx.typing():
@@ -701,9 +697,7 @@ class Statistics(commands.Cog):
             await report.enqueue()
 
     @stat.command(aliases=['channel', 'kanał', 'kanal'])
-    @commands.cooldown(
-        1, Report.COOLDOWN, commands.BucketType.user
-    )
+    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.user)
     @commands.guild_only()
     async def stat_channel(self, ctx, *, channel: discord.TextChannel = None):
         channel = channel or ctx.channel
@@ -719,9 +713,7 @@ class Statistics(commands.Cog):
             )
 
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
-    @commands.cooldown(
-        1, Report.COOLDOWN, commands.BucketType.user
-    )
+    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.user)
     @commands.guild_only()
     async def stat_member(self, ctx, *, member: Union[discord.Member, discord.User, int] = None):
         member = member or ctx.author
