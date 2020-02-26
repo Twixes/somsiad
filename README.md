@@ -62,9 +62,6 @@ https://translate.yandex.com/developers/keys
 * Klucz API Last.fm:  
 https://www.last.fm/api/account/create  
 
-* Nazwa użytkownika i hasło konta na Reddicie, a także ID i szyfr aplikacji redditowej typu skrypt:  
-https://www.reddit.com/prefs/apps  
-
 * Następujące paczki:  
 
   * python3-dev  
@@ -162,9 +159,6 @@ https://translate.yandex.com/developers/keys
 
 * A Last.fm API key:  
 https://www.last.fm/api/account/create  
-
-* Reddit username and password, and also Reddit script application ID and secret:  
-https://www.reddit.com/prefs/apps  
 
 * The following packages:  
 

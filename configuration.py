@@ -97,10 +97,6 @@ SETTINGS = (
     Setting('tmdb_key', description='Klucz API TMDb'),
     Setting('last_fm_key', description='Klucz API Last.fm'),
     Setting('yandex_translate_key', description='Klucz API Yandex Translate',),
-    Setting('reddit_id', description='ID aplikacji redditowej'),
-    Setting('reddit_secret', description='Szyfr aplikacji redditowej'),
-    Setting('reddit_username', description='Redditowa nazwa użytkownika'),
-    Setting('reddit_password', description='Hasło do konta na Reddicie'),
     Setting(
         'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', default_value=16
     )

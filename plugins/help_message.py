@@ -78,10 +78,8 @@ COMMANDS = (
     Help.Command(
         ('rokszkolny', 'wakacje', 'ilejeszcze'), (), 'Zwraca ile jeszcze zostało do końca roku szkolnego lub wakacji.'
     ),
-    Help.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca URL <subreddita>.'),
-    Help.Command(
-        ('user', 'u'), 'użytkownik Reddita', 'Zwraca URL profilu <użytkownika Reddita>.'
-    ),
+    Help.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca informacje o <subreddicie>.'),
+    Help.Command(('user', 'u'), 'użytkownik Reddita', 'Zwraca informacje o <użytkowniku Reddita>.'),
     Help.Command(
         ('disco', 'd'), '?podkomenda',
         'Grupa komend związanych z odtwarzaniem muzyki na kanale głosowym. '
