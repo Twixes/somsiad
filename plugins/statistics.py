@@ -342,9 +342,14 @@ class Report:
         self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o kanale #{self.subject}')
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
         if self.total_message_count:
+            earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name='Wysłano pierwszą wiadomość',
-                value=human_timedelta(self.earliest_relevant_message.datetime, naive=False), inline=False
+                value=md_link(
+                    human_timedelta(earliest.datetime, naive=False),
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                ),
+                inline=False
             )
         if self.subject.category is not None:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name)
