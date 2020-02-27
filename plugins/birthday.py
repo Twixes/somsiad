@@ -20,7 +20,7 @@ import datetime as dt
 import discord
 from discord.ext import commands
 from core import somsiad, Help, ServerSpecific, UserSpecific, ChannelRelated
-from utilities import word_number_form
+from utilities import word_number_form, calculate_age
 from configuration import configuration
 import data
 
@@ -37,13 +37,7 @@ class BornPerson(data.Base, UserSpecific):
     )
 
     def age(self) -> int:
-        if self.birthday is None or self.birthday.year == self.EDGE_YEAR:
-            return None
-        today = dt.date.today()
-        age = today.year - self.birthday.year
-        if (today.month, today.day) < (self.birthday.month, self.birthday.day):
-            age -= 1
-        return age
+        return None if self.birthday is None or self.birthday.year == self.EDGE_YEAR else calculate_age(self.birthday)
 
     def is_birthday_today(self) -> bool:
         today = dt.date.today()

@@ -257,6 +257,14 @@ def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: 
     return datetime.astimezone()
 
 
+def calculate_age(birth_date: dt.date, at_date: Optional[dt.date] = None) -> int:
+    at_date = at_date or dt.date.today()
+    age = at_date.year - birth_date.year
+    if (at_date.month, at_date.day) < (birth_date.month, birth_date.day):
+        age -= 1
+    return age
+
+
 def md_link(text: str, url: str) -> str:
     return f'[{text}]({url})'
 
