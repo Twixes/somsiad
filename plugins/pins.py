@@ -20,7 +20,7 @@ from utilities import first_url, word_number_form
 from configuration import configuration
 import data
 
-channel_being_processed_for_servers = defaultdict()
+channel_being_processed_for_servers = {}
 
 
 class PinArchive(data.Base, ServerSpecific, ChannelRelated):
@@ -174,7 +174,7 @@ async def pins_archive(ctx):
                 color=somsiad.COLOR
             )
         else:
-            if channel_being_processed_for_servers[ctx.guild.id] is None:
+            if channel_being_processed_for_servers.get(ctx.guild.id) is None:
                 channel_being_processed_for_servers[ctx.guild.id] = pin_archive.discord_channel
                 try:
                     async with ctx.typing():
@@ -219,7 +219,7 @@ async def pins_clear(ctx):
             title=':red_circle: Brak przypiętych wiadomości do odpięcia',
             color=somsiad.COLOR
         )
-    elif channel_being_processed_for_servers[ctx.guild.id] == ctx.channel:
+    elif channel_being_processed_for_servers.get(ctx.guild.id) == ctx.channel:
         embed = discord.Embed(
             title=':red_circle: Ten kanał jest właśnie przetwarzany',
             color=somsiad.COLOR
