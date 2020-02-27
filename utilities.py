@@ -107,13 +107,14 @@ def with_preposition_form(number: Number) -> str:
 
 
 def word_number_form(
-        number: Number, singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
+        number: Union[Number, str], singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
         fractional_form: str = None, *, include_number: bool = True, include_with: bool = False
 ) -> str:
     """Return the gramatically correct form of the specifiec word in Polish based on the number."""
+    if isinstance(number, str):
+        return f'{number} {plural_form_5_to_1 or plural_form}'
     absolute_number = abs(number)
     absolute_number_floored = int(absolute_number)
-
     if fractional_form is not None and absolute_number != absolute_number_floored:
         proper_form = fractional_form
     else:
@@ -127,14 +128,12 @@ def word_number_form(
                 proper_form = plural_form_5_to_1
             else:
                 proper_form = plural_form
-
     parts = []
     if include_with:
         parts.append(with_preposition_form(number))
     if include_number:
         parts.append(f'{number:n}')
     parts.append(proper_form)
-
     return ' '.join(parts)
 
 
