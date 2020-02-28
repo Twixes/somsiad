@@ -22,7 +22,9 @@ from utilities import word_number_form, calculate_age, human_amount_of_time
 
 
 class TMDb(commands.Cog):
-    GROUP = Help.Command('tmdb', (), 'Grupa komend związanych z kinem i telewizją.')
+    GROUP = Help.Command(
+        'tmdb', (), 'Komendy związane z informacjami o produkcjach i ludziach ze światów kine i telewizji.'
+    )
     COMMANDS = (
         Help.Command(('film', 'kino'), 'zapytanie', 'Zwraca najlepiej pasujący do <zapytania> film.'),
         Help.Command(

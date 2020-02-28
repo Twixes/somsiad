@@ -82,21 +82,20 @@ COMMANDS = (
     Help.Command(('user', 'u'), 'użytkownik Reddita', 'Zwraca informacje o <użytkowniku Reddita>.'),
     Help.Command(
         ('disco', 'd'), '?podkomenda',
-        'Grupa komend związanych z odtwarzaniem muzyki na kanale głosowym. '
-        'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
+        'Komendy związane z odtwarzaniem muzyki. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         'stat', '?podkomenda/użytkownik/kanał',
-        'Grupa komend związanych ze statystykami na serwerze. '
+        'Komendy związane ze statystykami serwerowymi. '
         'Użyj bez <?podkomendy/użytkownika/kanału>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         'urodziny', '?podkomenda/użytkownik',
-        'Grupa komend związanych z datami urodzin. Użyj bez <?podkomendy/użytkownika>, by dowiedzieć się więcej.',
+        'Komendy związane z datami urodzin. Użyj bez <?podkomendy/użytkownika>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         ('handlowe', 'niedzielehandlowe'), '?podkomenda',
-        'Grupa komend związanych z niedzielami handlowymi. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
+        'Komendy związane z niedzielami handlowymi. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         ('spal', 'burn'),
@@ -104,8 +103,13 @@ COMMANDS = (
         'Usuwa wiadomość po podanej liczbie sekund lub o podanym czasie.'
     ),
     Help.Command(
+        ('kolory', 'kolor', 'kolorki', 'kolorek'), '?podkomenda',
+        'Komendy związane z kolorami nicków samodzielnie wybieranymi przez użytkowników. '
+        'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
+    ),
+    Help.Command(
         'przypinki', '?podkomenda',
-        'Grupa komend związanych z archiwizacją przypiętych widadomości. '
+        'Komendy związane z archiwizacją przypiętych wiadomości. '
         'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
@@ -185,9 +189,9 @@ COMMANDS = (
     ),
     Help.Command(
         ('prefiks', 'prefix'), '?podkomenda',
-        'Grupa komend związanych z prefiksem komend. Użyj bez <?podkomendy>, by dowiedzieć się więcej.'
+        'Komendy związane z własnym serwerowym prefiksem komend. Użyj bez <?podkomendy>, by dowiedzieć się więcej.'
     ),
-    Help.Command('ping', (), 'Pong!'),
+    Help.Command(('ping', 'pińg'), (), 'Pong!'),
     Help.Command(('wersja', 'v'), (), 'Działająca wersja bota.'),
     Help.Command(('informacje', 'info'), (), 'Działająca wersja bota plus dodatkowe informacje.'),
 )

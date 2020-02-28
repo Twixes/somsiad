@@ -70,7 +70,7 @@ class PinArchive(data.Base, ServerSpecific, ChannelRelated):
 
 
 GROUP = Help.Command(
-    ('przypięte', 'przypinki', 'piny'), (), 'Grupa komend związanych z archiwizacją przypiętych wiadomości.'
+    ('przypięte', 'przypinki', 'piny'), (), 'Komendy związane z archiwizacją przypiętych wiadomości.'
 )
 COMMANDS = (
     Help.Command(

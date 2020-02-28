@@ -236,7 +236,7 @@ def determine_nearest_trade_sunday_after_date_inclusive(date: dt.date = None) ->
             month = 1
 
 
-GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Grupa komend związanych z niedzielami handlowymi.')
+GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Komendy związane z niedzielami handlowymi.')
 COMMANDS = (
     Help.Command(
         ('najbliższa', 'najblizsza'), (),

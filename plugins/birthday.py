@@ -122,7 +122,7 @@ class Birthday(commands.Cog):
     MONTH_FORMATS = ('%m', '%B', '%b')
     NOTIFICATIONS_HOUR = 8
 
-    GROUP = Help.Command('urodziny', (), 'Grupa komend związanych z urodzinami.')
+    GROUP = Help.Command('urodziny', (), 'Komendy związane z datami urodzin.')
     COMMANDS = (
         Help.Command(('zapamiętaj', 'zapamietaj', 'ustaw'), 'data', 'Zapamiętuje twoją datę urodzin.'),
         Help.Command('zapomnij', (), 'Zapomina twoją datę urodzin.'),
@@ -138,15 +138,15 @@ class Birthday(commands.Cog):
         ),
         Help.Command(
             'powiadomienia', '?podkomenda',
-            'Grupa komend związanych z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
-            'Użyj bez <?podkomendy>, by poznać opcje. Wymaga uprawnień administratora.'
+            'Komendy związane z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
+            'Użyj bez <?podkomendy>, by dowiedzieć się więcej.. Wymaga uprawnień administratora.'
         )
     )
     HELP = Help(COMMANDS, group=GROUP)
 
     NOTIFICATIONS_GROUP = Help.Command(
         'urodziny powiadomienia', (),
-        'Grupa komend związanych z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
+        'Komendy związane z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
         'Wymaga uprawnień administratora.'
     )
     NOTIFICATIONS_COMMANDS = (

@@ -118,7 +118,7 @@ class DiscoManager:
 
 disco_manager = DiscoManager()
 
-GROUP = Help.Command(('disco', 'd'), (), 'Grupa komend związanych z odtwarzaniem muzyki.')
+GROUP = Help.Command(('disco', 'd'), (), 'Komendy związane z odtwarzaniem muzyki.')
 COMMANDS = (
     Help.Command(('zagraj', 'graj'), 'zapytanie/link', 'Odtwarza utwór na kanale głosowym.'),
     Help.Command(
