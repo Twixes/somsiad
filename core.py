@@ -263,7 +263,8 @@ class Help:
 
     def __init__(
             self, commands: Sequence[Command], *,
-            title: Optional[str] = None, description: Optional[str] = None, group: Optional[Command] = None
+            title: Optional[str] = None, description: Optional[str] = None, group: Optional[Command] = None,
+            footer_text: Optional[str] = None, footer_icon_url: Optional[str] = None
     ):
         self.group = group
         if group is not None and title is None:
@@ -279,19 +280,18 @@ class Help:
                 'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
                 'oznacza to, że jest to argument opcjonalny.*'
             )
-            description = '\n'.join(description_parts)
+            description = '\n\n'.join(description_parts)
         self.embeds = [discord.Embed(title=title, description=description, color=Somsiad.COLOR)]
         for command in commands:
-            self.append(command)
-
-    def append(self, command: Command):
-        if len(self.embeds[-1].fields) >= 25:
-            self.embeds.append(discord.Embed(color=Somsiad.COLOR))
-        self.embeds[-1].add_field(
-            name=str(command) if self.group is None else f'{self.group.name} {command}',
-            value=command.description,
-            inline=False
-        )
+            if len(self.embeds[-1].fields) >= 25:
+                self.embeds.append(discord.Embed(color=Somsiad.COLOR))
+            self.embeds[-1].add_field(
+                name=str(command) if self.group is None else f'{self.group.name} {command}',
+                value=command.description,
+                inline=False
+            )
+        if footer_text:
+            self.embeds[-1].set_footer(text=footer_text, icon_url=footer_icon_url)
 
 
 class ServerRelated:

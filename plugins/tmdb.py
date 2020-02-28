@@ -23,7 +23,9 @@ from utilities import word_number_form, calculate_age, human_amount_of_time
 
 class TMDb(commands.Cog):
     GROUP = Help.Command(
-        'tmdb', (), 'Komendy związane z informacjami o produkcjach i ludziach ze światów kine i telewizji.'
+        'tmdb', (),
+        'Komendy związane z informacjami o produkcjach i ludziach ze światów kina i telewizji. '
+        'Użyj <?zapytania> zamiast <?podkomendy>, by otrzymać najlepiej pasujący film/serial/osobę.'
     )
     COMMANDS = (
         Help.Command(('film', 'kino'), 'zapytanie', 'Zwraca najlepiej pasujący do <zapytania> film.'),
@@ -32,7 +34,11 @@ class TMDb(commands.Cog):
         ),
         Help.Command('osoba', 'zapytanie', 'Zwraca najlepiej pasującą do <zapytania> osobę.')
     )
-    HELP = Help(COMMANDS, group=GROUP)
+    HELP = Help(
+        COMMANDS, group=GROUP, footer_text='TMDb',
+        footer_icon_url='https://www.themoviedb.org/assets/2/v4/logos/'
+        '208x226-stacked-green-9484383bd9853615c113f020def5cbe27f6d08a84ff834f41371f223ebad4a3c.png'
+    )
     PROFESSIONS = {
         'Acting': '🎭', 'Art': '🎨', 'Camera': '🎥', 'Costume': '👗', 'Creator': '🧠', 'Crew': '🔧', 'Directing': '🎬',
         'Editing': '✂️', 'Lighting': '💡', 'Production': '📈', 'Sound': '🎙', 'Visual Effects': '🎇', 'Writing': '🖋'
