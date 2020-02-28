@@ -145,7 +145,7 @@ class Birthday(commands.Cog):
             'Użyj bez <?podkomendy>, by dowiedzieć się więcej. Wymaga uprawnień administratora.'
         )
     )
-    HELP = Help(COMMANDS, group=GROUP)
+    HELP = Help(COMMANDS, '🎂', group=GROUP)
 
     NOTIFICATIONS_GROUP = Help.Command(
         'urodziny powiadomienia', (),
@@ -165,7 +165,7 @@ class Birthday(commands.Cog):
             ('wyłącz', 'wylacz'), (), 'Wyłącza powiadomienia o dzisiejszych urodzinach.'
         )
     )
-    NOTIFICATIONS_HELP = Help(NOTIFICATIONS_COMMANDS, group=NOTIFICATIONS_GROUP)
+    NOTIFICATIONS_HELP = Help(NOTIFICATIONS_COMMANDS, '🎂', group=NOTIFICATIONS_GROUP)
     NOTIFICATIONS_EXPLANATION = (
         'Wiadomości z życzeniami wysyłane są o 8 rano dla członków serwera, którzy obchodzą tego dnia urodziny '
         'i upublicznili tu ich datę.'

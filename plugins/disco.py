@@ -133,7 +133,7 @@ COMMANDS = (
     ),
     Help.Command(('rozłącz', 'rozlacz', 'stop'), (), 'Rozłącza z kanału głosowego.'),
 )
-HELP = Help(COMMANDS, group=GROUP)
+HELP = Help(COMMANDS, '🔈', group=GROUP)
 
 
 @somsiad.group(aliases=['d'], invoke_without_command=True)

@@ -31,7 +31,7 @@ class Colors(commands.Cog):
         Help.Command('ustaw', 'kolor–rola', 'Ustawia ci wybrany <kolor–rolę>.'),
         Help.Command(('wyczyść', 'wyczysc'), (), 'Wyczyszcza twój kolor.')
     )
-    HELP = Help(COMMANDS, group=GROUP)
+    HELP = Help(COMMANDS, '🎨', group=GROUP)
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot

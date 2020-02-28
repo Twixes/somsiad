@@ -249,7 +249,7 @@ COMMANDS = (
         'uwzględnione zostaną tylko niedziele handlowe w <?miesiącu>.'
     )
 )
-HELP = Help(COMMANDS, group=GROUP)
+HELP = Help(COMMANDS, '🛒', group=GROUP)
 
 
 @somsiad.group(aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)

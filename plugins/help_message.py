@@ -207,7 +207,7 @@ DESCRIPTION = (
     'oznacza to, że jest to argument opcjonalny.\n'
     f'By dowiedzieć się o mnie więcej, wejdź na {somsiad.WEBSITE_URL}.'
 )
-HELP = Help(COMMANDS, title='Dobry!', description=DESCRIPTION)
+HELP = Help(COMMANDS, '👋', 'Dobry!', DESCRIPTION)
 
 
 @somsiad.command(aliases=['help', 'pomocy', 'pomoc'])

@@ -86,7 +86,7 @@ COMMANDS = (
         ('wyczyść', 'wyczysc'), (), 'Odpina wszystkie wiadomości na kanale.'
     )
 )
-HELP = Help(COMMANDS, group=GROUP)
+HELP = Help(COMMANDS, '📌', group=GROUP)
 
 
 @somsiad.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)

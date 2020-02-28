@@ -262,13 +262,18 @@ class Help:
     __slots__ = ('group', 'embeds')
 
     def __init__(
-            self, commands: Sequence[Command], *,
-            title: Optional[str] = None, description: Optional[str] = None, group: Optional[Command] = None,
-            footer_text: Optional[str] = None, footer_icon_url: Optional[str] = None
+            self, commands: Sequence[Command],
+            emoji: str, title: Optional[str] = None, description: Optional[str] = None, *,
+            group: Optional[Command] = None, footer_text: Optional[str] = None, footer_icon_url: Optional[str] = None
     ):
         self.group = group
-        if group is not None and title is None:
-            title = f'Grupa {" ".join(filter(None, (group.name, group.aliases)))}'
+        title_parts = [emoji]
+        if title is None:
+            if group is not None:
+                title_parts.append('Grupa')
+                title_parts.extend(filter(None, (group.name, group.aliases)))
+        else:
+            title_parts.append(title)
         if description is None:
             description_parts = []
             if group is not None and group.description:
@@ -281,7 +286,7 @@ class Help:
                 'oznacza to, że jest to argument opcjonalny.*'
             )
             description = '\n\n'.join(description_parts)
-        self.embeds = [discord.Embed(title=title, description=description, color=Somsiad.COLOR)]
+        self.embeds = [discord.Embed(title=' '.join(title_parts), description=description, color=Somsiad.COLOR)]
         for command in commands:
             if len(self.embeds[-1].fields) >= 25:
                 self.embeds.append(discord.Embed(color=Somsiad.COLOR))
@@ -444,7 +449,7 @@ class Prefix(commands.Cog):
             ('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks. Wymaga uprawnień administratora.'
         )
     )
-    HELP = Help(COMMANDS, group=GROUP)
+    HELP = Help(COMMANDS, '🔧', group=GROUP)
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
