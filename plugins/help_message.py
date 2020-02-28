@@ -85,9 +85,9 @@ COMMANDS = (
         'Komendy związane z odtwarzaniem muzyki. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
-        'stat', '?podkomenda/użytkownik/kanał',
+        'stat', '?użytkownik/kanał/podkomenda',
         'Komendy związane ze statystykami serwerowymi. '
-        'Użyj bez <?podkomendy/użytkownika/kanału>, by dowiedzieć się więcej.',
+        'Użyj bez <?użytkownika/kanału/podkomendy>, by dowiedzieć się więcej.',
     ),
     Help.Command(
         'urodziny', '?podkomenda/użytkownik',
