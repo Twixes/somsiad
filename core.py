@@ -267,15 +267,19 @@ class Help:
     ):
         self.group = group
         if group is not None and title is None:
-            title = f'Dostępne podkomendy {" ".join(filter(None, (group.name, group.aliases)))}'
+            title = f'Grupa {" ".join(filter(None, (group.name, group.aliases)))}'
         if description is None:
-            description = (
-                '*Używając ich na serwerach pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
+            description_parts = []
+            if group is not None and group.description:
+                description_parts.append(group.description)
+            description_parts.append(
+                '*Używając komend na serwerach pamiętaj o prefiksie (możesz zawsze sprawdzić go za pomocą '
                 f'`{configuration["command_prefix"]}prefiks sprawdź`).\n'
                 'W (nawiasach okrągłych) podane są aliasy komend.\n'
                 'W <nawiasach ostrokątnych> podane są argumenty komend. Jeśli przed nazwą argumentu jest ?pytajnik, '
                 'oznacza to, że jest to argument opcjonalny.*'
             )
+            description = '\n'.join(description_parts)
         self.embeds = [discord.Embed(title=title, description=description, color=Somsiad.COLOR)]
         for command in commands:
             self.append(command)
@@ -430,7 +434,9 @@ class Essentials(commands.Cog):
 
 
 class Prefix(commands.Cog):
-    GROUP = Help.Command(('prefiks', 'prefix', 'przedrostek'), (), 'Grupa komend związanych z prefiksem.')
+    GROUP = Help.Command(
+        ('prefiks', 'prefix', 'przedrostek'), (), 'Komendy związane z własnym serwerowym prefiksem komend.'
+    )
     COMMANDS = (
         Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks.'),
         Help.Command(('ustaw'), (), 'Ustawia na serwerze podany prefiks. Wymaga uprawnień administratora.'),
