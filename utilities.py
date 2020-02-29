@@ -261,6 +261,8 @@ def calculate_age(birth_date: dt.date, at_date: Optional[dt.date] = None) -> int
     age = at_date.year - birth_date.year
     if (at_date.month, at_date.day) < (birth_date.month, birth_date.day):
         age -= 1
+    elif (2, 29) == (at_date.month, at_date.day) == (birth_date.month, birth_date.day):
+        age //= 4
     return age
 
 
