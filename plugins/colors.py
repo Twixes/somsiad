@@ -24,7 +24,7 @@ class Colors(commands.Cog):
     GROUP = Help.Command(
         ('kolory', 'kolor', 'kolorki', 'kolorek'), (),
         'Komendy związane z kolorami nicków samodzielnie wybieranymi przez użytkowników. '
-        'Odbywa się to z użyciem kolorów–ról, tzn. ról zaczynających się prefiksem "🎨 ".'
+        'Odbywa się to z użyciem ról o nazwie zaczynającej się prefiksem `🎨 `.'
     )
     COMMANDS = (
         Help.Command(('role', 'lista'), (), 'Zwraca listę dostępnych kolorów–ról.'),
@@ -51,8 +51,10 @@ class Colors(commands.Cog):
         relevant_roles = filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles)
         roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
         sorted_roles = sorted(relevant_roles, key=lambda role: colorsys.rgb_to_hsv(*role.color.to_rgb()))
-        role_parts = (f'{role.mention} – `{str(role.color).upper()}` – {roles_counter[role]}' for role in sorted_roles)
-        embed = somsiad.generate_embed('🎨', 'Dostępne role kolorowe', '\n'.join(role_parts))
+        role_parts = (
+            f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}' for role in sorted_roles
+        )
+        embed = somsiad.generate_embed('🎨', 'Dostępne kolory–role', '\n'.join(role_parts))
         await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['ustaw'])
@@ -88,7 +90,8 @@ class Colors(commands.Cog):
                     emoji, notice = '✅', f'Ustawiono ci kolor–rolę {role_name}'
                 else:
                     emoji, notice = 'ℹ️', f'Już masz kolor–rolę {role_name}'
-                description = f'{role.mention} – `{str(role.color).upper()}`'
+                roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
+                description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
             except discord.Forbidden:
                 emoji, notice, description = '⚠️', 'Bot nie ma wymaganych do tego uprawnień (zarządzanie rolami)', None
             embed = somsiad.generate_embed(emoji, notice, description)
