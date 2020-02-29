@@ -395,9 +395,7 @@ class Birthday(commands.Cog):
         member = member or ctx.author
         with data.session() as session:
             born_person = session.query(BornPerson).get(member.id)
-            is_birthday_unset = born_person is None or born_person.birthday is None
-            is_birthday_public = born_person.is_birthday_public(session, ctx.guild)
-            if is_birthday_unset:
+            if born_person is None or born_person.birthday is None:
                 if member == ctx.author:
                     address = 'Nie ustawiłeś'
                 else:
@@ -406,7 +404,7 @@ class Birthday(commands.Cog):
                     title=f':question: {address} swojej daty urodzin',
                     color=self.bot.COLOR
                 )
-            elif not is_birthday_public:
+            elif not born_person.is_birthday_public(session, ctx.guild):
                 if member == ctx.author:
                     address = 'Nie upubliczniłeś'
                 else:
@@ -444,7 +442,6 @@ class Birthday(commands.Cog):
         member = member or ctx.author
         with data.session() as session:
             born_person = session.query(BornPerson).get(member.id)
-            is_birthday_public = born_person.is_birthday_public(session, ctx.guild)
             if born_person is None or born_person.birthday is None:
                 age = None
                 is_birthday_unset = True
@@ -460,7 +457,7 @@ class Birthday(commands.Cog):
                     title=f':question: {address} swojej daty urodzin',
                     color=self.bot.COLOR
                 )
-            elif not is_birthday_public:
+            elif not born_person.is_birthday_public(session, ctx.guild):
                 if member == ctx.author:
                     address = 'Nie upubliczniłeś'
                 else:
