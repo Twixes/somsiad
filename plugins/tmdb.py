@@ -229,6 +229,12 @@ class TMDb(commands.Cog):
             embed = await self.fetch_result_and_generate_embed(query, 'movie')
             await self.bot.send(ctx, embed=embed)
 
+    @commands.command(aliases=['movie', 'film', 'kino'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    async def movie_unbound(self, ctx, *, query):
+        """Responds with the most popular movie matching the query."""
+        await ctx.invoke(self.movie, query=query)
+
     @tmdb.command(aliases=['serial', 'seria', 'telewizja'])
     @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
     async def tv(self, ctx, *, query):
@@ -237,6 +243,12 @@ class TMDb(commands.Cog):
             embed = await self.fetch_result_and_generate_embed(query, 'tv')
             await self.bot.send(ctx, embed=embed)
 
+    @commands.command(aliases=['tv', 'serial', 'seria', 'telewizja'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    async def tv_unbound(self, ctx, *, query):
+        """Responds with the most popular TV series matching the query."""
+        await ctx.invoke(self.tv, query=query)
+
     @tmdb.command(aliases=['osoba'])
     @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
     async def person(self, ctx, *, query):
@@ -244,6 +256,12 @@ class TMDb(commands.Cog):
         async with ctx.typing():
             embed = await self.fetch_result_and_generate_embed(query, 'person')
             await self.bot.send(ctx, embed=embed)
+
+    @commands.command(aliases=['person', 'osoba'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    async def person_unbound(self, ctx, *, query):
+        """Responds with the most popular person matching the query."""
+        await ctx.invoke(self.person, query=query)
 
 
 somsiad.add_cog(TMDb(somsiad))
