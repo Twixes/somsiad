@@ -207,9 +207,9 @@ class Birthday(commands.Cog):
         while True:
             now = dt.datetime.now()
             next_day = now.hour >= self.NOTIFICATIONS_HOUR if first_time else True
-            cycle_initiation = dt.datetime(
-                now.year, now.month, now.day + 1 if next_day else now.day, self.NOTIFICATIONS_HOUR
-            )
+            cycle_initiation = dt.datetime(now.year, now.month, now.day, self.NOTIFICATIONS_HOUR)
+            if next_day:
+                cycle_initiation += dt.timedelta(1)
             timedelta = cycle_initiation - now
             await asyncio.sleep(timedelta.total_seconds())
             await self.send_all_birthday_today_notifications()
