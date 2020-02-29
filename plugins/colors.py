@@ -24,11 +24,15 @@ class Colors(commands.Cog):
     GROUP = Help.Command(
         ('kolory', 'kolor', 'kolorki', 'kolorek'), (),
         'Komendy związane z kolorami nicków samodzielnie wybieranymi przez użytkowników. '
-        'Odbywa się to z użyciem ról o nazwie zaczynającej się prefiksem `🎨 `.'
+        'Odbywa się to z użyciem ról o nazwie zaczynającej się prefiksem "🎨 ".'
     )
     COMMANDS = (
         Help.Command(('role', 'lista'), (), 'Zwraca listę dostępnych kolorów–ról.'),
         Help.Command('ustaw', 'kolor–rola', 'Ustawia ci wybrany <kolor–rolę>.'),
+        Help.Command(
+            'pokaż', '?użytkownik/kolor–rola', 'Pokazuje kolor–rolę <użytkownika> lub <kolor–rolę>. '
+            'Jeśli nie podano <?użytkownika/koloru–roli>, pokazuje twój kolor–rolę.'
+        ),
         Help.Command(('wyczyść', 'wyczysc'), (), 'Wyczyszcza twój kolor.')
     )
     HELP = Help(COMMANDS, '🎨', group=GROUP)
@@ -54,7 +58,7 @@ class Colors(commands.Cog):
         role_parts = (
             f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}' for role in sorted_roles
         )
-        embed = somsiad.generate_embed('🎨', 'Dostępne kolory–role', '\n'.join(role_parts))
+        embed = self.bot.generate_embed('🎨', 'Dostępne kolory–role', '\n'.join(role_parts))
         await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['ustaw'])
@@ -62,6 +66,7 @@ class Colors(commands.Cog):
     @commands.guild_only()
     async def set(self, ctx, *, role_candidate: Union[discord.Role, str]):
         role = None
+        description = None
         if isinstance(role_candidate, str):
             role_name = role_candidate.lstrip('🎨').lstrip().lower()
             for this_role in ctx.guild.roles:
@@ -71,7 +76,7 @@ class Colors(commands.Cog):
         elif isinstance(role_candidate, discord.Role) and role_candidate.name.startswith('🎨 '):
             role = role_candidate
         if role is None:
-            embed = somsiad.generate_embed('⚠️', 'Nie znaleziono pasującego koloru–roli')
+            emoji, notice = '⚠️', 'Nie znaleziono pasującego koloru–roli'
         else:
             role_name = role.name.lstrip('🎨').lstrip()
             already_present = False
@@ -93,15 +98,55 @@ class Colors(commands.Cog):
                 roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
                 description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
             except discord.Forbidden:
-                emoji, notice, description = '⚠️', 'Bot nie ma wymaganych do tego uprawnień (zarządzanie rolami)', None
-            embed = somsiad.generate_embed(emoji, notice, description)
+                emoji, notice = '⚠️', 'Bot nie ma wymaganych do tego uprawnień (zarządzanie rolami)'
+        embed = self.bot.generate_embed(emoji, notice, description)
         await self.bot.send(ctx, embed=embed)
 
     @set.error
     async def set_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            embed = somsiad.generate_embed('⚠️', 'Nie podano koloru–roli')
+            embed = self.bot.generate_embed('⚠️', 'Nie podano koloru–roli')
             await self.bot.send(ctx, embed=embed)
+
+    @colors.command(aliases=['pokaż', 'pokaz'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @commands.guild_only()
+    async def show(self, ctx, *, subject_candidate: Union[discord.Member, discord.Role, str] = None):
+        subject_candidate = subject_candidate or ctx.author
+        subject = None
+        role = None
+        about_member = None
+        if isinstance(subject_candidate, discord.Member):
+            for this_role in subject_candidate.roles:
+                if this_role.name.startswith('🎨 '):
+                    role = this_role
+                    break
+            about_member = subject_candidate
+        elif isinstance(subject_candidate, discord.Role) and subject_candidate.name.startswith('🎨 '):
+            role = subject_candidate
+        elif isinstance(subject_candidate, str):
+            role_name = subject_candidate.lstrip('🎨').lstrip().lower()
+            for this_role in ctx.guild.roles:
+                if this_role.name.startswith('🎨 ') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
+                    role = this_role
+                    break
+        if role is not None:
+            roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
+            description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
+            if about_member is not None:
+                address = 'Masz' if about_member == ctx.author else f'{about_member} ma'
+                emoji, notice = '🎨', f'{address} kolor–rolę {role.name.lstrip("🎨").lstrip()}'
+            else:
+                emoji, notice = '🎨', f'Kolor–rola {role.name.lstrip("🎨").lstrip()}'
+        else:
+            description = None
+            if about_member is not None:
+                address = 'Nie masz' if about_member == ctx.author else f'{about_member} nie ma'
+                emoji, notice = '🙁', f'{address} koloru–roli'
+            else:
+                emoji, notice = '⚠️', 'Nie znaleziono pasującego użytkownika ani koloru–roli'
+        embed = self.bot.generate_embed(emoji, notice, description)
+        await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['wyczyść', 'wyczysc'])
     @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
@@ -117,7 +162,7 @@ class Colors(commands.Cog):
                 emoji, notice = '✅', 'Usunięto twój kolor–rolę'
         else:
             emoji, notice = 'ℹ️', 'Nie masz koloru–roli do usunięcia'
-        embed = somsiad.generate_embed(emoji, notice)
+        embed = self.bot.generate_embed(emoji, notice)
         await self.bot.send(ctx, embed=embed)
 
 
