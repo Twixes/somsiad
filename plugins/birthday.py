@@ -116,9 +116,11 @@ class Birthday(commands.Cog):
             ('wyłącz', 'wylacz'), (), 'Wyłącza powiadomienia o dzisiejszych urodzinach.'
         )
     )
+
     NOTIFICATIONS_HELP = Help(NOTIFICATIONS_COMMANDS, '🎂', group=NOTIFICATIONS_GROUP)
+    NOTIFICATIONS_TIME_PRESENTATION = ':'.join((str(number).zfill(2) for number in NOTIFICATIONS_TIME))
     NOTIFICATIONS_EXPLANATION = (
-        f'Wiadomości z życzeniami wysyłane są o {NOTIFICATIONS_TIME[0]}:{NOTIFICATIONS_TIME[1]} dla członków serwera, '
+        f'Wiadomości z życzeniami wysyłane są o {NOTIFICATIONS_TIME_PRESENTATION} dla członków serwera, '
         'którzy obchodzą tego dnia urodziny i upublicznili tu ich datę.'
     )
 
@@ -169,12 +171,12 @@ class Birthday(commands.Cog):
         initiated = False
         while True:
             now = dt.datetime.now()
-            cycle_initiation = dt.datetime(
+            next_iteration = dt.datetime(
                 now.year, now.month, now.day, *self.NOTIFICATIONS_TIME
             )
             if initiated or (now.hour, now.minute) >= self.NOTIFICATIONS_TIME:
-                cycle_initiation += dt.timedelta(1)
-            timedelta = cycle_initiation - now
+                next_iteration += dt.timedelta(1)
+            timedelta = next_iteration - now
             await asyncio.sleep(timedelta.total_seconds())
             await self.send_all_birthday_today_notifications()
             initiated = True
@@ -267,9 +269,9 @@ class Birthday(commands.Cog):
                 this_server = session.query(data.Server).get(ctx.guild.id)
                 born_person.birthday_public_servers.append(this_server)
             date_presentation = date.strftime('%-d %B' if date.year == BornPerson.EDGE_YEAR else '%-d %B %Y')
-            birthday_public_servers_presentation = ' '.join(self._get_birthday_public_servers_presentation(
+            birthday_public_servers_presentation = ' '.join(filter(None, self._get_birthday_public_servers_presentation(
                 born_person, on_server_id=ctx.guild.id if ctx.guild else None
-            ))
+            )))
             embed = self.bot.generate_embed(
                 '✅', f'Zapamiętano twoją datę urodzin jako {date_presentation}', birthday_public_servers_presentation
             )
