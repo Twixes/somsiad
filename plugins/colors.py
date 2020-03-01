@@ -13,6 +13,7 @@
 
 from typing import Union
 from collections import Counter
+import random
 import colorsys
 import discord
 from discord.ext import commands
@@ -36,6 +37,7 @@ class Colors(commands.Cog):
         Help.Command(('wyczyść', 'wyczysc'), (), 'Wyczyszcza twój kolor.')
     )
     HELP = Help(COMMANDS, '🎨', group=GROUP)
+    GRAY = 0xcdd7de
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -52,13 +54,21 @@ class Colors(commands.Cog):
     @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
     @commands.guild_only()
     async def roles(self, ctx):
-        relevant_roles = filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles)
+        relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
         roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
         sorted_roles = sorted(relevant_roles, key=lambda role: colorsys.rgb_to_hsv(*role.color.to_rgb()))
         role_parts = (
             f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}' for role in sorted_roles
         )
-        embed = self.bot.generate_embed('🎨', 'Dostępne kolory–role', '\n'.join(role_parts))
+        if relevant_roles:
+            emoji, notice = '🎨', 'Dostępne kolory–role'
+            description = '\n'.join(role_parts)
+            color = random.choice(relevant_roles).color
+        else:
+            emoji, notice = '❔', 'Brak kolorów–ról'
+            description = None
+            color = self.GRAY
+        embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['ustaw'])
@@ -77,8 +87,10 @@ class Colors(commands.Cog):
             role = role_candidate
         if role is None:
             emoji, notice = '⚠️', 'Nie znaleziono pasującego koloru–roli'
+            color = self.GRAY
         else:
             role_name = role.name.lstrip('🎨').lstrip()
+            color = role.color
             already_present = False
             roles_for_removal = []
             for this_role in ctx.author.roles:
@@ -99,7 +111,7 @@ class Colors(commands.Cog):
                 description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
             except discord.Forbidden:
                 emoji, notice = '⚠️', 'Bot nie ma wymaganych do tego uprawnień (zarządzanie rolami)'
-        embed = self.bot.generate_embed(emoji, notice, description)
+        embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
 
     @set.error
@@ -113,7 +125,6 @@ class Colors(commands.Cog):
     @commands.guild_only()
     async def show(self, ctx, *, subject_candidate: Union[discord.Member, discord.Role, str] = None):
         subject_candidate = subject_candidate or ctx.author
-        subject = None
         role = None
         about_member = None
         if isinstance(subject_candidate, discord.Member):
@@ -133,6 +144,7 @@ class Colors(commands.Cog):
         if role is not None:
             roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
             description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
+            color = role.color
             if about_member is not None:
                 address = 'Masz' if about_member == ctx.author else f'{about_member} ma'
                 emoji, notice = '🎨', f'{address} kolor–rolę {role.name.lstrip("🎨").lstrip()}'
@@ -142,10 +154,12 @@ class Colors(commands.Cog):
             description = None
             if about_member is not None:
                 address = 'Nie masz' if about_member == ctx.author else f'{about_member} nie ma'
-                emoji, notice = '🙁', f'{address} koloru–roli'
+                emoji, notice = '❔', f'{address} koloru–roli'
+                color = self.GRAY
             else:
                 emoji, notice = '⚠️', 'Nie znaleziono pasującego użytkownika ani koloru–roli'
-        embed = self.bot.generate_embed(emoji, notice, description)
+                color = None
+        embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['wyczyść', 'wyczysc'])
@@ -153,16 +167,18 @@ class Colors(commands.Cog):
     @commands.guild_only()
     async def clear(self, ctx):
         roles_for_removal = [role for role in ctx.author.roles if role.name.startswith('🎨 ')]
+        color = self.GRAY
         if roles_for_removal:
             try:
                 await ctx.author.remove_roles(*roles_for_removal)
             except discord.Forbidden:
                 emoji, notice = '⚠️', 'Bot nie ma wymaganych do tego uprawnień (zarządzanie rolami)'
+                color = None
             else:
                 emoji, notice = '✅', 'Usunięto twój kolor–rolę'
         else:
             emoji, notice = 'ℹ️', 'Nie masz koloru–roli do usunięcia'
-        embed = self.bot.generate_embed(emoji, notice)
+        embed = self.bot.generate_embed(emoji, notice, color=color)
         await self.bot.send(ctx, embed=embed)
 
 
