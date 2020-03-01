@@ -225,35 +225,40 @@ def days_as_weeks(number_of_days: int, none_if_no_weeks: bool = True) -> Optiona
 
 def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: dt.datetime = None) -> dt.datetime:
     """Interpret the provided string as a datetime."""
-    string = string.replace('-', '.').replace('/', '.').replace(':', '.')
-    for datetime_format in DATETIME_FORMATS:
-        try:
-            datetime = dt.datetime.strptime(string, datetime_format.format)
-        except ValueError:
-            continue
-        else:
-            now = now_override or dt.datetime.now()
-            if datetime_format.imply_day:
-                datetime = datetime.replace(day=now.day)
-            if datetime_format.imply_month:
-                datetime = datetime.replace(month=now.month)
-            if datetime_format.imply_year:
-                datetime = datetime.replace(year=now.year)
-            if roll_over and datetime < now:
-                # if implied date is in the past, roll it over so it's not
+    now = now_override or dt.datetime.now()
+    try:
+        minutes = int(string)
+    except ValueError:
+        string = string.replace('-', '.').replace('/', '.').replace(':', '.')
+        for datetime_format in DATETIME_FORMATS:
+            try:
+                datetime = dt.datetime.strptime(string, datetime_format.format)
+            except ValueError:
+                continue
+            else:
                 if datetime_format.imply_day:
-                    datetime += dt.timedelta(1)
-                elif datetime_format.imply_month:
-                    if now.month == 12:
-                        datetime = datetime.replace(year=now.year+1, month=1)
-                    else:
-                        datetime = datetime.replace(month=now.month+1)
-                elif datetime_format.imply_year:
-                    datetime = datetime.replace(year=now.year+1)
-            break
+                    datetime = datetime.replace(day=now.day)
+                if datetime_format.imply_month:
+                    datetime = datetime.replace(month=now.month)
+                if datetime_format.imply_year:
+                    datetime = datetime.replace(year=now.year)
+                if roll_over and datetime < now:
+                    # if implied date is in the past, roll it over so it's not
+                    if datetime_format.imply_day:
+                        datetime += dt.timedelta(1)
+                    elif datetime_format.imply_month:
+                        if now.month == 12:
+                            datetime = datetime.replace(year=now.year+1, month=1)
+                        else:
+                            datetime = datetime.replace(month=now.month+1)
+                    elif datetime_format.imply_year:
+                        datetime = datetime.replace(year=now.year+1)
+                break
+        else:
+            raise ValueError
     else:
-        raise ValueError
-    return datetime.astimezone()
+        datetime = now + dt.timedelta(minutes=minutes)
+    return datetime
 
 
 def calculate_age(birth_date: dt.date, at_date: Optional[dt.date] = None) -> int:
