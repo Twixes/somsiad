@@ -66,7 +66,9 @@ class BirthdayNotifier(data.Base, ServerSpecific, ChannelRelated):
 
 
 class Birthday(commands.Cog):
-    DATE_WITH_YEAR_FORMATS = ('%d %m %Y', '%Y %m %d', '%d %B %Y', '%d %b %Y')
+    DATE_WITH_YEAR_FORMATS = (
+        '%d %m %Y', '%Y %m %d', '%d %B %Y', '%d %b %Y', '%d %m %y', '%y %m %d', '%d %B %y', '%d %b %y'
+    )
     DATE_WITHOUT_YEAR_FORMATS = ('%d %m', '%d %B', '%d %b')
     MONTH_FORMATS = ('%m', '%B', '%b')
     NOTIFICATIONS_TIME = (8, 0)
@@ -269,7 +271,7 @@ class Birthday(commands.Cog):
                 born_person, on_server_id=ctx.guild.id if ctx.guild else None
             ))
             embed = self.bot.generate_embed(
-                '✅', f'Ustawiono twoją datę urodzin na {date_presentation}', birthday_public_servers_presentation
+                '✅', f'Zapamiętano twoją datę urodzin jako {date_presentation}', birthday_public_servers_presentation
             )
         await self.bot.send(ctx, embed=embed)
 
@@ -324,16 +326,16 @@ class Birthday(commands.Cog):
                     'ℹ️', 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać'
                 )
             elif this_server in born_person.birthday_public_servers:
-                birthday_public_servers_presentation = ' '.join(self._get_birthday_public_servers_presentation(
-                    born_person, on_server_id=ctx.guild.id
+                birthday_public_servers_presentation = ' '.join(filter(
+                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
                 ))
                 embed = self.bot.generate_embed(
                     'ℹ️', 'Twoja data urodzin już była publiczna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.append(this_server)
-                birthday_public_servers_presentation = ' '.join(self._get_birthday_public_servers_presentation(
-                    born_person, on_server_id=ctx.guild.id
+                birthday_public_servers_presentation = ' '.join(filter(
+                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
                 ))
                 embed = self.bot.generate_embed(
                     '📖', 'Upubliczniono twoją datę urodzin na tym serwerze', birthday_public_servers_presentation
@@ -354,16 +356,16 @@ class Birthday(commands.Cog):
                     'ℹ️', 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego utajniać'
                 )
             elif this_server not in born_person.birthday_public_servers:
-                birthday_public_servers_presentation = ' '.join(self._get_birthday_public_servers_presentation(
-                    born_person, on_server_id=ctx.guild.id
+                birthday_public_servers_presentation = ' '.join(filter(
+                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
                 ))
                 embed = self.bot.generate_embed(
                     'ℹ️', 'Twoja data urodzin już była tajna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.remove(this_server)
-                birthday_public_servers_presentation = ' '.join(self._get_birthday_public_servers_presentation(
-                    born_person, on_server_id=ctx.guild.id
+                birthday_public_servers_presentation = ' '.join(filter(
+                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
                 ))
                 embed = self.bot.generate_embed(
                     '🕵️‍♂️', 'Utajniono twoją datę urodzin na tym serwerze', birthday_public_servers_presentation
