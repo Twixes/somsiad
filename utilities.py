@@ -27,6 +27,7 @@ DatetimeFormat = namedtuple('DatetimeFormat', ('format', 'imply_year', 'imply_mo
 
 DATETIME_FORMATS = (
     DatetimeFormat('%d.%m.%YT%H.%M', False, False, False),
+    DatetimeFormat('%d.%m.%yT%H.%M', False, False, False),
     DatetimeFormat('%d.%mT%H.%M', True, False, False),
     DatetimeFormat('%dT%H.%M', True, True, False),
     DatetimeFormat('%H.%M', True, True, True)
