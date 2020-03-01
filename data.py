@@ -14,7 +14,7 @@
 from typing import Any, Union, Sequence, Dict
 from contextlib import contextmanager
 from sqlalchemy import (
-    func, create_engine, Column, Integer, SmallInteger, BigInteger, String, Date, DateTime, ForeignKey
+    func, create_engine, Column, Boolean, Integer, SmallInteger, BigInteger, String, Date, DateTime, ForeignKey
 )
 from sqlalchemy.orm import Session as RawSession, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
