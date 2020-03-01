@@ -147,14 +147,15 @@ class Somsiad(commands.Bot):
 
     def generate_embed(
             self, emoji: str, notice: str, description: str = discord.Embed.Empty,
-            *, url: str = discord.Embed.Empty, timestamp: dt.datetime = discord.Embed.Empty
+            *, url: str = discord.Embed.Empty, color: Optional[Union[discord.Color, int]] = None,
+            timestamp: dt.datetime = discord.Embed.Empty
     ):
         return discord.Embed(
             title=f'{emoji} {notice}',
             url=url,
             timestamp=timestamp,
+            color=color or self.COLOR,
             description=description,
-            color=self.COLOR
         )
 
     async def send(
