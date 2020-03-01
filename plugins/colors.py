@@ -102,14 +102,15 @@ class Colors(commands.Cog):
                     else:
                         roles_for_removal.append(this_role)
             try:
+                roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
                 if roles_for_removal:
                     await ctx.author.remove_roles(*roles_for_removal)
                 if not already_present:
                     await ctx.author.add_roles(role)
+                    roles_counter[role] += 1
                     emoji, notice = '✅', f'Ustawiono ci kolor–rolę {role_name}'
                 else:
                     emoji, notice = 'ℹ️', f'Już masz kolor–rolę {role_name}'
-                roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
                 description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
             except discord.Forbidden:
                 emoji, notice = '⚠️', 'Bot nie ma wymaganych do tego uprawnień (zarządzanie rolami)'
