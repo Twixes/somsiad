@@ -145,7 +145,6 @@ class Moderation(commands.Cog):
     @warn.error
     async def warn_error(self, ctx, error):
         notice = None
-        description = ''
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == 'subject_user':
                 notice = 'Musisz podać którego użytkownika chcesz ostrzec'
@@ -154,7 +153,7 @@ class Moderation(commands.Cog):
         elif isinstance(error, commands.BadArgument):
             notice = 'Nie znaleziono na serwerze pasującego użytkownika'
         if notice is not None:
-            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice, description))
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
     @commands.command(aliases=['wyrzuć', 'wyrzuc'])
     @commands.cooldown(
