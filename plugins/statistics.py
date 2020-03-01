@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union
+from typing import Union, Optional
 from collections import defaultdict, deque
 import enum
 import io
@@ -59,7 +59,8 @@ class Report:
 
     def __init__(
             self, ctx: commands.Context,
-            subject: Union[discord.Guild, discord.TextChannel, discord.Member, discord.User, int]
+            subject: Union[discord.Guild, discord.TextChannel, discord.Member, discord.User, int], *,
+            last_days: Optional[int] = None
     ):
         self.ctx = ctx
         self.user_by_id = isinstance(subject, int)
@@ -87,6 +88,16 @@ class Report:
         self.subject_relevancy_length = None
         self.average_daily_message_count = None
         self.caching_progress_message = None
+        self.last_days = last_days
+        if self.last_days:
+            if self.last_days == 1:
+                self.days_presentation = 'z dzisiaj'
+            else:
+                self.days_presentation = f'z ostatnich {self.last_days} dni (licząc dzisiejszy)'
+            self.description = f'Wzięto pod uwagę aktywność {self.days_presentation}.'
+        else:
+            self.days_presentation = None
+            self.description = None
         self.timeframe_start_date = None
         self.timeframe_end_date = self.init_datetime.date()
 
@@ -141,6 +152,12 @@ class Report:
                     MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.user_id == self.subject_id,
                     MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
+            since_datetime = None
+            if self.last_days:
+                since_datetime = dt.datetime(
+                    self.init_datetime.year, self.init_datetime.month, self.init_datetime.day
+                ) - dt.timedelta(self.last_days-1)
+                relevant_message_metadata = relevant_message_metadata.filter(MessageMetadata.datetime >= since_datetime)
             await self._finalize_progress()
             # generate statistics from metadata cache
             relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc()).all()
@@ -148,12 +165,15 @@ class Report:
             if relevant_message_metadata:
                 self.earliest_relevant_message = relevant_message_metadata[0]
                 self.latest_relevant_message = relevant_message_metadata[-1]
-                if self.timeframe_start_date is not None:
-                    self.timeframe_start_date = min(
-                        self.timeframe_start_date, self.earliest_relevant_message.datetime.date()
-                    )
+                if since_datetime:
+                    self.timeframe_start_date = since_datetime.date()
                 else:
-                    self.timeframe_start_date = self.earliest_relevant_message.datetime.date()
+                    if self.timeframe_start_date is not None:
+                        self.timeframe_start_date = min(
+                            self.timeframe_start_date, self.earliest_relevant_message.datetime.date()
+                        )
+                    else:
+                        self.timeframe_start_date = self.earliest_relevant_message.datetime.date()
                 for message_metadata in relevant_message_metadata:
                     self._update_running_stats(message_metadata)
                 self.subject_relevancy_length = (self.init_datetime.date() - self.timeframe_start_date).days + 1
@@ -171,20 +191,24 @@ class Report:
         """Renders a graph presenting activity of or in the subject over time."""
         show_by_weekday_and_date = self.subject_relevancy_length > 1
         show_by_channels = True
+        title = 'Aktywność'
         if self.type == self.Type.CHANNEL:
-            title = f'Aktywność na kanale #{self.subject.name}'
+            title += f' na kanale #{self.subject.name}'
             subject_identification = f'server-{self.ctx.guild.id}-channel-{self.subject_id}'
             show_by_channels = False
         else:
             if self.type == self.Type.SERVER:
-                title = f'Aktywność na serwerze {self.subject}'
+                title += f' na serwerze {self.subject}'
                 subject_identification = f'server-{self.subject_id}'
             else:
                 subject_identification = f'server-{self.ctx.guild.id}-user-{self.subject_id}'
                 if self.type in (self.Type.MEMBER, self.Type.USER):
-                    title = f'Aktywność użytkownika {self.subject}'
+                    title += f' użytkownika {self.subject}'
                 elif self.type == self.Type.DELETED_USER:
-                    title = f'Aktywność usuniętego użytkownika ID {self.subject_id}'
+                    title += f' usuniętego użytkownika ID {self.subject_id}'
+        if self.days_presentation:
+            title += f' {self.days_presentation}'
+
         # initialize the chart
         subplots = 1 + 2 * show_by_weekday_and_date + show_by_channels
         fig, ax_or_axes = plt.subplots(subplots, figsize=(12, subplots * 3))
@@ -245,7 +269,7 @@ class Report:
             timeframe_start_date_utc = self.subject.joined_at
         elif isinstance(self.subject, discord.User):
             self.type = self.Type.USER
-            self._generate_relevant_embed = self._generate_member_embed
+            self._generate_relevant_embed = self._generate_user_embed
         if timeframe_start_date_utc is not None:
             self.timeframe_start_date = timeframe_start_date_utc.replace(tzinfo=dt.timezone.utc).astimezone().date()
 
@@ -310,17 +334,17 @@ class Report:
             new_messages_form = word_number_form(
                 self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
             )
-            caching_progress_embed = somsiad.generate_embed('✅', f'Zbuforowano {new_messages_form}')
+            caching_progress_embed = somsiad.generate_embed('📈', f'Zbuforowano {new_messages_form}')
             await self.caching_progress_message.edit(embed=caching_progress_embed)
 
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
-        self.embed = somsiad.generate_embed('✅', 'Przygotowano raport o serwerze')
+        self.embed = somsiad.generate_embed('📈', 'Przygotowano raport o serwerze', self.description)
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
-                name='Wysłano pierwszą wiadomość',
+                name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
                     human_timedelta(earliest.datetime, naive=False),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
@@ -339,12 +363,12 @@ class Report:
 
     def _generate_channel_embed(self):
         """Analyzes the subject as a channel."""
-        self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o kanale #{self.subject}')
+        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o kanale #{self.subject}', self.description)
         self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
-                name='Wysłano pierwszą wiadomość',
+                name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
                     human_timedelta(earliest.datetime, naive=False),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
@@ -359,7 +383,7 @@ class Report:
 
     def _generate_member_embed(self):
         """Analyzes the subject as a member."""
-        self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o użytkowniku {self.subject}')
+        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}', self.description)
         self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
         self.embed.add_field(
             name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False
@@ -368,13 +392,13 @@ class Report:
 
     def _generate_user_embed(self):
         """Analyzes the subject as a user."""
-        self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o użytkowniku {self.subject}')
+        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}')
         self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
         self._embed_personal_stats()
 
     def _generate_deleted_user_embed(self):
         """Analyzes the subject as a user."""
-        self.embed = somsiad.generate_embed('✅', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}')
+        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}')
         self._embed_personal_stats()
 
     def _embed_personal_stats(self):
@@ -382,7 +406,7 @@ class Report:
             earliest = self.earliest_relevant_message
             latest = self.latest_relevant_message
             self.embed.add_field(
-                name='Wysłał pierwszą wiadomość na serwerze',
+                name=f'Wysłał pierwszą wiadomość na serwerze {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
                     human_timedelta(earliest.datetime, naive=False),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
@@ -469,19 +493,17 @@ class Report:
         """Adds information about analysis time as the report embed's footer."""
         completion_timedelta = dt.datetime.now() - self.init_datetime
         completion_seconds = round(completion_timedelta.total_seconds(), 1)
-        new_messages_form = word_number_form(
-            self.messages_cached, "nową wiadomość", "nowe wiadomości", "nowych wiadomości"
-        )
+        new_messages_form = word_number_form(self.messages_cached, "nowej wiadomości", "nowych wiadomości")
         if not self.initiated_queue_processing:
             queue_timedelta = self.out_of_queue_datetime - self.init_datetime
             queue_seconds = round(queue_timedelta.total_seconds(), 1)
             footer_text = (
                 f'Wygenerowano w {completion_seconds:n} s (z czego {queue_seconds:n} s w serwerowej kolejce analizy) '
-                f'buforując {new_messages_form}'
+                f'buforując metadane {new_messages_form}'
             )
         else:
             footer_text = (
-                f'Wygenerowano w {completion_seconds:n} s buforując {new_messages_form}'
+                f'Wygenerowano w {completion_seconds:n} s buforując metadane {new_messages_form}'
             )
         self.embed.set_footer(text=footer_text)
 
@@ -622,13 +644,17 @@ class Report:
     def _plot_activity_by_channel(self, ax):
         # plot the chart
         channels = [somsiad.get_channel(channel) for channel in self.relevant_channel_stats]
-        channels_existence_lengths = (
+        channel_existence_lengths = (
             (self.timeframe_end_date - channel.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()).days + 1
             for channel in channels
         )
+        if self.last_days:
+            channel_existence_lengths = (
+                min(self.last_days, channel_existence_length) for channel_existence_length in channel_existence_lengths
+            )
         average_daily_message_counts = [
             channel_stats['message_count'] / channel_existence_length for channel_stats, channel_existence_length
-            in zip(self.relevant_channel_stats.values(), channels_existence_lengths)
+            in zip(self.relevant_channel_stats.values(), channel_existence_lengths)
         ]
         channel_names = [f'#{channel}' for channel in channels]
         ax.bar(
@@ -659,7 +685,10 @@ class Report:
 
 
 class Statistics(commands.Cog):
-    GROUP = Help.Command('stat', (), 'Grupa komend związanych ze statystykami na serwerze.')
+    GROUP = Help.Command(
+        'stat', (), 'Komendy związane ze statystykami serwerowymi. '
+        'Użyj <?użytkownika/kanału> zamiast <?podkomendy>, by otrzymać raport statystyczny.'
+    )
     COMMANDS = (
         Help.Command('serwer', (), 'Wysyła raport o serwerze.'),
         Help.Command(
@@ -671,19 +700,22 @@ class Statistics(commands.Cog):
             'Wysyła raport o użytkowniku. Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.'
         )
     )
-    HELP = Help(COMMANDS, group=GROUP)
+    HELP = Help(COMMANDS, '📈', group=GROUP)
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.group(invoke_without_command=True, case_insensitive=True)
     @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.channel)
-    async def stat(self, ctx, *, subject: Union[discord.TextChannel, discord.Member, discord.User, int] = None):
+    async def stat(
+            self, ctx, subject: Union[discord.TextChannel, discord.Member, discord.User, int] = None,
+            last_days: int = None
+    ):
         if subject is None:
             await self.bot.send(ctx, embeds=self.HELP.embeds)
         else:
             async with ctx.typing():
-                report = Report(ctx, subject)
+                report = Report(ctx, subject, last_days=last_days)
                 await report.enqueue()
 
     @stat.error
@@ -696,18 +728,18 @@ class Statistics(commands.Cog):
     @stat.command(aliases=['server', 'serwer'])
     @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.channel)
     @commands.guild_only()
-    async def stat_server(self, ctx):
+    async def stat_server(self, ctx, last_days: int = None):
         async with ctx.typing():
-            report = Report(ctx, ctx.guild)
+            report = Report(ctx, ctx.guild, last_days=last_days)
             await report.enqueue()
 
     @stat.command(aliases=['channel', 'kanał', 'kanal'])
     @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.user)
     @commands.guild_only()
-    async def stat_channel(self, ctx, *, channel: discord.TextChannel = None):
+    async def stat_channel(self, ctx, channel: discord.TextChannel = None, last_days: int = None):
         channel = channel or ctx.channel
         async with ctx.typing():
-            report = Report(ctx, channel)
+            report = Report(ctx, channel, last_days=last_days)
             await report.enqueue()
 
     @stat_channel.error
@@ -720,15 +752,17 @@ class Statistics(commands.Cog):
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
     @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.user)
     @commands.guild_only()
-    async def stat_member(self, ctx, *, member: Union[discord.Member, discord.User, int] = None):
+    async def stat_member(
+            self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None
+    ):
         member = member or ctx.author
         async with ctx.typing():
-            report = Report(ctx, member)
+            report = Report(ctx, member, last_days=last_days)
             await report.enqueue()
 
     @stat_member.error
     async def stat_member_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
+        if isinstance(error, commands.BadUnionArgument):
             await self.bot.send(
                 ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             )
