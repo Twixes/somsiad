@@ -85,9 +85,13 @@ class TMDb(commands.Cog):
 
     def generate_person_embed(self, result: dict) -> discord.Embed:
         is_female = result['gender'] == 1
-        birth_date = dt.datetime.strptime(result['birthday'], '%Y-%m-%d').date()
+        today = dt.date.today()
+        birth_date = dt.datetime.strptime(result['birthday'], '%Y-%m-%d').date() if result['birthday'] else None
         death_date = dt.datetime.strptime(result['deathday'], '%Y-%m-%d').date() if result['deathday'] else None
-        emoji = self.PROFESSIONS.get(result['known_for_department']) or ('👩' if is_female else '👨')
+        if birth_date is not None and (birth_date.month, birth_date.day) == (today.month, today.day):
+            emoji = '🎂'
+        else:
+            emoji = self.PROFESSIONS.get(result['known_for_department']) or ('👩' if is_female else '👨')
         embed = self.bot.generate_embed(emoji, result['name'], url=f'https://www.themoviedb.org/person/{result["id"]}')
         embed.add_field(name='Data urodzenia', value=birth_date.strftime('%-d %B %Y'))
         if death_date is not None:
