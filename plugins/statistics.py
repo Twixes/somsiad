@@ -346,7 +346,7 @@ class Report:
             new_messages_form = word_number_form(
                 self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
             )
-            caching_progress_embed = somsiad.generate_embed('📈', f'Zbuforowano {new_messages_form}')
+            caching_progress_embed = somsiad.generate_embed('✅', f'Zbuforowano {new_messages_form}')
             await self.caching_progress_message.edit(embed=caching_progress_embed)
 
     def _generate_server_embed(self):
