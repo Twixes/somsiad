@@ -13,6 +13,7 @@
 
 from typing import Union
 from collections import Counter
+import itertools
 import random
 import colorsys
 import discord
@@ -31,8 +32,9 @@ class Colors(commands.Cog):
         Help.Command(('role', 'lista'), (), 'Zwraca listę dostępnych kolorów–ról.'),
         Help.Command('ustaw', 'kolor–rola', 'Ustawia ci wybrany <kolor–rolę>.'),
         Help.Command(
-            'pokaż', '?użytkownik/kolor–rola', 'Pokazuje kolor–rolę <użytkownika> lub <kolor–rolę>. '
-            'Jeśli nie podano <?użytkownika/koloru–roli>, pokazuje twój kolor–rolę.'
+            'pokaż', '?użytkownik/kolor–rola/reprezentacja szesnastkowa',
+            'Pokazuje kolor–rolę <użytkownika>, <kolor–rolę> lub kolor wyrażony podaną <reprezentacją szesnastkową>. '
+            'Jeśli nie podano <?użytkownika/koloru–roli/reprezentacji szesnastkowej>, pokazuje twój kolor–rolę.'
         ),
         Help.Command(('wyczyść', 'wyczysc'), (), 'Wyczyszcza twój kolor.')
     )
@@ -126,6 +128,7 @@ class Colors(commands.Cog):
     async def show(self, ctx, *, subject_candidate: Union[discord.Member, discord.Role, str] = None):
         subject_candidate = subject_candidate or ctx.author
         role = None
+        color = None
         about_member = None
         if isinstance(subject_candidate, discord.Member):
             for this_role in subject_candidate.roles:
@@ -136,20 +139,37 @@ class Colors(commands.Cog):
         elif isinstance(subject_candidate, discord.Role) and subject_candidate.name.startswith('🎨 '):
             role = subject_candidate
         elif isinstance(subject_candidate, str):
-            role_name = subject_candidate.lstrip('🎨').lstrip().lower()
-            for this_role in ctx.guild.roles:
-                if this_role.name.startswith('🎨 ') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
-                    role = this_role
-                    break
+            hex_candidate = subject_candidate.lstrip('#')
+            if len(hex_candidate) == 3:
+                hex_candidate = ''.join(itertools.chain.from_iterable(zip(hex_candidate, hex_candidate)))
+            if len(hex_candidate) == 6:
+                try:
+                    color = int(hex_candidate, 16)
+                except ValueError:
+                    pass
+            if color is not None:
+                for this_role in ctx.guild.roles:
+                    if this_role.color.value == color:
+                        role = this_role
+                        break
+            else:
+                role_name = subject_candidate.lstrip('🎨').lstrip().lower()
+                for this_role in ctx.guild.roles:
+                    if this_role.name.startswith('🎨 ') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
+                        role = this_role
+                        break
         if role is not None:
             roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
             description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
             color = role.color
+            emoji = '🎨'
             if about_member is not None:
                 address = 'Masz' if about_member == ctx.author else f'{about_member} ma'
-                emoji, notice = '🎨', f'{address} kolor–rolę {role.name.lstrip("🎨").lstrip()}'
+                notice = f'{address} kolor–rolę {role.name.lstrip("🎨").lstrip()}'
             else:
-                emoji, notice = '🎨', f'Kolor–rola {role.name.lstrip("🎨").lstrip()}'
+                notice = f'Kolor–rola {role.name.lstrip("🎨").lstrip()}'
+        elif color is not None:
+            emoji, notice, description = '🎨', f'Kolor #{hex_candidate.upper()}', '← Widoczny na pasku z boku.'
         else:
             description = None
             if about_member is not None:
@@ -157,7 +177,7 @@ class Colors(commands.Cog):
                 emoji, notice = '❔', f'{address} koloru–roli'
                 color = self.GRAY
             else:
-                emoji, notice = '⚠️', 'Nie znaleziono pasującego użytkownika ani koloru–roli'
+                emoji, notice = '⚠️', 'Nie rozpoznano użytkownika, koloru–roli ani reprezentacji szesnastkowej'
                 color = None
         embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
