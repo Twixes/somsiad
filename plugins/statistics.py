@@ -287,9 +287,21 @@ class Report:
             async for message in channel.history(limit=None, after=after):
                 if message.type == discord.MessageType.default:
                     message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
+                    content_parts = [message.clean_content]
+                    for embed in message.embeds:
+                        content_parts.append(embed.title)
+                        content_parts.append(embed.description)
+                        for field in embed.fields:
+                            content_parts.append(field.name)
+                            content_parts.append(field.value)
+                        if embed.footer:
+                            content_parts.append(embed.footer.text)
+                        if embed.author:
+                            content_parts.append(embed.author.text)
+                    content = ' '.join(filter(None, content_parts))
                     message_metadata = MessageMetadata(
                         id=message.id, server_id=message.guild.id, channel_id=channel.id, user_id=message.author.id,
-                        word_count=len(message.clean_content.split()), character_count= len(message.clean_content),
+                        word_count=len(content.split()), character_count=len(content),
                         hour=message_local_datetime.hour, weekday=message_local_datetime.weekday(),
                         datetime=message_local_datetime
                     )
