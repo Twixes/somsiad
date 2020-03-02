@@ -59,13 +59,15 @@ class Colors(commands.Cog):
         relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
         roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
         sorted_roles = sorted(relevant_roles, key=lambda role: colorsys.rgb_to_hsv(*role.color.to_rgb()))
-        role_parts = (
-            f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}' for role in sorted_roles
-        )
         if relevant_roles:
+            role_parts = [
+                f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}' for role in sorted_roles
+            ]
+            random_role_index = random.randint(0, len(relevant_roles) - 1)
+            role_parts[random_role_index] += ' ←'
             emoji, notice = '🎨', 'Dostępne kolory–role'
             description = '\n'.join(role_parts)
-            color = random.choice(relevant_roles).color
+            color = sorted_roles[random_role_index].color
         else:
             emoji, notice = '❔', 'Brak kolorów–ról'
             description = None
@@ -76,23 +78,29 @@ class Colors(commands.Cog):
     @colors.command(aliases=['ustaw'])
     @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
     @commands.guild_only()
-    async def set(self, ctx, *, role_candidate: Union[discord.Role, str]):
+    async def set(self, ctx, *, role_candidate: Union[discord.Role, str] = '?'):
         role = None
+        color = None
         description = None
+        is_random = False
         if isinstance(role_candidate, str):
-            role_name = role_candidate.lstrip('🎨').lstrip().lower()
-            for this_role in ctx.guild.roles:
-                if this_role.name.startswith('🎨 ') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
-                    role = this_role
-                    break
+            is_random = all((character == '?' for character in role_candidate))
+            if is_random:
+                relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
+                role = random.choice(relevant_roles)
+            else:
+                role_name = role_candidate.lstrip('🎨').lstrip().lower()
+                for this_role in ctx.guild.roles:
+                    if this_role.name.startswith('🎨 ') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
+                        role = this_role
+                        break
         elif isinstance(role_candidate, discord.Role) and role_candidate.name.startswith('🎨 '):
             role = role_candidate
         if role is None:
-            emoji, notice = '⚠️', 'Nie znaleziono pasującego koloru–roli'
+            emoji, notice = '❔', 'Nie znaleziono pasującego koloru–roli'
             color = self.GRAY
         else:
             role_name = role.name.lstrip('🎨').lstrip()
-            color = role.color
             already_present = False
             roles_for_removal = []
             for this_role in ctx.author.roles:
@@ -108,20 +116,19 @@ class Colors(commands.Cog):
                 if not already_present:
                     await ctx.author.add_roles(role)
                     roles_counter[role] += 1
-                    emoji, notice = '✅', f'Ustawiono ci kolor–rolę {role_name}'
+                    if is_random:
+                        emoji, notice = '🎲', f'Wylosowano ci kolor–rolę {role_name}'
+                    else:
+                        emoji, notice = '✅', f'Ustawiono ci kolor–rolę {role_name}'
                 else:
                     emoji, notice = 'ℹ️', f'Już masz kolor–rolę {role_name}'
                 description = f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}'
             except discord.Forbidden:
                 emoji, notice = '⚠️', 'Bot nie ma wymaganych do tego uprawnień (zarządzanie rolami)'
+            else:
+                color = role.color
         embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
-
-    @set.error
-    async def set_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            embed = self.bot.generate_embed('⚠️', 'Nie podano koloru–roli')
-            await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['pokaż', 'pokaz'])
     @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
