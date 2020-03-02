@@ -33,12 +33,11 @@ class Remind(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def set_reminder_off(
+    async def set_off_reminder(
             self, confirmation_message_id: int, channel_id: int, user_id: int, content: str,
             requested_at: dt.datetime, execute_at: dt.datetime
     ):
-        if execute_at > dt.datetime.now():
-            await discord.utils.sleep_until(execute_at.astimezone())
+        await discord.utils.sleep_until(execute_at.astimezone())
         channel = self.bot.get_channel(channel_id)
         try:
             confirmation_message = await channel.fetch_message(confirmation_message_id)
@@ -63,7 +62,7 @@ class Remind(commands.Cog):
     async def on_ready(self):
         with data.session() as session:
             for reminder in session.query(Reminder).filter(Reminder.has_been_executed == False):
-                self.bot.loop.create_task(self.set_reminder_off(
+                self.bot.loop.create_task(self.set_off_reminder(
                     reminder.confirmation_message_id, reminder.channel_id, reminder.user_id,
                     reminder.content, reminder.requested_at, reminder.execute_at
                 ))
@@ -83,7 +82,7 @@ class Remind(commands.Cog):
             with data.session(commit=True) as session:
                 reminder = Reminder(**details)
                 session.add(reminder)
-                self.bot.loop.create_task(self.set_reminder_off(**details))
+                self.bot.loop.create_task(self.set_off_reminder(**details))
         except:
             await confirmation_message.delete()
             raise
