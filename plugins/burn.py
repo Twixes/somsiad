@@ -11,75 +11,91 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union
-import asyncio
-import locale
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import somsiad
-from utilities import human_amount_of_time, human_timedelta, interpret_str_as_datetime
+from core import ChannelRelated, UserRelated, somsiad
+from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime
 from configuration import configuration
+import data
 
 
-@somsiad.command(aliases=['spal'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def burn(ctx, countdown_time: Optional[Union[int, locale.atoi, interpret_str_as_datetime]] = 300):
-    """Removes the message after a specified mount time."""
-    if isinstance(countdown_time, int):
-        countdown_seconds = int(countdown_time)
-        if countdown_seconds < 3.0:
-            countdown_seconds = 3.0
-        elif countdown_seconds > 1209600.0:
-            countdown_seconds = 1209600.0
-        embed_before = discord.Embed(
-            title=':fire: Twoja wiadomość zostanie usunięta za '
-            f'{human_amount_of_time(countdown_seconds)}',
-            color=somsiad.COLOR
-        )
-        embed_after = discord.Embed(
-            title=':white_check_mark: Twoja wiadomość została usunięta po '
-            f'{human_amount_of_time(countdown_seconds)}',
-            color=somsiad.COLOR
-        )
-    elif isinstance(countdown_time, dt.datetime):
-        now = dt.datetime.now().astimezone()
-        countdown_timedelta = countdown_time - now
-        countdown_seconds = countdown_timedelta.total_seconds()
-        if countdown_seconds < 3.0:
-            countdown_seconds = 3.0
-        elif countdown_seconds > 1209600.0:
-            countdown_seconds = 1209600.0
-        bound_countdown_datetime = (
-            dt.datetime.now() + dt.timedelta(seconds=countdown_seconds)
-        )
-        embed_before = discord.Embed(
-            title=':fire: Twoja wiadomość zostanie usunięta '
-            f'{human_timedelta(bound_countdown_datetime, naive=False, days_difference=False)}',
-            color=somsiad.COLOR
-        )
-        embed_after = discord.Embed(
-            title=':white_check_mark: Twoja wiadomość została usunięta '
-            f'{human_timedelta(bound_countdown_datetime, naive=False, days_difference=False)}',
-            color=somsiad.COLOR
-        )
-    else:
-        raise TypeError(f'countdown_time must be int or datetime.datetime, not {type(countdown_time).__name__}')
+class Burning(data.Base, ChannelRelated, UserRelated):
+    confirmation_message_id = data.Column(data.BigInteger, primary_key=True)
+    target_message_id = data.Column(data.BigInteger, nullable=False)
+    requested_at = data.Column(data.DateTime, nullable=False)
+    execute_at = data.Column(data.DateTime, nullable=False)
+    has_been_executed = data.Column(data.Boolean, nullable=False, default=False)
 
-    notice = await somsiad.send(ctx, embed=embed_before)
 
-    await asyncio.sleep(countdown_seconds)
-    try:
-        await ctx.message.delete()
-    except discord.Forbidden:
-        embed_warning = discord.Embed(
-            title=':warning: Bot nie usunął wiadomości wysłanej '
-            f'{human_timedelta(ctx.message.created_at, days_difference=False)}, '
-            'bo nie ma uprawnień do zarządzania wiadomościami na kanale!',
-            color=somsiad.COLOR
+class Burn(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    async def set_off_burning(
+            self, confirmation_message_id: int, target_message_id: int, channel_id: int, user_id: int,
+            requested_at: dt.datetime, execute_at: dt.datetime
+    ):
+        await discord.utils.sleep_until(execute_at.astimezone())
+        channel = self.bot.get_channel(channel_id)
+        try:
+            target_message = await channel.fetch_message(target_message_id)
+            confirmation_message = await channel.fetch_message(confirmation_message_id)
+        except discord.NotFound:
+            pass
+        else:
+            await target_message.delete()
+            title = f'Spalono wiadomość z {human_timedelta(requested_at)}'
+            burning_embed = self.bot.generate_embed('✅', title, url=confirmation_message.jump_url)
+            burning_message = await channel.send(f'<@{user_id}>', embed=burning_embed)
+            confirmation_embed = self.bot.generate_embed('✅', title, url=burning_message.jump_url)
+            await confirmation_message.edit(embed=confirmation_embed)
+        with data.session(commit=True) as session:
+            reminder = session.query(Burning).get(confirmation_message_id)
+            reminder.has_been_executed = True
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        with data.session() as session:
+            for reminder in session.query(Burning).filter(Burning.has_been_executed == False):
+                self.bot.loop.create_task(self.set_off_burning(
+                    reminder.confirmation_message_id, reminder.target_message_id, reminder.channel_id, reminder.user_id,
+                    reminder.requested_at, reminder.execute_at
+                ))
+
+    @commands.command(aliases=['spal'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def burn(self, ctx, execute_at: interpret_str_as_datetime):
+        """Removes the message after a specified mount time."""
+        embed = self.bot.generate_embed(
+            '🔥', f'Spalę tę wiadomość {human_timedelta(execute_at)}', url=ctx.message.jump_url
         )
-        await somsiad.send(ctx, embed=embed_warning)
-    else:
-        await notice.edit(embed=embed_after)
+        confirmation_message = await self.bot.send(ctx, embed=embed)
+        try:
+            details = {
+                'confirmation_message_id': confirmation_message.id, 'target_message_id': ctx.message.id,
+                'channel_id': ctx.channel.id, 'user_id': ctx.author.id,
+                'requested_at': utc_to_naive_local(ctx.message.created_at), 'execute_at': execute_at
+            }
+            with data.session(commit=True) as session:
+                reminder = Burning(**details)
+                session.add(reminder)
+                self.bot.loop.create_task(self.set_off_burning(**details))
+        except:
+            await confirmation_message.delete()
+            raise
+
+    @burn.error
+    async def burn_error(self, ctx, error):
+        notice = None
+        if isinstance(error, commands.MissingRequiredArgument):
+            notice = 'Nie podano daty i godziny/liczby minut'
+        elif isinstance(error, commands.BadArgument):
+            notice = 'Nie rozpoznano daty i godziny/liczby minut'
+        if notice is not None:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
+
+
+somsiad.add_cog(Burn(somsiad))
