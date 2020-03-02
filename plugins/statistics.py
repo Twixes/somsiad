@@ -24,7 +24,7 @@ import discord
 from discord.ext import commands
 from core import Help, ServerRelated, ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import word_number_form, human_timedelta, md_link, rolling_average
+from utilities import word_number_form, utc_to_naive_local, human_timedelta, md_link, rolling_average
 import data
 
 
@@ -271,7 +271,7 @@ class Report:
             self.type = self.Type.USER
             self._generate_relevant_embed = self._generate_user_embed
         if timeframe_start_date_utc is not None:
-            self.timeframe_start_date = timeframe_start_date_utc.replace(tzinfo=dt.timezone.utc).astimezone().date()
+            self.timeframe_start_date = utc_to_naive_local(timeframe_start_date_utc).date()
 
     async def _update_metadata_cache(self, channel: discord.TextChannel, session: data.RawSession):
         try:
@@ -286,7 +286,7 @@ class Report:
             metadata_cache_update = []
             async for message in channel.history(limit=None, after=after):
                 if message.type == discord.MessageType.default:
-                    message_local_datetime = message.created_at.replace(tzinfo=dt.timezone.utc).astimezone()
+                    message_datetime = utc_to_naive_local(message.created_at)
                     content_parts = [message.clean_content]
                     for embed in message.embeds:
                         content_parts.append(embed.title)
@@ -302,8 +302,8 @@ class Report:
                     message_metadata = MessageMetadata(
                         id=message.id, server_id=message.guild.id, channel_id=channel.id, user_id=message.author.id,
                         word_count=len(content.split()), character_count=len(content),
-                        hour=message_local_datetime.hour, weekday=message_local_datetime.weekday(),
-                        datetime=message_local_datetime
+                        hour=message_datetime.hour, weekday=message_datetime.weekday(),
+                        datetime=message_datetime
                     )
                     metadata_cache_update.append(message_metadata)
                     self.messages_cached += 1
@@ -352,13 +352,13 @@ class Report:
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
         self.embed = somsiad.generate_embed('📈', 'Przygotowano raport o serwerze', self.description)
-        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
+        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_timedelta(earliest.datetime, naive=False),
+                    human_timedelta(earliest.datetime),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
                 ),
                 inline=False
@@ -376,13 +376,13 @@ class Report:
     def _generate_channel_embed(self):
         """Analyzes the subject as a channel."""
         self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o kanale #{self.subject}', self.description)
-        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at), inline=False)
+        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_timedelta(earliest.datetime, naive=False),
+                    human_timedelta(earliest.datetime),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
                 ),
                 inline=False
@@ -396,16 +396,20 @@ class Report:
     def _generate_member_embed(self):
         """Analyzes the subject as a member."""
         self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}', self.description)
-        self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
         self.embed.add_field(
-            name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at), inline=False
+            name='Utworzył konto', value=human_timedelta(self.subject.created_at, utc=True), inline=False
+        )
+        self.embed.add_field(
+            name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at, utc=True), inline=False
         )
         self._embed_personal_stats()
 
     def _generate_user_embed(self):
         """Analyzes the subject as a user."""
         self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}')
-        self.embed.add_field(name='Utworzył konto', value=human_timedelta(self.subject.created_at), inline=False)
+        self.embed.add_field(
+            name='Utworzył konto', value=human_timedelta(self.subject.created_at, utc=True), inline=False
+        )
         self._embed_personal_stats()
 
     def _generate_deleted_user_embed(self):
@@ -420,7 +424,7 @@ class Report:
             self.embed.add_field(
                 name=f'Wysłał pierwszą wiadomość na serwerze {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_timedelta(earliest.datetime, naive=False),
+                    human_timedelta(earliest.datetime),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
                 ),
                 inline=False
@@ -429,7 +433,7 @@ class Report:
                 self.embed.add_field(
                     name='Wysłał ostatnią wiadomość na serwerze',
                     value=md_link(
-                        human_timedelta(latest.datetime, naive=False),
+                        human_timedelta(latest.datetime),
                         f'https://discordapp.com/channels/{latest.server_id}/{latest.channel_id}/{latest.id}'
                     ),
                     inline=False
@@ -657,8 +661,7 @@ class Report:
         # plot the chart
         channels = [somsiad.get_channel(channel) for channel in self.relevant_channel_stats]
         channel_existence_lengths = (
-            (self.timeframe_end_date - channel.created_at.replace(tzinfo=dt.timezone.utc).astimezone().date()).days + 1
-            for channel in channels
+            (self.timeframe_end_date - utc_to_naive_local(channel.created_at).date()).days + 1 for channel in channels
         )
         if self.last_days:
             channel_existence_lengths = (

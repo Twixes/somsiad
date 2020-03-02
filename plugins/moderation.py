@@ -26,7 +26,7 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
     type = data.Column(data.String(50), nullable=False)
     executing_user_id = data.Column(data.BigInteger, index=True)
     details = data.Column(data.String(2000))
-    occurred_at = data.Column(data.DateTime, nullable=False, default=dt.datetime.utcnow)
+    occurred_at = data.Column(data.DateTime, nullable=False, default=dt.datetime.now)
 
     @property
     def discord_executing_user(self) -> Optional[discord.Guild]:
@@ -50,7 +50,7 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
             type_presentation = 'Opuszczenie'
         parts = [
             type_presentation,
-            self.occurred_at.replace(tzinfo=dt.timezone.utc).astimezone().strftime("%-d %B %Y o %H:%M")
+            self.occurred_at.strftime("%-d %B %Y o %H:%M")
         ]
         if self.channel_id is not None:
             discord_channel = self.discord_channel

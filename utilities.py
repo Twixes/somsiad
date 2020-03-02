@@ -138,29 +138,36 @@ def word_number_form(
     return ' '.join(parts)
 
 
+def utc_to_naive_local(datetime: dt.datetime) -> dt.datetime:
+    if datetime.tzinfo == dt.timezone.utc:
+        return datetime.astimezone().replace(tzinfo=None)
+    elif datetime.tzinfo is None:
+        return datetime.replace(tzinfo=dt.timezone.utc).astimezone().replace(tzinfo=None)
+    else:
+        raise ValueError('datetime is neither naive nor UTC-aware')
+
+
 def human_timedelta(
-        datetime: dt.datetime, *, naive: bool = True, date: bool = True, time: bool = True,
+        datetime: dt.datetime, *, utc: bool = False, date: bool = True, time: bool = True,
         days_difference: bool = True, name_month: bool = True, now_override: dt.datetime = None
 ) -> str:
     """Return the difference between the provided datetime and now in Polish."""
-    local_datetime = datetime.replace(tzinfo=dt.timezone.utc).astimezone() if naive else datetime.astimezone()
-
+    datetime = datetime if not utc else utc_to_naive_local(datetime)
     time_difference_parts = []
 
     if date or time:
         datetime_parts = []
         if date:
             if name_month:
-                datetime_parts.append(local_datetime.strftime('%-d %B %Y'))
+                datetime_parts.append(datetime.strftime('%-d %B %Y'))
             else:
-                datetime_parts.append(local_datetime.strftime('%-d.%m.%Y'))
+                datetime_parts.append(datetime.strftime('%-d.%m.%Y'))
         if time:
-            datetime_parts.append(local_datetime.strftime('%-H:%M'))
+            datetime_parts.append(datetime.strftime('%-H:%M'))
         time_difference_parts.append(' o '.join(datetime_parts))
 
     if days_difference:
-        timedelta = local_datetime.date()
-        timedelta -= dt.date.today() if now_override is None else now_override.date()
+        timedelta = datetime.date() - (dt.date.today() if now_override is None else now_override.date())
         if timedelta.days == -2:
             time_difference_parts.append('przedwczoraj')
         elif timedelta.days == -1:
