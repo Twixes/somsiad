@@ -17,7 +17,7 @@ import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime, md_link
+from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 import data
 
 
@@ -47,12 +47,12 @@ class Remind(commands.Cog):
             pass
         else:
             reminder_description = md_link(
-                f'Przypomnienie z {human_timedelta(requested_at)}.', confirmation_message.jump_url
+                f'Przypomnienie z {human_datetime(requested_at)}.', confirmation_message.jump_url
             )
             reminder_embed = self.bot.generate_embed('🍅', content, reminder_description)
             reminder_message = await channel.send(f'<@{user_id}>', embed=reminder_embed)
             confirmation_description = md_link(
-                f'Przypomniano ci tutaj "{content}" {human_timedelta()}.', reminder_message.jump_url
+                f'Przypomniano ci tutaj "{content}" {human_datetime()}.', reminder_message.jump_url
             )
             confirmation_embed = self.bot.generate_embed('🍅', 'Zrealizowano przypomnienie', confirmation_description)
             await confirmation_message.edit(embed=confirmation_embed)
@@ -77,7 +77,7 @@ class Remind(commands.Cog):
     ):
         if len(content) > Reminder.MAX_CONTENT_LENGTH:
             raise commands.BadArgument
-        description = f'Przypomnę ci tutaj "{content}" {human_timedelta(execute_at)}.'
+        description = f'Przypomnę ci tutaj "{content}" {human_datetime(execute_at)}.'
         embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description)
         confirmation_message = await self.bot.send(ctx, embed=embed)
         try:

@@ -15,7 +15,7 @@ import datetime as dt
 import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, somsiad
-from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime, md_link
+from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 from configuration import configuration
 import data
 
@@ -46,12 +46,12 @@ class Burn(commands.Cog):
         else:
             await target_message.delete()
             burning_description = md_link(
-                f'Usunięto twoją wiadomość wysłaną {human_timedelta(requested_at)}.', confirmation_message.jump_url
+                f'Usunięto twoją wiadomość wysłaną {human_datetime(requested_at)}.', confirmation_message.jump_url
             )
             burning_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', burning_description)
             burning_message = await channel.send(f'<@{user_id}>', embed=burning_embed)
             confirmation_description = md_link(
-                f'Usunięto twoją wiadomość {human_timedelta()}.', burning_message.jump_url
+                f'Usunięto twoją wiadomość {human_datetime()}.', burning_message.jump_url
             )
             confirmation_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', confirmation_description)
             await confirmation_message.edit(embed=confirmation_embed)
@@ -76,7 +76,7 @@ class Burn(commands.Cog):
     async def burn(self, ctx, execute_at: interpret_str_as_datetime):
         """Removes the message after a specified mount time."""
         confirmation_description = md_link(
-            f'Zostanie ona usunięta {human_timedelta(execute_at)}.', ctx.message.jump_url
+            f'Zostanie ona usunięta {human_datetime(execute_at)}.', ctx.message.jump_url
         )
         confirmation_embed = self.bot.generate_embed('🔥', f'Spalę twoją wiadomość', confirmation_description)
         confirmation_message = await self.bot.send(ctx, embed=confirmation_embed)

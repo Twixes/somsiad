@@ -147,7 +147,7 @@ def utc_to_naive_local(datetime: dt.datetime) -> dt.datetime:
         raise ValueError('datetime is neither naive nor UTC-aware')
 
 
-def human_timedelta(
+def human_datetime(
         datetime: Optional[dt.datetime] = None, *, utc: bool = False, date: bool = True, time: bool = True,
         days_difference: bool = True, name_month: bool = True, now_override: dt.datetime = None
 ) -> str:

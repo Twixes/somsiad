@@ -24,7 +24,7 @@ import discord
 from discord.ext import commands
 from core import Help, ServerRelated, ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import word_number_form, utc_to_naive_local, human_timedelta, md_link, rolling_average
+from utilities import word_number_form, utc_to_naive_local, human_datetime, md_link, rolling_average
 import data
 
 
@@ -352,13 +352,13 @@ class Report:
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
         self.embed = somsiad.generate_embed('📈', 'Przygotowano raport o serwerze', self.description)
-        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at, utc=True), inline=False)
+        self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_timedelta(earliest.datetime),
+                    human_datetime(earliest.datetime),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
                 ),
                 inline=False
@@ -376,13 +376,13 @@ class Report:
     def _generate_channel_embed(self):
         """Analyzes the subject as a channel."""
         self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o kanale #{self.subject}', self.description)
-        self.embed.add_field(name='Utworzono', value=human_timedelta(self.subject.created_at, utc=True), inline=False)
+        self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_timedelta(earliest.datetime),
+                    human_datetime(earliest.datetime),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
                 ),
                 inline=False
@@ -397,10 +397,10 @@ class Report:
         """Analyzes the subject as a member."""
         self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}', self.description)
         self.embed.add_field(
-            name='Utworzył konto', value=human_timedelta(self.subject.created_at, utc=True), inline=False
+            name='Utworzył konto', value=human_datetime(self.subject.created_at, utc=True), inline=False
         )
         self.embed.add_field(
-            name='Ostatnio dołączył do serwera', value=human_timedelta(self.subject.joined_at, utc=True), inline=False
+            name='Ostatnio dołączył do serwera', value=human_datetime(self.subject.joined_at, utc=True), inline=False
         )
         self._embed_personal_stats()
 
@@ -408,7 +408,7 @@ class Report:
         """Analyzes the subject as a user."""
         self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}')
         self.embed.add_field(
-            name='Utworzył konto', value=human_timedelta(self.subject.created_at, utc=True), inline=False
+            name='Utworzył konto', value=human_datetime(self.subject.created_at, utc=True), inline=False
         )
         self._embed_personal_stats()
 
@@ -424,7 +424,7 @@ class Report:
             self.embed.add_field(
                 name=f'Wysłał pierwszą wiadomość na serwerze {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_timedelta(earliest.datetime),
+                    human_datetime(earliest.datetime),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
                 ),
                 inline=False
@@ -433,7 +433,7 @@ class Report:
                 self.embed.add_field(
                     name='Wysłał ostatnią wiadomość na serwerze',
                     value=md_link(
-                        human_timedelta(latest.datetime),
+                        human_datetime(latest.datetime),
                         f'https://discordapp.com/channels/{latest.server_id}/{latest.channel_id}/{latest.id}'
                     ),
                     inline=False

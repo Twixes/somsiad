@@ -18,7 +18,7 @@ import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime, md_link
+from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 import data
 
 
@@ -67,7 +67,7 @@ class Vote(commands.Cog):
                     winning_emojis.append(option[0])
             winning_emoji = '❓' if len(winning_emojis) != 1 else winning_emojis[0]
             results_description = md_link(
-                f'Wyniki głosowania ogłoszonego {human_timedelta(commenced_at)}.', urn_message.jump_url
+                f'Wyniki głosowania ogłoszonego {human_datetime(commenced_at)}.', urn_message.jump_url
             )
             urn_embed = self.bot.generate_embed(winning_emoji, matter)
             results_embed = self.bot.generate_embed(winning_emoji, matter, results_description)
@@ -81,7 +81,7 @@ class Vote(commands.Cog):
                 results_embed.add_field(name=position, value=count_presentation)
             results_message = await channel.send(f'<@{user_id}>', embed=results_embed)
             urn_embed.description = md_link(
-                f'Głosowanie zostało zakończone {human_timedelta()}.', results_message.jump_url
+                f'Głosowanie zostało zakończone {human_datetime()}.', results_message.jump_url
             )
             await urn_message.edit(embed=urn_embed)
         with data.session(commit=True) as session:
@@ -111,7 +111,7 @@ class Vote(commands.Cog):
             letters = None
         description = 'Zagłosuj w tej sprawie przy użyciu reakcji.'
         if conclude_at is not None:
-            description += f'\nWynik zostanie ogłoszony {human_timedelta(conclude_at)}.'
+            description += f'\nWynik zostanie ogłoszony {human_datetime(conclude_at)}.'
         embed = self.bot.generate_embed('🗳', matter, description)
         urn_message = await self.bot.send(ctx, embed=embed)
         options = ('👍', '👎') if letters is None else tuple(map(self.LETTER_EMOJIS.get, letters))
