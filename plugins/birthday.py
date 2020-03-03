@@ -13,7 +13,6 @@
 
 from typing import Optional, Sequence, List
 from collections import namedtuple
-import asyncio
 import random
 import itertools
 import datetime as dt
@@ -173,11 +172,10 @@ class Birthday(commands.Cog):
             now = dt.datetime.now()
             next_iteration = dt.datetime(
                 now.year, now.month, now.day, *self.NOTIFICATIONS_TIME
-            )
+            ).astimezone()
             if initiated or (now.hour, now.minute) >= self.NOTIFICATIONS_TIME:
                 next_iteration += dt.timedelta(1)
-            timedelta = next_iteration - now
-            await asyncio.sleep(timedelta.total_seconds())
+            await discord.utils.sleep_until(next_iteration)
             await self.send_all_birthday_today_notifications()
             initiated = True
 
