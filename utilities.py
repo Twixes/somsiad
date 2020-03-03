@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, Optional, Sequence
+from typing import Union, Optional, Sequence, Tuple
 from numbers import Number
 from collections import namedtuple
 import asyncio
@@ -32,8 +32,8 @@ DATETIME_FORMATS = (
     DatetimeFormat('%dT%H.%M', True, True, False),
     DatetimeFormat('%H.%M', True, True, True)
 )
-URL_REGEX = re.compile(r'(https?://[\S]+\.[\S]+)')
-
+URL_REGEX = re.compile(r'(https?:\/\/\S+\.\S+)')
+URL_REGEX_PROTOCOL_SEPARATE = re.compile(r'(?:(\w+):\/\/)?(\S+\.\S+)')
 
 class YouTubeClient:
     FOOTER_ICON_URL = (
@@ -74,10 +74,19 @@ class YouTubeClient:
             return None
 
 
-def first_url(string: str) -> Optional[str]:
+def first_url(string: str, *, protocol_separate: bool = False) -> Union[str, Tuple[Optional[str], Optional[str]]]:
     """Return the first well-formed URL found in the string."""
-    search_result = URL_REGEX.search(string)
-    return search_result.group().rstrip('()[{]};:\'",<.>') if search_result is not None else None
+    if protocol_separate:
+        search_result = URL_REGEX_PROTOCOL_SEPARATE.search(string)
+        if search_result is None:
+            return None, None
+        else:
+            return tuple((
+                part.lower().rstrip('()[{]};:\'",<.>') if part is not None else None for part in search_result.groups()
+            ))
+    else:
+        search_result = URL_REGEX.search(string)
+        return search_result.group().rstrip('()[{]};:\'",<.>') if search_result is not None else None
 
 
 def text_snippet(text: str, limit: int) -> str:
