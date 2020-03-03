@@ -15,7 +15,7 @@ import datetime as dt
 import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, somsiad
-from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime
+from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime, md_link
 from configuration import configuration
 import data
 
@@ -45,10 +45,15 @@ class Burn(commands.Cog):
             pass
         else:
             await target_message.delete()
-            title = f'Spalono wiadomość z {human_timedelta(requested_at)}'
-            burning_embed = self.bot.generate_embed('✅', title, url=confirmation_message.jump_url)
+            burning_description = md_link(
+                f'Usunięto twoją wiadomość wysłaną {human_timedelta(requested_at)}.', confirmation_message.jump_url
+            )
+            burning_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', burning_description)
             burning_message = await channel.send(f'<@{user_id}>', embed=burning_embed)
-            confirmation_embed = self.bot.generate_embed('✅', title, url=burning_message.jump_url)
+            confirmation_description = md_link(
+                f'Usunięto twoją wiadomość {human_timedelta()}.', burning_message.jump_url
+            )
+            confirmation_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', confirmation_description)
             await confirmation_message.edit(embed=confirmation_embed)
         with data.session(commit=True) as session:
             reminder = session.query(Burning).get(confirmation_message_id)
@@ -67,12 +72,14 @@ class Burn(commands.Cog):
     @commands.cooldown(
         1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
+    @commands.bot_has_permissions(manage_messages=True)
     async def burn(self, ctx, execute_at: interpret_str_as_datetime):
         """Removes the message after a specified mount time."""
-        embed = self.bot.generate_embed(
-            '🔥', f'Spalę tę wiadomość {human_timedelta(execute_at)}', url=ctx.message.jump_url
+        confirmation_description = md_link(
+            f'Zostanie ona usunięta {human_timedelta(execute_at)}.', ctx.message.jump_url
         )
-        confirmation_message = await self.bot.send(ctx, embed=embed)
+        confirmation_embed = self.bot.generate_embed('🔥', f'Spalę twoją wiadomość', confirmation_description)
+        confirmation_message = await self.bot.send(ctx, embed=confirmation_embed)
         try:
             details = {
                 'confirmation_message_id': confirmation_message.id, 'target_message_id': ctx.message.id,
@@ -93,7 +100,9 @@ class Burn(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             notice = 'Nie podano daty i godziny/liczby minut'
         elif isinstance(error, commands.BadArgument):
-            notice = 'Nie rozpoznano daty i godziny/liczby minut'
+            notice = 'Nie rozpoznano poprawnej daty i godziny/liczby minut'
+        elif isinstance(error, commands.BotMissingPermissions):
+            notice = 'Bot nie ma wymaganych do tego uprawnień (zarządzanie wiadomościami)'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 

@@ -17,7 +17,7 @@ import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime
+from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime, md_link
 import data
 
 
@@ -46,14 +46,13 @@ class Remind(commands.Cog):
         except discord.NotFound:
             pass
         else:
-            reminder_description = (
-                f'[Przypomnienie z {human_timedelta(requested_at)}.]({confirmation_message.jump_url})'
+            reminder_description = md_link(
+                f'Przypomnienie z {human_timedelta(requested_at)}.', confirmation_message.jump_url
             )
             reminder_embed = self.bot.generate_embed('🍅', content, reminder_description)
             reminder_message = await channel.send(f'<@{user_id}>', embed=reminder_embed)
-            confirmation_description = (
-                f'[Przypomniano ci tutaj "{content}" {human_timedelta(dt.datetime.now())}.]'
-                f'({reminder_message.jump_url})'
+            confirmation_description = md_link(
+                f'Przypomniano ci tutaj "{content}" {human_timedelta()}.', reminder_message.jump_url
             )
             confirmation_embed = self.bot.generate_embed('🍅', 'Zrealizowano przypomnienie', confirmation_description)
             await confirmation_message.edit(embed=confirmation_embed)
