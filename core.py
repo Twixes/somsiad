@@ -143,7 +143,7 @@ class Somsiad(commands.Bot):
             await self.change_presence(
                 activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
             )
-            await asyncio.sleep(15)
+            await asyncio.sleep(60)
 
     def generate_embed(
             self, emoji: str, notice: str, description: str = discord.Embed.Empty,
