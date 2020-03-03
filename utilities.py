@@ -148,11 +148,14 @@ def utc_to_naive_local(datetime: dt.datetime) -> dt.datetime:
 
 
 def human_timedelta(
-        datetime: dt.datetime, *, utc: bool = False, date: bool = True, time: bool = True,
+        datetime: Optional[dt.datetime] = None, *, utc: bool = False, date: bool = True, time: bool = True,
         days_difference: bool = True, name_month: bool = True, now_override: dt.datetime = None
 ) -> str:
     """Return the difference between the provided datetime and now in Polish."""
-    datetime = datetime if not utc else utc_to_naive_local(datetime)
+    if datetime is None:
+        datetime = dt.datetime.now()
+    else:
+        datetime = datetime if not utc else utc_to_naive_local(datetime)
     time_difference_parts = []
 
     if date or time:
