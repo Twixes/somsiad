@@ -287,16 +287,6 @@ def md_link(text: str, url: str) -> str:
     return f'[{text}]({url})'
 
 
-def length_constraint(min: int = float('-inf'), max: int = float('+inf')) -> str:
-    def _length_constraint(content: str) -> str:
-        if len(content) > max:
-            raise ValueError(f'length of parameter exceeds maximum of {max}')
-        if len(content) < min:
-            raise ValueError(f'length of parameter does not meet minimum of {min}')
-        return content
-    return _length_constraint
-
-
 def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant') -> np.ndarray:
     data = np.pad(data, roll // 2, pad_mode)
     data = np.cumsum(data)

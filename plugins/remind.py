@@ -17,13 +17,15 @@ import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime, length_constraint
+from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime
 import data
 
 
 class Reminder(data.Base, ChannelRelated, UserRelated):
+    MAX_CONTENT_LENGTH = 100
+
     confirmation_message_id = data.Column(data.BigInteger, primary_key=True)
-    content = data.Column(data.String(100), nullable=False)
+    content = data.Column(data.String(MAX_CONTENT_LENGTH), nullable=False)
     requested_at = data.Column(data.DateTime, nullable=False)
     execute_at = data.Column(data.DateTime, nullable=False)
     has_been_executed = data.Column(data.Boolean, nullable=False, default=False)
@@ -50,7 +52,8 @@ class Remind(commands.Cog):
             reminder_embed = self.bot.generate_embed('🍅', content, reminder_description)
             reminder_message = await channel.send(f'<@{user_id}>', embed=reminder_embed)
             confirmation_description = (
-                f'[Przypomniano ci tutaj "{content}" {human_timedelta(execute_at)}.]({reminder_message.jump_url})'
+                f'[Przypomniano ci tutaj "{content}" {human_timedelta(dt.datetime.now())}.]'
+                f'({reminder_message.jump_url})'
             )
             confirmation_embed = self.bot.generate_embed('🍅', 'Zrealizowano przypomnienie', confirmation_description)
             await confirmation_message.edit(embed=confirmation_embed)
@@ -69,7 +72,12 @@ class Remind(commands.Cog):
 
     @commands.command(aliases=['przypomnij', 'pomidor'])
     @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
-    async def remind(self, ctx, execute_at: interpret_str_as_datetime, *, content: length_constraint(max=50)):
+    async def remind(
+            self, ctx, execute_at: interpret_str_as_datetime, *,
+            content: commands.clean_content(fix_channel_mentions=True)
+    ):
+        if len(content) > Reminder.MAX_CONTENT_LENGTH:
+            raise commands.BadArgument
         description = f'Przypomnę ci tutaj "{content}" {human_timedelta(execute_at)}.'
         embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description)
         confirmation_message = await self.bot.send(ctx, embed=embed)
@@ -98,7 +106,7 @@ class Remind(commands.Cog):
         elif isinstance(error, commands.BadArgument):
             error_string = str(error)
             if 'execute_at' in error_string:
-                notice = 'Nie rozpoznano daty i godziny/liczby minut'
+                notice = 'Nie rozpoznano poprawnej daty i godziny/liczby minut'
             elif 'content' in error_string:
                 notice = 'Treść przypomnienia nie może przekraczać 50 znaków'
         if notice is not None:
