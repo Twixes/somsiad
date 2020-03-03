@@ -36,6 +36,12 @@ URL_REGEX = re.compile(r'(https?://[\S]+\.[\S]+)')
 
 
 class YouTubeClient:
+    FOOTER_ICON_URL = (
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/'
+        'YouTube_full-color_icon_%282017%29.svg/60px-YouTube_full-color_icon_%282017%29.svg.png'
+    )
+    FOOTER_TEXT = 'YouTube'
+
     class SearchResult:
         __slots__ = ('id', 'title', 'thumbnail_url')
 
@@ -48,22 +54,14 @@ class YouTubeClient:
         def url(self) -> str:
             return f'https://www.youtube.com/watch?v={self.id}'
 
-    FOOTER_ICON_URL = (
-        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/'
-        'YouTube_full-color_icon_%282017%29.svg/60px-YouTube_full-color_icon_%282017%29.svg.png'
-    )
-    FOOTER_TEXT = 'YouTube'
-
     def __init__(self, developer_key: str, loop: asyncio.AbstractEventLoop):
-        self._client = build('youtube', 'v3', developerKey=developer_key)
-        self._loop = loop
+        self.client = build('youtube', 'v3', developerKey=developer_key)
+        self.loop = loop
 
     async def search(self, query: str) -> Optional[SearchResult]:
         try:
-            query = self._client.search().list(
-                q=query, part='snippet', maxResults=1, type='video'
-            )
-            response = await self._loop.run_in_executor(None, query.execute)
+            query = self.client.search().list(q=query, part='snippet', maxResults=1, type='video')
+            response = await self.loop.run_in_executor(None, query.execute)
             items = response.get('items')
             if items:
                 return self.SearchResult(
