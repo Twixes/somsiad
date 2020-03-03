@@ -231,7 +231,9 @@ def days_as_weeks(number_of_days: int, none_if_no_weeks: bool = True) -> Optiona
         )
 
 
-def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: dt.datetime = None) -> dt.datetime:
+def interpret_str_as_datetime(
+        string: str, roll_over: bool = True, now_override: dt.datetime = None, years_in_future_limit: Optional[int] = 1
+) -> dt.datetime:
     """Interpret the provided string as a datetime."""
     now = now_override or dt.datetime.now()
     try:
@@ -266,6 +268,8 @@ def interpret_str_as_datetime(string: str, roll_over: str = True, now_override: 
             raise ValueError
     else:
         datetime = now + dt.timedelta(minutes=minutes)
+        if years_in_future_limit is not None and datetime > now.replace(year=now.year+1):
+            raise ValueError
     return datetime
 
 
