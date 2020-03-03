@@ -1,4 +1,4 @@
-# Copyright 2018-2019 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,149 +11,132 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, Optional
-from numbers import Number
-import asyncio
-import locale
+from typing import Optional
+import re
 import datetime as dt
-import string
 import discord
 from discord.ext import commands
-from core import somsiad
-from utilities import human_amount_of_time, interpret_str_as_datetime
+from core import ChannelRelated, UserRelated, somsiad
 from configuration import configuration
-
-LETTER_EMOIJS = {
-    'A': '🇦', 'B': '🇧', 'C': '🇨', 'D': '🇩', 'E': '🇪', 'F': '🇫', 'G': '🇬', 'H': '🇭', 'I': '🇮', 'J': '🇯',
-    'K': '🇰', 'L': '🇱', 'M': '🇲', 'N': '🇳', 'O': '🇴', 'P': '🇵', 'Q': '🇶', 'R': '🇷', 'S': '🇸', 'T': '🇹',
-    'U': '🇺', 'V': '🇻', 'W': '🇼', 'X': '🇽', 'Y': '🇾', 'Z': '🇿'
-}
+from utilities import utc_to_naive_local, human_timedelta, interpret_str_as_datetime, md_link
+import data
 
 
-@somsiad.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def vote(
-        ctx, duration: Optional[Union[int, locale.atoi, interpret_str_as_datetime]] = None,
-        *, statement: commands.clean_content(fix_channel_mentions=True)
+class Ballot(data.Base, ChannelRelated, UserRelated):
+    urn_message_id = data.Column(data.BigInteger, primary_key=True)
+    matter = data.Column(data.String(50), nullable=False)
+    letters = data.Column(data.String(26))
+    commenced_at = data.Column(data.DateTime, nullable=False)
+    conclude_at = data.Column(data.DateTime, nullable=False)
+    has_been_concluded = data.Column(data.Boolean, nullable=False, default=False)
+
+
+class Vote(commands.Cog):
+    LETTER_REGEX = re.compile(r'\b([A-Z])[\.\?\:](?=\s|$)')
+    LETTER_EMOJIS = {
+        'A': '🇦', 'B': '🇧', 'C': '🇨', 'D': '🇩', 'E': '🇪', 'F': '🇫', 'G': '🇬', 'H': '🇭', 'I': '🇮', 'J': '🇯',
+        'K': '🇰', 'L': '🇱', 'M': '🇲', 'N': '🇳', 'O': '🇴', 'P': '🇵', 'Q': '🇶', 'R': '🇷', 'S': '🇸', 'T': '🇹',
+        'U': '🇺', 'V': '🇻', 'W': '🇼', 'X': '🇽', 'Y': '🇾', 'Z': '🇿'
+    }
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    async def set_off_ballot(
+            self, urn_message_id: int, channel_id: int, user_id: int, matter: str, letters: Optional[str],
+            commenced_at: dt.datetime, conclude_at: dt.datetime
     ):
-    """Holds a vote."""
-    now_datetime = dt.datetime.now().astimezone()
-    if isinstance(duration, dt.datetime) and now_datetime < duration <= now_datetime + dt.timedelta(days=7):
-        results_datetime = duration
-        results_and_now_timedelta = results_datetime - now_datetime
-        seconds = results_and_now_timedelta.total_seconds()
-        amount_of_time = human_amount_of_time(seconds)
-        embed = discord.Embed(
-            title=f':ballot_box: {statement}',
-            description=(
-                'Zagłosuj w tej sprawie przy użyciu reakcji.\n'
-                f'Wynik zostanie ogłoszony {duration.strftime("%-d %B %Y o %H:%M")}.'
-            ),
-            timestamp=results_datetime,
-            color=somsiad.COLOR
-        )
-    elif isinstance(duration, Number) and 0.0 < duration <= 10080.0:
-        seconds = duration * 60.0
-        results_datetime = now_datetime + dt.timedelta(seconds=seconds)
-        amount_of_time = human_amount_of_time(seconds)
-        embed = discord.Embed(
-            title=f':ballot_box: {statement}',
-            description=(
-                'Zagłosuj w tej sprawie przy użyciu reakcji.\n'
-                f'Wynik zostanie ogłoszony po {amount_of_time} od rozpoczęcia głosowania.'
-            ),
-            timestamp=results_datetime,
-            color=somsiad.COLOR
-        )
-    else:
-        seconds = None
-        embed = discord.Embed(
-            title=f':ballot_box: {statement}',
-            description='Zagłosuj w tej sprawie przy użyciu reakcji.',
-            color=somsiad.COLOR
-        )
-
-    letter_options_found = []
-    for letter in string.ascii_uppercase:
-        if f'{letter}.' in statement or f'{letter}:' in statement:
-            letter_options_found.append(letter)
-        else:
-            break
-
-    if letter_options_found:
-        options = [LETTER_EMOIJS[letter] for letter in letter_options_found]
-    else:
-        options = ('✅', '🔴')
-
-    message = await somsiad.send(ctx, embed=embed)
-    for option_emoji in options:
-        await message.add_reaction(option_emoji)
-
-    if seconds is not None:
-        await asyncio.sleep(seconds)
-
+        await discord.utils.sleep_until(conclude_at.astimezone())
+        channel = self.bot.get_channel(channel_id)
         try:
-            message_final = await ctx.channel.fetch_message(message.id)
+            urn_message = await channel.fetch_message(urn_message_id)
         except discord.NotFound:
             pass
         else:
-            result = {
-                reaction.emoji: reaction.count - 1 for reaction in message_final.reactions if reaction.emoji in options
+            emojis = ('👍', '👎') if letters is None else tuple(map(self.LETTER_EMOJIS.get, letters))
+            results = {
+                reaction.emoji: reaction.count - 1 for reaction in urn_message.reactions if reaction.emoji in emojis
             }
-
             winning_emojis = []
             winning_count = -1
-
-            for option in result.items():
+            for option in results.items():
                 if option[1] > winning_count:
                     winning_emojis = [option[0]]
                     winning_count = option[1]
                 elif option[1] == winning_count:
                     winning_emojis.append(option[0])
-
-            if len(winning_emojis) != 1:
-                result_emoji = '❓'
-            else:
-                result_emoji = winning_emojis[0]
-
-            embed_results = discord.Embed(
-                title=f'{result_emoji} {statement}',
-                description=(
-                    f'Głosowanie zostało zakończone po {amount_of_time} od rozpoczęcia.'
-                ),
-                timestamp=results_datetime,
-                color=somsiad.COLOR
+            winning_emoji = '❓' if len(winning_emojis) != 1 else winning_emojis[0]
+            results_description = md_link(
+                f'Wyniki głosowania ogłoszonego {human_timedelta(commenced_at)}.', urn_message.jump_url
             )
-            if letter_options_found:
-                for letter in letter_options_found:
-                    letter_emoji = LETTER_EMOIJS[letter]
-                    if letter_emoji in winning_emojis and winning_count > 0:
-                        presentation_count = f'**{result[letter_emoji]}**'
-                    else:
-                        presentation_count = result[letter_emoji]
-                    embed_results.add_field(name=f'Opcja {letter}', value=presentation_count)
-            else:
-                embed_results.add_field(
-                    name='Za',
-                    value=f'**{result["✅"]}**' if '✅' in winning_emojis and winning_count > 0 else result['✅']
-                )
-                embed_results.add_field(
-                    name='Przeciw',
-                    value=f'**{result["🔴"]}**' if '🔴' in winning_emojis and winning_count > 0 else result['🔴']
-                )
+            urn_embed = self.bot.generate_embed(winning_emoji, matter)
+            results_embed = self.bot.generate_embed(winning_emoji, matter, results_description)
+            positions = ('Za', 'Przeciw') if letters is None else (f'Opcja {letter}' for letter in letters)
+            for position, emoji in zip(positions, emojis):
+                if emoji in winning_emojis and winning_count > 0:
+                    count_presentation = f'**{results[emoji]}**'
+                else:
+                    count_presentation = results[emoji]
+                urn_embed.add_field(name=position, value=count_presentation)
+                results_embed.add_field(name=position, value=count_presentation)
+            results_message = await channel.send(f'<@{user_id}>', embed=results_embed)
+            urn_embed.description = md_link(
+                f'Głosowanie zostało zakończone {human_timedelta()}.', results_message.jump_url
+            )
+            await urn_message.edit(embed=urn_embed)
+        with data.session(commit=True) as session:
+            reminder = session.query(Ballot).get(urn_message_id)
+            reminder.has_been_concluded = True
 
-            await message_final.edit(embed=embed_results)
-            await somsiad.send(ctx, embed=embed_results)
+    @commands.Cog.listener()
+    async def on_ready(self):
+        with data.session() as session:
+            for reminder in session.query(Ballot).filter(Ballot.has_been_concluded == False):
+                self.bot.loop.create_task(self.set_off_ballot(
+                    reminder.urn_message_id, reminder.channel_id, reminder.user_id, reminder.matter,
+                    reminder.letters, reminder.commenced_at, reminder.conclude_at
+                ))
+
+    @commands.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    async def vote(
+            self, ctx, conclude_at: Optional[interpret_str_as_datetime] = None,
+            *, matter: commands.clean_content(fix_channel_mentions=True)
+    ):
+        letters = ''.join({match[0]: None for match in self.LETTER_REGEX.findall(matter)})
+        #''.join([
+        #    letter for letter in self.LETTER_EMOJIS if f'{letter}.' in matter or f'{letter}:' in matter
+        #])
+        if len(letters) < 2:
+            letters = None
+        description = 'Zagłosuj w tej sprawie przy użyciu reakcji.'
+        if conclude_at is not None:
+            description += f'\nWynik zostanie ogłoszony {human_timedelta(conclude_at)}.'
+        embed = self.bot.generate_embed('🗳', matter, description)
+        urn_message = await self.bot.send(ctx, embed=embed)
+        options = ('👍', '👎') if letters is None else tuple(map(self.LETTER_EMOJIS.get, letters))
+        for option in options:
+            await urn_message.add_reaction(option)
+        try:
+            details = {
+                'urn_message_id': urn_message.id, 'channel_id': ctx.channel.id, 'matter': matter, 'letters': letters,
+                'user_id': ctx.author.id, 'commenced_at': utc_to_naive_local(ctx.message.created_at),
+                'conclude_at': conclude_at
+            }
+            if conclude_at is not None:
+                with data.session(commit=True) as session:
+                    reminder = Ballot(**details)
+                    session.add(reminder)
+                    self.bot.loop.create_task(self.set_off_ballot(**details))
+        except:
+            await urn_message.delete()
+            raise
+
+    @vote.error
+    async def vote_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            embed = self.bot.generate_embed('⚠️', 'Nie podano sprawy w jakiej ma się odbyć głosowanie')
+            await self.bot.send(ctx, embed=embed)
 
 
-@vote.error
-async def vote_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        embed = discord.Embed(
-            title=f':warning: Nie podano sprawy w jakiej ma się odbyć głosowanie!',
-            color=somsiad.COLOR
-        )
-        await somsiad.send(ctx, embed=embed)
+somsiad.add_cog(Vote(somsiad))
