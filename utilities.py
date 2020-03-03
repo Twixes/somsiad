@@ -240,8 +240,23 @@ def interpret_str_as_datetime(
     """Interpret the provided string as a datetime."""
     now = now_override or dt.datetime.now()
     try:
-        minutes = int(string)
-    except ValueError:
+        timedelta_elements = ['days', 'hours', 'minutes', 'seconds']
+        timedelta_arguments = {element: 0 for element in timedelta_elements}
+        try: # string as numbers of minute strategy
+            timedelta_arguments['minutes'] = int(string)
+        except ValueError: # string as custom format strategy
+            current_argument_index = 0
+            current_stack = ''
+            for character in string:
+                if character.isnumeric():
+                    current_stack += character
+                else:
+                    while character.lower() != timedelta_elements[current_argument_index][0]:
+                        current_argument_index += 1
+                    timedelta_arguments[timedelta_elements[current_argument_index]] = int(current_stack)
+                    current_argument_index += 1
+                    current_stack = ''
+    except (ValueError, KeyError): # string as datetime strategy
         string = string.replace('-', '.').replace('/', '.').replace(':', '.')
         for datetime_format in DATETIME_FORMATS:
             try:
@@ -270,7 +285,7 @@ def interpret_str_as_datetime(
         else:
             raise ValueError
     else:
-        datetime = now + dt.timedelta(minutes=minutes)
+        datetime = now + dt.timedelta(**timedelta_arguments)
         if years_in_future_limit is not None and datetime > now.replace(year=now.year+1):
             raise ValueError
     return datetime
