@@ -146,16 +146,17 @@ class Somsiad(commands.Bot):
             await asyncio.sleep(60)
 
     def generate_embed(
-            self, emoji: Optional[str], notice: str, description: str = discord.Embed.Empty,
-            *, url: str = discord.Embed.Empty, color: Optional[Union[discord.Color, int]] = None,
+            self, emoji: Optional[str] = None, notice: Optional[str] = None, description: str = discord.Embed.Empty, *,
+            url: str = discord.Embed.Empty, color: Optional[Union[discord.Color, int]] = None,
             timestamp: dt.datetime = discord.Embed.Empty
     ):
+        title_parts = tuple(filter(None, (emoji, notice)))
         color = color or self.COLOR
         color_value = color.value if isinstance(color, discord.Color) else color
         color = color if color_value != 0xffffff else 0xfefefe
         return discord.Embed(
-            title=' '.join(filter(None, (emoji, notice))), url=url, timestamp=timestamp, color=color or self.COLOR,
-            description=description
+            title=' '.join(title_parts) if title_parts else None, url=url, timestamp=timestamp,
+            color=color or self.COLOR, description=description
         )
 
     async def send(
