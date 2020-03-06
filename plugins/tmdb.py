@@ -16,7 +16,7 @@ import datetime as dt
 import aiohttp
 import discord
 from discord.ext import commands
-from core import Help, somsiad
+from core import Help, cooldown
 from configuration import configuration
 from utilities import word_number_form, calculate_age, human_amount_of_time
 
@@ -213,7 +213,7 @@ class TMDb(commands.Cog):
         return embed
 
     @commands.group(invoke_without_command=True)
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def tmdb(self, ctx, *, query):
         """Responds with the most popular movie/series/person matching the query."""
         async with ctx.typing():
@@ -226,7 +226,7 @@ class TMDb(commands.Cog):
             await self.bot.send(ctx, embeds=self.HELP.embeds)
 
     @tmdb.command(aliases=['film', 'kino'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def movie(self, ctx, *, query):
         """Responds with the most popular movie matching the query."""
         async with ctx.typing():
@@ -234,13 +234,13 @@ class TMDb(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
     @commands.command(aliases=['movie', 'film', 'kino'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def movie_unbound(self, ctx, *, query):
         """Responds with the most popular movie matching the query."""
         await ctx.invoke(self.movie, query=query)
 
     @tmdb.command(aliases=['serial', 'seria', 'telewizja'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def tv(self, ctx, *, query):
         """Responds with the most popular TV series matching the query."""
         async with ctx.typing():
@@ -248,13 +248,13 @@ class TMDb(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
     @commands.command(aliases=['tv', 'serial', 'seria', 'telewizja'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def tv_unbound(self, ctx, *, query):
         """Responds with the most popular TV series matching the query."""
         await ctx.invoke(self.tv, query=query)
 
     @tmdb.command(aliases=['osoba'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def person(self, ctx, *, query):
         """Responds with the most popular person matching the query."""
         async with ctx.typing():
@@ -262,7 +262,7 @@ class TMDb(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
     @commands.command(aliases=['person', 'osoba'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def person_unbound(self, ctx, *, query):
         """Responds with the most popular person matching the query."""
         await ctx.invoke(self.person, query=query)

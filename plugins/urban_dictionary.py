@@ -15,7 +15,7 @@ import datetime as dt
 import urllib.parse
 import aiohttp
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from utilities import text_snippet
 from configuration import configuration
 
@@ -47,7 +47,7 @@ class UrbanDictionary(commands.Cog):
         return new_string
 
     @commands.command(aliases=['urbandictionary', 'urban', 'ud'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     async def urban_dictionary(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
         params = {'term': query}

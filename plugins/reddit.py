@@ -15,7 +15,7 @@ import datetime as dt
 import aiohttp
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -102,7 +102,7 @@ class Reddit(commands.Cog):
         return embed
 
     @commands.command(aliases=['r', 'sub'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def subreddit(self, ctx, subreddit_name):
         async with ctx.typing():
             embed = await self.fetch_subreddit_and_generate_embed(subreddit_name, ctx.channel.is_nsfw())
@@ -116,7 +116,7 @@ class Reddit(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
     @commands.command(aliases=['u'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def user(self, ctx, username):
         async with ctx.typing():
             embed = await self.fetch_user_and_generate_embed(username, ctx.channel.is_nsfw())

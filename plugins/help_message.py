@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
-from core import somsiad, Help as _Help
+from core import Help as _Help, cooldown
 from configuration import configuration
 
 
@@ -215,9 +215,7 @@ class Help(commands.Cog):
         self.HELP = _Help(self.COMMANDS, '👋', 'Dobry!', description)
 
     @commands.command(aliases=['help', 'pomocy', 'pomoc'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def help_message(self, ctx):
         await self.bot.send(ctx, direct=True, embeds=self.HELP.embeds)
 

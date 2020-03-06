@@ -14,7 +14,7 @@
 import sys
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -23,9 +23,7 @@ class BotOwnerTools(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['wejdź'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.is_owner()
     async def enter(self, ctx, *, server_name):
         """Generates an invite to the provided server."""
@@ -45,17 +43,13 @@ class BotOwnerTools(commands.Cog):
             await self.bot.send(ctx, invite.url)
 
     @commands.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.is_owner()
     async def announce(self, _):
         pass
 
     @announce.command(aliases=['globalnie'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.is_owner()
     async def announce_globally(self, ctx, *, raw_announcement):
         """Makes an announcement on all servers smaller than 10000 members not containing "bot" in their name."""
@@ -83,9 +77,7 @@ class BotOwnerTools(commands.Cog):
                             break
 
     @announce.command(aliases=['lokalnie'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.is_owner()
     @commands.guild_only()
     async def announce_locally(self, ctx, *, raw_announcement):
@@ -111,9 +103,7 @@ class BotOwnerTools(commands.Cog):
                     break
 
     @commands.command(aliases=['wyłącz', 'wylacz', 'stop'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.is_owner()
     async def shutdown(self, ctx):
         """Shuts down the bot."""
@@ -124,9 +114,7 @@ class BotOwnerTools(commands.Cog):
         sys.exit()
 
     @commands.command(aliases=['błąd', 'blad', 'błont', 'blont'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.is_owner()
     async def error(self, ctx):
         """Causes an error."""

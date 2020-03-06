@@ -14,7 +14,7 @@
 from discord.ext import commands
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -41,7 +41,7 @@ class Google(commands.Cog):
             return None
 
     @commands.command(aliases=['g', 'gugiel'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def google(self, ctx, *, query='bot somsiad'):
         """Returns first matching website from Google using the provided Custom Search Engine."""
@@ -71,7 +71,7 @@ class Google(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @commands.command(aliases=['googleimage', 'gi', 'i'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def google_image(self, ctx, *, query='bot somsiad'):
         """Returns first matching image from Google using the provided Custom Search Engine."""

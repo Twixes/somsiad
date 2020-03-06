@@ -17,7 +17,7 @@ import PIL.Image
 import PIL.ImageEnhance
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -80,9 +80,7 @@ class Imaging(commands.Cog):
         return filename, input_image_bytes
 
     @commands.command(aliases=['obróć', 'obroc', 'niewytrzymie'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def rotate(self, ctx, times: int = 1):
         """Rotates an image."""
@@ -94,9 +92,7 @@ class Imaging(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do obrócenia'))
 
     @commands.command(aliases=['usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def deepfry(self, ctx, doneness: int = 2):
         """Deep-fries an image.

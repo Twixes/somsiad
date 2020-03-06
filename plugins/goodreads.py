@@ -13,10 +13,10 @@
 
 from typing import Optional, List, Dict
 import aiohttp
-from discord.ext import commands
-from core import somsiad
-from configuration import configuration
 from defusedxml import ElementTree
+from discord.ext import commands
+from core import cooldown
+from configuration import configuration
 
 
 class Goodreads(commands.Cog):
@@ -68,7 +68,7 @@ class Goodreads(commands.Cog):
         return books
 
     @commands.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
-    @commands.cooldown(1, min(configuration['command_cooldown_per_user_in_seconds'], 1))
+    @cooldown()
     async def goodreads(self, ctx, *, query):
         """Goodreads search. Responds with for the most popular books matching the query."""
         async with ctx.typing():

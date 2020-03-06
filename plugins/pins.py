@@ -14,7 +14,7 @@
 import io
 import discord
 from discord.ext import commands
-from core import ServerSpecific, ChannelRelated, somsiad, Help
+from core import ServerSpecific, ChannelRelated, Help, cooldown
 from utilities import first_url, word_number_form
 from configuration import configuration
 import data
@@ -82,17 +82,13 @@ class Pins(commands.Cog):
         self.bot = bot
 
     @commands.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def pins(self, ctx):
         """A group of pin-related commands."""
         await self.bot.send(ctx, embeds=self.HELP.embeds)
 
     @pins.command(aliases=['kanał', 'kanal'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def pins_channel(self, ctx, channel: discord.TextChannel = None):
@@ -131,9 +127,7 @@ class Pins(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
     @pins.command(aliases=['archiwizuj', 'zarchiwizuj'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     async def pins_archive(self, ctx):
@@ -169,9 +163,7 @@ class Pins(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
     @pins.command(aliases=['wyczyść', 'wyczysc'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     async def pins_clear(self, ctx):

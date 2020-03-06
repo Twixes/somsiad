@@ -15,7 +15,7 @@ from typing import Optional
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import ChannelRelated, UserRelated, somsiad
+from core import ChannelRelated, UserRelated, cooldown
 from configuration import configuration
 from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 import data
@@ -70,7 +70,7 @@ class Remind(commands.Cog):
                 ))
 
     @commands.command(aliases=['przypomnij', 'pomidor'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     async def remind(
             self, ctx, execute_at: interpret_str_as_datetime, *,
             content: commands.clean_content(fix_channel_mentions=True)

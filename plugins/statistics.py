@@ -22,7 +22,7 @@ import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 import discord
 from discord.ext import commands
-from core import Help, ServerRelated, ChannelRelated, UserRelated, somsiad
+from core import Help, ServerRelated, ChannelRelated, UserRelated, cooldown
 from configuration import configuration
 from utilities import word_number_form, utc_to_naive_local, human_datetime, md_link, rolling_average
 import data
@@ -726,7 +726,7 @@ class Statistics(commands.Cog):
         self.bot = bot
 
     @commands.group(invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.channel)
+    @cooldown()
     async def stat(
             self, ctx, subject: Union[discord.TextChannel, discord.Member, discord.User, int] = None,
             last_days: int = None
@@ -746,7 +746,7 @@ class Statistics(commands.Cog):
             ))
 
     @stat.command(aliases=['server', 'serwer'])
-    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.channel)
+    @cooldown()
     @commands.guild_only()
     async def stat_server(self, ctx, last_days: int = None):
         async with ctx.typing():
@@ -754,7 +754,7 @@ class Statistics(commands.Cog):
             await report.enqueue()
 
     @stat.command(aliases=['channel', 'kanał', 'kanal'])
-    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def stat_channel(self, ctx, channel: discord.TextChannel = None, last_days: int = None):
         channel = channel or ctx.channel
@@ -770,7 +770,7 @@ class Statistics(commands.Cog):
             )
 
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
-    @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def stat_member(
             self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None

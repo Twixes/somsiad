@@ -15,7 +15,7 @@ from typing import Union, Optional, List
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import somsiad, ServerRelated, UserRelated, ChannelRelated
+from core import ServerRelated, UserRelated, ChannelRelated, cooldown
 from utilities import word_number_form
 from configuration import configuration
 import data
@@ -119,9 +119,7 @@ class Moderation(commands.Cog):
             session.add(event)
 
     @commands.command(aliases=['ostrzeż', 'ostrzez'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def warn(self, ctx, subject_user: discord.Member, *, reason):
@@ -154,9 +152,7 @@ class Moderation(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
     @commands.command(aliases=['wyrzuć', 'wyrzuc'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
@@ -189,9 +185,7 @@ class Moderation(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
     @commands.command(aliases=['zbanuj'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
@@ -224,9 +218,7 @@ class Moderation(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
     @commands.command(aliases=['przebacz'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def pardon(self, ctx, subject_user: discord.Member):
@@ -260,9 +252,7 @@ class Moderation(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
     @commands.command(aliases=['kartoteka'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def file(
             self, ctx, member: Union[discord.Member, int] = None, *, event_types: Event.comprehend_types = None
@@ -331,9 +321,7 @@ class Moderation(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
     @commands.command(aliases=['wyczyść', 'wyczysc'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)

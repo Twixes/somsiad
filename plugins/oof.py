@@ -13,7 +13,7 @@
 
 import discord
 from discord.ext import commands
-from core import MemberSpecific, somsiad
+from core import MemberSpecific, cooldown
 from utilities import word_number_form
 from configuration import configuration
 import data
@@ -28,9 +28,7 @@ class Oof(commands.Cog):
         self.bot = bot
 
     @commands.group(invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def oof(self, ctx):
         with data.session(commit=True) as session:
@@ -43,17 +41,13 @@ class Oof(commands.Cog):
         await self.bot.send(ctx, 'Oof!')
 
     @oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def oof_how_many(self, ctx, *, member: discord.Member = None):
         await ctx.invoke(self.oof_how_many_member, member=member)
 
     @oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def oof_how_many_member(self, ctx, member: discord.Member = None):
         member = member or ctx.author
@@ -74,17 +68,13 @@ class Oof(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
     @oof_how_many.command(aliases=['server', 'serwer'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def oof_how_many_server(self, ctx):
         await ctx.invoke(self.oof_server)
 
     @oof.command(aliases=['server', 'serwer'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def oof_server(self, ctx):
         with data.session() as session:

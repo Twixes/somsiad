@@ -13,7 +13,7 @@
 
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -22,9 +22,7 @@ class Rimshot(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['badum', 'badumtss'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def rimshot(self, ctx):
         """Ba dum tss!"""
         file = discord.File(fp='./data/BA-DUM-TSS.mp3')

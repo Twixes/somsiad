@@ -14,7 +14,7 @@
 import aiohttp
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from utilities import text_snippet
 from configuration import configuration
 
@@ -136,7 +136,7 @@ class Wikipedia(commands.Cog):
         return embed
 
     @commands.command(aliases=['wiki', 'w'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     async def wikipedia(self, ctx, language, *, title = 'Wikipedia'):
         """The Wikipedia search command."""
         embed = await self.embed_search_result(language, title)

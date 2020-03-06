@@ -28,7 +28,6 @@ if configuration['sentry_dsn'] is not None:
 from core import somsiad
 from utilities import setlocale
 from data import create_all_tables
-from plugins import *
 
 ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 

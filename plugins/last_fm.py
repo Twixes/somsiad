@@ -14,7 +14,7 @@
 from difflib import SequenceMatcher
 import aiohttp
 from discord.ext import commands
-from core import somsiad, youtube_client
+from core import cooldown
 from configuration import configuration
 
 
@@ -65,9 +65,7 @@ class LastFM(commands.Cog):
             return None
 
     @commands.group(aliases=['lastfm', 'last', 'fm', 'lfm'], invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def last_fm(self, ctx, *, user):
         async with ctx.typing():
             user_info = await self.get_user_info(user)
@@ -98,7 +96,7 @@ class LastFM(commands.Cog):
                         )
                     # search for the song on YouTube
                     youtube_search_query = f'{user_recent_tracks[0]["name"]} {user_recent_tracks[0]["artist"]["#text"]}'
-                    youtube_search_result = await youtube_client.search(youtube_search_query)
+                    youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
                     # add a link to a YouTube video if a match was found
                     if (
                             youtube_search_result is not None and

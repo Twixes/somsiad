@@ -29,6 +29,19 @@ from configuration import configuration
 import data
 
 
+def cooldown(
+        rate: int = 1, per: float = configuration['command_cooldown_per_user_in_seconds'],
+        type: commands.BucketType = commands.BucketType.user
+):
+    def decorator(func):
+        if isinstance(func, commands.Command):
+            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per, type))
+        else:
+            func.__commands_cooldown__ = commands.Cooldown(rate, per, type)
+        return func
+    return decorator
+
+
 class Somsiad(commands.Bot):
     COLOR = 0x7289da
     USER_AGENT = f'SomsiadBot/{__version__}'
@@ -75,12 +88,13 @@ class Somsiad(commands.Bot):
             for variant in
             (f'{configuration["command_prefix"]} {command}', f'{configuration["command_prefix"]}{command}')
         ))
+        self.youtube_client = YouTubeClient(configuration['google_key'], self.loop)
 
     async def on_ready(self):
         print(self.info())
         data.Server.register_all(self.guilds)
-        self.add_cog(Essentials(somsiad))
-        self.add_cog(Prefix(somsiad))
+        self.add_cog(Essentials(self))
+        self.add_cog(Prefix(self))
         for path in os.scandir('plugins'):
             if path.is_file() and path.name.endswith('.py'):
                 self.load_extension(f'plugins.{path.name[:-3]}')
@@ -375,9 +389,7 @@ class Essentials(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['wersja', 'v'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def version(self, ctx, *, x = None):
         """Responds with current version of the bot."""
         if x and 'fccchk' in x.lower():
@@ -393,9 +405,7 @@ class Essentials(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @commands.command(aliases=['informacje'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def info(self, ctx, *, x = None):
         """Responds with current version of the bot."""
         if x and 'fccchk' in x.lower():
@@ -433,9 +443,7 @@ class Essentials(commands.Cog):
         await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'))
 
     @commands.command(aliases=['nope', 'nie'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def no(self, ctx, member: discord.Member = None):
         """Removes the last message sent by the bot in the channel on the requesting user's request."""
         member = member or ctx.author
@@ -470,17 +478,13 @@ class Prefix(commands.Cog):
         )
 
     @commands.group(aliases=['prefiks', 'przedrostek'], invoke_without_command=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def prefix(self, ctx):
         """Command prefix commands."""
         await self.bot.send(ctx, embeds=self.HELP.embeds)
 
     @prefix.command(aliases=['sprawdź', 'sprawdz'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     async def prefix_check(self, ctx):
         """Presents the current command prefix."""
         with data.session() as session:
@@ -491,9 +495,7 @@ class Prefix(commands.Cog):
         await self.bot.send(ctx, embed=self.bot.generate_embed('🔧', notice, self.prefix_usage_example(current_prefix)))
 
     @prefix.command(aliases=['ustaw'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def prefix_set(self, ctx, *, new_prefix: str):
@@ -519,9 +521,7 @@ class Prefix(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
     @prefix.command(aliases=['przywróć', 'przywroc'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def prefix_restore(self, ctx):
@@ -536,4 +536,3 @@ class Prefix(commands.Cog):
 
 
 somsiad = Somsiad()
-youtube_client = YouTubeClient(configuration['google_key'], somsiad.loop)

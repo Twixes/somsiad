@@ -13,7 +13,7 @@
 
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -22,9 +22,7 @@ class Invite(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['zaproś', 'zapros'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def invite(self, ctx, *, argument = ''):
         is_user_permitted_to_invite = False

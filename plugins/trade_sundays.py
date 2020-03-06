@@ -15,7 +15,7 @@ from typing import List, Optional
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import somsiad, Help
+from core import Help, cooldown
 from configuration import configuration
 
 
@@ -248,16 +248,12 @@ class TradeSundays(commands.Cog):
                 month = 1
 
     @commands.group(aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def trade_sundays(self, ctx):
         await self.bot.send(ctx, embeds=self.HELP.embeds)
 
     @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def trade_sundays_nearest(self, ctx):
         nearest_sunday_date = self.determine_nearest_sunday_after_date_inclusive()
         nearest_trade_sunday_date = self.determine_nearest_trade_sunday_after_date_inclusive()
@@ -279,9 +275,7 @@ class TradeSundays(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @trade_sundays.command(aliases=['terminarz', 'lista', 'spis'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def trade_sundays_list(self, ctx, year: Optional[int], month: Optional[int]):
         month_names = [
             'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik',

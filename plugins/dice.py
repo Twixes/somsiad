@@ -14,7 +14,7 @@
 import random
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -23,9 +23,7 @@ class Dice(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['roll', 'rzuć', 'rzuc'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def roll_dice(self, ctx, arguments):
         number_of_dice = 1
         number_of_sides_on_a_die = 6

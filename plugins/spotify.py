@@ -14,7 +14,7 @@
 from difflib import SequenceMatcher
 import discord
 from discord.ext import commands
-from core import somsiad, youtube_client
+from core import cooldown
 from utilities import human_amount_of_time
 from configuration import configuration
 
@@ -30,7 +30,7 @@ class Spotify(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def spotify(self, ctx, member: discord.Member = None):
         member = member or ctx.author
@@ -53,7 +53,7 @@ class Spotify(commands.Cog):
             )
             # search for the song on YouTube
             youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
-            youtube_search_result = await youtube_client.search(youtube_search_query)
+            youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
             # add a link to a YouTube video if a match was found
             if (
                     youtube_search_result is not None and

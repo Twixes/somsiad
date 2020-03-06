@@ -13,7 +13,7 @@
 
 import random
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -73,9 +73,7 @@ class Eightball(commands.Cog):
         return aNSwEr
 
     @commands.command(aliases=['8ball', '8-ball', '8', 'czy'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def eightball(self, ctx, *, question: commands.clean_content(fix_channel_mentions=True) = ''):
         """Returns an 8-Ball answer."""
         stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?').lower()

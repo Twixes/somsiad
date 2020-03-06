@@ -14,7 +14,7 @@
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import ChannelRelated, UserRelated, somsiad
+from core import ChannelRelated, UserRelated, cooldown
 from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 from configuration import configuration
 import data
@@ -69,9 +69,7 @@ class Burn(commands.Cog):
                 ))
 
     @commands.command(aliases=['spal'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.bot_has_permissions(manage_messages=True)
     async def burn(self, ctx, execute_at: interpret_str_as_datetime):
         """Removes the message after a specified mount time."""

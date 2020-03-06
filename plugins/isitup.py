@@ -13,8 +13,8 @@
 
 import aiohttp
 from discord.ext import commands
-from core import somsiad
 from utilities import first_url, md_link
+from core import cooldown
 from configuration import configuration
 
 
@@ -31,9 +31,7 @@ class IsItUp(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=('isup', 'czydziała', 'czydziala'))
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def isitup(self, ctx, *, query='https://google.com'):
         """Returns information about website status."""
         async with ctx.typing():

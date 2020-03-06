@@ -19,7 +19,7 @@ import locale
 import discord
 from discord.ext import commands
 import pytube
-from core import Help, somsiad, youtube_client
+from core import Help, cooldown
 from utilities import human_amount_of_time
 from configuration import configuration
 
@@ -71,7 +71,7 @@ class Disco(commands.Cog):
         try:
             pytube.extract.video_id(query)
         except pytube.exceptions.RegexMatchError:
-            search_result = await youtube_client.search(query)
+            search_result = await self.bot.youtube_client.search(query)
             video_url = search_result.url if search_result is not None else None
         else:
             video_url = query
@@ -129,23 +129,19 @@ class Disco(commands.Cog):
         embed.add_field(name='Kanał', value=channel.name)
         embed.add_field(name='Głośność', value=f'{int(self.servers[channel.guild.id]["volume"] * 100)}%')
         embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))
-        embed.set_footer(icon_url=youtube_client.FOOTER_ICON_URL, text=youtube_client.FOOTER_TEXT)
+        embed.set_footer(icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT)
         return embed
 
 
     @commands.group(aliases=['d'], invoke_without_command=True)
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco(self, ctx):
         await self.bot.send(ctx, embeds=self.HELP.embeds)
 
 
     @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco_play(self, ctx, *, query):
         """Starts playing music on the voice channel where the invoking user currently resides."""
@@ -171,9 +167,7 @@ class Disco(commands.Cog):
 
 
     @disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco_again(self, ctx):
         """Starts playing music on the voice channel where the invoking user currently resides."""
@@ -195,9 +189,7 @@ class Disco(commands.Cog):
 
 
     @disco.command(aliases=['pauza', 'spauzuj', 'pauzuj', 'pause'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco_pause(self, ctx):
         """Pauses the currently played song."""
@@ -231,9 +223,7 @@ class Disco(commands.Cog):
 
 
     @disco.command(aliases=['wznów', 'wznow', 'odpauzuj', 'unpause', 'resume'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco_resume(self, ctx):
         """Resumes playing song."""
@@ -266,9 +256,7 @@ class Disco(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @disco.command(aliases=['pomiń', 'pomin', 'skip'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco_skip(self, ctx):
         """Skips the currently played song."""
@@ -291,9 +279,7 @@ class Disco(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @disco.command(aliases=['rozłącz', 'rozlacz', 'stop'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco_disconnect(self, ctx):
         """Disconnects from the server."""
@@ -316,9 +302,7 @@ class Disco(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @disco.command(aliases=['głośność', 'glosnosc', 'poziom', 'volume', 'vol'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default
-    )
+    @cooldown()
     @commands.guild_only()
     async def disco_volume(self, ctx, volume_percentage: Union[int, locale.atoi] = None):
         """Sets the volume."""

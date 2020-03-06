@@ -13,7 +13,7 @@
 
 import random
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -48,9 +48,7 @@ class Choice(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['choose', 'wybierz'])
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def random_choice(self, ctx, *, raw_options = ''):
         """Randomly chooses one of provided options."""
         raw_options = raw_options.replace(';', ',').replace('|', ',')

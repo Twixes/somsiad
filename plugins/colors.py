@@ -18,7 +18,7 @@ import random
 import colorsys
 import discord
 from discord.ext import commands
-from core import Help, somsiad
+from core import Help, cooldown
 from configuration import configuration
 
 
@@ -47,13 +47,13 @@ class Colors(commands.Cog):
     @commands.group(
         invoke_without_command=True, case_insensitive=True, aliases=['kolory', 'kolor', 'kolorki', 'kolorek']
     )
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     @commands.guild_only()
     async def colors(self, ctx):
         await self.bot.send(ctx, embeds=self.HELP.embeds)
 
     @colors.command(aliases=['role', 'lista'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     @commands.guild_only()
     async def roles(self, ctx):
         relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
@@ -76,7 +76,7 @@ class Colors(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['ustaw'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     @commands.guild_only()
     async def set(self, ctx, *, role_candidate: Union[discord.Role, str] = '?'):
         role = None
@@ -131,7 +131,7 @@ class Colors(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['pokaż', 'pokaz'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     @commands.guild_only()
     async def show(self, ctx, *, subject_candidate: Union[discord.Member, discord.Role, str] = None):
         subject_candidate = subject_candidate or ctx.author
@@ -191,7 +191,7 @@ class Colors(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
     @colors.command(aliases=['wyczyść', 'wyczysc'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.default)
+    @cooldown()
     @commands.guild_only()
     async def clear(self, ctx):
         roles_for_removal = [role for role in ctx.author.roles if role.name.startswith('🎨 ')]

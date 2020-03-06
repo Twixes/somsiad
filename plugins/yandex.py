@@ -15,7 +15,7 @@ from typing import Optional
 import aiohttp
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -80,7 +80,7 @@ class Yandex(commands.Cog):
         return embed
 
     @commands.command(aliases=['tłumacz', 'tlumacz', 'translator'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     async def translate(self, ctx, source_language_code, target_language_code, *, text):
         embed = await self.translation_embed(text, target_language_code, source_language_code)
         await self.bot.send(ctx, embed=embed)

@@ -15,7 +15,7 @@ from typing import Optional, Sequence
 import random
 import discord
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -112,7 +112,7 @@ class React(commands.Cog):
                     pass
 
     @commands.command(aliases=['zareaguj', 'x'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def react(
         self, ctx, member: Optional[discord.Member] = None, *,
@@ -122,49 +122,49 @@ class React(commands.Cog):
         await self._react(ctx, characters, member)
 
     @commands.command(aliases=['pomógł', 'pomogl'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def helped(self, ctx, member: discord.Member = None):
         """Reacts with "POMÓGŁ"."""
         await self._react(ctx, 'pomógł', member)
 
     @commands.command(aliases=['niepomógł', 'niepomogl'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def didnothelp(self, ctx, member: discord.Member = None):
         """Reacts with "NIEPOMÓGŁ"."""
         await self._react(ctx, 'niepomógł', member)
 
     @commands.command(aliases=['up', 'this', 'to', '^'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def upvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬆"."""
         await self._raw_react(ctx, '⬆', member)
 
     @commands.command(aliases=['down'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def downvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬇"."""
         await self._raw_react(ctx, '⬇', member)
 
     @commands.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def thinking(self, ctx, member: discord.Member = None):
         """Reacts with "🤔"."""
         await self._raw_react(ctx, '🤔', member)
 
     @commands.command()
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def f(self, ctx, member: discord.Member = None):
         """Reacts with "F"."""
         await self._raw_react(ctx, '🇫', member)
 
     @commands.command(aliases=['chlip', '😢'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     async def sob(self, ctx, member: discord.Member = None):
         """Reacts with "😢"."""

@@ -17,7 +17,7 @@ import asyncio
 import locale
 import datetime as dt
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from utilities import human_amount_of_time, interpret_str_as_datetime
 from configuration import configuration
 
@@ -106,7 +106,7 @@ class Close(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['zamknij'])
-    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @cooldown()
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)

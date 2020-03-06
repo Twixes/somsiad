@@ -14,7 +14,7 @@
 from typing import Optional
 import aiohttp
 from discord.ext import commands
-from core import somsiad
+from core import cooldown
 from configuration import configuration
 
 
@@ -50,9 +50,7 @@ class WolframAlpha(commands.Cog):
     @commands.command(
         aliases=['wolframalpha', 'wolfram', 'wa', 'kalkulator', 'oblicz', 'policz', 'przelicz', 'konwertuj']
     )
-    @commands.cooldown(
-        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-    )
+    @cooldown()
     async def wolfram_alpha(self, ctx, *, query):
         async with ctx.typing():
             pods = await self.fetch_pods(query)
