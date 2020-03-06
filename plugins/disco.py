@@ -125,10 +125,10 @@ class Disco(commands.Cog):
         )
         embed.set_author(name=video.author)
         embed.set_thumbnail(url=video.thumbnail_url)
+        embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))
         embed.add_field(name='Status', value=status)
         embed.add_field(name='Kanał', value=channel.name)
         embed.add_field(name='Głośność', value=f'{int(self.servers[channel.guild.id]["volume"] * 100)}%')
-        embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))
         embed.set_footer(icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT)
         return embed
 
