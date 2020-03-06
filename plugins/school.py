@@ -15,7 +15,6 @@ import datetime as dt
 from discord.ext import commands
 from utilities import word_number_form, days_as_weeks
 from core import cooldown
-from configuration import configuration
 
 
 class SchoolPeriod:

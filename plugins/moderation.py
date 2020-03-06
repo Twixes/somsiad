@@ -11,13 +11,12 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, Optional, List
+from typing import Union, List
 import datetime as dt
 import discord
 from discord.ext import commands
 from core import ServerRelated, UserRelated, ChannelRelated, cooldown
 from utilities import word_number_form
-from configuration import configuration
 import data
 
 

@@ -16,7 +16,6 @@ import random
 import discord
 from discord.ext import commands
 from core import cooldown
-from configuration import configuration
 
 
 class React(commands.Cog):

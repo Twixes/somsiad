@@ -16,7 +16,6 @@ import discord
 from discord.ext import commands
 from core import cooldown
 from utilities import human_amount_of_time
-from configuration import configuration
 
 
 class Spotify(commands.Cog):

@@ -15,7 +15,6 @@ import discord
 from discord.ext import commands
 from core import MemberSpecific, cooldown
 from utilities import word_number_form
-from configuration import configuration
 import data
 
 

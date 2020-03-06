@@ -18,7 +18,6 @@ import PIL.ImageEnhance
 import discord
 from discord.ext import commands
 from core import cooldown
-from configuration import configuration
 
 
 class Imaging(commands.Cog):

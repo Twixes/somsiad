@@ -13,10 +13,8 @@
 
 from typing import List, Optional
 import datetime as dt
-import discord
 from discord.ext import commands
 from core import Help, cooldown
-from configuration import configuration
 
 
 class TradeSundays(commands.Cog):
@@ -291,9 +289,9 @@ class TradeSundays(commands.Cog):
         for trade_sunday_date in trade_sunday_dates:
             trade_sunday_dates_by_month[trade_sunday_date.month-1].append(str(trade_sunday_date.day))
         embed = self.bot.generate_embed('🗓', f'Niedziele handlowe w {year}')
-        for i, month in enumerate(trade_sunday_dates_by_month):
-            if month:
-                embed.add_field(name=month_names[i], value=', '.join(month))
+        for i, i_month in enumerate(trade_sunday_dates_by_month):
+            if i_month:
+                embed.add_field(name=month_names[i], value=', '.join(i_month))
         await self.bot.send(ctx, embed=embed)
 
     @trade_sundays_list.error

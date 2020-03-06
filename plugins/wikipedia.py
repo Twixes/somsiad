@@ -16,7 +16,6 @@ import discord
 from discord.ext import commands
 from core import cooldown
 from utilities import text_snippet
-from configuration import configuration
 
 
 class Wikipedia(commands.Cog):

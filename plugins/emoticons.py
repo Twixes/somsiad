@@ -13,7 +13,6 @@
 
 from discord.ext import commands
 from core import cooldown
-from configuration import configuration
 
 
 class Emoticons(commands.Cog):

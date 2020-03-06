@@ -14,7 +14,6 @@
 import discord
 from discord.ext import commands
 from core import cooldown
-from configuration import configuration
 
 
 class Invite(commands.Cog):

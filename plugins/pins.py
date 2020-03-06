@@ -16,7 +16,6 @@ import discord
 from discord.ext import commands
 from core import ServerSpecific, ChannelRelated, Help, cooldown
 from utilities import first_url, word_number_form
-from configuration import configuration
 import data
 
 channel_being_processed_for_servers = {}

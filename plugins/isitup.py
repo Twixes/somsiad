@@ -15,7 +15,6 @@ import aiohttp
 from discord.ext import commands
 from utilities import first_url, md_link
 from core import cooldown
-from configuration import configuration
 
 
 class IsItUp(commands.Cog):

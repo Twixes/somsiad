@@ -16,7 +16,6 @@ import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, cooldown
 from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
-from configuration import configuration
 import data
 
 

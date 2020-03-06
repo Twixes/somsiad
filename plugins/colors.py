@@ -19,7 +19,6 @@ import colorsys
 import discord
 from discord.ext import commands
 from core import Help, cooldown
-from configuration import configuration
 
 
 class Colors(commands.Cog):

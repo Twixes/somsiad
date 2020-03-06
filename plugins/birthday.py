@@ -20,7 +20,6 @@ import discord
 from discord.ext import commands
 from core import Help, ServerSpecific, UserSpecific, ChannelRelated, cooldown
 from utilities import word_number_form, calculate_age
-from configuration import configuration
 import data
 
 

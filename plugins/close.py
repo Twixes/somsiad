@@ -19,7 +19,6 @@ import datetime as dt
 from discord.ext import commands
 from core import cooldown
 from utilities import human_amount_of_time, interpret_str_as_datetime
-from configuration import configuration
 
 
 class Closing:

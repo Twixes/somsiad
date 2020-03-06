@@ -15,7 +15,6 @@ import datetime as dt
 import discord
 from discord.ext import commands
 from core import cooldown
-from configuration import configuration
 
 
 class Reddit(commands.Cog):

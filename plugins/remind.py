@@ -11,12 +11,10 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
 import datetime as dt
 import discord
 from discord.ext import commands
 from core import ChannelRelated, UserRelated, cooldown
-from configuration import configuration
 from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 import data
 

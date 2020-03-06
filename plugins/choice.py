@@ -14,7 +14,6 @@
 import random
 from discord.ext import commands
 from core import cooldown
-from configuration import configuration
 
 
 class Choice(commands.Cog):
