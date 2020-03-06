@@ -17,7 +17,7 @@ from core import somsiad
 from configuration import configuration
 
 
-class EightBall(commands.Cog):
+class Eightball(commands.Cog):
     CATEGORIES_POOL = ['definitive'] * 49 + ['enigmatic'] * 1
     DEFINITIVE_SUBCATEGORIES_POOL = ['affirmative', 'negative']
     ANSWERS = {
@@ -86,7 +86,7 @@ class EightBall(commands.Cog):
                 text = f'🎱 {self.ask()}'
         else:
             text = '⚠️ By zadać magicznej kuli pytanie musisz użyć *słów*'
-        await self.bot.send(ctx,text)
+        await self.bot.send(ctx, text)
 
 
-somsiad.add_cog(EightBall(somsiad))
+somsiad.add_cog(Eightball(somsiad))

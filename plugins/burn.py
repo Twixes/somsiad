@@ -1,4 +1,4 @@
-# Copyright 2019 Twixes
+# Copyright 2019-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
