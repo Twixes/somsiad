@@ -13,7 +13,7 @@
 
 from typing import Union, Optional, Sequence, Tuple
 from numbers import Number
-from collections import namedtuple
+from dataclasses import dataclass
 import asyncio
 import locale
 import calendar
@@ -21,19 +21,70 @@ import re
 import datetime as dt
 import numpy as np
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 
-DatetimeFormat = namedtuple('DatetimeFormat', ('format', 'imply_year', 'imply_month', 'imply_day'))
+
+@dataclass
+class DatetimeFormat:
+    format: str
+    imply_year: bool = False
+    imply_month: bool = False
+    imply_day: bool = False
+
 
 DATETIME_FORMATS = (
-    DatetimeFormat('%d.%m.%YT%H.%M', False, False, False),
-    DatetimeFormat('%d.%m.%yT%H.%M', False, False, False),
-    DatetimeFormat('%d.%mT%H.%M', True, False, False),
-    DatetimeFormat('%dT%H.%M', True, True, False),
+    DatetimeFormat('%d.%m.%YT%H.%M'),
+    DatetimeFormat('%d.%m.%yT%H.%M'),
+    DatetimeFormat('%d.%mT%H.%M', True),
+    DatetimeFormat('%dT%H.%M', True, True),
     DatetimeFormat('%H.%M', True, True, True)
 )
 URL_REGEX = re.compile(r'(https?:\/\/\S+\.\S+)')
 URL_REGEX_PROTOCOL_SEPARATE = re.compile(r'(?:(\w+):\/\/)?(\S+\.\S+)')
+
+
+class GoogleClient:
+    FOOTER_TEXT = 'Google'
+    FOOTER_ICON_URL = 'https://www.google.com/favicon.ico'
+
+    @dataclass
+    class GoogleResult:
+        title: str
+        snippet: str
+        source_link: str
+        display_link: str
+        root_link: str
+        image_link: str
+        type: str
+
+    def __init__(self, developer_key: str, custom_search_engine_id: str, loop: asyncio.AbstractEventLoop):
+        self.custom_search_engine_id = custom_search_engine_id
+        self.search_client = build('customsearch', 'v1', developerKey=developer_key).cse()
+        self.loop = loop
+
+    async def search(
+            self, query: str, *, language: str = 'pl', safe: str = 'active', search_type: str = None
+    ) -> Optional[GoogleResult]:
+        query = self.search_client.list(
+            q=query, cx=self.custom_search_engine_id, hl=language, num=1, safe=safe, searchType=search_type
+        )
+        results = await self.loop.run_in_executor(None, query.execute)
+        if results['searchInformation']['totalResults'] == '0':
+            return None
+        result = results['items'][0]
+        if search_type == 'image':
+            return self.GoogleResult(
+                result['title'], result['snippet'], result['image']['contextLink'], result['displayLink'],
+                f'{result["link"].split("://")[0]}://{result["displayLink"]}', result['link'], search_type
+            )
+        try:
+            image_link = result['pagemap']['cse_image'][0]['src']
+        except KeyError:
+            image_link = None
+        return self.GoogleResult(
+            result['title'], result['snippet'], result['link'], result['displayLink'],
+            f'{result["link"].split("://")[0]}://{result["displayLink"]}', image_link, search_type
+        )
+
 
 class YouTubeClient:
     FOOTER_ICON_URL = (
@@ -42,36 +93,28 @@ class YouTubeClient:
     )
     FOOTER_TEXT = 'YouTube'
 
-    class SearchResult:
-        __slots__ = ('id', 'title', 'thumbnail_url')
-
-        def __init__(self, id: str, title: str, thumbnail_url: str):
-            self.id = id
-            self.title = title
-            self.thumbnail_url = thumbnail_url
-
-        @property
-        def url(self) -> str:
-            return f'https://www.youtube.com/watch?v={self.id}'
+    @dataclass
+    class YouTubeResult:
+        id: str
+        title: str
+        url: str
+        thumbnail_url: str
 
     def __init__(self, developer_key: str, loop: asyncio.AbstractEventLoop):
-        self.client = build('youtube', 'v3', developerKey=developer_key)
+        self.search_client = build('youtube', 'v3', developerKey=developer_key).search()
         self.loop = loop
 
-    async def search(self, query: str) -> Optional[SearchResult]:
-        try:
-            query = self.client.search().list(q=query, part='snippet', maxResults=1, type='video')
-            response = await self.loop.run_in_executor(None, query.execute)
-            items = response.get('items')
-            if items:
-                return self.SearchResult(
-                    items[0]['id']['videoId'], items[0]['snippet']['title'],
-                    items[0]['snippet']['thumbnails']['medium']['url']
-                )
-            else:
-                return None
-        except HttpError:
+    async def search(self, query: str) -> Optional[YouTubeResult]:
+        query = self.search_client.list(q=query, part='snippet', maxResults=1, type='video')
+        response = await self.loop.run_in_executor(None, query.execute)
+        items = response.get('items')
+        if not items:
             return None
+        video_id = items[0]['id']['videoId']
+        return self.YouTubeResult(
+            video_id, items[0]['snippet']['title'], f'https://www.youtube.com/watch?v={video_id}',
+            items[0]['snippet']['thumbnails']['medium']['url']
+        )
 
 
 def first_url(string: str, *, protocol_separate: bool = False) -> Union[str, Tuple[Optional[str], Optional[str]]]:

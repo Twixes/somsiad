@@ -24,7 +24,7 @@ import sentry_sdk
 import discord
 from discord.ext import commands
 from version import __version__, __copyright__
-from utilities import YouTubeClient, word_number_form, human_amount_of_time
+from utilities import GoogleClient, YouTubeClient, word_number_form, human_amount_of_time
 from configuration import configuration
 import data
 
@@ -88,6 +88,9 @@ class Somsiad(commands.Bot):
             for variant in
             (f'{configuration["command_prefix"]} {command}', f'{configuration["command_prefix"]}{command}')
         ))
+        self.google_client = GoogleClient(
+            configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
+        )
         self.youtube_client = YouTubeClient(configuration['google_key'], self.loop)
 
     async def on_ready(self):
