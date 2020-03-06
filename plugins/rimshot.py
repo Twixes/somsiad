@@ -25,7 +25,7 @@ class Rimshot(commands.Cog):
     @cooldown()
     async def rimshot(self, ctx):
         """Ba dum tss!"""
-        file = discord.File(fp='./data/BA-DUM-TSS.mp3')
+        file = discord.File(fp='plugins/assets/BA-DUM-TSS.mp3')
         await self.bot.send(ctx, file=file)
 
 
