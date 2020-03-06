@@ -788,4 +788,5 @@ class Statistics(commands.Cog):
             )
 
 
-somsiad.add_cog(Statistics(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Statistics(bot))

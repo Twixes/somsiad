@@ -222,4 +222,5 @@ class Help(commands.Cog):
         await self.bot.send(ctx, direct=True, embeds=self.HELP.embeds)
 
 
-somsiad.add_cog(Help(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Help(bot))

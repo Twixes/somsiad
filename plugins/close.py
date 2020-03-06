@@ -131,4 +131,5 @@ class Close(commands.Cog):
             )
 
 
-somsiad.add_cog(Close(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Close(bot))

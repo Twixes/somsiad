@@ -171,4 +171,5 @@ class React(commands.Cog):
         await self._raw_react(ctx, '😢', member)
 
 
-somsiad.add_cog(React(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(React(bot))

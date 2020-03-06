@@ -65,4 +65,5 @@ class Spotify(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(Spotify(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Spotify(bot))

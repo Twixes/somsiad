@@ -82,4 +82,5 @@ class Emoticons(commands.Cog):
         await self.bot.send(ctx, ':japanese_goblin:', mention=False)
 
 
-somsiad.add_cog(Emoticons(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Emoticons(bot))

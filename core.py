@@ -79,6 +79,12 @@ class Somsiad(commands.Bot):
     async def on_ready(self):
         print(self.info())
         data.Server.register_all(self.guilds)
+        self.add_cog(Essentials(somsiad))
+        self.add_cog(Prefix(somsiad))
+        for path in os.scandir('plugins'):
+            if path.is_file() and path.name.endswith('.py'):
+                self.load_extension(f'plugins.{path.name[:-3]}')
+        print('\nWszystkie rozszerzenia załadowane!')
         await self.cycle_presence()
 
     async def on_error(self, event_method, *args, **kwargs):
@@ -153,7 +159,7 @@ class Somsiad(commands.Bot):
         title_parts = tuple(filter(None, (emoji, notice)))
         color = color or self.COLOR
         color_value = color.value if isinstance(color, discord.Color) else color
-        color = color if color_value != 0xffffff else 0xfefefe
+        color = color if color_value != 0xffffff else 0xfefefe # Discord treats pure white as no color at all
         return discord.Embed(
             title=' '.join(title_parts) if title_parts else None, url=url, timestamp=timestamp,
             color=color or self.COLOR, description=description
@@ -530,6 +536,4 @@ class Prefix(commands.Cog):
 
 
 somsiad = Somsiad()
-somsiad.add_cog(Essentials(somsiad))
-somsiad.add_cog(Prefix(somsiad))
 youtube_client = YouTubeClient(configuration['google_key'], somsiad.loop)

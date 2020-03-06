@@ -80,4 +80,5 @@ class Choice(commands.Cog):
             )
 
 
-somsiad.add_cog(Choice(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Choice(bot))

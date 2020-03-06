@@ -563,4 +563,5 @@ class Birthday(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(Birthday(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Birthday(bot))

@@ -356,4 +356,5 @@ class Disco(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(Disco(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Disco(bot))

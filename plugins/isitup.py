@@ -70,4 +70,5 @@ class IsItUp(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(IsItUp(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(IsItUp(bot))

@@ -111,4 +111,5 @@ class Oof(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(Oof(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Oof(bot))

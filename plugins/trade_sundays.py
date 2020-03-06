@@ -309,4 +309,5 @@ class TradeSundays(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(TradeSundays(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(TradeSundays(bot))

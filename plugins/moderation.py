@@ -302,10 +302,9 @@ class Moderation(commands.Cog):
             elif len(event_types) > 1:
                 event_types_description = ' podanych typów'
             event_number_form = word_number_form(len(events), 'zdarzenie', 'zdarzenia', 'zdarzeń')
-            embed = discord.Embed(
-                title=f':open_file_folder: {address} zawiera {event_number_form}{event_types_description}',
-                description='Pokazuję 25 najnowszych.' if len(events) > 25 else '',
-                color=self.bot.COLOR
+            embed = self.bot.generate_embed(
+                '📂', f'{address} zawiera {event_number_form}{event_types_description}',
+                'Pokazuję 25 najnowszych.' if len(events) > 25 else ''
             )
             for event in events[-25:]:
                 embed.add_field(
@@ -367,4 +366,5 @@ class Moderation(commands.Cog):
             )
 
 
-somsiad.add_cog(Moderation(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Moderation(bot))

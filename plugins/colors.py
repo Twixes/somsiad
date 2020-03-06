@@ -210,4 +210,5 @@ class Colors(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(Colors(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Colors(bot))

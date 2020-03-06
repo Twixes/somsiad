@@ -198,4 +198,5 @@ class Pins(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(Pins(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Pins(bot))

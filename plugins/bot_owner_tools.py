@@ -133,4 +133,5 @@ class BotOwnerTools(commands.Cog):
         await self.bot.send(ctx, 1 / 0)
 
 
-somsiad.add_cog(BotOwnerTools(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(BotOwnerTools(bot))

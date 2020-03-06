@@ -107,4 +107,5 @@ class Burn(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
 
-somsiad.add_cog(Burn(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Burn(bot))

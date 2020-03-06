@@ -89,4 +89,5 @@ class Eightball(commands.Cog):
         await self.bot.send(ctx, text)
 
 
-somsiad.add_cog(Eightball(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Eightball(bot))

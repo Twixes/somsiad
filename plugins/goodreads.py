@@ -104,4 +104,5 @@ class Goodreads(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-somsiad.add_cog(Goodreads(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Goodreads(bot))

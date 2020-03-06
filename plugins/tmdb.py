@@ -268,4 +268,5 @@ class TMDb(commands.Cog):
         await ctx.invoke(self.person, query=query)
 
 
-somsiad.add_cog(TMDb(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(TMDb(bot))

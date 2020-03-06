@@ -31,4 +31,5 @@ class Rimshot(commands.Cog):
         await self.bot.send(ctx, file=file)
 
 
-somsiad.add_cog(Rimshot(somsiad))
+def setup(bot: commands.Bot):
+    bot.add_cog(Rimshot(bot))
