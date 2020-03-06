@@ -23,104 +23,92 @@ class Oofer(data.Base, MemberSpecific):
     oofs = data.Column(data.Integer, nullable=False, default=1)
 
 
-@somsiad.group(invoke_without_command=True, case_insensitive=True)
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def oof(ctx):
-    with data.session(commit=True) as session:
-        oofer = session.query(Oofer).get({'server_id': ctx.guild.id, 'user_id': ctx.author.id})
-        if oofer is not None:
-            oofer.oofs = Oofer.oofs + 1
-        else:
-            oofer = Oofer(server_id=ctx.guild.id, user_id=ctx.author.id)
-            session.add(oofer)
-    await somsiad.send(ctx, 'Oof!')
+class Oof(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-
-@oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def oof_how_many(ctx, *, member: discord.Member = None):
-    await ctx.invoke(oof_how_many_member, member=member)
-
-
-@oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def oof_how_many_member(ctx, member: discord.Member = None):
-    member = member or ctx.author
-    with data.session() as session:
-        oofer = session.query(Oofer).get({'server_id': ctx.guild.id, 'user_id': member.id})
-        oofs = oofer.oofs if oofer is not None else 0
-
-    if member == ctx.author:
-        embed = discord.Embed(
-            title='Masz na koncie '
-            f'{word_number_form(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
-            color=somsiad.COLOR
-        )
-    else:
-        embed = discord.Embed(
-            title=f'{member.display_name} ma na koncie '
-            f'{word_number_form(oofs, "oofnięcie", "oofnięcia", "oofnięć")}',
-            color=somsiad.COLOR
-        )
-
-    await somsiad.send(ctx, embed=embed)
-
-
-@oof_how_many_member.error
-async def oof_how_many_member_error(ctx, error):
-    if isinstance(error, commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.COLOR
-        )
-        await somsiad.send(ctx, embed=embed)
-
-
-@oof_how_many.command(aliases=['server', 'serwer'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def oof_how_many_server(ctx):
-    await ctx.invoke(oof_server)
-
-
-@oof.command(aliases=['server', 'serwer'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def oof_server(ctx):
-    with data.session() as session:
-        total_oofs = session.query(data.func.sum(Oofer.oofs)).scalar()
-        top_results = session.query(
-            Oofer,
-            data.func.dense_rank().over(order_by = Oofer.oofs.desc()).label('rank')
-        ).limit(25).all()
-
-    ranking = []
-    for result in top_results:
-        if result.rank > 10:
-            break
-        ranking.append(
-            f'{result.rank}. <@{result.Oofer.user_id}> – '
-            f'{word_number_form(result.Oofer.oofs, "oofnięcie", "oofnięcia", "oofnięć")}'
-        )
-
-    embed = discord.Embed(
-        title=f'Do tej pory oofnięto na serwerze {word_number_form(total_oofs, "raz", "razy")}',
-        color=somsiad.COLOR
+    @commands.group(invoke_without_command=True, case_insensitive=True)
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
     )
-    if ranking:
-        embed.add_field(name='Najaktywniejsi ooferzy', value='\n'.join(ranking), inline=False)
+    @commands.guild_only()
+    async def oof(self, ctx):
+        with data.session(commit=True) as session:
+            oofer = session.query(Oofer).get({'server_id': ctx.guild.id, 'user_id': ctx.author.id})
+            if oofer is not None:
+                oofer.oofs = Oofer.oofs + 1
+            else:
+                oofer = Oofer(server_id=ctx.guild.id, user_id=ctx.author.id)
+                session.add(oofer)
+        await self.bot.send(ctx, 'Oof!')
 
-    await somsiad.send(ctx, embed=embed)
+    @oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    @commands.guild_only()
+    async def oof_how_many(self, ctx, *, member: discord.Member = None):
+        await ctx.invoke(self.oof_how_many_member, member=member)
+
+    @oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    @commands.guild_only()
+    async def oof_how_many_member(self, ctx, member: discord.Member = None):
+        member = member or ctx.author
+        with data.session() as session:
+            oofer = session.query(Oofer).get({'server_id': ctx.guild.id, 'user_id': member.id})
+            oofs = oofer.oofs if oofer is not None else 0
+
+        address = 'Masz' if member == ctx.author else f'{member.display_name} ma'
+        embed = self.bot.generate_embed(
+            '💨', f'{address} na koncie {word_number_form(oofs, "oofnięcie", "oofnięcia", "oofnięć")}'
+        )
+        await self.bot.send(ctx, embed=embed)
+
+    @oof_how_many_member.error
+    async def oof_how_many_member_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+            await self.bot.send(ctx, embed=embed)
+
+    @oof_how_many.command(aliases=['server', 'serwer'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    @commands.guild_only()
+    async def oof_how_many_server(self, ctx):
+        await ctx.invoke(self.oof_server)
+
+    @oof.command(aliases=['server', 'serwer'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    @commands.guild_only()
+    async def oof_server(self, ctx):
+        with data.session() as session:
+            total_oofs = session.query(data.func.sum(Oofer.oofs)).scalar()
+            top_results = session.query(
+                Oofer,
+                data.func.dense_rank().over(order_by = Oofer.oofs.desc()).label('rank')
+            ).limit(25).all()
+        ranking = []
+        for result in top_results:
+            if result.rank > 10:
+                break
+            ranking.append(
+                f'{result.rank}. <@{result.Oofer.user_id}> – '
+                f'{word_number_form(result.Oofer.oofs, "oofnięcie", "oofnięcia", "oofnięć")}'
+            )
+        if total_oofs:
+            notice = f'Do tej pory oofnięto na serwerze {word_number_form(total_oofs, "raz", "razy")}'
+        else:
+            notice = 'Na serwerze nie oofnięto jeszcze ani razu'
+        embed = self.bot.generate_embed('💨', notice)
+        if ranking:
+            embed.add_field(name='Najaktywniejsi ooferzy', value='\n'.join(ranking), inline=False)
+        await self.bot.send(ctx, embed=embed)
+
+
+somsiad.add_cog(Oof(somsiad))

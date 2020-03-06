@@ -101,20 +101,19 @@ class Report:
         self.timeframe_start_date = None
         self.timeframe_end_date = self.init_datetime.date()
 
-    @classmethod
-    async def process_next_in_queue(cls, server_id: int):
-        report = cls.queues[server_id][0]
+    async def process_next_in_queue(self, server_id: int):
+        report = self.queues[server_id][0]
         report.out_of_queue_datetime = dt.datetime.now()
         try:
             await report.analyze_subject()
         except:
             raise
         finally:
-            cls.queues[server_id].popleft()
-            if cls.queues[server_id]:
-                somsiad.loop.create_task(cls.process_next_in_queue(server_id))
+            self.queues[server_id].popleft()
+            if self.queues[server_id]:
+                self.ctx.bot.loop.create_task(self.process_next_in_queue(server_id))
         if report.total_message_count:
-            await somsiad.loop.run_in_executor(None, report.render_activity_chart)
+            await self.ctx.bot.loop.run_in_executor(None, report.render_activity_chart)
         await report.send()
 
     async def enqueue(self):
@@ -125,7 +124,7 @@ class Report:
             await self.process_next_in_queue(self.ctx.guild.id)
 
     async def send(self):
-        await somsiad.send(self.ctx, embed=self.embed, file=self.activity_chart_file)
+        await self.ctx.bot.send(self.ctx, embed=self.embed, file=self.activity_chart_file)
 
     async def analyze_subject(self) -> discord.Embed:
         """Selects the right type of analysis depending on the subject."""
@@ -184,7 +183,7 @@ class Report:
             self._generate_relevant_embed()
             self._embed_analysis_metastats()
         else:
-            self.embed = somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+            self.embed = self.ctx.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
         return self.embed
 
     def render_activity_chart(self) -> discord.File:
@@ -245,7 +244,7 @@ class Report:
         timeframe_start_date_utc = None
         if self.user_by_id:
             try:
-                self.subject = await somsiad.fetch_user(self.subject_id)
+                self.subject = await self.ctx.bot.fetch_user(self.subject_id)
             except discord.NotFound:
                 self.type = self.Type.DELETED_USER
                 self._generate_relevant_embed = self._generate_deleted_user_embed
@@ -332,12 +331,12 @@ class Report:
         self.relevant_channel_stats[message.channel_id]['character_count'] += message.character_count
 
     async def _send_or_update_progress(self):
-        embed = somsiad.generate_embed(
-            '⌛', f'Buforowanie nowych wiadomości, do tej pory {self.messages_cached:n}…',
+        embed = self.ctx.bot.generate_embed(
+            '⌛', f'Buforowanie metadanych nowych wiadomości, do tej pory {self.messages_cached:n}…',
             'Proces ten może trochę zająć z powodu limitów Discorda.'
         )
         if self.caching_progress_message is None:
-            self.caching_progress_message = await somsiad.send(self.ctx, embed=embed)
+            self.caching_progress_message = await self.ctx.bot.send(self.ctx, embed=embed)
         else:
             await self.caching_progress_message.edit(embed=embed)
 
@@ -346,12 +345,12 @@ class Report:
             new_messages_form = word_number_form(
                 self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
             )
-            caching_progress_embed = somsiad.generate_embed('✅', f'Zbuforowano {new_messages_form}')
+            caching_progress_embed = self.ctx.bot.generate_embed('✅', f'Zbuforowano {new_messages_form}')
             await self.caching_progress_message.edit(embed=caching_progress_embed)
 
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
-        self.embed = somsiad.generate_embed('📈', 'Przygotowano raport o serwerze', self.description)
+        self.embed = self.ctx.bot.generate_embed('📈', 'Przygotowano raport o serwerze', self.description)
         self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
@@ -375,7 +374,9 @@ class Report:
 
     def _generate_channel_embed(self):
         """Analyzes the subject as a channel."""
-        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o kanale #{self.subject}', self.description)
+        self.embed = self.ctx.bot.generate_embed(
+            '📈', f'Przygotowano raport o kanale #{self.subject}', self.description
+        )
         self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
@@ -395,7 +396,9 @@ class Report:
 
     def _generate_member_embed(self):
         """Analyzes the subject as a member."""
-        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}', self.description)
+        self.embed = self.ctx.bot.generate_embed(
+            '📈', f'Przygotowano raport o użytkowniku {self.subject}', self.description
+        )
         self.embed.add_field(
             name='Utworzył konto', value=human_datetime(self.subject.created_at, utc=True), inline=False
         )
@@ -406,7 +409,7 @@ class Report:
 
     def _generate_user_embed(self):
         """Analyzes the subject as a user."""
-        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}')
+        self.embed = self.ctx.bot.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}')
         self.embed.add_field(
             name='Utworzył konto', value=human_datetime(self.subject.created_at, utc=True), inline=False
         )
@@ -414,7 +417,9 @@ class Report:
 
     def _generate_deleted_user_embed(self):
         """Analyzes the subject as a user."""
-        self.embed = somsiad.generate_embed('📈', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}')
+        self.embed = self.ctx.bot.generate_embed(
+            '📈', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}'
+        )
         self._embed_personal_stats()
 
     def _embed_personal_stats(self):
@@ -461,7 +466,7 @@ class Report:
         """Adds the list of top active channels to the report embed."""
         visible_channel_ids = [
             channel_id for channel_id in self.relevant_channel_stats
-            if somsiad.get_channel(channel_id).permissions_for(self.ctx.author).read_messages and
+            if self.ctx.bot.get_channel(channel_id).permissions_for(self.ctx.author).read_messages and
             self.relevant_channel_stats[channel_id]['message_count']
         ]
         visible_channel_ids.sort(
@@ -659,7 +664,7 @@ class Report:
 
     def _plot_activity_by_channel(self, ax):
         # plot the chart
-        channels = [somsiad.get_channel(channel) for channel in self.relevant_channel_stats]
+        channels = [self.ctx.bot.get_channel(channel) for channel in self.relevant_channel_stats]
         channel_existence_lengths = (
             (self.timeframe_end_date - utc_to_naive_local(channel.created_at).date()).days + 1 for channel in channels
         )
@@ -736,9 +741,9 @@ class Statistics(commands.Cog):
     @stat.error
     async def stat_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
-            await self.bot.send(
-                ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika ani kanału')
-            )
+            await self.bot.send(ctx, embed=self.ctx.bot.generate_embed(
+                '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika ani kanału'
+            ))
 
     @stat.command(aliases=['server', 'serwer'])
     @commands.cooldown(1, Report.COOLDOWN, commands.BucketType.channel)
@@ -761,7 +766,7 @@ class Statistics(commands.Cog):
     async def stat_channel_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await self.bot.send(
-                ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
+                ctx, embed=self.ctx.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
             )
 
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
@@ -779,7 +784,7 @@ class Statistics(commands.Cog):
     async def stat_member_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
             await self.bot.send(
-                ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+                ctx, embed=self.ctx.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             )
 
 

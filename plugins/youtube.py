@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -35,7 +35,7 @@ class YouTube(commands.Cog):
         if result_url is not None:
             await self.bot.send(ctx, result_url)
         else:
-            embed = somsiad.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
+            embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
             embed.set_footer(icon_url=youtube_client.FOOTER_ICON_URL, text=youtube_client.FOOTER_TEXT)
             await self.bot.send(ctx, embed=embed)
 

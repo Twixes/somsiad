@@ -89,9 +89,9 @@ class Imaging(commands.Cog):
         filename, input_image_bytes = await self.find_image(ctx)
         if input_image_bytes:
             output_image_bytes = await self.bot.loop.run_in_executor(None, self._rotate, input_image_bytes, times)
-            await somsiad.send(ctx, file=discord.File(output_image_bytes, filename=filename or 'rotated.jpeg'))
+            await self.bot.send(ctx, file=discord.File(output_image_bytes, filename=filename or 'rotated.jpeg'))
         else:
-            await somsiad.send(ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono obrazka do obrócenia'))
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do obrócenia'))
 
     @commands.command(aliases=['usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'])
     @commands.cooldown(
@@ -106,9 +106,9 @@ class Imaging(commands.Cog):
         filename, input_image_bytes = await self.find_image(ctx)
         if input_image_bytes:
             output_image_bytes = await self.bot.loop.run_in_executor(None, self._deepfry, input_image_bytes, doneness)
-            await somsiad.send(ctx, file=discord.File(output_image_bytes, filename=filename or 'deepfried.jpeg'))
+            await self.bot.send(ctx, file=discord.File(output_image_bytes, filename=filename or 'deepfried.jpeg'))
         else:
-            await somsiad.send(ctx, embed=somsiad.generate_embed('⚠️', 'Nie znaleziono obrazka do usmażenia'))
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do usmażenia'))
 
 
 somsiad.add_cog(Imaging(somsiad))

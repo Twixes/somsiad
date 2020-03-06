@@ -28,11 +28,7 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
     details = data.Column(data.String(2000))
     occurred_at = data.Column(data.DateTime, nullable=False, default=dt.datetime.now)
 
-    @property
-    def discord_executing_user(self) -> Optional[discord.Guild]:
-        return somsiad.get_user(self.executing_user_id) if self.executing_user_id is not None else None
-
-    def __str__(self):
+    async def get_presentation(self, bot: commands.Bot) -> str:
         type_presentation = '???'
         if self.type == 'warned':
             type_presentation = 'Ostrzeżenie'
@@ -56,7 +52,9 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
             discord_channel = self.discord_channel
             parts.append(f'na #{discord_channel}' if discord_channel is not None else 'na usuniętym kanale')
         if self.executing_user_id is not None:
-            discord_executing_user = self.discord_executing_user
+            discord_executing_user = bot.get_user(self.executing_user_id)
+            if discord_executing_user is None:
+                discord_executing_user = await bot.fetch_user(self.executing_user_id)
             parts.append(
                 f'przez {discord_executing_user}' if discord_executing_user is not None else
                 'przez usuniętego użytkownika'
@@ -311,7 +309,7 @@ class Moderation(commands.Cog):
             )
             for event in events[-25:]:
                 embed.add_field(
-                    name=str(event),
+                    name=await event.get_presentation(self.bot),
                     value=event.details if event.details is not None else '—',
                     inline=False
                 )

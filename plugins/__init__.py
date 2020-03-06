@@ -12,8 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 __all__ = [
-    'birthday', 'bot_owner_utilities', 'burn', 'choice', 'closing', 'colors', 'dice', 'disco', 'eightball', 'emoticons',
-    'goodreads', 'google_search', 'help_message', 'imaging', 'inviting', 'isitup', 'last_fm', 'moderation', 'oof',
+    'birthday', 'bot_owner_tools', 'burn', 'choice', 'close', 'colors', 'dice', 'disco', 'eightball', 'emoticons',
+    'goodreads', 'google', 'help_message', 'imaging', 'invite', 'isitup', 'last_fm', 'moderation', 'oof',
     'pins', 'reactions', 'reddit', 'remind', 'rimshot', 'school', 'spotify', 'statistics', 'tmdb', 'trade_sundays',
     'urban_dictionary', 'vote', 'wikipedia', 'wolfram_alpha', 'yandex', 'youtube'
 ]

@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -12,7 +12,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
-import discord
 from discord.ext import commands
 from core import somsiad
 from utilities import word_number_form, days_as_weeks
@@ -68,49 +67,44 @@ class SchoolPeriod:
         return date
 
 
-@somsiad.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def how_much_longer(ctx):
-    """Says how much of the school year or summer break is left."""
-    current_school_period = SchoolPeriod()
+class School(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-    if not current_school_period.is_summer_break:
-        if current_school_period.days_left == 0:
-            embed = discord.Embed(
-                title=':tada: Dziś zakończenie roku szkolnego',
-                color=somsiad.COLOR
-            )
-        elif current_school_period.days_passed == 0:
-            embed = discord.Embed(
-                title=':chains: Dziś rozpoczęcie roku szkolnego',
-                color=somsiad.COLOR
-            )
-        else:
-            days_left_as_weeks = days_as_weeks(current_school_period.days_left)
-            embed = discord.Embed(
-                title=':books: Do końca roku szkolnego '
-                f'{word_number_form(current_school_period.days_left, "został", "zostały", "zostało", include_number=False)} '
-                f'{word_number_form(current_school_period.days_left, "dzień", "dni")}',
-                description=f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
-                color=somsiad.COLOR
-            )
-            embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
-    else:
+    @commands.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def how_much_longer(self, ctx):
+        """Says how much of the school year or summer break is left."""
+        current_school_period = SchoolPeriod()
         days_left_as_weeks = days_as_weeks(current_school_period.days_left)
-        embed = discord.Embed(
-            title=':beach: Do końca wakacji '
-            f'{word_number_form(current_school_period.days_left, "został", "zostały", "zostało", include_number=False)} '
-            f'{word_number_form(current_school_period.days_left, "dzień", "dni")}',
-            description=f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
-            color=somsiad.COLOR
+        left_form = word_number_form(
+            current_school_period.days_left, 'został', 'zostały', 'zostało', include_number=False
         )
-        embed.add_field(
-            name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%'
-        )
+        day_form = word_number_form(current_school_period.days_left, 'dzień', 'dni')
+        if not current_school_period.is_summer_break:
+            if current_school_period.days_left == 0:
+                embed = self.bot.generate_embed('🎉', 'Dziś zakończenie roku szkolnego')
+            elif current_school_period.days_passed == 0:
+                embed = self.bot.generate_embed('⛓', 'Dziś rozpoczęcie roku szkolnego')
+            else:
+                embed = self.bot.generate_embed(
+                    '📚', f'Do końca roku szkolnego {left_form} {day_form}',
+                    f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
+                )
+                embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
+        else:
+            embed = self.bot.generate_embed(
+                '🏖', f'Do końca roku wakacji {left_form} {day_form}',
+                f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
+            )
+            embed.add_field(
+                name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%'
+            )
+        embed.add_field(name='Data rozpoczęcia', value=current_school_period.start_date.strftime('%-d %B %Y'))
+        embed.add_field(name='Data zakończenia', value=current_school_period.end_date.strftime('%-d %B %Y'))
+        await self.bot.send(ctx, embed=embed)
 
-    embed.add_field(name='Data rozpoczęcia', value=current_school_period.start_date.strftime('%-d %B %Y'))
-    embed.add_field(name='Data zakończenia', value=current_school_period.end_date.strftime('%-d %B %Y'))
 
-    await somsiad.send(ctx, embed=embed)
+somsiad.add_cog(School(somsiad))

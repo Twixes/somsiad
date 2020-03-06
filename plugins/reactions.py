@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -19,7 +19,7 @@ from core import somsiad
 from configuration import configuration
 
 
-class Reactor:
+class React(commands.Cog):
     """Handles reacting to messages."""
     DIACRITIC_CHARACTERS = {
         'ą': ('regional_indicator_aw', 'a'), 'ć': ('regional_indicator_ci', 'c'),
@@ -36,38 +36,38 @@ class Reactor:
         '!': ('❗',), '^': ('⬆',), '>': ('▶',), '<': ('◀',)
     }
 
-    @classmethod
-    def _convert_diacritic_character(cls, character: str, ctx: commands.Context = None) -> str:
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    def _convert_diacritic_character(self, character: str, ctx: commands.Context = None) -> str:
         """Converts diacritic characters to server emojis or ASCII characters."""
-        if character in cls.DIACRITIC_CHARACTERS:
+        if character in self.DIACRITIC_CHARACTERS:
             if ctx is not None:
                 for emoji in ctx.guild.emojis:
-                    if emoji.name == cls.DIACRITIC_CHARACTERS[character][0]:
+                    if emoji.name == self.DIACRITIC_CHARACTERS[character][0]:
                         return emoji
-            return cls.DIACRITIC_CHARACTERS[character][1]
+            return self.DIACRITIC_CHARACTERS[character][1]
         else:
             return character
 
-    @classmethod
-    def _convert_ascii_character(cls, character: str, characters: Sequence[str] = '') -> str:
+    def _convert_ascii_character(self, character: str, characters: Sequence[str] = '') -> str:
         """Converts ASCII characters to Unicode emojis."""
         if character == ' ':
-            return random.choice(somsiad.EMOJIS)
-        elif isinstance(character, str) and character in cls.ASCII_CHARACTERS:
-            if cls.ASCII_CHARACTERS[character][0] not in characters:
-                return cls.ASCII_CHARACTERS[character][0]
+            return random.choice(self.bot.EMOJIS)
+        elif isinstance(character, str) and character in self.ASCII_CHARACTERS:
+            if self.ASCII_CHARACTERS[character][0] not in characters:
+                return self.ASCII_CHARACTERS[character][0]
             elif (
-                    len(cls.ASCII_CHARACTERS[character]) == 2
-                    and cls.ASCII_CHARACTERS[character][1] not in characters
+                    len(self.ASCII_CHARACTERS[character]) == 2
+                    and self.ASCII_CHARACTERS[character][1] not in characters
             ):
-                return cls.ASCII_CHARACTERS[character][1]
+                return self.ASCII_CHARACTERS[character][1]
             else:
                 return ''
         else:
             return character
 
-    @classmethod
-    def _clean_characters(cls, ctx: commands.Context, characters: str):
+    def _clean_characters(self, ctx: commands.Context, characters: str):
         """Cleans characters so that they are most suitable for use in reactions."""
         # initialization
         passes = []
@@ -77,22 +77,20 @@ class Reactor:
         # second pass: convert diacritic characters to server emojis or ASCII characters
         passes.append([])
         for character in passes[-2]:
-            passes[-1].append(cls._convert_diacritic_character(character, ctx))
+            passes[-1].append(self._convert_diacritic_character(character, ctx))
         # third pass: convert ASCII characters to Unicode emojis
         passes.append([])
         for character in passes[-2]:
-            passes[-1].append(cls._convert_ascii_character(character, passes[-1]))
+            passes[-1].append(self._convert_ascii_character(character, passes[-1]))
         # return the final pass
         return passes[-1]
 
-    @classmethod
-    async def react(cls, ctx: commands.Context, characters: str, member: discord.Member = None):
+    async def _react(self, ctx: commands.Context, characters: str, member: discord.Member = None):
         """Converts the provided string to emojis and reacts with them."""
-        clean_characters = cls._clean_characters(ctx, characters)
-        await cls.raw_react(ctx, clean_characters, member)
+        clean_characters = self._clean_characters(ctx, characters)
+        await self._raw_react(ctx, clean_characters, member)
 
-    @classmethod
-    async def raw_react(cls, ctx: commands.Context, characters: str, member: discord.Member = None):
+    async def _raw_react(self, ctx: commands.Context, characters: str, member: discord.Member = None):
         """Adds provided emojis to the specified member's last non-command message in the form of reactions.
         If no member was specified, adds emojis to the last non-command message sent in the given channel.
         """
@@ -113,74 +111,64 @@ class Reactor:
                 except discord.HTTPException:
                     pass
 
+    @commands.command(aliases=['zareaguj', 'x'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def react(
+        self, ctx, member: Optional[discord.Member] = None, *,
+        characters: commands.clean_content(fix_channel_mentions=True) = ''
+    ):
+        """Reacts with the provided characters."""
+        await self._react(ctx, characters, member)
 
-@somsiad.command(aliases=['zareaguj', 'x'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def react(
-    ctx, member: Optional[discord.Member] = None, *,
-    characters: commands.clean_content(fix_channel_mentions=True) = ''
-):
-    """Reacts with the provided characters."""
-    await Reactor.react(ctx, characters, member)
+    @commands.command(aliases=['pomógł', 'pomogl'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def helped(self, ctx, member: discord.Member = None):
+        """Reacts with "POMÓGŁ"."""
+        await self._react(ctx, 'pomógł', member)
+
+    @commands.command(aliases=['niepomógł', 'niepomogl'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def didnothelp(self, ctx, member: discord.Member = None):
+        """Reacts with "NIEPOMÓGŁ"."""
+        await self._react(ctx, 'niepomógł', member)
+
+    @commands.command(aliases=['up', 'this', 'to', '^'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def upvote(self, ctx, member: discord.Member = None):
+        """Reacts with "⬆"."""
+        await self._raw_react(ctx, '⬆', member)
+
+    @commands.command(aliases=['down'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def downvote(self, ctx, member: discord.Member = None):
+        """Reacts with "⬇"."""
+        await self._raw_react(ctx, '⬇', member)
+
+    @commands.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def thinking(self, ctx, member: discord.Member = None):
+        """Reacts with "🤔"."""
+        await self._raw_react(ctx, '🤔', member)
+
+    @commands.command()
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def f(self, ctx, member: discord.Member = None):
+        """Reacts with "F"."""
+        await self._raw_react(ctx, '🇫', member)
+
+    @commands.command(aliases=['chlip', '😢'])
+    @commands.cooldown(1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user)
+    @commands.guild_only()
+    async def sob(self, ctx, member: discord.Member = None):
+        """Reacts with "😢"."""
+        await self._raw_react(ctx, '😢', member)
 
 
-@somsiad.command(aliases=['pomógł', 'pomogl'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def helped(ctx, member: discord.Member = None):
-    """Reacts with "POMÓGŁ"."""
-    await Reactor.react(ctx, 'pomógł', member)
-
-
-@somsiad.command(aliases=['niepomógł', 'niepomogl'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def didnothelp(ctx, member: discord.Member = None):
-    """Reacts with "NIEPOMÓGŁ"."""
-    await Reactor.react(ctx, 'niepomógł', member)
-
-
-@somsiad.command(aliases=['^', 'to', 'up', 'upvote'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def this(ctx, member: discord.Member = None):
-    """Reacts with "⬆"."""
-    await Reactor.raw_react(ctx, '⬆', member)
-
-
-@somsiad.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def thinking(ctx, member: discord.Member = None):
-    """Reacts with "🤔"."""
-    await Reactor.raw_react(ctx, '🤔', member)
-
-
-@somsiad.command()
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def f(ctx, member: discord.Member = None):
-    """Reacts with "F"."""
-    await Reactor.raw_react(ctx, '🇫', member)
-
-@somsiad.command(aliases=['chlip', '😢'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-@commands.guild_only()
-async def sob(ctx, member: discord.Member = None):
-    """Reacts with "😢"."""
-    await Reactor.raw_react(ctx, '😢', member)
+somsiad.add_cog(React(somsiad))

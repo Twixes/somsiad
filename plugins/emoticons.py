@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -16,69 +16,70 @@ from core import somsiad
 from configuration import configuration
 
 
-@somsiad.command(aliases=['lenny'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def lennyface(ctx):
-    """( ͡° ͜ʖ ͡°)"""
-    await somsiad.send(ctx, '( ͡° ͜ʖ ͡°)', mention=False)
+class Emoticons(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(aliases=['lenny'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def lennyface(self, ctx):
+        """( ͡° ͜ʖ ͡°)"""
+        await self.bot.send(ctx, '( ͡° ͜ʖ ͡°)', mention=False)
+
+    @commands.command(aliases=['lenno'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def lennoface(self, ctx):
+        """( ͡ʘ ͜ʖ ͡ʘ)"""
+        await self.bot.send(ctx, '( ͡ʘ ͜ʖ ͡ʘ)', mention=False)
+
+    @commands.command(aliases=['wywróć'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def tableflip(self, ctx):
+        """(╯°□°）╯︵ ┻━┻"""
+        await self.bot.send(ctx, '(╯°□°）╯︵ ┻━┻', mention=False)
+
+    @commands.command(aliases=['odstaw'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def unflip(self, ctx):
+        """┬─┬ ノ( ゜-゜ノ)"""
+        await self.bot.send(ctx, '┬─┬ ノ( ゜-゜ノ)', mention=False)
+
+    @commands.command()
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def shrug(self, ctx):
+        r"""¯\_(ツ)_/¯"""
+        await self.bot.send(ctx, r'¯\_(ツ)_/¯', mention=False)
+
+    @commands.command(aliases=['dej'])
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def gib(self, ctx, *, thing = None):
+        """༼ つ ◕_◕ ༽つ"""
+        if thing is None:
+            await self.bot.send(ctx, '༼ つ ◕_◕ ༽つ', mention=False)
+        elif 'fccchk' in thing:
+            await self.bot.send(ctx, f'༼ つ :japanese_goblin: ༽つ {thing}', mention=False)
+        else:
+            await self.bot.send(ctx, f'༼ つ ◕_◕ ༽つ {thing}', mention=False)
+
+    @commands.command()
+    @commands.cooldown(
+        1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
+    )
+    async def fccchk(self, ctx):
+        """:japanese_goblin:"""
+        await self.bot.send(ctx, ':japanese_goblin:', mention=False)
 
 
-@somsiad.command(aliases=['lenno'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def lennoface(ctx):
-    """( ͡ʘ ͜ʖ ͡ʘ)"""
-    await somsiad.send(ctx, '( ͡ʘ ͜ʖ ͡ʘ)', mention=False)
-
-
-@somsiad.command(aliases=['wywróć'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def tableflip(ctx):
-    """(╯°□°）╯︵ ┻━┻"""
-    await somsiad.send(ctx, '(╯°□°）╯︵ ┻━┻', mention=False)
-
-
-@somsiad.command(aliases=['odstaw'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def unflip(ctx):
-    """┬─┬ ノ( ゜-゜ノ)"""
-    await somsiad.send(ctx, '┬─┬ ノ( ゜-゜ノ)', mention=False)
-
-
-@somsiad.command()
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def shrug(ctx):
-    r"""¯\_(ツ)_/¯"""
-    await somsiad.send(ctx, r'¯\_(ツ)_/¯', mention=False)
-
-
-@somsiad.command(aliases=['dej'])
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def gib(ctx, *, thing = None):
-    """༼ つ ◕_◕ ༽つ"""
-    if thing is None:
-        await somsiad.send(ctx, '༼ つ ◕_◕ ༽つ', mention=False)
-    elif 'fccchk' in thing:
-        await somsiad.send(ctx, f'༼ つ :japanese_goblin: ༽つ {thing}', mention=False)
-    else:
-        await somsiad.send(ctx, f'༼ つ ◕_◕ ༽つ {thing}', mention=False)
-
-
-@somsiad.command()
-@commands.cooldown(
-    1, configuration['command_cooldown_per_user_in_seconds'], commands.BucketType.user
-)
-async def fccchk(ctx):
-    """:japanese_goblin:"""
-    await somsiad.send(ctx, ':japanese_goblin:', mention=False)
+somsiad.add_cog(Emoticons(somsiad))
