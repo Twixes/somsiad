@@ -14,6 +14,7 @@
 from typing import Optional, Union
 from numbers import Number
 from collections import defaultdict
+import functools
 import os
 import locale
 import discord
@@ -76,6 +77,7 @@ class Disco(commands.Cog):
         else:
             video_url = query
         if video_url is not None:
+            video_id = pytube.extract.video_id(video_url)
             video = await self.bot.loop.run_in_executor(None, pytube.YouTube, video_url)
             embed = self.generate_embed(channel, video, 'Pobieranie', '⏳')
             message = await self.bot.send(ctx, embed=embed)
@@ -90,9 +92,12 @@ class Disco(commands.Cog):
                     embed = self.generate_embed(channel, video, 'Plik zbyt duży', '⚠️')
                     break
             else:
-                path = os.path.join(self.cache_dir_path, stream.default_filename)
+                path = os.path.join(self.cache_dir_path, f'{video_id} - {stream.default_filename}')
                 if not os.path.isfile(path):
-                    await self.bot.loop.run_in_executor(None, stream.download, self.cache_dir_path)
+                    functools.partial(stream.download, data={'output_path': self.cache_dir_path, 'filename_prefix': video_id})
+                    await self.bot.loop.run_in_executor(None, functools.partial(
+                        stream.download, output_path=self.cache_dir_path, filename_prefix=f'{video_id} - '
+                    ))
                 if channel.guild.voice_client is not None:
                     channel.guild.voice_client.stop()
                 song_audio = discord.PCMVolumeTransformer(
@@ -100,10 +105,18 @@ class Disco(commands.Cog):
                 )
                 self.servers[channel.guild.id]['song_audio'] = song_audio
                 self.servers[channel.guild.id]['song_url'] = video_url
+                async def try_edit(embed: discord.Embed):
+                    try:
+                        await message.edit(embed=embed)
+                    except discord.NotFound:
+                        pass
                 def after(error):
                     song_audio.cleanup()
                     embed = self.generate_embed(channel, video, 'Zakończono', '⏹')
-                    self.bot.loop.create_task(message.edit(embed=embed))
+                    try:
+                        self.bot.loop.create_task(try_edit(embed))
+                    except discord.NotFound:
+                        pass
                 embed = self.generate_embed(channel, video, 'Odtwarzanie', '▶️')
                 channel.guild.voice_client.play(self.servers[channel.guild.id]['song_audio'], after=after)
             await message.edit(embed=embed)
