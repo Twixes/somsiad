@@ -40,9 +40,8 @@ class Yandex(commands.Cog):
             'key': configuration['yandex_translate_key'], 'text': text, 'lang': lang, 'options': 1
         }
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(self.TRANSLATE_API_URL, headers=self.bot.HEADERS, params=params) as request:
-                    return await request.json()
+            async with self.bot.session.get(self.TRANSLATE_API_URL, headers=self.bot.HEADERS, params=params) as request:
+                return await request.json()
         except aiohttp.client_exceptions.ClientConnectorError:
             return None
 

@@ -41,17 +41,16 @@ class IsItUp(commands.Cog):
             if url_valid:
                 protocol = protocol or 'https'
                 url = f'{protocol}://{rest}'
-                async with aiohttp.ClientSession() as session:
-                    try:
-                        for method in (session.head, session.get):
-                            async with method(url, allow_redirects=True, headers=self.bot.HEADERS) as request:
-                                if request.status == 405 and request.method != 'get':
-                                    continue
-                                status = request.status
-                    except aiohttp.InvalidURL:
-                        url_valid = False
-                    except aiohttp.ClientConnectorError:
-                        pass
+                try:
+                    for method in (self.bot.session.head, self.bot.session.get):
+                        async with method(url, allow_redirects=True, headers=self.bot.HEADERS) as request:
+                            if request.status == 405 and request.method != 'get':
+                                continue
+                            status = request.status
+                except aiohttp.InvalidURL:
+                    url_valid = False
+                except aiohttp.ClientConnectorError:
+                    pass
             if url_valid:
                 if status is not None and status // 100 == 2:
                     emoji, notice = '✅', f'Strona {rest} jest dostępna'

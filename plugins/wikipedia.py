@@ -55,48 +55,47 @@ class Wikipedia(commands.Cog):
         }
         search_result = self.SearchResult(language)
         try:
-            async with aiohttp.ClientSession() as session:
-                # use OpenSearch API first to get accurate page title of the result
-                async with session.get(
-                        self.link(language, 'w/api.php'), headers=self.bot.HEADERS, params=params
-                ) as title_request:
-                    search_result.status = title_request.status
-                    if title_request.status == 200:
-                        title_data = await title_request.json()
-                        if title_data[1]:
-                            # use the title retrieved from the OpenSearch response as a search term in the REST request
-                            query = title_data[1][0]
-                            async with session.get(
-                                    self.link(language, f'api/rest_v1/page/summary/{query}'), headers=self.bot.HEADERS
-                            ) as article_request:
-                                search_result.status = article_request.status
-                                if article_request.status == 200:
-                                    article_data = await article_request.json()
-                                    search_result.title = article_data['title']
-                                    search_result.url = article_data['content_urls']['desktop']['page']
-                                    if article_data['type'] == 'disambiguation':
-                                        # use results from OpenSearch to create a list of links from disambiguation page
-                                        for i, option in enumerate(title_data[1][1:]):
-                                            search_result.articles.append({
-                                                'title': option,
-                                                'summary': None,
-                                                'url': title_data[3][i+1].replace('(', '%28').replace(')', '%29'),
-                                                'thumbnail_url': None
-                                            })
-                                    elif article_data['type'] == 'standard':
-                                        if len(article_data['extract']) > 400:
-                                            summary = text_snippet(article_data['extract'], 400)
-                                        else:
-                                            summary = article_data['extract']
-                                        thumbnail_url = (
-                                            article_data['thumbnail']['source'] if 'thumbnail' in article_data else None
-                                        )
+            # use OpenSearch API first to get accurate page title of the result
+            async with self.bot.session.get(
+                    self.link(language, 'w/api.php'), headers=self.bot.HEADERS, params=params
+            ) as title_request:
+                search_result.status = title_request.status
+                if title_request.status == 200:
+                    title_data = await title_request.json()
+                    if title_data[1]:
+                        # use the title retrieved from the OpenSearch response as a search term in the REST request
+                        query = title_data[1][0]
+                        async with self.bot.session.get(
+                                self.link(language, f'api/rest_v1/page/summary/{query}'), headers=self.bot.HEADERS
+                        ) as article_request:
+                            search_result.status = article_request.status
+                            if article_request.status == 200:
+                                article_data = await article_request.json()
+                                search_result.title = article_data['title']
+                                search_result.url = article_data['content_urls']['desktop']['page']
+                                if article_data['type'] == 'disambiguation':
+                                    # use results from OpenSearch to create a list of links from disambiguation page
+                                    for i, option in enumerate(title_data[1][1:]):
                                         search_result.articles.append({
-                                            'title': article_data['title'],
-                                            'summary': summary,
-                                            'url': article_data['content_urls']['desktop']['page'],
-                                            'thumbnail_url': thumbnail_url
+                                            'title': option,
+                                            'summary': None,
+                                            'url': title_data[3][i+1].replace('(', '%28').replace(')', '%29'),
+                                            'thumbnail_url': None
                                         })
+                                elif article_data['type'] == 'standard':
+                                    if len(article_data['extract']) > 400:
+                                        summary = text_snippet(article_data['extract'], 400)
+                                    else:
+                                        summary = article_data['extract']
+                                    thumbnail_url = (
+                                        article_data['thumbnail']['source'] if 'thumbnail' in article_data else None
+                                    )
+                                    search_result.articles.append({
+                                        'title': article_data['title'],
+                                        'summary': summary,
+                                        'url': article_data['content_urls']['desktop']['page'],
+                                        'thumbnail_url': thumbnail_url
+                                    })
         except aiohttp.client_exceptions.ClientConnectorError:
             pass
         return search_result

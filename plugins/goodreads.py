@@ -12,7 +12,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Optional, List, Dict
-import aiohttp
 from defusedxml import ElementTree
 from discord.ext import commands
 from core import cooldown
@@ -36,35 +35,34 @@ class Goodreads(commands.Cog):
             'q': query,
             'key': configuration['goodreads_key']
         }
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.API_SEARCH_URL, headers=self.bot.HEADERS, params=params) as response:
-                if response.status == 200:
-                    books = []
-                    results_text = await response.text()
-                    results_tree = ElementTree.fromstring(results_text)
-                    total_results = results_tree.find('.//total-results')
-                    if total_results.text != '0':
-                        for element in results_tree.findall('.//work'):
-                            books.append({})
-                            for work in element.findall('*'):
-                                if work.tag == 'id':
-                                    books[-1]['book_id'] = work.text
-                                if work.tag == 'ratings_count':
-                                    books[-1]['ratings_count'] = work.text
-                                if work.tag == 'average_rating':
-                                    books[-1]['average_rating'] = work.text
-                                for best_book in work.findall('*'):
-                                    if best_book.tag == 'id':
-                                        books[-1]['id'] = best_book.text
-                                    if best_book.tag == 'title':
-                                        books[-1]['title'] = best_book.text
-                                    if best_book.tag == 'image_url':
-                                        books[-1]['image_url'] = best_book.text
-                                    for author in best_book.findall('*'):
-                                        if author.tag == 'name':
-                                            books[-1]['author_name'] = author.text
-                                        if author.tag == 'id':
-                                            books[-1]['author_id'] = author.text
+        async with self.bot.session.get(self.API_SEARCH_URL, headers=self.bot.HEADERS, params=params) as response:
+            if response.status == 200:
+                books = []
+                results_text = await response.text()
+                results_tree = ElementTree.fromstring(results_text)
+                total_results = results_tree.find('.//total-results')
+                if total_results.text != '0':
+                    for element in results_tree.findall('.//work'):
+                        books.append({})
+                        for work in element.findall('*'):
+                            if work.tag == 'id':
+                                books[-1]['book_id'] = work.text
+                            if work.tag == 'ratings_count':
+                                books[-1]['ratings_count'] = work.text
+                            if work.tag == 'average_rating':
+                                books[-1]['average_rating'] = work.text
+                            for best_book in work.findall('*'):
+                                if best_book.tag == 'id':
+                                    books[-1]['id'] = best_book.text
+                                if best_book.tag == 'title':
+                                    books[-1]['title'] = best_book.text
+                                if best_book.tag == 'image_url':
+                                    books[-1]['image_url'] = best_book.text
+                                for author in best_book.findall('*'):
+                                    if author.tag == 'name':
+                                        books[-1]['author_name'] = author.text
+                                    if author.tag == 'id':
+                                        books[-1]['author_id'] = author.text
         return books
 
     @commands.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])

@@ -31,17 +31,16 @@ class LastFM(commands.Cog):
             'api_key': configuration['last_fm_key'], 'format': 'json', 'method': 'user.getInfo', 'user': user
         }
         try:
-            async with aiohttp.ClientSession() as session:
-                # use OpenSearch API first to get accurate page title of the result
-                async with session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
-                    if request.status == 200:
-                        user_info = await request.json()
-                        if 'error' in user_info:
-                            return None
-                        else:
-                            return user_info['user']
-                    else:
+            # use OpenSearch API first to get accurate page title of the result
+            async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+                if request.status == 200:
+                    user_info = await request.json()
+                    if 'error' in user_info:
                         return None
+                    else:
+                        return user_info['user']
+                else:
+                    return None
         except aiohttp.client_exceptions.ClientConnectorError:
             return None
 
@@ -51,16 +50,15 @@ class LastFM(commands.Cog):
             'limit': limit
         }
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
-                    if request.status == 200:
-                        user_recent_tracks = await request.json()
-                        if 'error' in user_recent_tracks:
-                            return None
-                        else:
-                            return user_recent_tracks['recenttracks']['track']
-                    else:
+            async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+                if request.status == 200:
+                    user_recent_tracks = await request.json()
+                    if 'error' in user_recent_tracks:
                         return None
+                    else:
+                        return user_recent_tracks['recenttracks']['track']
+                else:
+                    return None
         except aiohttp.client_exceptions.ClientConnectorError:
             return None
 

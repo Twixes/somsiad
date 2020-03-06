@@ -13,7 +13,6 @@
 
 import datetime as dt
 import urllib.parse
-import aiohttp
 from discord.ext import commands
 from core import cooldown
 from utilities import text_snippet
@@ -51,24 +50,23 @@ class UrbanDictionary(commands.Cog):
     async def urban_dictionary(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
         params = {'term': query}
-        async with aiohttp.ClientSession() as session:
-            async with session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
-                if request.status == 200:
-                    response = await request.json()
-                    if response['list']:
-                        result = response['list'][0] # get top definition
-                        definition = self.expand_links(text_snippet(result['definition'], 500))
-                        embed = self.bot.generate_embed(
-                            None, result['word'], definition, url=result['permalink'],
-                            timestamp=dt.datetime.fromisoformat(result['written_on'][:-1])
-                        )
-                        embed.add_field(name='👍', value=f'{result["thumbs_up"]:n}')
-                        embed.add_field(name='👎', value=f'{result["thumbs_down"]:n}')
-                    else:
-                        embed = self.bot.generate_embed('🙁', f'Brak wyników dla terminu "{query}"')
+        async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+            if request.status == 200:
+                response = await request.json()
+                if response['list']:
+                    result = response['list'][0] # get top definition
+                    definition = self.expand_links(text_snippet(result['definition'], 500))
+                    embed = self.bot.generate_embed(
+                        None, result['word'], definition, url=result['permalink'],
+                        timestamp=dt.datetime.fromisoformat(result['written_on'][:-1])
+                    )
+                    embed.add_field(name='👍', value=f'{result["thumbs_up"]:n}')
+                    embed.add_field(name='👎', value=f'{result["thumbs_down"]:n}')
                 else:
-                    embed = self.bot.generate_embed('⚠️', 'Nie udało się połączyć z serwisem')
-            embed.set_footer(text=self.FOOTER_TEXT)
+                    embed = self.bot.generate_embed('🙁', f'Brak wyników dla terminu "{query}"')
+            else:
+                embed = self.bot.generate_embed('⚠️', 'Nie udało się połączyć z serwisem')
+        embed.set_footer(text=self.FOOTER_TEXT)
         await self.bot.send(ctx, embed=embed)
 
     @urban_dictionary.error

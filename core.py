@@ -20,6 +20,7 @@ import platform
 import random
 import itertools
 import datetime as dt
+import aiohttp
 import sentry_sdk
 import discord
 from discord.ext import commands
@@ -88,6 +89,7 @@ class Somsiad(commands.Bot):
             for variant in
             (f'{configuration["command_prefix"]} {command}', f'{configuration["command_prefix"]}{command}')
         ))
+        self.session = aiohttp.ClientSession()
         self.google_client = GoogleClient(
             configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
         )

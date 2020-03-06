@@ -12,7 +12,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
-import aiohttp
 import discord
 from discord.ext import commands
 from core import cooldown
@@ -27,11 +26,10 @@ class Reddit(commands.Cog):
         url = f'https://www.reddit.com/r/{subreddit_name}'
         response = None
         status = None
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f'{url}/about.json', headers=self.bot.HEADERS) as request:
-                status = request.status
-                if status == 200:
-                    response = await request.json()
+        async with self.bot.session.get(f'{url}/about.json', headers=self.bot.HEADERS) as request:
+            status = request.status
+            if status == 200:
+                response = await request.json()
         if status == 200:
             about = response['data']
             is_nsfw = about['over18']
@@ -60,11 +58,10 @@ class Reddit(commands.Cog):
         url = f'https://www.reddit.com/user/{username}'
         response = None
         status = None
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f'{url}/about.json', headers=self.bot.HEADERS) as request:
-                status = request.status
-                if status == 200:
-                    response = await request.json()
+        async with self.bot.session.get(f'{url}/about.json', headers=self.bot.HEADERS) as request:
+            status = request.status
+            if status == 200:
+                response = await request.json()
         if status == 200:
             about = response['data']
             subreddit_present = about.get('subreddit') is not None

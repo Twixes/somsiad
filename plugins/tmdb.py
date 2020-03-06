@@ -13,7 +13,6 @@
 
 from typing import Optional
 import datetime as dt
-import aiohttp
 import discord
 from discord.ext import commands
 from core import Help, cooldown
@@ -50,32 +49,31 @@ class TMDb(commands.Cog):
     async def fetch_result_and_generate_embed(self, query: str, media_type: Optional[str] = None) -> discord.Embed:
         params = {'api_key': configuration['tmdb_key'], 'query': query, 'language': 'pl-PL', 'region': 'PL'}
         search_url = f'https://api.themoviedb.org/3/search/{media_type or "multi"}'
-        async with aiohttp.ClientSession() as session:
-            async with session.get(search_url, headers=self.bot.HEADERS, params=params) as request:
-                if request.status != 200:
-                    embed = self.bot.generate_embed('⚠️', f'Nie udało się połączyć z serwisem')
+        async with self.bot.session.get(search_url, headers=self.bot.HEADERS, params=params) as request:
+            if request.status != 200:
+                embed = self.bot.generate_embed('⚠️', f'Nie udało się połączyć z serwisem')
+            else:
+                response = await request.json()
+                if not response['total_results']:
+                    embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
                 else:
-                    response = await request.json()
-                    if not response['total_results']:
-                        embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
-                    else:
-                        search_result = response['results'][0]
-                        media_type = media_type or search_result['media_type']
-                        async with session.get(
-                            f'https://api.themoviedb.org/3/{media_type}/{search_result["id"]}',
-                            headers=self.bot.HEADERS, params=params
-                        ) as request:
-                            if request.status != 200:
-                                embed = self.bot.generate_embed('⚠️', f'Nie udało się połączyć z serwisem')
-                            else:
-                                full_result = await request.json()
-                                full_result.update(search_result)
-                                if media_type == 'person':
-                                    embed = self.generate_person_embed(full_result)
-                                elif media_type == 'movie':
-                                    embed = self.generate_movie_embed(full_result)
-                                elif media_type == 'tv':
-                                    embed = self.generate_tv_embed(full_result)
+                    search_result = response['results'][0]
+                    media_type = media_type or search_result['media_type']
+                    async with self.bot.session.get(
+                        f'https://api.themoviedb.org/3/{media_type}/{search_result["id"]}',
+                        headers=self.bot.HEADERS, params=params
+                    ) as request:
+                        if request.status != 200:
+                            embed = self.bot.generate_embed('⚠️', f'Nie udało się połączyć z serwisem')
+                        else:
+                            full_result = await request.json()
+                            full_result.update(search_result)
+                            if media_type == 'person':
+                                embed = self.generate_person_embed(full_result)
+                            elif media_type == 'movie':
+                                embed = self.generate_movie_embed(full_result)
+                            elif media_type == 'tv':
+                                embed = self.generate_tv_embed(full_result)
         embed.set_footer(
             text='TMDb',
             icon_url='https://www.themoviedb.org/assets/2/v4/logos/'
