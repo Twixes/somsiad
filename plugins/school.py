@@ -74,7 +74,6 @@ class SchoolPeriod:
 
 class School(commands.Cog):
     def __init__(self, bot: commands.Bot):
-        setlocale(bot.ACCEPTED_LOCALES)
         self.bot = bot
 
     @commands.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)

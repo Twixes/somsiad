@@ -1,4 +1,6 @@
-# Copyright 2018-2020 ondondil & Twixes
+#!/usr/bin/env python3
+
+# # Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,21 +13,26 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+
 from typing import Optional, Union, Sequence, Tuple, List
 import os
 import sys
+import signal
 import traceback
 import asyncio
 import platform
+import asyncio
 import random
 import itertools
 import datetime as dt
 import aiohttp
 import sentry_sdk
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 import discord
 from discord.ext import commands
 from version import __version__, __copyright__
-from utilities import GoogleClient, YouTubeClient, word_number_form, human_amount_of_time
+from utilities import GoogleClient, YouTubeClient, word_number_form, human_amount_of_time, setlocale
 from configuration import configuration
 import data
 
@@ -89,22 +96,18 @@ class Somsiad(commands.Bot):
             for variant in
             (f'{configuration["command_prefix"]} {command}', f'{configuration["command_prefix"]}{command}')
         ))
-        self.session = aiohttp.ClientSession()
+        self.session = None
         self.google_client = GoogleClient(
             configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
         )
         self.youtube_client = YouTubeClient(configuration['google_key'], self.loop)
 
     async def on_ready(self):
-        print(self.info())
+        setlocale()
         data.Server.register_all(self.guilds)
-        self.add_cog(Essentials(self))
-        self.add_cog(Prefix(self))
-        for path in os.scandir('plugins'):
-            if path.is_file() and path.name.endswith('.py'):
-                self.load_extension(f'plugins.{path.name[:-3]}')
-        print('\nWszystkie rozszerzenia załadowane!')
-        await self.cycle_presence()
+        self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
+        self.loop.create_task(self.cycle_presence())
+        self.print_info()
 
     async def on_error(self, event_method, *args, **kwargs):
         self.register_error(event_method, sys.exc_info()[1])
@@ -133,13 +136,30 @@ class Somsiad(commands.Bot):
 
     def controlled_run(self):
         self.run_datetime = dt.datetime.now()
+        print('Ładowanie rozszerzeń...')
+        self.add_cog(Essentials(self))
+        self.add_cog(Prefix(self))
+        for path in os.scandir('plugins'):
+            if path.is_file() and path.name.endswith('.py'):
+                self.load_extension(f'plugins.{path.name[:-3]}')
+        data.create_all_tables()
+        print('Łączenie z Discordem...')
         self.run(configuration['discord_token'], reconnect=True)
+
+    async def close(self):
+        print('\nZatrzymywanie działania programu...')
+        await self.session.close()
+        await super().close()
+        sys.exit(0)
+
+    def signal_handler(self, signal, frame):
+        asyncio.run(self.close())
 
     def invite_url(self) -> str:
         """Return the invitation URL of the bot."""
         return discord.utils.oauth_url(self.user.id, discord.Permissions(305392727))
 
-    def info(self) -> str:
+    def print_info(self) -> str:
         """Return a block of bot information."""
         number_of_users = len(set(self.get_all_members()))
         number_of_servers = len(self.guilds)
@@ -159,7 +179,9 @@ class Somsiad(commands.Bot):
             '',
             __copyright__
         ]
-        return '\n'.join(info_lines)
+        info = '\n'.join(info_lines)
+        print(info)
+        return info
 
     async def cycle_presence(self):
         """Cycle through prefix safe commands in the presence."""
@@ -541,3 +563,13 @@ class Prefix(commands.Cog):
 
 
 somsiad = Somsiad()
+
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, somsiad.signal_handler)
+    if configuration['sentry_dsn'] is not None:
+        print('Przygotowywanie integracji z Sentry...')
+        sentry_sdk.init(
+            configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
+            integrations=[SqlalchemyIntegration(), AioHttpIntegration()]
+        )
+    somsiad.controlled_run()

@@ -19,9 +19,8 @@ from utilities import (
 )
 
 NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
-ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
 
-setlocale(ACCEPTED_LOCALES)
+setlocale()
 
 class TestTextFormatterFindURL(unittest.TestCase):
     def test_proper_http(self):

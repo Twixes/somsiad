@@ -108,9 +108,7 @@ class BotOwnerTools(commands.Cog):
         """Shuts down the bot."""
         embed = self.bot.generate_embed('🛑', 'Wyłączanie bota…')
         await self.bot.send(ctx, embed=embed)
-        print(f'\nZatrzymuję działanie programu na żądanie {ctx.author}…')
         await ctx.bot.close()
-        sys.exit()
 
     @commands.command(aliases=['błąd', 'blad', 'błont', 'blont'])
     @cooldown()

@@ -12,27 +12,3 @@
 
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
-
-from configuration import configuration
-
-if configuration['sentry_dsn'] is not None:
-    import sentry_sdk
-    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-    from sentry_sdk.integrations.aiohttp import AioHttpIntegration
-    from version import __version__
-    sentry_sdk.init(
-        configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
-        integrations=[SqlalchemyIntegration(), AioHttpIntegration()]
-    )
-
-from core import somsiad
-from utilities import setlocale
-from data import create_all_tables
-
-ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
-
-if __name__ == '__main__':
-    print('Budzenie Somsiada...')
-    setlocale(ACCEPTED_LOCALES)
-    create_all_tables()
-    somsiad.controlled_run()
