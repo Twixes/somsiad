@@ -29,7 +29,7 @@ class Reddit(commands.Cog):
             status = request.status
             if status == 200:
                 response = await request.json()
-        if status == 200:
+        if status == 200 and response['kind'] == 't5':
             about = response['data']
             is_nsfw = about['over18']
             if is_nsfw and not is_nfsw_acceptable:
@@ -46,7 +46,7 @@ class Reddit(commands.Cog):
                         embed.set_thumbnail(url=about['header_img'])
                     if about.get('banner_background_image'):
                         embed.set_image(url=about['banner_background_image'])
-        elif status == 404:
+        elif status == 404 or response['kind'] != 't5':
             embed = self.bot.generate_embed('🙁', 'Nie znaleziono podanego subreddita')
         else:
             embed = self.bot.generate_embed('⚠️', 'Nie udało się połączyć z serwisem')
@@ -61,7 +61,7 @@ class Reddit(commands.Cog):
             status = request.status
             if status == 200:
                 response = await request.json()
-        if status == 200:
+        if status == 200 and response['kind'] == 't2':
             about = response['data']
             subreddit_present = about.get('subreddit') is not None
             is_nsfw = subreddit_present and about['subreddit']['over_18']
@@ -90,7 +90,7 @@ class Reddit(commands.Cog):
                 embed.add_field(name='Utworzył konto', value=created_datetime.strftime('%-d %B %Y'))
                 if about.get('icon_img'):
                     embed.set_thumbnail(url=about['icon_img'])
-        elif status == 404:
+        elif status == 404 or response['kind'] != 't2':
             embed = self.bot.generate_embed('🙁', 'Nie znaleziono podanego użytkownika')
         else:
             embed = self.bot.generate_embed('⚠️', f'Nie udało się połączyć z serwisem')
