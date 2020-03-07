@@ -106,6 +106,7 @@ class Somsiad(commands.Bot):
         setlocale()
         data.Server.register_all(self.guilds)
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
+        self.run_datetime = dt.datetime.now()
         self.loop.create_task(self.cycle_presence())
         self.print_info()
 
@@ -134,8 +135,7 @@ class Somsiad(commands.Bot):
     async def on_guild_join(self, server):
         data.Server.register(server)
 
-    def controlled_run(self):
-        self.run_datetime = dt.datetime.now()
+    def load_and_run(self):
         print('Ładowanie rozszerzeń...')
         self.add_cog(Essentials(self))
         self.add_cog(Prefix(self))
@@ -159,18 +159,23 @@ class Somsiad(commands.Bot):
         """Return the invitation URL of the bot."""
         return discord.utils.oauth_url(self.user.id, discord.Permissions(305392727))
 
+    @property
+    def server_count(self) -> int:
+        return len([server.id for server in self.guilds if 'bot' not in server.name.lower()])
+
+    @property
+    def user_count(self) -> int:
+        return len({
+            member.id for server in self.guilds for member in server.members if 'bot' not in server.name.lower()
+        })
+
     def print_info(self) -> str:
         """Return a block of bot information."""
-        number_of_users = len(set(self.get_all_members()))
-        number_of_servers = len(self.guilds)
         info_lines = [
-            f'Obudzono Somsiada (ID {self.user.id}).',
+            f'\nPołączono jako {self.user} (ID {self.user.id}). '
+            f'{word_number_form(self.user_count, "użytkownik", "użytkownicy", "użytkowników")} '
+            f'na {word_number_form(self.server_count, "serwerze", "serwerach")}.',
             '',
-            f'Połączono '
-            f'{word_number_form(number_of_users, "użytkownikiem", "użytkownikami", include_with=True)} '
-            f'na {word_number_form(number_of_servers, "serwerze", "serwerach")}.',
-            '',
-            'Link do zaproszenia bota:',
             self.invite_url(),
             '',
             *map(str, configuration.settings.values()),
@@ -449,10 +454,8 @@ class Essentials(commands.Cog):
             emoji = 'ℹ️'
             notice = f'Somsiad {__version__}'
             footer = __copyright__
-            server_count = len([server.id for server in self.bot.guilds if 'bot' not in server.name.lower()])
-            user_count = len({
-                member.id for server in self.bot.guilds for member in server.members if 'bot' not in server.name.lower()
-            })
+            server_count = self.bot.server_count
+            user_count = self.bot.user_count
             runtime = human_amount_of_time(dt.datetime.now() - self.bot.run_datetime)
             application_info = await self.bot.application_info()
             instance_owner = application_info.owner.mention
@@ -572,4 +575,4 @@ if __name__ == '__main__':
             configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
             integrations=[SqlalchemyIntegration(), AioHttpIntegration()]
         )
-    somsiad.controlled_run()
+    somsiad.load_and_run()
