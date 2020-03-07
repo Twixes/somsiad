@@ -21,7 +21,6 @@ import signal
 import traceback
 import asyncio
 import platform
-import asyncio
 import random
 import itertools
 import datetime as dt
@@ -251,7 +250,7 @@ class Somsiad(commands.Bot):
                             if ctx.guild is not None else None
                         )
                     }
-                    scope.set_tag('command', ctx.command.qualified_name)
+                    scope.set_tag('full_command', ctx.command.qualified_name)
                     scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
                     scope.set_context('message', {
                         'prefix': ctx.prefix, 'content': ctx.message.content,
