@@ -82,16 +82,12 @@ class Wikipedia(commands.Cog):
                                             'thumbnail_url': None
                                         })
                                 elif article_data['type'] == 'standard':
-                                    if len(article_data['extract']) > 400:
-                                        summary = text_snippet(article_data['extract'], 400)
-                                    else:
-                                        summary = article_data['extract']
                                     thumbnail_url = (
                                         article_data['thumbnail']['source'] if 'thumbnail' in article_data else None
                                     )
                                     search_result.articles.append({
                                         'title': article_data['title'],
-                                        'summary': summary,
+                                        'summary': text_snippet(article_data['extract'], 500),
                                         'url': article_data['content_urls']['desktop']['page'],
                                         'thumbnail_url': thumbnail_url
                                     })
@@ -110,8 +106,12 @@ class Wikipedia(commands.Cog):
             number_of_articles = len(search_result.articles)
             if number_of_articles > 1:
                 disambiguation = []
+                disambiguation_length = 0
                 for article in search_result.articles:
-                    disambiguation.append(f'• [{article["title"]}]({article["url"]})')
+                    bullet = f'• [{article["title"]}]({article["url"]})'
+                    if disambiguation_length + len(bullet) > 2048: break
+                    disambiguation.append(bullet)
+                    disambiguation_length += len(bullet)
                 embed = self.bot.generate_embed(
                     '❓', f'Hasło "{search_result.title}" może odnosić się do:', '\n'.join(disambiguation),
                     url=search_result.url
