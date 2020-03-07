@@ -224,8 +224,8 @@ class Somsiad(commands.Bot):
         if len(embeds) > 10:
             raise ValueError('no more than 10 embeds can be sent at the same time')
         destination = ctx.author if direct else ctx.channel
-        content_elements = tuple(filter(None, (ctx.author.mention if not direct or not mention else None, text)))
-        content = '\n'.join(content_elements) if content_elements else None
+        content_elements = tuple(filter(None, (text, ctx.author.mention if not direct or not mention else None)))
+        content = ' '.join(content_elements) if content_elements else None
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
             await ctx.message.add_reaction('📫')
         messages = []
