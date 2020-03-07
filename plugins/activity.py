@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -704,7 +704,7 @@ class Report:
         return ax
 
 
-class Statistics(commands.Cog):
+class Activity(commands.Cog):
     GROUP = Help.Command(
         'stat', (), 'Komendy związane ze statystykami serwerowymi. '
         'Użyj <?użytkownika/kanału> zamiast <?podkomendy>, by otrzymać raport statystyczny.'
@@ -725,7 +725,7 @@ class Statistics(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.group(invoke_without_command=True, case_insensitive=True)
+    @commands.group(aliases=['activity', 'aktywność', 'aktywnosc'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
     async def stat(
             self, ctx, subject: Union[discord.TextChannel, discord.Member, discord.User, int] = None,
@@ -789,4 +789,4 @@ class Statistics(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Statistics(bot))
+    bot.add_cog(Activity(bot))
