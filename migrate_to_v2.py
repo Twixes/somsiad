@@ -25,7 +25,7 @@ def migrate_from_json_to_env():
     print('Migrating configuration from .json to .env... ')
     json_f_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.json')
     env_f_path = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), '.env')
-    if os.path.exists(json_f_path):
+    if os.path.exists(json_f_path) and not os.path.exists(env_f_path):
         with open(json_f_path, 'r') as json_f:
             configuration = json.load(json_f)
         with open(env_f_path, 'a') as env_f:
@@ -36,8 +36,8 @@ def migrate_from_json_to_env():
     else:
         print(f'Skipped: no file at {json_f_path}')
 
-if not os.path.exists(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), '.env')):
-    migrate_from_json_to_env()
+
+migrate_from_json_to_env()
 import data
 
 
@@ -109,7 +109,10 @@ class ServerDataManager:
         self.servers_db.commit()
 
         if load_own_db:
-            self.load_own_server_db(server_id)
+            try:
+                self.load_own_server_db(server_id)
+            except sqlite3.OperationalError:
+                print(f'Error while opening database for server ID {server_id}')
 
         return self.servers[server_id]
 
