@@ -119,7 +119,6 @@ class ServerDataManager:
     def load_own_server_db(self, server_id: int) -> dict:
         """Load the specified server's own database."""
         server_db_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad', f'server_{server_id}.db')
-        print(server_db_path)
         self.servers[server_id]['db'] = sqlite3.connect(server_db_path)
         self.servers[server_id]['db'].row_factory = sqlite3.Row
         self.servers[server_id]['db_cursor'] = self.servers[server_id]['db'].cursor()
@@ -214,13 +213,13 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
 data.create_all_tables()
 
 server_data_manager = ServerDataManager()
-ids = server_data_manager.servers.pop('ids')
+server_ids = server_data_manager.servers.pop('ids')
 
 
 def migrate_from_db_to_sqlalchemy_servers():
     print('Migrating servers from .db files to SQLAlchemy... ')
     session = data.Session()
-    session.add_all([data.Server(id=server_id) for server_id in server_data_manager.servers])
+    session.add_all([data.Server(id=server_id) for server_id in server_ids])
     session.commit()
     session.close()
     print('Done: servers migrated')
@@ -270,6 +269,7 @@ def migrate_from_db_to_sqlalchemy_moderation():
     print('Done: moderation migrated')
 
 
+migrate_from_db_to_sqlalchemy_servers()
 migrate_from_db_to_sqlalchemy_pins()
 migrate_from_db_to_sqlalchemy_oof()
 migrate_from_db_to_sqlalchemy_moderation()
