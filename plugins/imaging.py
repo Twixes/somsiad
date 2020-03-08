@@ -38,13 +38,19 @@ class Imaging(commands.Cog):
 
     @staticmethod
     def _deepfry(image_bytes: BinaryIO, number_of_passes: int) -> BinaryIO:
+        MAX_SIZE = 1000
         if number_of_passes < 1:
             number_of_passes = 1
         elif number_of_passes > 3:
             number_of_passes = 3
         for _ in range(number_of_passes):
             image = PIL.Image.open(image_bytes).convert('RGB')
-            image = PIL.ImageEnhance.Color(image).enhance(1.5)
+            aspect_ratio = image.width / image.height
+            if image.width > MAX_SIZE and image.width > image.height:
+                image = image.resize((MAX_SIZE, int(MAX_SIZE / aspect_ratio)))
+            elif image.height > MAX_SIZE:
+                image = image.resize((int(MAX_SIZE * aspect_ratio), MAX_SIZE))
+            image = PIL.ImageEnhance.Color(image).enhance(1.25)
             image = PIL.ImageEnhance.Contrast(image).enhance(2)
             image = PIL.ImageEnhance.Sharpness(image).enhance(2)
             image_bytes = io.BytesIO()
