@@ -23,7 +23,7 @@ class Dice(commands.Cog):
 
     @commands.command(aliases=['roll', 'rzuć', 'rzuc'])
     @cooldown()
-    async def roll_dice(self, ctx, arguments):
+    async def roll_dice(self, ctx, arguments=''):
         number_of_dice = 1
         number_of_sides_on_a_die = 6
         parts = arguments.lower().replace('k', 'd').split()
@@ -65,11 +65,7 @@ class Dice(commands.Cog):
                     'sześcienną' if number_of_sides_on_a_die == 6 else f'{number_of_sides_on_a_die}-ścienną'
                 )
                 results_info = f'Wypadło {results[0]}.'
-                embed = discord.Embed(
-                    title=f':game_die: Rzucono {number_of_sides_description} kością',
-                    description=results_info,
-                    color=self.bot.COLOR
-                )
+                embed = self.bot.generate_embed('🎲', f'Rzucono {number_of_sides_description} kością', results_info)
             else:
                 # convert results to strings and concatenate them
                 results_string = ', '.join(list(map(str, results[:-1])))
@@ -78,29 +74,21 @@ class Dice(commands.Cog):
                     'sześciennymi' if number_of_sides_on_a_die == 6 else f'{number_of_sides_on_a_die}-ściennymi'
                 )
                 results_info = f'Wypadło {results_string}.\nSuma tych liczb to {sum(results)}.'
-                embed = discord.Embed(
-                    title=f':game_die: Rzucono {number_of_dice} {number_of_sides_description} koścmi',
-                    description=results_info,
-                    color=self.bot.COLOR
+                embed = self.bot.generate_embed(
+                    '🎲', f'Rzucono {number_of_dice} {number_of_sides_description} koścmi', results_info
                 )
         else:
-            embed = discord.Embed(
-                title=f':warning: {number_of_sides_on_a_die}-ścienna kość nie ma sensu!',
-                color=self.bot.COLOR
-            )
-
+            embed = self.bot.generate_embed('⚠️', f'{number_of_sides_on_a_die}-ścienna kość nie ma sensu')
         await self.bot.send(ctx, embed=embed)
 
 
     @roll_dice.error
     async def roll_dice_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
-            embed = discord.Embed(
-                title=':warning: Podano nieprawidłowy argument!',
-                description='Ta komenda przyjmuje argumenty w formacie <?liczba kości> <?liczba ścianek kości>.',
-                color=self.bot.COLOR
+            embed = self.bot.generate_embed(
+                '⚠️', f'Podano nieprawidłowy argument',
+                'Ta komenda przyjmuje argumenty w formacie <?liczba kości> <?liczba ścianek kości>.'
             )
-
             await self.bot.send(ctx, embed=embed)
 
 
