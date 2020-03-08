@@ -111,7 +111,7 @@ class ServerDataManager:
         if load_own_db:
             try:
                 self.load_own_server_db(server_id)
-            except sqlite3.OperationalError as :
+            except sqlite3.OperationalError as e:
                 print(f'Error while opening database for server ID {server_id}: {e}')
 
         return self.servers[server_id]
