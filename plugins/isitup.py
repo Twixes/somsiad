@@ -12,70 +12,59 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import aiohttp
-import discord
-from somsiad import somsiad
+from discord.ext import commands
+from utilities import first_url, md_link
+from core import cooldown
 
 
-@somsiad.bot.command()
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def isitup(ctx, *, query):
-    """Returns information about website status."""
-    FOOTER_TEXT = 'Is it up?'
-
-    url = f'https://isitup.org/{query}.json'
-    RESPONSE_CODE_WIKIPEDIA_URLS = {
+class IsItUp(commands.Cog):
+    HTTP_CODE_WIKIPEDIA_URLS = {
         1:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_informacyjne',
         2:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_powodzenia',
         3:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_przekierowania',
         4:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_aplikacji_klienta',
         5:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_serwera_HTTP'
     }
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as r:
-            if r.status == 200:
-                res = await r.json()
-                # Website online
-                if res['status_code'] == 1:
-                    res_code_wikipedia_url = RESPONSE_CODE_WIKIPEDIA_URLS[int(str(res['response_code'])[0])]
-                    res_time = res['response_time'] * 1000
-                    embed = discord.Embed(
-                        title=f':white_check_mark: Strona {res["domain"]} jest dostępna',
-                        url=f'http://{res["domain"]}',
-                        description=f'Z IP [{res["response_ip"]}](http://{res["response_ip"]}) otrzymano '
-                        f'kod odpowiedzi [{res["response_code"]}]({res_code_wikipedia_url}) '
-                        f'w czasie {int(res_time)} ms.',
-                        color=somsiad.color
-                    )
-                # Website offline
-                elif res['status_code'] == 2:
-                    embed = discord.Embed(
-                        title=f':red_circle: Strona {res["domain"]} jest niedostępna',
-                        url=f'http://{res["domain"]}',
-                        color=somsiad.color
-                    )
-                # Wrong URL
-                elif res['status_code'] == 3:
-                    embed = discord.Embed(
-                        title=':warning: Podany adres jest niepoprawny!',
-                        color=somsiad.color
-                    )
+
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(aliases=('isup', 'czydziała', 'czydziala'))
+    @cooldown()
+    async def isitup(self, ctx, *, query='https://google.com'):
+        """Returns information about website status."""
+        async with ctx.typing():
+            protocol, rest = first_url(query, protocol_separate=True)
+            url_valid = rest is not None and protocol in (None, 'http', 'https')
+            status = None
+            if url_valid:
+                protocol = protocol or 'https'
+                url = f'{protocol}://{rest}'
+                try:
+                    for method in (self.bot.session.head, self.bot.session.get):
+                        async with method(url, allow_redirects=True, headers=self.bot.HEADERS) as request:
+                            if request.status == 405 and request.method != 'get':
+                                continue
+                            status = request.status
+                except aiohttp.InvalidURL:
+                    url_valid = False
+                except aiohttp.ClientConnectorError:
+                    pass
+            if url_valid:
+                if status is not None and status // 100 == 2:
+                    emoji, notice = '✅', f'Strona {rest} jest dostępna'
+                else:
+                    emoji, notice = '🔴', f'Strona {rest} nie jest dostępna'
+                if status is not None:
+                    status_presentation = md_link(status, self.HTTP_CODE_WIKIPEDIA_URLS[status // 100])
+                else:
+                    status_presentation = 'brak odpowiedzi'
+                embed = self.bot.generate_embed(emoji, notice, url=url)
+                embed.add_field(name='Status',value=status_presentation)
             else:
-                embed = discord.Embed(
-                    title=':warning: Nie udało się połączyć z serwerem sprawdzania statusu stron!',
-                    color=somsiad.color
-                )
-
-    embed.set_footer(text=FOOTER_TEXT)
-    await ctx.send(ctx.author.mention, embed=embed)
+                embed = self.bot.generate_embed('⚠️', 'Podany adres jest niepoprawny')
+            await self.bot.send(ctx, embed=embed)
 
 
-@isitup.error
-async def isitup_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        embed = discord.Embed(
-            title=f':warning: Nie podano adresu strony do sprawdzenia!',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
+def setup(bot: commands.Bot):
+    bot.add_cog(IsItUp(bot))

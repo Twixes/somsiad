@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -12,14 +12,21 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import discord
-from somsiad import somsiad
+from discord.ext import commands
+from core import cooldown
 
 
-@somsiad.bot.command(aliases=['badum', 'badumtss'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def rimshot(ctx):
-    """Ba dum tss!"""
-    file = discord.File(fp='./data/BA-DUM-TSS.mp3')
-    await ctx.send(file=file)
+class Rimshot(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(aliases=['badum', 'badumtss'])
+    @cooldown()
+    async def rimshot(self, ctx):
+        """Ba dum tss!"""
+        file = discord.File(fp='plugins/assets/BA-DUM-TSS.mp3')
+        await self.bot.send(ctx, file=file)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Rimshot(bot))

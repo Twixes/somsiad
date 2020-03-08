@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,73 +11,70 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import re
-import aiohttp
-import discord
-from somsiad import somsiad
-from utilities import TextFormatter
+import datetime as dt
+import urllib.parse
+from discord.ext import commands
+from core import cooldown
+from utilities import text_snippet
 
 
-@somsiad.bot.command(aliases=['urbandictionary', 'urban'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def urban_dictionary(ctx, *, query):
-    """Returns Urban Dictionary word definition."""
+class UrbanDictionary(commands.Cog):
     FOOTER_TEXT = 'Urban Dictionary'
+    API_URL = 'https://api.urbandictionary.com/v0/define'
 
-    api_url = 'https://api.urbandictionary.com/v0/define'
-    headers = {'User-Agent': somsiad.user_agent}
-    params = {'term': query}
-    async with aiohttp.ClientSession() as session:
-        async with session.get(api_url, headers=headers, params=params) as r:
-            if r.status == 200:
-                resp = await r.json()
-                bra_pat = re.compile(r'[\[\]]')
-                if resp['list']:
-                    top_def = resp['list'][0] # Get top definition
-                    word = top_def['word']
-                    definition = top_def['definition']
-                    definition = bra_pat.sub(r'', definition)
-                    definition = TextFormatter.limit_text_length(definition, 500)
-                    link = top_def['permalink']
-                    example = top_def['example']
-                    example = bra_pat.sub(r'', example)
-                    example = TextFormatter.limit_text_length(example, 400)
-                    t_up = top_def['thumbs_up']
-                    t_down = top_def['thumbs_down']
-                    # Output results
-                    embed = discord.Embed(
-                        title=word,
-                        url=link,
-                        description=definition,
-                        color=somsiad.color
-                    )
-                    embed.add_field(name=':thumbsup:', value=t_up)
-                    embed.add_field(name=':thumbsdown:', value=t_down)
-                else:
-                    embed = discord.Embed(
-                        title=f':slight_frown: Brak wyników dla terminu "{query}"',
-                        color=somsiad.color
-                    )
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    def expand_links(self, string: str) -> str:
+        current_link = ''
+        new_string = ''
+        inside_link = False
+        for character in string:
+            if not inside_link and character == '[':
+                inside_link = True
+                new_string += '['
+            elif inside_link and character == ']':
+                quoted_current_link = urllib.parse.quote_plus(current_link)
+                new_string += f'](https://www.urbandictionary.com/define.php?term={quoted_current_link})'
+                inside_link = False
+                current_link = ''
             else:
-                embed = discord.Embed(
-                    title=':warning: Nie można połączyć się z serwisem!',
-                    color=somsiad.color
-                )
-    embed.set_footer(text=FOOTER_TEXT)
+                if inside_link:
+                    current_link += character
+                new_string += character
+        return new_string
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    @commands.command(aliases=['urbandictionary', 'urban', 'ud'])
+    @cooldown()
+    async def urban_dictionary(self, ctx, *, query):
+        """Returns Urban Dictionary word definition."""
+        params = {'term': query}
+        async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+            if request.status == 200:
+                response = await request.json()
+                if response['list']:
+                    result = response['list'][0] # get top definition
+                    definition = self.expand_links(text_snippet(result['definition'], 500))
+                    embed = self.bot.generate_embed(
+                        None, result['word'], definition, url=result['permalink'],
+                        timestamp=dt.datetime.fromisoformat(result['written_on'][:-1])
+                    )
+                    embed.add_field(name='👍', value=f'{result["thumbs_up"]:n}')
+                    embed.add_field(name='👎', value=f'{result["thumbs_down"]:n}')
+                else:
+                    embed = self.bot.generate_embed('🙁', f'Brak wyników dla terminu "{query}"')
+            else:
+                embed = self.bot.generate_embed('⚠️', 'Nie udało się połączyć z serwisem')
+        embed.set_footer(text=self.FOOTER_TEXT)
+        await self.bot.send(ctx, embed=embed)
+
+    @urban_dictionary.error
+    async def urban_dictionary_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            embed = self.bot.generate_embed('⚠️', 'Musisz podać termin do sprawdzenia')
+            embed.set_footer(text=self.FOOTER_TEXT)
+            await self.bot.send(ctx, embed=embed)
 
 
-@urban_dictionary.error
-async def urban_dictionary_error(ctx, error):
-    FOOTER_TEXT = 'Urban Dictionary'
-
-    embed = discord.Embed(
-        title=':warning: Musisz podać termin do sprawdzenia!',
-        color=somsiad.color
-    )
-    embed.set_footer(text=FOOTER_TEXT)
-
-    await ctx.send(ctx.author.mention, embed=embed)
+def setup(bot: commands.Bot):
+    bot.add_cog(UrbanDictionary(bot))

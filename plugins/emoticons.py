@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,73 +11,61 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import discord
-from somsiad import somsiad
+from discord.ext import commands
+from core import cooldown
 
 
-@somsiad.bot.command(aliases=['lenny'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def lennyface(ctx):
-    """( ͡° ͜ʖ ͡°)"""
-    await ctx.send('( ͡° ͜ʖ ͡°)')
+class Emoticons(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(aliases=['lenny'])
+    @cooldown()
+    async def lennyface(self, ctx):
+        """( ͡° ͜ʖ ͡°)"""
+        await self.bot.send(ctx, '( ͡° ͜ʖ ͡°)', mention=False)
+
+    @commands.command(aliases=['lenno'])
+    @cooldown()
+    async def lennoface(self, ctx):
+        """( ͡ʘ ͜ʖ ͡ʘ)"""
+        await self.bot.send(ctx, '( ͡ʘ ͜ʖ ͡ʘ)', mention=False)
+
+    @commands.command(aliases=['wywróć'])
+    @cooldown()
+    async def tableflip(self, ctx):
+        """(╯°□°）╯︵ ┻━┻"""
+        await self.bot.send(ctx, '(╯°□°）╯︵ ┻━┻', mention=False)
+
+    @commands.command(aliases=['odstaw'])
+    @cooldown()
+    async def unflip(self, ctx):
+        """┬─┬ ノ( ゜-゜ノ)"""
+        await self.bot.send(ctx, '┬─┬ ノ( ゜-゜ノ)', mention=False)
+
+    @commands.command()
+    @cooldown()
+    async def shrug(self, ctx):
+        r"""¯\_(ツ)_/¯"""
+        await self.bot.send(ctx, r'¯\_(ツ)_/¯', mention=False)
+
+    @commands.command(aliases=['dej'])
+    @cooldown()
+    async def gib(self, ctx, *, thing = None):
+        """༼ つ ◕_◕ ༽つ"""
+        if thing is None:
+            await self.bot.send(ctx, '༼ つ ◕_◕ ༽つ', mention=False)
+        elif 'fccchk' in thing:
+            await self.bot.send(ctx, f'༼ つ :japanese_goblin: ༽つ {thing}', mention=False)
+        else:
+            await self.bot.send(ctx, f'༼ つ ◕_◕ ༽つ {thing}', mention=False)
+
+    @commands.command()
+    @cooldown()
+    async def fccchk(self, ctx):
+        """:japanese_goblin:"""
+        await self.bot.send(ctx, ':japanese_goblin:', mention=False)
 
 
-@somsiad.bot.command(aliases=['lenno'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def lennoface(ctx):
-    """( ͡ʘ ͜ʖ ͡ʘ)"""
-    await ctx.send('( ͡ʘ ͜ʖ ͡ʘ)')
-
-
-@somsiad.bot.command(aliases=['wywróć'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def tableflip(ctx):
-    """(╯°□°）╯︵ ┻━┻"""
-    await ctx.send('(╯°□°）╯︵ ┻━┻')
-
-
-@somsiad.bot.command(aliases=['odstaw'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def unflip(ctx):
-    """┬─┬ ノ( ゜-゜ノ)"""
-    await ctx.send('┬─┬ ノ( ゜-゜ノ)')
-
-
-@somsiad.bot.command()
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def shrug(ctx):
-    r"""¯\_(ツ)_/¯"""
-    await ctx.send(r'¯\_(ツ)_/¯')
-
-
-@somsiad.bot.command(aliases=['dej'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def gib(ctx, *, thing = None):
-    """༼ つ ◕_◕ ༽つ"""
-    if thing is None:
-        await ctx.send('༼ つ ◕_◕ ༽つ')
-    elif 'fccchk' in thing:
-        await ctx.send(f'༼ つ :japanese_goblin: ༽つ {thing}')
-    else:
-        await ctx.send(f'༼ つ ◕_◕ ༽つ {thing}')
-
-
-@somsiad.bot.command()
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def fccchk(ctx):
-    """:japanese_goblin:"""
-    await ctx.send(':japanese_goblin:')
+def setup(bot: commands.Bot):
+    bot.add_cog(Emoticons(bot))

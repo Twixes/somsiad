@@ -1,4 +1,4 @@
-# Copyright 2018-2019 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,20 +11,20 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Optional, Union
+from numbers import Number
 import asyncio
 import locale
 import datetime as dt
-from numbers import Number
-from typing import Optional, Union
-import discord
-from somsiad import somsiad
-from utilities import TextFormatter, interpret_str_as_datetime
+from discord.ext import commands
+from core import cooldown
+from utilities import human_amount_of_time, interpret_str_as_datetime
 
 
 class Closing:
     STEPS = (0, 1, 2, 3, 4, 5, 10, 15, 30, 60, 120, 180, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400)
 
-    def __init__(self, ctx: discord.ext.commands.Context, countdown_time: Union[Number, dt.datetime]):
+    def __init__(self, ctx: commands.Context, countdown_time: Union[Number, dt.datetime]):
         self.init_datetime = dt.datetime.now().astimezone()
         self.countdown_active = True
         self.ctx = ctx
@@ -48,12 +48,9 @@ class Closing:
             raise ValueError('time until closing cannot be over 2 weeks')
 
     async def timeout_handler(self):
-        embed = discord.Embed(
-            title=':bomb: Kanał zostanie zamknięty za '
-            f'{TextFormatter.human_readable_time(self.countdown_seconds)}',
-            description='Napisz STOP by zatrzymać odliczanie.',
-            timestamp=self.closing_datetime,
-            color=somsiad.color
+        embed = self.ctx.bot.generate_embed(
+            '💣', f'Kanał zostanie zamknięty za {human_amount_of_time(self.countdown_seconds)}',
+            'Napisz STOP by zatrzymać odliczanie.', timestamp=self.closing_datetime
         )
         await self.ctx.send(self.ctx.author.mention, embed=embed)
 
@@ -71,11 +68,10 @@ class Closing:
         else:
             self.countdown_active = False
             closing_defusal_timedelta = self.closing_datetime - dt.datetime.now().astimezone()
-            embed = discord.Embed(
-                title=':raised_hand: Odliczanie zostało zatrzymane '
-                f'{TextFormatter.human_readable_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
-                timestamp=self.closing_datetime,
-                color=somsiad.color
+            embed = self.ctx.bot.generate_embed(
+                '✋', 'Odliczanie zostało zatrzymane '
+                f'{human_amount_of_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
+                timestamp=self.closing_datetime
             )
             if stop_message.author.mention == self.ctx.author.mention:
                 mentions = stop_message.author.mention
@@ -86,15 +82,11 @@ class Closing:
     async def countdown_handler(self):
         next_lower_step_index = self._find_next_lower_step_index()
         await asyncio.sleep(self.countdown_seconds-self.STEPS[next_lower_step_index])
-
         for step_index in reversed(range(1, next_lower_step_index+1)):
             if self.countdown_active:
-                embed = discord.Embed(
-                    title=':bomb: Kanał zostanie zamknięty za '
-                    f'{TextFormatter.human_readable_time(self.STEPS[step_index])}',
-                    description='Napisz STOP by zatrzymać odliczanie.',
-                    timestamp=self.closing_datetime,
-                    color=somsiad.color
+                embed = self.ctx.bot.generate_embed(
+                    '💣', f'Kanał zostanie zamknięty za {human_amount_of_time(self.STEPS[step_index])}',
+                    'Napisz STOP by zatrzymać odliczanie.', timestamp=self.closing_datetime
                 )
                 await self.ctx.send(embed=embed)
                 await asyncio.sleep(self.STEPS[step_index]-self.STEPS[step_index-1])
@@ -108,30 +100,35 @@ class Closing:
         return step_index
 
 
-@somsiad.bot.command(aliases=['zamknij'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(manage_channels=True)
-@discord.ext.commands.bot_has_permissions(manage_channels=True)
-async def close(ctx, countdown_seconds: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = 3600):
-    """Counts down to channel removal."""
-    try:
-        closing = Closing(ctx, countdown_seconds)
-    except ValueError as e:
-        if str(e) == 'time until closing cannot be below 3 seconds':
-            embed = discord.Embed(
-                title=':warning: Odliczanie do zamknięcia kanału nie może trwać poniżej 3 sekund!',
-                color=somsiad.color
+class Close(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    @commands.command(aliases=['zamknij'])
+    @cooldown()
+    @commands.guild_only()
+    @commands.has_permissions(manage_channels=True)
+    @commands.bot_has_permissions(manage_channels=True)
+    async def close(
+            self, ctx, countdown_seconds: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = 3600
+    ):
+        """Counts down to channel removal."""
+        try:
+            closing = Closing(ctx, countdown_seconds)
+        except ValueError as e:
+            notice = None
+            if str(e) == 'time until closing cannot be below 3 seconds':
+                notice = 'Odliczanie do zamknięcia kanału nie może trwać poniżej 3 sekund'
+            elif str(e) == 'time until closing cannot be over 2 weeks':
+                notice = 'Odliczanie do zamknięcia kanału nie może trwać powyżej 2 tygodni'
+            if notice is not None:
+                embed = self.bot.generate_embed('⚠️', notice)
+                await self.bot.send(ctx, embed=embed)
+        else:
+            await asyncio.gather(
+                closing.timeout_handler(), closing.countdown_handler()
             )
-        elif str(e) == 'time until closing cannot be over 2 weeks':
-            embed = discord.Embed(
-                title=':warning: Odliczanie do zamknięcia kanału nie może trwać powyżej 2 tygodni!',
-                color=somsiad.color
-            )
-        await ctx.send(ctx.author.mention, embed=embed)
-    else:
-        await asyncio.gather(
-            closing.timeout_handler(), closing.countdown_handler()
-        )
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Close(bot))

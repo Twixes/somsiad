@@ -1,10 +1,15 @@
+***[polski](#somsiad--po-polsku), [English](#somsiad--in-english)***
+
+---
+
 # Somsiad – po polsku  
 
 Polski bot discordowy. Napisany w Pythonie.  
 
 ## Funkcje  
 
-* odtwarzanie muzyki na czacie głosowym
+* własny serwerowowy prefiks komend  
+* odtwarzanie muzyki na czacie głosowym  
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
 * Magic 8-Ball  
 * wybieranie jednej z podanych opcji
@@ -14,28 +19,27 @@ Polski bot discordowy. Napisany w Pythonie.
 * odliczanie do końca roku szkolnego (w Polsce)  
 * wyszukiwanie stron i obrazków za pomocą [Google](https://www.google.com)  
 * wyszukiwanie wideo na [YouTube](https://www.youtube.com)  
-* wyszukiwanie gifów na [Giphy](https://giphy.com/)  
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku  
-* wyszukiwanie filmów i seriali w [OMDb](https://www.omdbapi.com/)  
+* wyszukiwanie filmów i seriali w [TMDb](https://www.themoviedb.org/)  
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
 * tłumaczenie tekstu z [Yandex](https://translate.yandex.com/)  
-* udostępnianie obecnie słuchanego na Spotify utworu  
-* udostępnianie obecnie lub ostatnio słuchanego przez Last.fm utworu  
+* uzyskiwanie informacji i przeprowadzanie obliczeń z [Wolfram Alpha](https://www.wolframalpha.com/)  
+* udostępnianie obecnie słuchanego na [Spotify](https://spotify.com) utworu  
+* udostępnianie obecnie lub ostatnio słuchanego przez [Last.fm](https://last.fm) utworu  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
-* wymiana walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
-* sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
-* weryfikacja konta na [Reddicie](https://www.reddit.com/)  
-* rozpoczynanie głosowań z opcją opublikowania wyników po określonym czasie
-* obliczanie wartości wyrażeń matematycznych  
-* zapamiętywanie urodzin użytkowników serwera  
-* statystyki serwera/kanału/użytkownika (wraz z generowaniem wykresu aktywności)  
+* informacje o subredditach i użytkownikach [Reddita](https://reddit.com)  
+* rozpoczynanie głosowań z opcją opublikowania wyników po określonym czasie  
+* przypomienia  
+* zapamiętywanie urodzin użytkowników serwera i automatyczne składanie życzeń  
+* statystyki aktywności serwera/kanału/użytkownika wraz z wykresami  
+* samodzielne wybieranie koloru nicku przez użytkowników  
+* archiwizacja przypiętych wiadomości do wyznaczego kanału  
 * funkcje moderacyjne: ostrzeganie, wyrzucanie, banowanie  
 * rejestrowanie zdarzeń związanych z członkami serwera (ostrzeżenia, wyrzucenia, bany, dołączenia, opuszczenia)  
-* archiwizacja przypiętych wiadomości do wyznaczego kanału  
 
 ## Wymagania  
 
-* Python 3.6 lub późniejszy.  
+* Python 3.8+.  
 
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
@@ -48,23 +52,17 @@ By twoja wyszukiwarka Google Custom Search Engine działała prawidłowo, musisz
 dowolną stronę (może być to https://example.com). Następnie musisz udać się do zakładki Konfiguracja / Podstawy 
 wyszukiwarki, usunąć dodaną stronę i zaznaczyć pola: "Wyszukiwarka grafiki" oraz "Wyszukiwanie w całej sieci".  
 
-* Klucz API Giphy:  
-https://developers.giphy.com/  
-
 * Klucz API goodreads:  
 https://www.goodreads.com/api  
 
-* Klucz API OMDb:  
-https://www.omdbapi.com/apikey.aspx  
+* Klucz API TMDb:  
+https://developers.themoviedb.org/3/getting-started/introduction  
 
 * Klucz API Yandex Translate:  
 https://translate.yandex.com/developers/keys  
 
 * Klucz API Last.fm:  
 https://www.last.fm/api/account/create  
-
-* Nazwa użytkownika i hasło konta na Reddicie, a także ID i szyfr aplikacji redditowej typu skrypt:  
-https://www.reddit.com/prefs/apps  
 
 * Następujące paczki:  
 
@@ -75,28 +73,28 @@ https://www.reddit.com/prefs/apps
   * libffi  
   * libnacl  
   * libopus  
+  * libjpeg  
   * ffmpeg  
-  * libjpeg
 
   A także paczkę wsparcia języka polskiego dla twojego systemu.  
 Na systemach opartych na Debianie możesz spełnić te zależności za pomocą `apt`:  
-`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg libjpeg-dev`  
+`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev libjpeg-dev ffmpeg`  
 
 ## Instalacja  
 
 1. Pobierz kopię najnowszego wydania:  
-https://github.com/Twixes/Somsiad/releases/latest  
+https://github.com/Twixes/somsiad/releases/latest  
 
 2. Rozpakuj pobrane archiwum i wejdź do nowo utworzonego katalogu:  
-`$ tar -xvf Somsiad-<wersja>.tar.gz`  
-`$ cd Somsiad-<wersja>`  
+`$ tar -xvf somsiad-<wersja>.tar.gz`  
+`$ cd somsiad-<wersja>`  
 
-3. Uruchom bota (przy pierwszym uruchomieniu zostaniesz przeprowadzony przez krótki proces konfiguracji):  
+3. Uruchom bota:  
 `$ ./run.sh`  
-lub jeśli masz `screen`:  
-`$ screen -S Somsiad ./run.sh`  
+Lub jeśli masz `screen`:  
+`$ screen -S somsiad ./run.sh`  
 
-4. Zaproś Somsiada na swój serwer za pomocą linku podanego w konsoli po uruchomieniu.  
+4. Zapraszaj Somsiada na serwery za pomocą linku podanego w konsoli po uruchomieniu.  
 
 ## Licencja  
 
@@ -110,7 +108,8 @@ The Polish Discord bot. Written in Python.
 
 ## Features  
 
-* music playback over voice chat
+* custom server command prefix  
+* music playback over voice chat  
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
 * Magic 8-Ball  
 * choosing one of provided options
@@ -120,28 +119,29 @@ The Polish Discord bot. Written in Python.
 * counting down to the end of the school year (in Poland)  
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
-* [Giphy](https://giphy.com/) gif search  
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
-* [OMDb](https://www.omdbapi.com/) movie and TV show search  
+* [TMDb](https://www.themoviedb.org/) movie and TV show search  
 * [goodreads](https://www.goodreads.com) book search  
+* [TMDb](https://www.themoviedb.org/) movie and TV show search  
 * text translation powered by [Yandex](https://translate.yandex.com/)  
-* sharing the song currently played on Spotify  
-* sharing the song currently or previously played with Last.fm  
+* obtaining information and making calculations with [Wolfram Alpha](https://www.wolframalpha.com/)  
+* sharing the song currently played on [Spotify](https://spotify.com)  
+* sharing the song currently or previously played with [Last.fm](https://last.fm)  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
-* currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
-* website status check powered by [isitup.org](https://isitup.org)  
-* [Reddit](https://www.reddit.com/) account verification  
-* vote commencement with optional publication of results after a specified amount of time
+* subreddit and [Reddit](https://reddit.com) user information  
+* vote commencement with optional publication of results after a specified amount of time  
+* reminders  
 * calculation of mathematical expressions  
-* remembering birthdays of server members  
-* server/channel/user statistics (with activity chart generation)  
+* remembering birthdays of server members and automatic wishes  
+* server/channel/user activity statistics with charts  
+* self-selection of nick color by users  
 * moderation commands: warn, kick, ban  
 * recording of server member events (warnings, kicks, bans, joinings, leavings)  
 * archivization of pinned messages to a specified channel  
 
 ## Prerequisites  
 
-* Python 3.6 or later.  
+* Python 3.8+.  
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
@@ -154,23 +154,17 @@ In order to make your Google Custom Search Engine work correctly, you must assig
 (it might as well be https://example.com). Then you must go into the CSE's Setup / Basics, remove the website and 
 check boxes: "Image search" and "Search the entire web".  
 
-* A Giphy API key:  
-https://developers.giphy.com/  
-
 * A goodreads API key:  
 https://www.goodreads.com/api  
 
-* An OMDb API key:  
-https://www.omdbapi.com/apikey.aspx  
+* A TMDb API key:  
+https://developers.themoviedb.org/3/getting-started/introduction  
 
 * A Yandex Translate API key:  
 https://translate.yandex.com/developers/keys  
 
 * A Last.fm API key:  
 https://www.last.fm/api/account/create  
-
-* Reddit username and password, and also Reddit script application ID and secret:  
-https://www.reddit.com/prefs/apps  
 
 * The following packages:  
 
@@ -181,28 +175,28 @@ https://www.reddit.com/prefs/apps
   * libffi  
   * libnacl  
   * libopus  
-  * ffmpeg
-  * libjpeg
+  * libjpeg  
+  * ffmpeg  
 
   And also whatever the Polish language support package is for your system.  
 On Debian-based systems you can satisfy those dependencies with `apt`:  
-`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev ffmpeg libjpeg-dev`  
+`$ sudo apt install language-pack-pl-base python3-dev python3-pip python3-wheel python3-venv libffi-dev libnacl-dev libopus-dev libjpeg-dev ffmpeg`  
 
 ## Installation  
 
 1. Grab a copy of the latest release:  
-https://github.com/Twixes/Somsiad/releases/latest  
+https://github.com/Twixes/somsiad/releases/latest  
 
 2. Unpack the downloaded archive and enter the newly created directory:  
-`$ tar -xvf Somsiad-<version>.tar.gz`  
-`$ cd Somsiad-<version>`  
+`$ tar -xvf somsiad-<version>.tar.gz`  
+`$ cd somsiad-<version>`  
 
-3. Run the bot (you will be guided through configuration on the first run):  
+3. Run the bot:  
 `$ ./run.sh`  
-or if you have `screen` installed:  
-`$ screen -S Somsiad ./run.sh`  
+Or if you have `screen` installed:  
+`$ screen -S somsiad ./run.sh`  
 
-4. Invite Somsiad to your server with the link provided in the console upon launch.  
+4. Invite Somsiad to servers with the link provided in the console upon launch.  
 
 ## License  
 

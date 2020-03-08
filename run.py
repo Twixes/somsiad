@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018 Twixes
+# Copyright 2018–2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -12,31 +12,3 @@
 
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
-
-import locale
-import calendar
-import somsiad
-import server_data
-from plugins import *
-
-
-ACCEPTED_LOCALES = ('pl_PL.utf8', 'pl_PL.UTF-8')
-
-
-def set_locale(iteration: int = 0):
-    """Sets the locale.
-    Recursively tries locale after locale until it finds one that the system supports.
-    """
-    try:
-        return locale.setlocale(locale.LC_ALL, ACCEPTED_LOCALES[iteration])
-    except locale.Error:
-        return set_locale(iteration + 1)
-    except IndexError:
-        return None
-
-
-if __name__ == '__main__':
-    print('Budzenie Somsiada...')
-    set_locale()
-    calendar.setfirstweekday(calendar.MONDAY)
-    somsiad.somsiad.run()

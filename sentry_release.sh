@@ -1,4 +1,6 @@
-# Copyright 2018-2019 ondondil & Twixes
+#!/usr/bin/env bash
+
+# Copyright 2019 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,9 +13,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-__all__ = [
-    'birthday', 'bot_owner_utilities', 'burn', 'calculator', 'choice', 'closing', 'currency', 'deepfry', 'dice',
-    'disco', 'eightball', 'emoticons', 'giphy', 'goodreads', 'google_search', 'help_message', 'inviting', 'isitup',
-    'last_fm', 'moderation', 'oof', 'omdb', 'pins', 'reactions', 'reddit_links', 'reddit_verification', 'rimshot',
-    'school', 'spotify', 'statistics', 'trade_sundays', 'urban_dictionary', 'vote', 'wikipedia', 'yandex', 'youtube'
-]
+source ./.env
+VERSION=$(./version.py)
+sentry-cli releases new -p "${SENTRY_PROJ:-somsiad}" "${SENTRY_PROJ:-somsiad}@$VERSION" --finalize
+sentry-cli releases set-commits --auto "${SENTRY_PROJ:-somsiad}@$VERSION"

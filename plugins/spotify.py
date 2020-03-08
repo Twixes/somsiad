@@ -1,4 +1,4 @@
-# Copyright 2018-2019 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -13,64 +13,56 @@
 
 from difflib import SequenceMatcher
 import discord
-from somsiad import somsiad
-from utilities import TextFormatter
-from plugins.youtube import youtube
+from discord.ext import commands
+from core import cooldown
+from utilities import human_amount_of_time
 
 
-@somsiad.bot.command(aliases=['kanał', 'kanal'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def spotify(ctx, member: discord.Member = None):
-    """Shares the song currently played on Spotify by the provided user (or if not provided, by the invoking user)."""
-    member = member or ctx.author
+class Spotify(commands.Cog):
+    FOOTER_TEXT = 'Spotify'
+    FOOTER_ICON_URL = (
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/'
+        'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
+    )
 
-    spotify_activity = None
-    for activity in member.activities:
-        if isinstance(activity, discord.activity.Spotify):
-            spotify_activity = activity
-            break
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-    if spotify_activity is None:
-        embed = discord.Embed(
-            title=':stop_button: W tym momencie '
-            f'{"nie słuchasz" if member == ctx.author else f"{member.display_name} nie słucha"} niczego na Spotify',
-            color=somsiad.color
+    @commands.command()
+    @cooldown()
+    @commands.guild_only()
+    async def spotify(self, ctx, member: discord.Member = None):
+        member = member or ctx.author
+        spotify_activity = discord.utils.find(
+            lambda activity: isinstance(activity, discord.activity.Spotify), member.activities
         )
-    else:
-        embed = discord.Embed(
-            title=f':arrow_forward: {member.activity.title}',
-            url=f'https://open.spotify.com/go?uri=spotify:track:{member.activity.track_id}',
-            color=somsiad.color
-        )
-        embed.set_thumbnail(url=member.activity.album_cover_url)
-        embed.add_field(name='W wykonaniu', value=', '.join(member.activity.artists))
-        embed.add_field(name='Z albumu', value=member.activity.album)
-        embed.add_field(
-            name='Długość', value=TextFormatter.human_readable_time(member.activity.duration.total_seconds())
-        )
-
-        # Search for the song on YouTube
-        youtube_search_query = f'{member.activity.title} {" ".join(member.activity.artists)}'
-        youtube_search_result = youtube.search(youtube_search_query)
-        # Add a link to a YouTube video if a match was found
-        if (
-                youtube_search_result and
-                SequenceMatcher(None, youtube_search_query, youtube_search_result[0]['snippet']['title']).ratio() > 0.25
-        ):
-            video_id = youtube_search_result[0]['id']['videoId']
-            video_thumbnail_url = youtube_search_result[0]['snippet']['thumbnails']['medium']['url']
-            embed.add_field(
-                name='Posłuchaj na YouTube', value=f'https://www.youtube.com/watch?v={video_id}', inline=False
+        if spotify_activity is None:
+            address = 'nie słuchasz' if member == ctx.author else f'{member.display_name} nie słucha'
+            embed = self.bot.generate_embed('⏹', f'W tym momencie {address} niczego na Spotify')
+        else:
+            embed = self.bot.generate_embed(
+                '▶️', spotify_activity.title,
+                url=f'https://open.spotify.com/go?uri=spotify:track:{spotify_activity.track_id}'
             )
-            embed.set_image(url=video_thumbnail_url)
+            embed.set_thumbnail(url=spotify_activity.album_cover_url)
+            embed.add_field(name='W wykonaniu', value=', '.join(spotify_activity.artists))
+            embed.add_field(name='Z albumu', value=spotify_activity.album)
+            embed.add_field(
+                name='Długość', value=human_amount_of_time(spotify_activity.duration.total_seconds())
+            )
+            # search for the song on YouTube
+            youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
+            youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
+            # add a link to a YouTube video if a match was found
+            if (
+                    youtube_search_result is not None and
+                    SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
+            ):
+                embed.add_field(name='Posłuchaj na YouTube', value=youtube_search_result.url, inline=False)
+                embed.set_image(url=youtube_search_result.thumbnail_url)
+            embed.set_footer(text=self.FOOTER_TEXT, icon_url=self.FOOTER_ICON_URL)
+        await self.bot.send(ctx, embed=embed)
 
-        embed.set_footer(
-            text='Spotify',
-            icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/'
-            'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
-        )
 
-    await ctx.send(f'{ctx.author.mention}', embed=embed)
+def setup(bot: commands.Bot):
+    bot.add_cog(Spotify(bot))

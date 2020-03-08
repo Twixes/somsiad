@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018–2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,440 +11,338 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Union, List
 import datetime as dt
-from typing import Union, Optional
 import discord
-from somsiad import somsiad
-from server_data import server_data_manager
-from utilities import TextFormatter
+from discord.ext import commands
+from core import ServerRelated, UserRelated, ChannelRelated, cooldown
+from utilities import word_number_form
+import data
 
 
-class Files:
-    """Handles logging user-related events on the server."""
-    TABLE_NAME = 'files'
-    TABLE_COLUMNS = (
-        'event_id INTEGER NOT NULL PRIMARY KEY',
-        'event_type TEXT NOT NULL',
-        'channel_id INTEGER',
-        'executing_user_id INTEGER',
-        'subject_user_id INTEGER NOT NULL',
-        'posix_timestamp INTEGER NOT NULL',
-        'reason TEXT'
-    )
+class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
+    id = data.Column(data.BigInteger, primary_key=True)
+    type = data.Column(data.String(50), nullable=False)
+    executing_user_id = data.Column(data.BigInteger, index=True)
+    details = data.Column(data.String(2000))
+    occurred_at = data.Column(data.DateTime, nullable=False, default=dt.datetime.now)
 
-    class Event:
-        """A files event."""
-        __slots__ = (
-            'event_id', 'event_type', 'server_id', 'server', 'channel_id', 'channel', 'executing_user_id',
-            'executing_user', 'subject_user_id', 'subject_user', 'posix_timestamp', 'local_datetime', 'reason'
-        )
-
-        def __init__(
-                self, *, event_id: int = None, event_type: str, server_id: int, channel_id: int = None,
-                executing_user_id: int = None, subject_user_id: int, posix_timestamp: int, reason: str = None
-        ):
-            self.event_id = event_id
-            self.event_type = event_type
-            self.server_id = server_id
-            self.server = somsiad.bot.get_guild(server_id)
-            self.channel_id = channel_id
-            self.channel = None if channel_id is None else somsiad.bot.get_channel(channel_id)
-            self.executing_user_id = executing_user_id
-            self.executing_user = None if executing_user_id is None else somsiad.bot.get_user(executing_user_id)
-            self.subject_user_id = subject_user_id
-            self.subject_user = self.server.get_member(subject_user_id) or somsiad.bot.get_user(subject_user_id)
-            self.posix_timestamp = posix_timestamp
-            self.local_datetime = (
-                dt.datetime.fromtimestamp(posix_timestamp).replace(tzinfo=dt.timezone.utc).astimezone()
+    async def get_presentation(self, bot: commands.Bot) -> str:
+        type_presentation = '???'
+        if self.type == 'warned':
+            type_presentation = 'Ostrzeżenie'
+        elif self.type == 'kicked':
+            type_presentation = 'Wyrzucenie'
+        elif self.type == 'banned':
+            type_presentation = 'Ban'
+        elif self.type == 'unbanned':
+            type_presentation = 'Unban'
+        elif self.type == 'pardoned':
+            type_presentation = 'Przebaczenie'
+        elif self.type == 'joined':
+            type_presentation = 'Dołączenie'
+        elif self.type == 'left':
+            type_presentation = 'Opuszczenie'
+        parts = [
+            type_presentation,
+            self.occurred_at.strftime("%-d %B %Y o %H:%M")
+        ]
+        if self.channel_id is not None:
+            discord_channel = self.discord_channel
+            parts.append(f'na #{discord_channel}' if discord_channel is not None else 'na usuniętym kanale')
+        if self.executing_user_id is not None:
+            discord_executing_user = bot.get_user(self.executing_user_id)
+            if discord_executing_user is None:
+                discord_executing_user = await bot.fetch_user(self.executing_user_id)
+            parts.append(
+                f'przez {discord_executing_user}' if discord_executing_user is not None else
+                'przez usuniętego użytkownika'
             )
-            self.reason = reason
-
-        def __str__(self):
-            if self.event_type == 'warned':
-                return 'ostrzeżenie'
-            elif self.event_type == 'kicked':
-                return 'wyrzucenie'
-            elif self.event_type == 'banned':
-                return 'ban'
-            elif self.event_type == 'unbanned':
-                return 'unban'
-            elif self.event_type == 'joined':
-                return 'dołączenie'
-            elif self.event_type == 'left':
-                return 'opuszczenie'
-            else:
-                return '?'
-
-        def __hash__(self):
-            return hash(100000 * self.server_id + self.event_id)
-
-        def __eq__(self, other):
-            return self.server_id == other.server_id and self.event_id == other.event_id
-
-    @classmethod
-    def add_event(
-            cls, *, event_type: str, server: discord.Guild, channel: discord.TextChannel = None,
-            executing_user: discord.Member = None, subject_user = Union[discord.Guild, discord.TextChannel,
-            discord.VoiceChannel, discord.Member, discord.Message], posix_timestamp: int = None, reason: str = None
-    ):
-        """Adds an event with specified parameters to the database of the provided server."""
-        channel_id = None if channel is None else channel.id
-        executing_user_id = None if executing_user is None else executing_user.id
-        posix_timestamp = posix_timestamp or int(dt.datetime.utcnow().timestamp())
-
-        server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
-        server_data_manager.servers[server.id]['db_cursor'].execute(
-            f'''INSERT INTO {cls.TABLE_NAME}(event_type, channel_id, executing_user_id, subject_user_id,
-            posix_timestamp, reason) VALUES (?, ?, ?, ?, ?, ?)''',
-            (event_type, channel_id, executing_user_id, subject_user.id, posix_timestamp, reason)
-        )
-        server_data_manager.servers[server.id]['db'].commit()
+        return ' '.join(parts)
 
     @staticmethod
-    def comprehend_event_types(raw_event_types: str) -> list:
-        event_types = []
-        if 'warn' in raw_event_types or 'ostrzeż' in raw_event_types or 'ostrzez' in raw_event_types:
-            event_types.append('warned')
-        if 'kick' in raw_event_types or 'wyrzuć' in raw_event_types or 'wyrzuc' in raw_event_types:
-            event_types.append('kicked')
-        if 'unban' in raw_event_types or 'odban' in raw_event_types:
-            event_types.append('unbanned')
-        if 'ban' in raw_event_types or 'wygnan' in raw_event_types:
-            event_types.append('banned')
-        if 'join' in raw_event_types or 'dołącz' in raw_event_types or 'dolacz' in raw_event_types:
-            event_types.append('joined')
+    def comprehend_types(input_string: str) -> List[str]:
+        types = []
+        if 'warn' in input_string or 'ostrzeż' in input_string or 'ostrzez' in input_string:
+            types.append('warned')
+        if 'kick' in input_string or 'wyrzuć' in input_string or 'wyrzuc' in input_string:
+            types.append('kicked')
+        if 'unban' in input_string or 'odban' in input_string:
+            types.append('unbanned')
+        if 'ban' in input_string or 'wygnan' in input_string:
+            types.append('banned')
+        if 'pardon' in input_string or 'przebacz' in input_string:
+            types.append('pardoned')
+        if 'join' in input_string or 'dołącz' in input_string or 'dolacz' in input_string:
+            types.append('joined')
         if (
-                'leave' in raw_event_types or 'left' in raw_event_types or 'odejście' in raw_event_types or
-                'odejscie' in raw_event_types or 'odszed' in raw_event_types or 'odesz' in raw_event_types
+                'leave' in input_string or 'left' in input_string or 'odejście' in input_string or
+                'odejscie' in input_string or 'odszed' in input_string or 'odesz' in input_string
         ):
-            event_types.append('left')
+            types.append('left')
+        if not types:
+            raise ValueError
+        return types
 
-        return event_types
 
-    @classmethod
-    def get_events(
-            cls, *, server: discord.Guild, event_types: Union[str, tuple, list] = None,
-            channel: discord.TextChannel = None, subject_user: Union[
-                discord.Guild, discord.TextChannel, discord.VoiceChannel, discord.Member, discord.Message
-            ] = None
-    ) -> tuple:
-        """Returns a list of events on the provided server."""
-        server_data_manager.ensure_table_existence_for_server(server.id, cls.TABLE_NAME, cls.TABLE_COLUMNS)
-        condition_strings = []
-        condition_variables = []
-        if isinstance(event_types, str):
-            condition_strings.append('event_type = ?')
-            condition_variables.append(event_types)
-        elif isinstance(event_types, (tuple, list)) and event_types:
-            condition_strings.append(f'({" OR ".join(["event_type = ?" for _ in event_types])})')
-            condition_variables.extend(event_types)
-        if channel is not None:
-            condition_strings.append('channel_id = ?')
-            condition_variables.append(channel.id)
-        if subject_user is not None:
-            condition_strings.append('subject_user_id = ?')
-            condition_variables.append(subject_user.id)
+class Moderation(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-        combined_condition_string = f'WHERE {" AND ".join(condition_strings)}'
-        server_data_manager.servers[server.id]['db_cursor'].execute(
-            f'''SELECT event_id, event_type, channel_id, executing_user_id, subject_user_id,
-            posix_timestamp, reason FROM {cls.TABLE_NAME} {combined_condition_string if condition_strings else ""}''',
-            condition_variables
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        """Adds the joining event to the member's file."""
+        with data.session(commit=True) as session:
+            event = Event(type='joined', server_id=member.guild.id, user_id=member.id)
+            session.add(event)
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member):
+        """Adds the removal event to the member's file."""
+        with data.session(commit=True) as session:
+            event = Event(type='left', server_id=member.guild.id, user_id=member.id)
+            session.add(event)
+
+    @commands.Cog.listener()
+    async def on_member_ban(self, server: discord.Guild, user: discord.User):
+        """Adds the ban event to the member's file."""
+        with data.session(commit=True) as session:
+            event = Event(type='banned', server_id=server.id, user_id=user.id)
+            session.add(event)
+
+    @commands.Cog.listener()
+    async def on_member_unban(self, server: discord.Guild, user: discord.User):
+        """Adds the unban event to the member's file."""
+        with data.session(commit=True) as session:
+            event = Event(type='unbanned', server_id=server.id, user_id=user.id)
+            session.add(event)
+
+    @commands.command(aliases=['ostrzeż', 'ostrzez'])
+    @cooldown()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    async def warn(self, ctx, subject_user: discord.Member, *, reason):
+        """Warns the specified member."""
+        with data.session(commit=True) as session:
+            warning_count_query = session.query(Event).filter(
+                Event.server_id == ctx.guild.id, Event.user_id == subject_user.id, Event.type == 'warned'
+            ).statement.with_only_columns([data.func.count()])
+            warning_count = session.execute(warning_count_query).scalar() + 1
+            event = Event(
+                type='warned', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
+                executing_user_id=ctx.author.id, details=reason
+            )
+            session.add(event)
+        await self.bot.send(
+            ctx, embed=self.bot.generate_embed('✅', f'Ostrzeżono {subject_user} po raz {warning_count}.')
         )
 
-        results_rows = server_data_manager.servers[server.id]['db_cursor'].fetchall()
-        results_dicts = map(server_data_manager.dict_from_row, results_rows)
+    @warn.error
+    async def warn_error(self, ctx, error):
+        notice = None
+        if isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == 'subject_user':
+                notice = 'Musisz podać którego użytkownika chcesz ostrzec'
+            elif error.param.name == 'reason':
+                notice = 'Musisz podać powód ostrzeżenia'
+        elif isinstance(error, commands.BadArgument):
+            notice = 'Nie znaleziono na serwerze pasującego użytkownika'
+        if notice is not None:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-        events = [
-            cls.Event(
-                event_id=result['event_id'], event_type=result['event_type'], server_id=server.id,
-                channel_id=result['channel_id'], executing_user_id=result['executing_user_id'],
-                subject_user_id=result['subject_user_id'], posix_timestamp=result['posix_timestamp'],
-                reason=result['reason']
-            ) for result in results_dicts
-        ]
-        new_to_old_events = tuple(reversed(events)) # reverse the order of events so that the'yre ordered new to old
-
-        return new_to_old_events
-
-
-@somsiad.bot.event
-async def on_member_join(member):
-    """Adds the joining event to the member's file."""
-    Files.add_event(event_type='joined', server=member.guild, subject_user=member)
-
-
-@somsiad.bot.event
-async def on_member_remove(member):
-    """Adds the removal event to the member's file."""
-    Files.add_event(event_type='left', server=member.guild,subject_user=member)
-
-
-@somsiad.bot.event
-async def on_member_ban(server, member):
-    """Adds the unban event to the member's file."""
-    Files.add_event(event_type='banned', server=server, subject_user=member)
-
-
-@somsiad.bot.event
-async def on_member_unban(server, member):
-    """Adds the unban event to the member's file."""
-    Files.add_event(event_type='unbanned', server=server, subject_user=member)
-
-
-@somsiad.bot.command(aliases=['ostrzeż', 'ostrzez'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(kick_members=True)
-async def warn(ctx, subject_user: discord.Member, *, reason):
-    """Warns the specified member."""
-    Files.add_event(
-        event_type='warned', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
-        subject_user=subject_user, reason=reason
-    )
-    warnings = Files.get_events(server=ctx.guild, event_types='warned', subject_user=subject_user)
-
-    embed = discord.Embed(
-        title=f':white_check_mark: Ostrzeżono {subject_user} po raz {len(warnings)}.',
-        color=somsiad.color
-    )
-
-    await ctx.send(ctx.author.mention, embed=embed)
-
-
-@warn.error
-async def warn_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        if error.param.name == 'subject_user':
-            embed = discord.Embed(
-                title=f':warning: Musisz podać którego użytkownika chcesz ostrzec!',
-                color=somsiad.color
-            )
-        elif error.param.name == 'reason':
-            embed = discord.Embed(
-                title=f':warning: Musisz podać powód ostrzeżenia!',
-                color=somsiad.color
-            )
-        await ctx.send(ctx.author.mention, embed=embed)
-    elif isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.bot.command(aliases=['wyrzuć', 'wyrzuc'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(kick_members=True)
-async def kick(ctx, subject_user: discord.Member, *, reason):
-    """Kicks the specified member."""
-    try:
-        await subject_user.kick(reason=reason)
-    except discord.Forbidden:
-        embed = discord.Embed(
-            title=f':warning: Bot nie ma uprawnień do wyrzucenia tego użytkownika!',
-            color=somsiad.color
-        )
-        return await ctx.send(ctx.author.mention, embed=embed)
-
-    Files.add_event(
-        event_type='kicked', server=ctx.guild, channel=ctx.channel, executing_user=ctx.author,
-        subject_user=subject_user, reason=reason
-    )
-
-    embed = discord.Embed(
-        title=f':white_check_mark: Wyrzucono {subject_user}',
-        color=somsiad.color
-    )
-
-    return await ctx.send(ctx.author.mention, embed=embed)
-
-
-@kick.error
-async def kick_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        if error.param.name == 'subject_user':
-            embed = discord.Embed(
-                title=f':warning: Musisz podać którego użytkownika chcesz wyrzucić!',
-                color=somsiad.color
-            )
-        elif error.param.name == 'reason':
-            embed = discord.Embed(
-                title=f':warning: Musisz podać powód wyrzucenia!',
-                color=somsiad.color
-            )
-        await ctx.send(ctx.author.mention, embed=embed)
-    elif isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.bot.command(aliases=['zbanuj'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(ban_members=True)
-async def ban(ctx, subject_user: discord.Member, *, reason):
-    """Bans the specified member."""
-    try:
-        await subject_user.ban(reason=reason)
-    except discord.Forbidden:
-        embed = discord.Embed(
-            title=f':warning: Bot nie ma uprawnień do zbanowania tego użytkownika!',
-            color=somsiad.color
-        )
-        return await ctx.send(ctx.author.mention, embed=embed)
-
-    embed = discord.Embed(
-        title=f':white_check_mark: Zbanowano {subject_user}',
-        color=somsiad.color
-    )
-
-    return await ctx.send(ctx.author.mention, embed=embed)
-
-
-@ban.error
-async def ban_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        if error.param.name == 'subject_user':
-            embed = discord.Embed(
-                title=f':warning: Musisz podać którego użytkownika chcesz zbanować!',
-                color=somsiad.color
-            )
-        elif error.param.name == 'reason':
-            embed = discord.Embed(
-                title=f':warning: Musisz podać powód bana!',
-                color=somsiad.color
-            )
-        await ctx.send(ctx.author.mention, embed=embed)
-    elif isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.bot.command(aliases=['kartoteka'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-async def file(ctx, member: Optional[discord.Member] = None, *, raw_event_types: str = None):
-    """Responds with a list of the user's files entries on the server."""
-    if member is None:
-        member = ctx.author
-
-    if raw_event_types is None:
-        event_types = None
-    else:
-        event_types = Files.comprehend_event_types(raw_event_types)
-
-    entries = Files.get_events(server=ctx.guild, subject_user=member, event_types=event_types)
-
-    if entries:
-        if event_types is None:
-            event_types_description = ""
-        elif len(event_types) == 1:
-            event_types_description = " podanego typu"
-        elif len(event_types) > 1:
-            event_types_description = " podanych typów"
-        embed = discord.Embed(
-            title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
-            f'zawiera {TextFormatter.word_number_variant(len(entries), "zdarzenie", "zdarzenia", "zdarzeń")}'
-            f'{event_types_description}',
-            color=somsiad.color
-        )
-        for entry in entries:
-            entry_info = [str(entry).capitalize(), entry.local_datetime.strftime("%-d %B %Y o %H:%M")]
-            if entry.channel is not None:
-                entry_info.append(f'#{entry.channel}')
-            if entry.executing_user is not None:
-                entry_info.append(str(entry.executing_user))
-            embed.add_field(
-                name=" – ".join(entry_info),
-                value=entry.reason if entry.reason is not None else '*Brak szczegółów.*',
-                inline=False
-                )
-    else:
-        if event_types is None:
-            embed = discord.Embed(
-                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
-                'jest pusta',
-                color=somsiad.color
-            )
+    @commands.command(aliases=['wyrzuć', 'wyrzuc'])
+    @cooldown()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
+    async def kick(self, ctx, subject_user: discord.Member, *, reason):
+        """Kicks the specified member."""
+        try:
+            await subject_user.kick(reason=reason)
+        except discord.Forbidden:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Bot nie może wyrzucić tego użytkownika'))
         else:
-            embed = discord.Embed(
-                title=f':open_file_folder: {"Twoja kartoteka" if member == ctx.author else f"Kartoteka {member}"} '
-                'nie zawiera zdarzeń podanego typu',
-                color=somsiad.color
+            with data.session(commit=True) as session:
+                event = Event(
+                    type='kicked', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
+                    executing_user_id=ctx.author.id, details=reason
+                )
+                session.add(event)
+            await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Wyrzucono {subject_user}'))
+
+    @kick.error
+    async def kick_error(self, ctx, error):
+        notice = None
+        if isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == 'subject_user':
+                notice = 'Musisz podać którego użytkownika chcesz wyrzucić'
+            elif error.param.name == 'reason':
+                notice = 'Musisz podać powód wyrzucenia'
+        elif isinstance(error, commands.BadArgument):
+            notice = 'Nie znaleziono na serwerze pasującego użytkownika'
+        if notice is not None:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
+
+    @commands.command(aliases=['zbanuj'])
+    @cooldown()
+    @commands.guild_only()
+    @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
+    async def ban(self, ctx, subject_user: discord.Member, *, reason):
+        """Bans the specified member."""
+        try:
+            await subject_user.ban(reason=reason)
+        except discord.Forbidden:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Bot nie może zbanować tego użytkownika'))
+        else:
+            with data.session(commit=True) as session:
+                event = Event(
+                    type='banned', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
+                    executing_user_id=ctx.author.id, details=reason
+                )
+                session.add(event)
+            await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Zbanowano {subject_user}'))
+
+    @ban.error
+    async def ban_error(self, ctx, error):
+        notice = None
+        if isinstance(error, commands.MissingRequiredArgument):
+            if error.param.name == 'subject_user':
+                notice = 'Musisz podać którego użytkownika chcesz zbanować'
+            elif error.param.name == 'reason':
+                notice = 'Musisz podać powód bana'
+        elif isinstance(error, commands.BadArgument):
+            notice = 'Nie znaleziono na serwerze pasującego użytkownika'
+        if notice is not None:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
+
+    @commands.command(aliases=['przebacz'])
+    @cooldown()
+    @commands.guild_only()
+    @commands.has_permissions(kick_members=True)
+    async def pardon(self, ctx, subject_user: discord.Member):
+        """Clears specified member's warnings."""
+        with data.session(commit=True) as session:
+            warning_deleted_count = session.query(Event).filter(
+                Event.server_id == ctx.guild.id, Event.user_id == subject_user.id, Event.type == 'warned'
+            ).delete()
+            if warning_deleted_count:
+                warning_form = word_number_form(warning_deleted_count, 'ostrzeżenie', 'ostrzeżenia', 'ostrzeżeń')
+                emoji = '✅'
+                notice = f'Usunięto {warning_form} {subject_user}'
+                event = Event(
+                    type='pardoned', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
+                    executing_user_id=ctx.author.id, details=warning_form
+                )
+                session.add(event)
+            else:
+                emoji = 'ℹ️'
+                notice = f'{subject_user} nie ma na ostrzeżeń do usunięcia'
+        await self.bot.send(ctx, embed=self.bot.generate_embed(emoji, notice))
+
+    @pardon.error
+    async def pardon_error(self, ctx, error):
+        notice = None
+        if isinstance(error, commands.MissingRequiredArgument):
+            notice = 'Musisz podać któremu użytkownikowi chcesz przebaczyć'
+        elif isinstance(error, commands.BadArgument):
+            notice = 'Nie znaleziono na serwerze pasującego użytkownika'
+        if notice is not None:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
+
+    @commands.command(aliases=['kartoteka'])
+    @cooldown()
+    @commands.guild_only()
+    async def file(
+            self, ctx, member: Union[discord.Member, int] = None, *, event_types: Event.comprehend_types = None
+    ):
+        """Responds with a list of the user's files events on the server."""
+        if isinstance(member, int):
+            search_by_non_member_id = True
+            member_id = member
+            try:
+                member = await self.bot.fetch_user(member)
+            except discord.NotFound:
+                member = None
+        else:
+            search_by_non_member_id = False
+            member = member or ctx.author
+            member_id = member.id
+        with data.session() as session:
+            events = session.query(Event)
+            if event_types is None:
+                events = events.filter(
+                    Event.server_id == ctx.guild.id, Event.user_id == member_id
+                )
+            else:
+                events = events.filter(
+                    Event.server_id == ctx.guild.id, Event.user_id == member_id, Event.type.in_(event_types)
+                )
+            events = events.order_by(Event.occurred_at).all()
+            if member == ctx.author:
+                address = 'Twoja kartoteka'
+            else:
+                address = f'Kartoteka {member if member else "usuniętego użytkownika"}'
+        if events:
+            if event_types is None:
+                event_types_description = ''
+            elif len(event_types) == 1:
+                event_types_description = ' podanego typu'
+            elif len(event_types) > 1:
+                event_types_description = ' podanych typów'
+            event_number_form = word_number_form(len(events), 'zdarzenie', 'zdarzenia', 'zdarzeń')
+            embed = self.bot.generate_embed(
+                '📂', f'{address} zawiera {event_number_form}{event_types_description}',
+                'Pokazuję 25 najnowszych.' if len(events) > 25 else ''
             )
+            for event in events[-25:]:
+                embed.add_field(
+                    name=await event.get_presentation(self.bot),
+                    value=event.details if event.details is not None else '—',
+                    inline=False
+                )
+        else:
+            if search_by_non_member_id:
+                embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+            else:
+                notice = 'jest pusta' if event_types is None else 'nie zawiera zdarzeń podanego typu'
+                embed = self.bot.generate_embed('📂', f'{address} {notice}')
+        await self.bot.send(ctx, embed=embed)
 
-    await ctx.send(ctx.author.mention, embed=embed)
+    @file.error
+    async def file_error(self, ctx, error):
+        notice = None
+        if isinstance(error, commands.BadUnionArgument):
+            notice = 'Nie znaleziono na serwerze pasującego użytkownika'
+        elif isinstance(error, commands.BadArgument):
+            notice = 'Nie rozpoznano żadnego typu zdarzenia'
+        if notice is not None:
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-
-@file.error
-async def file_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-            color=somsiad.color
+    @commands.command(aliases=['wyczyść', 'wyczysc'])
+    @cooldown()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_messages=True)
+    async def purge(self, ctx, number_of_messages_to_delete: int = 1):
+        """Removes last number_of_messages_to_delete messages from the channel."""
+        number_of_messages_to_delete = min(number_of_messages_to_delete, 100)
+        await ctx.channel.purge(limit=number_of_messages_to_delete+1)
+        last_adjective_variant = word_number_form(
+            number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
         )
-        await ctx.send(ctx.author.mention, embed=embed)
-
-
-@somsiad.bot.command(aliases=['wyczyść', 'wyczysc'])
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-@discord.ext.commands.guild_only()
-@discord.ext.commands.has_permissions(manage_messages=True)
-@discord.ext.commands.bot_has_permissions(manage_messages=True)
-async def purge(ctx, number_of_messages_to_delete: int = 1):
-    """Removes last number_of_messages_to_delete messages from the channel."""
-    # limit the number of messages to delete to 100
-    number_of_messages_to_delete = min(number_of_messages_to_delete, 100)
-
-    await ctx.channel.purge(limit=number_of_messages_to_delete+1)
-
-    last_adjective_variant = TextFormatter.word_number_variant(
-        number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
-    )
-    messages_noun_variant = TextFormatter.word_number_variant(
-        number_of_messages_to_delete, 'wiadomość', 'wiadomości', include_number=False
-    )
-    embed = discord.Embed(
-        title=f':white_check_mark: Usunięto z kanału {last_adjective_variant} {messages_noun_variant}',
-        description=somsiad.message_autodestruction_notice,
-        color=somsiad.color
-    )
-
-    await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
-
-
-@purge.error
-async def purge_error(ctx, error):
-    if isinstance(error, discord.ext.commands.errors.BotMissingPermissions):
-        embed = discord.Embed(
-            title=':warning: Nie usunięto z kanału żadnych wiadomości, ponieważ bot nie ma tutaj do tego uprawnień',
-            description=somsiad.message_autodestruction_notice,
-            color=somsiad.color
+        messages_noun_variant = word_number_form(
+            number_of_messages_to_delete, 'wiadomość', 'wiadomości', include_number=False
         )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
-    elif isinstance(error, discord.ext.commands.BadArgument):
-        embed = discord.Embed(
-            title=':warning: Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia',
-            description=somsiad.message_autodestruction_notice,
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed, delete_after=somsiad.message_autodestruction_time_in_seconds)
+        embed = self.bot.generate_embed('✅', f'Usunięto z kanału {last_adjective_variant} {messages_noun_variant}')
+        await self.bot.send(ctx, embed=embed)
+
+    @purge.error
+    async def purge_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            embed = self.bot.generate_embed('⚠️', 'Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia')
+            await self.bot.send(ctx, embed=embed)
+
+
+def setup(bot: commands.Bot):
+    bot.add_cog(Moderation(bot))

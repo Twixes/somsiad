@@ -1,4 +1,4 @@
-# Copyright 2018 Twixes
+# Copyright 2018-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,17 +11,17 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union
 import datetime as dt
-import locale
-import discord
-from somsiad import somsiad
-from utilities import TextFormatter
+from discord.ext import commands
+from utilities import word_number_form, days_as_weeks, setlocale
+from core import cooldown
 
 
-class SchoolYear:
-    def __init__(self, reference_date: dt.date = None):
+class SchoolPeriod:
+    def __init__(self, reference_date: dt.date = None, *, matura: bool = False):
         self.reference_date = reference_date or dt.date.today()
+        self.matura = matura
+        self.is_summer_break = False
         end_date_for_year_of_date = self._find_end_date(self.reference_date.year)
         if end_date_for_year_of_date >= self.reference_date:
             self.start_date = self._find_start_date(self.reference_date.year-1)
@@ -29,12 +29,22 @@ class SchoolYear:
         else:
             self.start_date = self._find_start_date(self.reference_date.year)
             self.end_date = self._find_end_date(self.reference_date.year+1)
+        self._calculate_basic_metrics()
+        if self.days_passed < 0 or self.days_left < 0:
+            self.is_summer_break = True
+            self.end_date = self.start_date
+            self.start_date = end_date_for_year_of_date
+            self._calculate_basic_metrics()
+        self._calculate_extra_metrics()
+
+    def _calculate_basic_metrics(self):
         self.length = (self.end_date - self.start_date).days
         self.days_passed = (self.reference_date - self.start_date).days
         self.days_left = self.length - self.days_passed
+
+    def _calculate_extra_metrics(self):
         self.fraction_passed = self.days_passed / self.length
         self.fraction_left = self.days_left / self.length
-        self.is_ongoing = self.days_passed >= 0 and self.days_left >= 0
 
     def _find_start_date(self, start_year: int) -> dt.date:
         day = 1
@@ -45,93 +55,95 @@ class SchoolYear:
         return date
 
     def _find_end_date(self, end_year: int) -> dt.date:
-        day = 21
-        date = dt.date(year=end_year, month=6, day=day)
-        while date.isoweekday() != 5:
-            day += 1
+        if self.matura:
+            day = 4
+            date = dt.date(year=end_year, month=5, day=day)
+            while date.isoweekday() > 5:
+                day += 1
+                date = dt.date(year=end_year, month=5, day=day)
+        else:
+            day = 21
             date = dt.date(year=end_year, month=6, day=day)
-        if end_year == 2019:
-            date -= dt.timedelta(2)
+            while date.isoweekday() != 5:
+                day += 1
+                date = dt.date(year=end_year, month=6, day=day)
+            if end_year == 2019:
+                date -= dt.timedelta(2)
         return date
 
 
-class SummerBreak:
-    def __init__(self, next_school_year: SchoolYear):
-        previous_school_year = SchoolYear(dt.date(next_school_year.start_date.year, 1, 1))
-        self.start_date = previous_school_year.end_date
-        self.end_date = next_school_year.start_date
-        self.length = (self.end_date - self.start_date).days
-        self.days_passed = (next_school_year.reference_date - self.start_date).days
-        self.days_left = self.length - self.days_passed
-        self.fraction_passed = self.days_passed / self.length
-        self.fraction_left = self.days_left / self.length
-        self.is_ongoing = self.days_passed >= 0 and self.days_left >= 0
+class School(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
-def get_current_school_time() -> Union[SchoolYear, SummerBreak]:
-    school_year = SchoolYear()
-    if school_year.is_ongoing:
-        print(school_year.fraction_passed + school_year.fraction_left)
-        return school_year
-    else:
-        summer_break = SummerBreak(school_year)
-        return summer_break
-
-
-def present_days_as_weeks(number_of_days: int) -> Optional[str]:
-    if number_of_days // 7 == 0:
-        return None
-    elif number_of_days % 7 == 0:
-        return f'To {TextFormatter.word_number_variant(number_of_days // 7, "tydzień", "tygodnie", "tygodni")}.'
-    else:
-        return (
-            f'To {TextFormatter.word_number_variant(number_of_days // 7, "tydzień", "tygodnie", "tygodni")} '
-            f'i {TextFormatter.word_number_variant(number_of_days % 7, "dzień", "dni")}.'
+    @commands.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
+    @cooldown()
+    async def how_much_longer(self, ctx):
+        """Says how much of the school year or summer break is left."""
+        current_school_period = SchoolPeriod()
+        days_left_as_weeks = days_as_weeks(current_school_period.days_left)
+        left_form = word_number_form(
+            current_school_period.days_left, 'został', 'zostały', 'zostało', include_number=False
         )
-
-
-@somsiad.bot.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
-@discord.ext.commands.cooldown(
-    1, somsiad.conf['command_cooldown_per_user_in_seconds'], discord.ext.commands.BucketType.user
-)
-async def how_much_more(ctx):
-    """Says how much of the school year or summer break is left."""
-    current_school_time = get_current_school_time()
-
-    if isinstance(current_school_time, SchoolYear):
-        current_school_year = current_school_time
-        if current_school_year.days_left == 0:
-            embed = discord.Embed(
-                title=':tada: Dziś zakończenie roku szkolnego',
-                color=somsiad.color
-            )
-        elif current_school_year.days_passed == 0:
-            embed = discord.Embed(
-                title=':chains: Dziś rozpoczęcie roku szkolnego',
-                color=somsiad.color
-            )
+        day_form = word_number_form(current_school_period.days_left, 'dzień', 'dni')
+        if not current_school_period.is_summer_break:
+            if current_school_period.days_left == 0:
+                embed = self.bot.generate_embed('🎉', 'Dziś zakończenie roku szkolnego')
+            elif current_school_period.days_passed == 0:
+                embed = self.bot.generate_embed('⛓', 'Dziś rozpoczęcie roku szkolnego')
+            else:
+                embed = self.bot.generate_embed(
+                    '📚', f'Do końca roku szkolnego {left_form} {day_form}',
+                    f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
+                )
+                embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
         else:
-            embed = discord.Embed(
-                title=':books: Do końca roku szkolnego '
-                f'{TextFormatter.word_number_variant(current_school_year.days_left, "został", "zostały", "zostało", include_number=False)} '
-                f'{TextFormatter.word_number_variant(current_school_year.days_left, "dzień", "dni")}',
-                description=present_days_as_weeks(current_school_year.days_left),
-                color=somsiad.color
+            embed = self.bot.generate_embed(
+                '🏖', f'Do końca wakacji {left_form} {day_form}',
+                f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
             )
-            embed.add_field(name='Postęp', value=f'{locale.str(round(current_school_year.fraction_passed * 100, 1))}%')
-    else:
-        current_summber_break = current_school_time
-        embed = discord.Embed(
-            title=':beach: Do końca wakacji '
-            f'{TextFormatter.word_number_variant(current_summber_break.days_left, "został", "zostały", "zostało", include_number=False)} '
-            f'{TextFormatter.word_number_variant(current_summber_break.days_left, "dzień", "dni")}',
-            description=present_days_as_weeks(current_summber_break.days_left),
-            color=somsiad.color
+            embed.add_field(
+                name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%'
+            )
+        embed.add_field(name='Data rozpoczęcia', value=current_school_period.start_date.strftime('%-d %B %Y'))
+        embed.add_field(name='Data zakończenia', value=current_school_period.end_date.strftime('%-d %B %Y'))
+        await self.bot.send(ctx, embed=embed)
+
+    @how_much_longer.group(aliases=['matury'], invoke_without_command=True, case_insensitive=True)
+    @cooldown()
+    async def matura(self, ctx):
+        """Says how much of the school year or summer break is left."""
+        current_school_period = SchoolPeriod(matura=True)
+        days_left_as_weeks = days_as_weeks(current_school_period.days_left)
+        left_form = word_number_form(
+            current_school_period.days_left, 'został', 'zostały', 'zostało', include_number=False
         )
+        day_form = word_number_form(current_school_period.days_left, 'dzień', 'dni')
+        if not current_school_period.is_summer_break:
+            if current_school_period.days_left == 0:
+                embed = self.bot.generate_embed('🖋', 'Dziś rozpoczęcie matur')
+            elif current_school_period.days_passed == 0:
+                embed = self.bot.generate_embed('⛓', 'Dziś rozpoczęcie roku szkolnego')
+            else:
+                embed = self.bot.generate_embed(
+                    '🎓', f'Do rozpoczęcia matur {left_form} {day_form}',
+                    f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
+                )
+                embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
+        else:
+            embed = self.bot.generate_embed(
+                '🏖', f'Do końca wakacji {left_form} {day_form}',
+                f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
+            )
+            embed.add_field(
+                name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%'
+            )
         embed.add_field(
-            name='Postęp', value=f'{locale.str(round(current_summber_break.fraction_passed * 100, 1))}%'
+            name='Data rozpoczęcia roku szkolnego', value=current_school_period.start_date.strftime('%-d %B %Y')
         )
+        embed.add_field(name='Data rozpoczęcia matur', value=current_school_period.end_date.strftime('%-d %B %Y'))
+        await self.bot.send(ctx, embed=embed)
 
-    embed.add_field(name='Data rozpoczęcia', value=current_school_time.start_date.strftime('%-d %B %Y'))
-    embed.add_field(name='Data zakończenia', value=current_school_time.end_date.strftime('%-d %B %Y'))
 
-    await ctx.send(ctx.author.mention, embed=embed)
+def setup(bot: commands.Bot):
+    bot.add_cog(School(bot))

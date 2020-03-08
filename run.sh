@@ -25,8 +25,8 @@ then
     pip3 install -q -U pip
     pip3 install -q -U -r $(dirname "$BASH_SOURCE")/requirements.txt
     echo Interpretowanie kodu...
-    python3 $(dirname "$BASH_SOURCE")/run.py
-    # python3 -m cProfile -s tottime $(dirname "$BASH_SOURCE")/run.py
+    python3 $(dirname "$BASH_SOURCE")/core.py
+    # python3 -m cProfile -s tottime -o somsiad.cprof $(dirname "$BASH_SOURCE")/core.py
 else
     echo W systemie nie znaleziono Pythona 3! Somsiad nie może wstać.
 fi

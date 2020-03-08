@@ -1,4 +1,4 @@
-# Copyright 2018 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,98 +11,96 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import locale
-import xml.etree.ElementTree as ET
-import aiohttp
-import discord
-from somsiad import somsiad
+from typing import Optional, List, Dict
+from defusedxml import ElementTree
+from discord.ext import commands
+from core import cooldown
+from configuration import configuration
 
 
-@somsiad.bot.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
-@discord.ext.commands.cooldown(
-    1,
-    somsiad.conf['command_cooldown_per_user_in_seconds']
-    if float(somsiad.conf['command_cooldown_per_user_in_seconds']) > 1.0 else 1.0
-)
-@discord.ext.commands.guild_only()
-async def goodreads(ctx, *, query):
-    """Goodreads search. Responds with for the most popular books matching the query."""
+class Goodreads(commands.Cog):
+    API_SEARCH_URL = 'https://www.goodreads.com/search/index.xml'
     FOOTER_TEXT = 'goodreads'
     FOOTER_ICON_URL = 'https://www.goodreads.com/favicon.ico'
 
-    url = 'https://www.goodreads.com/search/index.xml'
-    params = {
-        'q': query,
-        'key': somsiad.conf['goodreads_key']
-    }
-    headers = {'User-Agent': somsiad.user_agent}
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers, params=params) as response:
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+
+    def resource_url(self, resource_type: str, resource_id: str) -> str:
+        return f'https://www.goodreads.com/{resource_type}/show/{resource_id}'
+
+    async def fetch_books(self, query: str) -> Optional[List[Dict[str, str]]]:
+        books = None
+        params = {
+            'q': query,
+            'key': configuration['goodreads_key']
+        }
+        async with self.bot.session.get(self.API_SEARCH_URL, headers=self.bot.HEADERS, params=params) as response:
             if response.status == 200:
-                tree = ET.fromstring(await response.text())
-                node = tree.find('.//total-results')
-                if node.text == '0':
-                    embed = discord.Embed(
-                        title=f':slight_frown: Brak wyników dla zapytania "{query}"',
-                        color=somsiad.color
-                    )
-                else:
-                    books = []
-                    counter = 0
-                    for element in tree.findall('.//work'):
+                books = []
+                results_text = await response.text()
+                results_tree = ElementTree.fromstring(results_text)
+                total_results = results_tree.find('.//total-results')
+                if total_results.text != '0':
+                    for element in results_tree.findall('.//work'):
                         books.append({})
                         for work in element.findall('*'):
                             if work.tag == 'id':
-                                books[counter]['book_id'] = work.text
+                                books[-1]['book_id'] = work.text
                             if work.tag == 'ratings_count':
-                                books[counter]['ratings_count'] = work.text
+                                books[-1]['ratings_count'] = work.text
                             if work.tag == 'average_rating':
-                                books[counter]['average_rating'] = work.text
-
+                                books[-1]['average_rating'] = work.text
                             for best_book in work.findall('*'):
                                 if best_book.tag == 'id':
-                                    books[counter]['id'] = best_book.text
+                                    books[-1]['id'] = best_book.text
                                 if best_book.tag == 'title':
-                                    books[counter]['title'] = best_book.text
+                                    books[-1]['title'] = best_book.text
                                 if best_book.tag == 'image_url':
-                                    books[counter]['image_url'] = best_book.text
-
+                                    books[-1]['image_url'] = best_book.text
                                 for author in best_book.findall('*'):
                                     if author.tag == 'name':
-                                        books[counter]['author'] = author.text
-                        counter += 1
+                                        books[-1]['author_name'] = author.text
+                                    if author.tag == 'id':
+                                        books[-1]['author_id'] = author.text
+        return books
 
-                    template_url = 'https://www.goodreads.com/book/show/'
-                    main_url = template_url + books[0]['id']
-                    main_url = main_url.replace(' ', '%20').replace('(', '%28').replace(')', '%29')
-                    embed = discord.Embed(title=f'{books[0]["title"]}', url=main_url, color=somsiad.color)
-                    embed.set_author(name=books[0]["author"])
-                    embed.add_field(name='Ocena', value=f'{locale.str(float(books[0]["average_rating"]))}/5')
-                    embed.add_field(name='Liczba głosów', value=books[0]["ratings_count"])
-                    embed.set_thumbnail(url=books[0]['image_url'])
-                    if len(books) > 1:
-                        sec_results = []
-                        for i in books[1:4]:
-                            sec_url = template_url + i['id']
-                            sec_results.append(
-                                f'• [{i["title"]}]({sec_url}) – {i["author"]} – '
-                                f'{locale.str(float(i["average_rating"]))}/5'
-                            )
-                            sec_results_str = '\n'.join(sec_results)
-                        embed.add_field(name='Pozostałe trafienia', value=sec_results_str, inline=False)
+    @commands.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
+    @cooldown()
+    async def goodreads(self, ctx, *, query):
+        """Goodreads search. Responds with for the most popular books matching the query."""
+        async with ctx.typing():
+            books = await self.fetch_books(query)
+            if books is None:
+                embed = self.bot.generate_embed('⚠️', 'Nie udało się połączyć z serwisem')
+            elif not books:
+                embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
             else:
-                embed = discord.Embed(
-                    title=':warning: Nie można połączyć się z serwisem!', color=somsiad.color)
+                embed = self.bot.generate_embed(
+                    '📕', books[0]['title'], url=self.resource_url('book', books[0]['id'])
+                )
+                embed.set_author(name=books[0]['author_name'], url=self.resource_url('author', books[0]['author_id']))
+                embed.add_field(name='Ocena', value=f'{float(books[0]["average_rating"]):n} / 5')
+                embed.add_field(name='Liczba głosów', value=f'{int(books[0]["ratings_count"]):n}')
+                embed.set_thumbnail(url=books[0]['image_url'])
+                if len(books) > 1:
+                    other_hit_parts = (
+                        f'• [{other_hit["title"]}]({self.resource_url("book", other_hit["id"])}) – '
+                        f'[{other_hit["author_name"]}]({self.resource_url("author", other_hit["author_id"])}) – '
+                        f'{float(other_hit["average_rating"]):n} / 5'
+                        for other_hit in books[1:4]
+                    )
+                    embed.add_field(name='Inne trafienia', value='\n'.join(other_hit_parts), inline=False)
 
-    embed.set_footer(text=FOOTER_TEXT, icon_url=FOOTER_ICON_URL)
-    await ctx.send(ctx.author.mention, embed=embed)
+            embed.set_footer(text=self.FOOTER_TEXT, icon_url=self.FOOTER_ICON_URL)
+            await self.bot.send(ctx, embed=embed)
+
+    @goodreads.error
+    async def goodreads_error(self, ctx, error):
+        if isinstance(error, commands.MissingRequiredArgument):
+            embed = self.bot.generate_embed('⚠️', 'Nie podano szukanego hasła')
+            await self.bot.send(ctx, embed=embed)
 
 
-@goodreads.error
-async def goodreads_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        embed = discord.Embed(
-            title=':warning: Nie podano szukanego hasła!',
-            color=somsiad.color
-        )
-        await ctx.send(ctx.author.mention, embed=embed)
+def setup(bot: commands.Bot):
+    bot.add_cog(Goodreads(bot))
