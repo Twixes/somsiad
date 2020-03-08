@@ -334,23 +334,14 @@ class Moderation(commands.Cog):
         messages_noun_variant = word_number_form(
             number_of_messages_to_delete, 'wiadomość', 'wiadomości', include_number=False
         )
-
-        await self.bot.send(
-            ctx, embed=self.bot.generate_embed(
-                '✅', f'Usunięto z kanału {last_adjective_variant} {messages_noun_variant}',
-                self.bot.MESSAGE_AUTODESTRUCTION_NOTICE
-            ),
-            delete_after=self.bot.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS
-        )
+        embed = self.bot.generate_embed('✅', f'Usunięto z kanału {last_adjective_variant} {messages_noun_variant}')
+        await self.bot.send(ctx, embed=embed)
 
     @purge.error
     async def purge_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
-            notice = 'Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia'
-            await self.bot.send(
-                ctx, embed=self.bot.generate_embed('⚠️', notice),
-                delete_after=self.bot.MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS
-            )
+            embed = self.bot.generate_embed('⚠️', 'Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia')
+            await self.bot.send(ctx, embed=embed)
 
 
 def setup(bot: commands.Bot):

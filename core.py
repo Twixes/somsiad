@@ -68,12 +68,6 @@ class Somsiad(commands.Bot):
         commands.BadUnionArgument,
         commands.CommandOnCooldown
     )
-    MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS = 5
-    MESSAGE_AUTODESTRUCTION_NOTICE = (
-        'Ta wiadomość ulegnie autodestrukcji w ciągu '
-        f'{word_number_form(MESSAGE_AUTODESTRUCTION_TIME_IN_SECONDS, "sekundy", "sekund")} od wysłania.'
-    )
-
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
