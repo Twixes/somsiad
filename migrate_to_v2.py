@@ -36,8 +36,8 @@ def migrate_from_json_to_env():
     else:
         print(f'Skipped: no file at {json_f_path}')
 
-
-migrate_from_json_to_env()
+if not os.path.exists(os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), '.env')):
+    migrate_from_json_to_env()
 import data
 
 
