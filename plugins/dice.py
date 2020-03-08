@@ -12,7 +12,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import random
-import discord
 from discord.ext import commands
 from core import cooldown
 
