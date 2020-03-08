@@ -111,8 +111,8 @@ class ServerDataManager:
         if load_own_db:
             try:
                 self.load_own_server_db(server_id)
-            except sqlite3.OperationalError:
-                print(f'Error while opening database for server ID {server_id}')
+            except sqlite3.OperationalError as :
+                print(f'Error while opening database for server ID {server_id}: {e}')
 
         return self.servers[server_id]
 
@@ -214,7 +214,16 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
 data.create_all_tables()
 
 server_data_manager = ServerDataManager()
-server_data_manager.servers.pop('ids')
+ids = server_data_manager.servers.pop('ids')
+
+
+def migrate_from_db_to_sqlalchemy_servers():
+    print('Migrating servers from .db files to SQLAlchemy... ')
+    session = data.Session()
+    session.add_all([data.Server(id=server_id) for server_id in server_data_manager.servers])
+    session.commit()
+    session.close()
+    print('Done: servers migrated')
 
 
 def migrate_from_db_to_sqlalchemy_pins():
