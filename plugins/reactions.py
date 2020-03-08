@@ -11,7 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Sequence
+from typing import Optional, Union, Tuple
+import re
 import random
 import discord
 from discord.ext import commands
@@ -34,81 +35,82 @@ class React(commands.Cog):
         't': ('🇹',), 'u': ('🇺',), 'v': ('🇻',), 'w': ('🇼',), 'x': ('🇽',), 'y': ('🇾',), 'z': ('🇿',), '?': ('❓',),
         '!': ('❗',), '^': ('⬆',), '>': ('▶',), '<': ('◀',)
     }
+    CUSTOM_EMOJI_REGEX = re.compile(r'<:\S+?:(\d+)>')
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    def _convert_diacritic_character(self, character: str, ctx: commands.Context = None) -> str:
-        """Converts diacritic characters to server emojis or ASCII characters."""
-        if character in self.DIACRITIC_CHARACTERS:
-            if ctx is not None:
-                for emoji in ctx.guild.emojis:
-                    if emoji.name == self.DIACRITIC_CHARACTERS[character][0]:
-                        return emoji
-            return self.DIACRITIC_CHARACTERS[character][1]
-        else:
-            return character
-
-    def _convert_ascii_character(self, character: str, characters: Sequence[str] = '') -> str:
-        """Converts ASCII characters to Unicode emojis."""
-        if character == ' ':
-            return random.choice(self.bot.EMOJIS)
-        elif isinstance(character, str) and character in self.ASCII_CHARACTERS:
-            if self.ASCII_CHARACTERS[character][0] not in characters:
-                return self.ASCII_CHARACTERS[character][0]
-            elif (
-                    len(self.ASCII_CHARACTERS[character]) == 2
-                    and self.ASCII_CHARACTERS[character][1] not in characters
-            ):
-                return self.ASCII_CHARACTERS[character][1]
+    def _convert_string(
+            self, string: str, message: discord.Message, server: discord.Guild
+    ) -> Tuple[Union[str, discord.Emoji]]:
+        """Converts message content string to emojis."""
+        emojis = list(' '.join(filter(None, string.lower().split())))
+        used_emojis = {reaction.emoji for reaction in message.reactions}
+        for match in reversed(tuple(self.CUSTOM_EMOJI_REGEX.finditer(string))):
+            emoji = self.bot.get_emoji(int(match.groups()[0]))
+            if emoji is not None and emoji not in used_emojis:
+                emojis = emojis[:match.start()] + [emoji] + emojis[match.end():]
+                used_emojis.add(emoji)
             else:
-                return ''
-        else:
-            return character
+                emojis = emojis[:match.start()] + emojis[match.end():]
+        diacritic_replacements = {}
+        for i, character in enumerate(emojis):
+            if len(used_emojis) >= 20:
+                break
+            if not isinstance(character, str):
+                continue
+            if character == ' ':
+                while True:
+                    random_emoji = random.choice(self.bot.EMOJIS)
+                    if random_emoji not in used_emojis: break
+                emojis[i] = random_emoji
+                used_emojis.add(random_emoji)
+                continue
+            if character in self.DIACRITIC_CHARACTERS:
+                if diacritic_replacements.get(character) is None:
+                    valid_emoji_names = (
+                        self.DIACRITIC_CHARACTERS[character][0][-2:], self.DIACRITIC_CHARACTERS[character][0]
+                    )
+                    for emoji in server.emojis:
+                        if emoji.name.lower() in valid_emoji_names:
+                            diacritic_replacements[character] = emoji
+                            break
+                    else:
+                        diacritic_replacements[character] = self.DIACRITIC_CHARACTERS[character][1]
+                emojis[i] = diacritic_replacements[character]
+            for emoji in self.ASCII_CHARACTERS.get(emojis[i], ()):
+                if emoji not in used_emojis:
+                    emojis[i] = emoji
+                    used_emojis.add(emoji)
+                    break
+        unique_emojis = tuple(emojis[:20])
+        return unique_emojis
 
-    def _clean_characters(self, ctx: commands.Context, characters: str):
-        """Cleans characters so that they are most suitable for use in reactions."""
-        # initialization
-        passes = []
-        # first pass: create a tuple of lowercase characters
-        passes.append([])
-        passes[-1] = (character.lower() for character in ' '.join(characters.split()))
-        # second pass: convert diacritic characters to server emojis or ASCII characters
-        passes.append([])
-        for character in passes[-2]:
-            passes[-1].append(self._convert_diacritic_character(character, ctx))
-        # third pass: convert ASCII characters to Unicode emojis
-        passes.append([])
-        for character in passes[-2]:
-            passes[-1].append(self._convert_ascii_character(character, passes[-1]))
-        # return the final pass
-        return passes[-1]
-
-    async def _react(self, ctx: commands.Context, characters: str, member: discord.Member = None):
-        """Converts the provided string to emojis and reacts with them."""
-        clean_characters = self._clean_characters(ctx, characters)
-        await self._raw_react(ctx, clean_characters, member)
-
-    async def _raw_react(self, ctx: commands.Context, characters: str, member: discord.Member = None):
-        """Adds provided emojis to the specified member's last non-command message in the form of reactions.
+    async def _find_message(self, ctx: commands.Context, member: discord.Member = None) -> discord.Message:
+        """Finds specified member's last non-command message.
         If no member was specified, adds emojis to the last non-command message sent in the given channel.
         """
         if member is not None and member != ctx.author:
             async for message in ctx.history(limit=15):
                 if message.author == member:
-                    for reaction in characters:
-                        try:
-                            await message.add_reaction(reaction)
-                        except discord.HTTPException:
-                            pass
-                    break
+                    return message
         else:
             messages = await ctx.history(limit=2).flatten()
-            for reaction in characters:
-                try:
-                    await messages[1].add_reaction(reaction)
-                except discord.HTTPException:
-                    pass
+            if len(messages) > 1:
+                return messages[1]
+        return None
+
+    async def _react(
+        self, ctx: commands.Context, characters: str, member: discord.Member = None, *, convert: bool = True
+    ):
+        """Converts the provided string to emojis and reacts with them."""
+        message = await self._find_message(ctx, member)
+        emojis = self._convert_string(characters, message, ctx.guild) if convert else characters
+        for emoji in emojis:
+            try:
+                await message.add_reaction(emoji)
+            except discord.HTTPException:
+                pass
 
     @commands.command(aliases=['zareaguj', 'x'])
     @cooldown()
@@ -139,35 +141,35 @@ class React(commands.Cog):
     @commands.guild_only()
     async def upvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬆"."""
-        await self._raw_react(ctx, '⬆', member)
+        await self._react(ctx, '⬆', member, convert=False)
 
     @commands.command(aliases=['down'])
     @cooldown()
     @commands.guild_only()
     async def downvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬇"."""
-        await self._raw_react(ctx, '⬇', member)
+        await self._react(ctx, '⬇', member, convert=False)
 
     @commands.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
     @cooldown()
     @commands.guild_only()
     async def thinking(self, ctx, member: discord.Member = None):
         """Reacts with "🤔"."""
-        await self._raw_react(ctx, '🤔', member)
+        await self._react(ctx, '🤔', member, convert=False)
 
     @commands.command()
     @cooldown()
     @commands.guild_only()
     async def f(self, ctx, member: discord.Member = None):
         """Reacts with "F"."""
-        await self._raw_react(ctx, '🇫', member)
+        await self._react(ctx, '🇫', member, convert=False)
 
     @commands.command(aliases=['chlip', '😢'])
     @cooldown()
     @commands.guild_only()
     async def sob(self, ctx, member: discord.Member = None):
         """Reacts with "😢"."""
-        await self._raw_react(ctx, '😢', member)
+        await self._react(ctx, '😢', member, convert=False)
 
 
 def setup(bot: commands.Bot):
