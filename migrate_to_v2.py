@@ -119,7 +119,7 @@ class ServerDataManager:
     def load_own_server_db(self, server_id: int) -> dict:
         """Load the specified server's own database."""
         server_db_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad', f'server_{server_id}.db')
-
+        print(server_db_path)
         self.servers[server_id]['db'] = sqlite3.connect(server_db_path)
         self.servers[server_id]['db'].row_factory = sqlite3.Row
         self.servers[server_id]['db_cursor'] = self.servers[server_id]['db'].cursor()
