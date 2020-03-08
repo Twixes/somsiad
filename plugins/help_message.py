@@ -70,7 +70,8 @@ class Help(commands.Cog):
             'Sprawdza znaczenie <wyrażenia> w [Urban Dictionary](https://www.urbandictionary.com).'
         ),
         _Help.Command(
-            ('wolframalpha', 'wolfram', 'wa', 'kalkulator', 'oblicz', 'policz', 'przelicz', 'konwertuj'), ('zapytanie',),
+            ('wolframalpha', 'wolfram', 'wa', 'kalkulator', 'oblicz', 'policz', 'przelicz', 'konwertuj'),
+            ('zapytanie',),
             '[Wolfram Alpha](https://www.wolframalpha.com/) – oblicza, przelicza, podaje najróżniejsze informacje. '
             'Usługa po angielsku.'
         ),
@@ -78,8 +79,9 @@ class Help(commands.Cog):
             ('isitup', 'isup', 'czydziała', 'czydziala'), 'link', 'Sprawdza status danej strony.'
         ),
         _Help.Command(
-            ('rokszkolny', 'wakacje', 'ilejeszcze'), (),
-            'Zwraca ile jeszcze zostało do końca roku szkolnego lub wakacji.'
+            ('rokszkolny', 'wakacje', 'ilejeszcze'), '?podkomenda',
+            'Zwraca ile jeszcze zostało do końca roku szkolnego lub wakacji. '
+            'Użyj z <podkomendą> "matura", by dowiedzieć się ile zostało do matury.'
         ),
         _Help.Command(('subreddit', 'sub', 'r'), 'subreddit', 'Zwraca informacje o <subreddicie>.'),
         _Help.Command(('user', 'u'), 'użytkownik Reddita', 'Zwraca informacje o <użytkowniku Reddita>.'),
@@ -101,9 +103,14 @@ class Help(commands.Cog):
             'Komendy związane z niedzielami handlowymi. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
         ),
         _Help.Command(
+            ('przypomnij', 'przypomnienie', 'pomidor'),
+            ('liczba minut/data i godzina', 'treść'),
+            'Przypomina o <treści> po upływie podanego czasu.'
+        ),
+        _Help.Command(
             ('spal', 'burn'),
-            ('?liczba sekund do/godzina usunięcia wiadomości', 'treść (może być załącznik)'),
-            'Usuwa wiadomość po podanej liczbie sekund lub o podanym czasie.'
+            ('liczba minut/data i godzina', '?treść – może to też być załącznik'),
+            'Usuwa wiadomość po upływie podanego czasu.'
         ),
         _Help.Command(
             ('kolory', 'kolor', 'kolorki', 'kolorek'), '?podkomenda',
@@ -116,11 +123,9 @@ class Help(commands.Cog):
             'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
         ),
         _Help.Command(
-            ('głosowanie', 'glosowanie'), ('?liczba minut do ogłoszenia wyniku/godzina', 'sprawa'),
+            ('głosowanie', 'glosowanie'), ('?liczba minut/data i godzina', 'sprawa'),
             'Przeprowadza głosowanie za/przeciw dotyczące <sprawy>. '
-            'Ogłasza wynik po upłynięciu <?liczby minut do ogłoszenia wyniku> lub o <?godzinie>, '
-            'jeśli podano którąś z nich i jeśli oznacza to zakończenie głosowania w przyszłości odległej maksymalnie '
-            'o tydzień.'
+            'Ogłasza wynik po upływie podanego czasu, jeśli go podano.'
         ),
         _Help.Command(('pomógł', 'pomogl'), '?użytkownik Discorda', 'Oznacza pomocną wiadomość za pomocą reakcji.'),
         _Help.Command(
@@ -133,7 +138,7 @@ class Help(commands.Cog):
         _Help.Command(('^', 'to', 'this', 'up', 'upvote'), '?użytkownik Discorda', '⬆'),
         _Help.Command('f', '?użytkownik Discorda', 'F'),
         _Help.Command(
-            ('zareaguj', 'x'), ('?użytkownik Discorda', 'reakcje'),
+            ('zareaguj', 'reaguj', 'x'), ('?użytkownik Discorda', 'reakcje'),
             'Dodaje <reakcje> do ostatniej wiadomości wysłanej na kanale '
             '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).'
         ),
@@ -163,11 +168,13 @@ class Help(commands.Cog):
         ),
         _Help.Command(
             ('warn', 'ostrzeż', 'ostrzez'), ('użytkownik Discorda', 'powód'),
-            'Ostrzega <użytkownika Discorda>. Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.'
+            'Ostrzega <użytkownika Discorda>. '
+            'Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.'
         ),
         _Help.Command(
             ('kick', 'wyrzuć', 'wyrzuc'), ('użytkownik Discorda', 'powód'),
-            'Wyrzuca <użytkownika Discorda>. Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.'
+            'Wyrzuca <użytkownika Discorda>. '
+            'Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.'
         ),
         _Help.Command(
             ('ban', 'zbanuj'), ('użytkownik Discorda', 'powód'),
