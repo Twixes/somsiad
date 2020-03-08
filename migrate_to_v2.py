@@ -19,6 +19,25 @@ import os
 import sqlite3
 import json
 import datetime as dt
+
+
+def migrate_from_json_to_env():
+    print('Migrating configuration from .json to .env... ')
+    json_f_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.json')
+    env_f_path = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), '.env')
+    if os.path.exists(json_f_path):
+        with open(json_f_path, 'r') as json_f:
+            configuration = json.load(json_f)
+        with open(env_f_path, 'a') as env_f:
+            for key, value in configuration.items():
+                env_f.write(f'{key.upper()}={value}\n')
+        os.remove(json_f_path)
+        print(f'Done: moved from {json_f_path} to {env_f_path}')
+    else:
+        print(f'Skipped: no file at {json_f_path}')
+
+
+migrate_from_json_to_env()
 import data
 
 
@@ -239,24 +258,6 @@ def migrate_from_db_to_sqlalchemy_moderation():
     print('Done: moderation migrated')
 
 
-def migrate_from_json_to_env():
-    print('Migrating configuration from .json to .env... ')
-    json_f_path = os.path.join(os.path.expanduser('~'), '.config', 'somsiad.json')
-    env_f_path = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])), '.env')
-    if os.path.exists(json_f_path):
-        with open(json_f_path, 'r') as json_f:
-            configuration = json.load(json_f)
-        with open(env_f_path, 'a') as env_f:
-            for key, value in configuration.items():
-                env_f.write(f'{key.upper()}={value}\n')
-        os.remove(json_f_path)
-        print(f'Done: moved from {json_f_path} to {env_f_path}')
-    else:
-        print(f'Skipped: no file at {json_f_path}')
-
-
-if __name__ == '__main__':
-    migrate_from_db_to_sqlalchemy_pins()
-    migrate_from_db_to_sqlalchemy_oof()
-    migrate_from_db_to_sqlalchemy_moderation()
-    migrate_from_json_to_env()
+migrate_from_db_to_sqlalchemy_pins()
+migrate_from_db_to_sqlalchemy_oof()
+migrate_from_db_to_sqlalchemy_moderation()
