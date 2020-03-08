@@ -112,7 +112,7 @@ class React(commands.Cog):
             except discord.HTTPException:
                 pass
 
-    @commands.command(aliases=['zareaguj', 'x'])
+    @commands.command(aliases=['zareaguj', 'reaguj', 'x'])
     @cooldown()
     @commands.guild_only()
     async def react(
