@@ -22,7 +22,7 @@ class Invocation(data.Base, ServerRelated, ChannelRelated, UserRelated):
     prefix = data.Column(data.String(min(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=False)
     full_command = data.Column(data.String(100), nullable=False, index=True)
     root_command = data.Column(data.String(100), nullable=False, index=True)
-    sent_at = data.Column(data.DateTime, nullable=False)
+    created_at = data.Column(data.DateTime, nullable=False)
     has_been_completed = data.Column(data.Boolean, nullable=False, default=False)
 
 
@@ -38,7 +38,7 @@ class Commands(commands.Cog):
                 channel_id=ctx.channel.id, user_id=ctx.author.id, prefix=ctx.prefix,
                 full_command=ctx.command.qualified_name,
                 root_command=str(ctx.command.root_parent or ctx.command.qualified_name),
-                sent_at=utc_to_naive_local(ctx.message.created_at)
+                created_at=utc_to_naive_local(ctx.message.created_at)
             )
             session.add(invocation)
 
