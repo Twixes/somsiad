@@ -37,7 +37,7 @@ class Commands(commands.Cog):
                 message_id=ctx.message.id, server_id=ctx.guild.id if ctx.guild is not None else None,
                 channel_id=ctx.channel.id, user_id=ctx.author.id, prefix=ctx.prefix,
                 full_command=ctx.command.qualified_name,
-                root_command=str(ctx.command.root_parent) or ctx.command.qualified_name,
+                root_command=str(ctx.command.root_parent or ctx.command.qualified_name),
                 sent_at=utc_to_naive_local(ctx.message.created_at)
             )
             session.add(invocation)
