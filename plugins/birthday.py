@@ -116,7 +116,7 @@ class Birthday(commands.Cog):
     )
 
     NOTIFICATIONS_HELP = Help(NOTIFICATIONS_COMMANDS, '🎂', group=NOTIFICATIONS_GROUP)
-    NOTIFICATIONS_TIME_PRESENTATION = ':'.join((str(number).zfill(2) for number in NOTIFICATIONS_TIME))
+    NOTIFICATIONS_TIME_PRESENTATION = f'{NOTIFICATIONS_TIME[0]}:{str(NOTIFICATIONS_TIME[1]).zfill(2)}'
     NOTIFICATIONS_EXPLANATION = (
         f'Wiadomości z życzeniami wysyłane są o {NOTIFICATIONS_TIME_PRESENTATION} dla członków serwera, '
         'którzy obchodzą tego dnia urodziny i upublicznili tu ich datę.'
