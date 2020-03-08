@@ -90,7 +90,7 @@ class Server(Base):
 
     id = Column(BigInteger, primary_key=True)
     command_prefix = Column(String(COMMAND_PREFIX_MAX_LENGTH))
-    joined_at = Column(DateTime, nullable=False)
+    joined_at = Column(DateTime)
 
     @classmethod
     def register(cls, server: Sequence[discord.Guild]):
