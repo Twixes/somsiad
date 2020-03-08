@@ -67,7 +67,7 @@ class Remind(commands.Cog):
                     reminder.content, reminder.requested_at, reminder.execute_at
                 ))
 
-    @commands.command(aliases=['przypomnij', 'pomidor'])
+    @commands.command(aliases=['przypomnij', 'przypomnienie', 'pomidor'])
     @cooldown()
     async def remind(
             self, ctx, execute_at: interpret_str_as_datetime, *,
