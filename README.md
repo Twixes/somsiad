@@ -1,4 +1,4 @@
-***Languages: [polski](#somsiad--po-polsku), [English](#somsiad--in-english)***
+***[polski](#somsiad--po-polsku), [English](#somsiad--in-english)***
 
 ---
 
@@ -8,7 +8,8 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Funkcje  
 
-* odtwarzanie muzyki na czacie głosowym
+* własny serwerowowy prefiks komend  
+* odtwarzanie muzyki na czacie głosowym  
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
 * Magic 8-Ball  
 * wybieranie jednej z podanych opcji
@@ -22,18 +23,19 @@ Polski bot discordowy. Napisany w Pythonie.
 * wyszukiwanie filmów i seriali w [TMDb](https://www.themoviedb.org/)  
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)  
 * tłumaczenie tekstu z [Yandex](https://translate.yandex.com/)  
-* udostępnianie obecnie słuchanego na Spotify utworu  
-* udostępnianie obecnie lub ostatnio słuchanego przez Last.fm utworu  
+* uzyskiwanie informacji i przeprowadzanie obliczeń z [Wolfram Alpha](https://www.wolframalpha.com/)  
+* udostępnianie obecnie słuchanego na [Spotify](https://spotify.com) utworu  
+* udostępnianie obecnie lub ostatnio słuchanego przez [Last.fm](https://last.fm) utworu  
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
-* wymiana walut za pomocą [CryptoCompare.com](https://www.cryptocompare.com/)  
-* sprawdzanie statusu stron za pomocą [isitup.org](https://isitup.org)  
-* rozpoczynanie głosowań z opcją opublikowania wyników po określonym czasie
-* obliczanie wartości wyrażeń matematycznych  
-* zapamiętywanie urodzin użytkowników serwera  
-* statystyki serwera/kanału/użytkownika (wraz z generowaniem wykresu aktywności)  
+* informacje o subredditach i użytkownikach [Reddita](https://reddit.com)  
+* rozpoczynanie głosowań z opcją opublikowania wyników po określonym czasie  
+* przypomienia  
+* zapamiętywanie urodzin użytkowników serwera i automatyczne składanie życzeń  
+* statystyki aktywności serwera/kanału/użytkownika wraz z wykresami  
+* samodzielne wybieranie koloru nicku przez użytkowników  
+* archiwizacja przypiętych wiadomości do wyznaczego kanału  
 * funkcje moderacyjne: ostrzeganie, wyrzucanie, banowanie  
 * rejestrowanie zdarzeń związanych z członkami serwera (ostrzeżenia, wyrzucenia, bany, dołączenia, opuszczenia)  
-* archiwizacja przypiętych wiadomości do wyznaczego kanału  
 
 ## Wymagania  
 
@@ -106,7 +108,8 @@ The Polish Discord bot. Written in Python.
 
 ## Features  
 
-* music playback over voice chat
+* custom server command prefix  
+* music playback over voice chat  
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
 * Magic 8-Ball  
 * choosing one of provided options
@@ -119,16 +122,19 @@ The Polish Discord bot. Written in Python.
 * [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
 * [TMDb](https://www.themoviedb.org/) movie and TV show search  
 * [goodreads](https://www.goodreads.com) book search  
+* [TMDb](https://www.themoviedb.org/) movie and TV show search  
 * text translation powered by [Yandex](https://translate.yandex.com/)  
-* sharing the song currently played on Spotify  
-* sharing the song currently or previously played with Last.fm  
+* obtaining information and making calculations with [Wolfram Alpha](https://www.wolframalpha.com/)  
+* sharing the song currently played on [Spotify](https://spotify.com)  
+* sharing the song currently or previously played with [Last.fm](https://last.fm)  
 * [Urban Dictionary](https://www.urbandictionary.com) definition search  
-* currency exchange powered by [CryptoCompare.com](https://www.cryptocompare.com/)  
-* website status check powered by [isitup.org](https://isitup.org)  
-* vote commencement with optional publication of results after a specified amount of time
+* subreddit and [Reddit](https://reddit.com) user information  
+* vote commencement with optional publication of results after a specified amount of time  
+* reminders  
 * calculation of mathematical expressions  
-* remembering birthdays of server members  
-* server/channel/user statistics (with activity chart generation)  
+* remembering birthdays of server members and automatic wishes  
+* server/channel/user activity statistics with charts  
+* self-selection of nick color by users  
 * moderation commands: warn, kick, ban  
 * recording of server member events (warnings, kicks, bans, joinings, leavings)  
 * archivization of pinned messages to a specified channel  
