@@ -280,8 +280,7 @@ class Somsiad(commands.Bot):
                 sentry_sdk.capture_exception(error)
 
     def _get_prefix(self, bot: commands.Bot, message: discord.Message) -> List[str]:
-        user_id = bot.user.id
-        prefixes = [f'<@!{user_id}> ', f'<@{user_id}> ']
+        prefixes = [f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ', f'{bot.user} ']
         if message.guild is not None:
             with data.session() as session:
                 data_server = session.query(data.Server).get(message.guild.id)
@@ -290,8 +289,9 @@ class Somsiad(commands.Bot):
         does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
         is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_commands)
         if does_server_have_custom_command_prefix:
-            prefixes.append(data_server.command_prefix + ' ')
-            prefixes.append(data_server.command_prefix)
+            for prefix in data_server.command_prefix.split('|'):
+                prefixes.append(prefix + ' ')
+                prefixes.append(prefix)
         if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
             prefixes.append(configuration['command_prefix'] + ' ')
             prefixes.append(configuration['command_prefix'])
@@ -440,11 +440,14 @@ class Essentials(commands.Cog):
 
 class Prefix(commands.Cog):
     GROUP = Help.Command(
-        ('prefiks', 'prefix', 'przedrostek'), (), 'Komendy związane z własnym serwerowym prefiksem komend.'
+        ('prefiks', 'prefix', 'przedrostek'), (), 'Komendy związane z własnymi serwerowymi prefiksami komend.'
     )
     COMMANDS = (
-        Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks.'),
-        Help.Command(('ustaw'), (), 'Ustawia na serwerze podany prefiks. Wymaga uprawnień administratora.'),
+        Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks bądź obowiązujące prefiksy.'),
+        Help.Command(
+            ('ustaw'), (), 'Ustawia na serwerze podany prefiks bądź podane prefiksy oddzielone "|". '
+            'Wymaga uprawnień administratora.'
+        ),
         Help.Command(
             ('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks. Wymaga uprawnień administratora.'
         )
@@ -453,13 +456,6 @@ class Prefix(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    @staticmethod
-    def prefix_usage_example(example_prefix: str) -> str:
-        return (
-            f'Przykład użycia: `{example_prefix}wersja` lub `{example_prefix} oof`.\n'
-            'W wiadomościach prywatnych prefiks jest opcjonalny.'
-        )
 
     @commands.group(aliases=['prefiks', 'przedrostek'], invoke_without_command=True)
     @cooldown()
@@ -474,33 +470,96 @@ class Prefix(commands.Cog):
         with data.session() as session:
             data_server = session.query(data.Server).get(ctx.guild.id) if ctx.guild is not None else None
             is_prefix_custom = data_server is not None and data_server.command_prefix is not None
-            current_prefix = data_server.command_prefix if is_prefix_custom else configuration["command_prefix"]
-            notice = f'Obowiązujący prefiks to "{current_prefix}"{" (wartość domyślna)" if not is_prefix_custom else ""}'
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🔧', notice, self.prefix_usage_example(current_prefix)))
+            if not is_prefix_custom:
+                notice = 'Obowiązuje domyślny prefiks'
+                prefixes = [configuration['command_prefix']]
+            else:
+                prefixes = data_server.command_prefix.split('|')
+                prefixes.sort()
+                applies_form = word_number_form(
+                    len(prefixes), 'Obowiązuje', 'Obowiązują', 'Obowiązuje', include_number=False
+                )
+                prefix_form = word_number_form(
+                    len(prefixes), 'własny prefiks serwerowy', 'własne prefiksy serwerowe',
+                    'własnych prefiksów serwerowych'
+                )
+                notice = f'{applies_form} {prefix_form}'
+            embed = self.bot.generate_embed('🔧', notice)
+            if is_prefix_custom:
+                prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in prefixes))
+            else:
+                prefixes_presentation = f'domyślna `{configuration["command_prefix"]}`'
+            embed.add_field(
+                name='Wartość' if len(prefixes) == 1 else 'Wartości', value=prefixes_presentation, inline=False
+            )
+            embed.add_field(
+                name='Przykłady wywołań',
+                value=f'`{random.choice(prefixes)}wersja` lub `{random.choice(prefixes)} oof` lub `{ctx.me} urodziny`',
+                inline=False
+            )
+        await self.bot.send(ctx, embed=embed)
 
     @prefix.command(aliases=['ustaw'])
     @cooldown()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
-    async def prefix_set(self, ctx, *, new_prefix: str):
+    async def prefix_set(self, ctx, *, new_prefixes_raw: str):
         """Sets a new command prefix."""
+        new_prefixes = tuple(filter(None, (prefix.strip() for prefix in new_prefixes_raw.strip('|').split('|'))))
+        if not new_prefixes:
+            raise commands.BadArgument('no valid prefixes')
+        new_prefixes_processed = '|'.join(new_prefixes)
+        if len(new_prefixes_processed) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
+            raise commands.BadArgument('too long')
         with data.session(commit=True) as session:
             data_server = session.query(data.Server).get(ctx.guild.id)
-            if len(new_prefix) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
-                raise commands.BadArgument
-            data_server.command_prefix = new_prefix
-        notice = f'Ustawiono nowy prefiks "{new_prefix}"'
-        await self.bot.send(ctx, embed=self.bot.generate_embed('✅', notice, self.prefix_usage_example(new_prefix)))
+            if data_server.command_prefix:
+                previous_prefixes = data_server.command_prefix.split('|')
+                previous_prefixes.sort()
+            else:
+                previous_prefixes = ()
+            data_server.command_prefix = new_prefixes_processed
+        if previous_prefixes:
+            previous_prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in previous_prefixes))
+        else:
+            previous_prefixes_presentation = f'domyślna `{configuration["command_prefix"]}`'
+        if set(previous_prefixes) == set(new_prefixes):
+            embed = self.bot.generate_embed(
+                'ℹ️', f'Nie wprowadzono zmian w {"prefiksie" if len(previous_prefixes) == 1 else "prefiksach"}'
+            )
+            embed.add_field(
+                name='Wartości' if len(previous_prefixes) > 1 else 'Wartość',
+                value=' lub '.join((f'`{prefix}`' for prefix in previous_prefixes)), inline=False
+            )
+        else:
+            embed = self.bot.generate_embed('✅', f'Ustawiono {"prefiks" if len(new_prefixes) == 1 else "prefiksy"}')
+            embed.add_field(
+                name='Nowe wartości' if len(new_prefixes) > 1 else 'Nowa wartość',
+                value=' lub '.join((f'`{prefix}`' for prefix in new_prefixes)), inline=False
+            )
+            embed.add_field(
+                name='Poprzednie wartości' if len(previous_prefixes) > 1 else 'Poprzednia wartość',
+                value=previous_prefixes_presentation, inline=False
+            )
+        embed.add_field(
+            name='Przykłady wywołań',
+            value=f'`{random.choice(new_prefixes)}wersja` lub `{random.choice(new_prefixes)} oof` '
+            f'lub `{ctx.me} urodziny`',
+            inline=False
+        )
+        await self.bot.send(ctx, embed=embed)
 
     @prefix_set.error
     async def prefix_set_error(self, ctx, error):
         """Handles new command prefix setting errors."""
         notice = None
         if isinstance(error, commands.MissingRequiredArgument):
-            notice = 'Nie podano nowego prefiksu'
+            notice = 'Nie podano prefiksu bądź prefiksów oddzielonych "|"'
         elif isinstance(error, commands.BadArgument):
-            character_form = word_number_form(data.Server.COMMAND_PREFIX_MAX_LENGTH, "znak", "znaki", "znaków")
-            notice = f'Nowy prefiks nie może być dłuższy niż {character_form}'
+            if str(error) == 'no valid prefixes':
+                notice = 'Nie podano prefiksu bądź prefiksów oddzielonych "|"'
+            elif str(error) == 'too long':
+                notice = 'Przekroczono maksymalną długość'
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
@@ -512,11 +571,29 @@ class Prefix(commands.Cog):
         """Reverts to the default command prefix."""
         with data.session(commit=True) as session:
             data_server = session.query(data.Server).get(ctx.guild.id)
+            if data_server.command_prefix:
+                previous_prefixes = data_server.command_prefix.split('|')
+                previous_prefixes.sort()
+            else:
+                previous_prefixes = ()
             data_server.command_prefix = None
-            new_prefix = configuration['command_prefix']
-        await self.bot.send(ctx, embed=self.bot.generate_embed(
-            '✅', f'Przywrócono domyślny prefiks "{new_prefix}"', self.prefix_usage_example(new_prefix)
-        ))
+        if not previous_prefixes:
+            embed = self.bot.generate_embed('ℹ️', 'Już ustawiony jest prefiks domyślny')
+            embed.add_field(name='Wartość', value=f'domyślna `{configuration["command_prefix"]}`')
+        else:
+            embed = self.bot.generate_embed('✅', 'Przywrócono domyślny prefiks')
+            embed.add_field(name='Nowa wartość', value=f'domyślna `{configuration["command_prefix"]}`')
+            embed.add_field(
+                name='Poprzednia wartość' if len(previous_prefixes) == 1 else 'Poprzednie wartości',
+                value=' lub '.join((f'`{prefix}`' for prefix in previous_prefixes)), inline=False
+            )
+        embed.add_field(
+            name='Przykłady wywołań',
+            value=f'`{configuration["command_prefix"]}wersja` lub `{configuration["command_prefix"]} oof` '
+            f'lub `{ctx.me} urodziny`',
+            inline=False
+        )
+        await self.bot.send(ctx, embed=embed)
 
 
 somsiad = Somsiad()

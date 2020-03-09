@@ -8,7 +8,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Funkcje  
 
-* własny serwerowowy prefiks komend  
+* własne serwerowowe prefiksy komend  
 * odtwarzanie muzyki na czacie głosowym  
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
 * Magic 8-Ball  
@@ -110,7 +110,7 @@ The Polish Discord bot. Written in Python.
 
 ## Features  
 
-* custom server command prefix  
+* custom server command prefixes  
 * music playback over voice chat  
 * emoticon sending (tableflip, shrug, lenny face, etc.)  
 * Magic 8-Ball  

@@ -87,7 +87,7 @@ def insert_or_ignore(
 
 
 class Server(Base):
-    COMMAND_PREFIX_MAX_LENGTH = 50
+    COMMAND_PREFIX_MAX_LENGTH = 100
 
     id = Column(BigInteger, primary_key=True)
     command_prefix = Column(String(COMMAND_PREFIX_MAX_LENGTH))

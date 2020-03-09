@@ -199,7 +199,8 @@ class Help(commands.Cog):
         ),
         _Help.Command(
             ('prefiks', 'prefix'), '?podkomenda',
-            'Komendy związane z własnym serwerowym prefiksem komend. Użyj bez <?podkomendy>, by dowiedzieć się więcej.'
+            'Komendy związane z własnymi serwerowymi prefiksami komend. '
+            'Użyj bez <?podkomendy>, by dowiedzieć się więcej.'
         ),
         _Help.Command(('ping', 'pińg'), (), 'Pong!'),
         _Help.Command(('wersja', 'v'), (), 'Działająca wersja bota.'),
