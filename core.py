@@ -525,7 +525,7 @@ somsiad = Somsiad()
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, somsiad.signal_handler)
     if configuration['sentry_dsn'] is not None:
-        print('Przygotowywanie integracji z Sentry...')
+        print('Inicjowanie połączenia z Sentry...')
         sentry_sdk.init(
             configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
             integrations=[SqlalchemyIntegration(), AioHttpIntegration()]
