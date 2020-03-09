@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# # Copyright 2018-2020 ondondil & Twixes
+# Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
