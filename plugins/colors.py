@@ -84,8 +84,8 @@ class Colors(commands.Cog):
         is_random = False
         if isinstance(role_candidate, str):
             is_random = all((character == '?' for character in role_candidate))
-            if is_random:
-                relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
+            relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
+            if is_random and relevant_roles:
                 role = random.choice(relevant_roles)
             else:
                 role_name = role_candidate.lstrip('🎨').lstrip().lower()
