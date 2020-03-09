@@ -31,7 +31,7 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 import discord
 from discord.ext import commands
 from version import __version__, __copyright__
-from utilities import GoogleClient, YouTubeClient, word_number_form, human_amount_of_time, setlocale
+from utilities import GoogleClient, YouTubeClient, word_number_form, human_amount_of_time, setlocale, utc_to_naive_local
 from configuration import configuration
 import data
 
@@ -99,6 +99,12 @@ class Somsiad(commands.Bot):
     async def on_ready(self):
         setlocale()
         data.Server.register_all(self.guilds)
+        with data.session(commit=True) as session:
+            joined_at_none_servers = session.query(data.Server).filter(data.Server.joined_at == None)
+            for server in joined_at_none_servers:
+                discord_server = self.get_guild(server.id)
+                if discord_server is not None:
+                    server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
         self.run_datetime = dt.datetime.now()
         self.loop.create_task(self.cycle_presence())
