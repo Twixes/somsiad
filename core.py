@@ -103,7 +103,7 @@ class Somsiad(commands.Bot):
             joined_at_none_servers = session.query(data.Server).filter(data.Server.joined_at == None)
             for server in joined_at_none_servers:
                 discord_server = self.get_guild(server.id)
-                if discord_server is not None:
+                if discord_server is not None and discord_server.me is not None:
                     server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
         self.run_datetime = dt.datetime.now()
