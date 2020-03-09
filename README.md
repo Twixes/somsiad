@@ -39,7 +39,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Wymagania  
 
-* Python 3.7 or 3.8.  
+* Python 3.7 lub 3.8.  
 
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
