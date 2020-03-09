@@ -326,7 +326,7 @@ class Birthday(commands.Cog):
                     None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
                 ))
                 embed = self.bot.generate_embed(
-                    'ℹ️', 'Twoja data urodzin już była publiczna na tym serwerze', birthday_public_servers_presentation
+                    'ℹ️', 'Twoja data urodzin już jest publiczna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.append(this_server)
@@ -354,7 +354,7 @@ class Birthday(commands.Cog):
                     None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
                 ))
                 embed = self.bot.generate_embed(
-                    'ℹ️', 'Twoja data urodzin już była tajna na tym serwerze', birthday_public_servers_presentation
+                    'ℹ️', 'Twoja data urodzin już jest tajna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.remove(this_server)
@@ -459,7 +459,7 @@ class Birthday(commands.Cog):
             elif age is None:
                 address = 'Nie ustawiłeś' if member == ctx.author else f'{member} nie ustawił'
                 embed = discord.Embed(
-                    title=f':question: {address} swojego roku urodzin',
+                    title=f':question: {address} swojego roku urodzenia',
                     color=self.bot.COLOR
                 )
             else:
@@ -515,7 +515,7 @@ class Birthday(commands.Cog):
                 if birthday_notifier.channel_id != channel.id:
                     birthday_notifier.channel_id = channel.id
                 else:
-                    title = f'ℹ️ Powiadomienia o urodzinach już były włączone na #{channel}'
+                    title = f'ℹ️ Powiadomienia o urodzinach już są włączone na #{channel}'
             else:
                 birthday_notifier = BirthdayNotifier(server_id=ctx.guild.id, channel_id=channel.id)
                 session.add(birthday_notifier)
@@ -528,7 +528,7 @@ class Birthday(commands.Cog):
     async def birthday_notifications_disable(self, ctx):
         with data.session(commit=True) as session:
             birthday_notifier = session.query(BirthdayNotifier).get(ctx.guild.id)
-            title = 'ℹ️ Powiadomienia o urodzinach już były wyłączone'
+            title = 'ℹ️ Powiadomienia o urodzinach już są wyłączone'
             if birthday_notifier is not None:
                 if birthday_notifier.channel_id is not None:
                     birthday_notifier.channel_id = None
