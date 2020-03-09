@@ -78,7 +78,6 @@ class Somsiad(commands.Bot):
             command_prefix=self._get_prefix, help_command=None, description='Zawsze pomocny Somsiad',
             case_insensitive=True
         )
-        self.run_datetime = None
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
@@ -90,6 +89,7 @@ class Somsiad(commands.Bot):
             for variant in
             (f'{configuration["command_prefix"]} {command}', f'{configuration["command_prefix"]}{command}')
         ))
+        self.run_datetime = None
         self.session = None
         self.google_client = GoogleClient(
             configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
@@ -105,8 +105,8 @@ class Somsiad(commands.Bot):
                 discord_server = self.get_guild(server.id)
                 if discord_server is not None and discord_server.me is not None:
                     server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
-        self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
         self.run_datetime = dt.datetime.now()
+        self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
         self.loop.create_task(self.cycle_presence())
         self.print_info()
 
@@ -148,7 +148,8 @@ class Somsiad(commands.Bot):
 
     async def close(self):
         print('\nZatrzymywanie działania programu...')
-        await self.session.close()
+        if self.session is not None:
+            await self.session.close()
         await super().close()
         sys.exit(0)
 
