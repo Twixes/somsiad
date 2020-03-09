@@ -41,7 +41,8 @@ class Google(commands.Cog):
             else:
                 embed = self.bot.generate_embed(None, result.title, result.snippet, url=result.source_link)
                 embed.set_author(name=result.display_link, url=result.root_link)
-                embed.set_image(url=result.image_link)
+                if result.image_link is not None:
+                    embed.set_image(url=result.image_link)
         embed.set_footer(text=self.bot.google_client.FOOTER_TEXT, icon_url=self.bot.google_client.FOOTER_ICON_URL)
         await self.bot.send(ctx, embed=embed)
 
@@ -63,7 +64,8 @@ class Google(commands.Cog):
             else:
                 embed = self.bot.generate_embed(None, result.title, url=result.source_link)
                 embed.set_author(name=result.display_link, url=result.root_link)
-                embed.set_image(url=result.image_link)
+                if result.image_link is not None:
+                    embed.set_image(url=result.image_link)
         embed.set_footer(text=self.bot.google_client.FOOTER_TEXT, icon_url=self.bot.google_client.FOOTER_ICON_URL)
         await self.bot.send(ctx, embed=embed)
 

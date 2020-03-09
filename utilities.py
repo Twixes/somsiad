@@ -53,7 +53,7 @@ class GoogleClient:
         source_link: str
         display_link: str
         root_link: str
-        image_link: str
+        image_link: Optional[str]
         type: str
 
     def __init__(self, developer_key: str, custom_search_engine_id: str, loop: asyncio.AbstractEventLoop):
