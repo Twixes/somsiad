@@ -22,13 +22,13 @@ import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
 import discord
 from discord.ext import commands
-from core import Help, ServerRelated, ChannelRelated, UserRelated, cooldown
+from core import Help, cooldown
 from configuration import configuration
 from utilities import word_number_form, utc_to_naive_local, human_datetime, md_link, rolling_average
 import data
 
 
-class MessageMetadata(data.Base, ServerRelated, ChannelRelated, UserRelated):
+class MessageMetadata(data.Base, data.MemberRelated, data.ChannelRelated):
     __tablename__ = 'message_metadata_cache'
 
     id = data.Column(data.BigInteger, primary_key=True)

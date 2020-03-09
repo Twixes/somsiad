@@ -13,12 +13,12 @@
 
 import discord
 from discord.ext import commands
-from core import MemberSpecific, cooldown
+from core import cooldown
 from utilities import word_number_form
 import data
 
 
-class Oofer(data.Base, MemberSpecific):
+class Oofer(data.Base, data.MemberSpecific):
     oofs = data.Column(data.Integer, nullable=False, default=1)
 
 

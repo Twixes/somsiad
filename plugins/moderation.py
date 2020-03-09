@@ -15,12 +15,12 @@ from typing import Union, List
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import ServerRelated, UserRelated, ChannelRelated, cooldown
+from core import cooldown
 from utilities import word_number_form
 import data
 
 
-class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
+class Event(data.Base, data.MemberRelated, data.ChannelRelated):
     id = data.Column(data.BigInteger, primary_key=True)
     type = data.Column(data.String(50), nullable=False)
     executing_user_id = data.Column(data.BigInteger, index=True)
@@ -48,7 +48,7 @@ class Event(data.Base, ServerRelated, UserRelated, ChannelRelated):
             self.occurred_at.strftime("%-d %B %Y o %H:%M")
         ]
         if self.channel_id is not None:
-            discord_channel = self.discord_channel
+            discord_channel = self.discord_channel(bot)
             parts.append(f'na #{discord_channel}' if discord_channel is not None else 'na usuniętym kanale')
         if self.executing_user_id is not None:
             discord_executing_user = bot.get_user(self.executing_user_id)

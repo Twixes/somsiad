@@ -361,69 +361,6 @@ class Help:
             self.embeds[-1].set_footer(text=footer_text, icon_url=footer_icon_url)
 
 
-class ServerRelated:
-    @data.declared_attr
-    def server_id(cls):
-        return data.Column(data.BigInteger, data.ForeignKey(data.Server.id), index=True)
-
-    @data.declared_attr
-    def server(self):
-        return data.relationship(data.Server)
-
-    @property
-    def discord_server(self):
-        return somsiad.get_guild(self.server_id) if self.server_id is not None else None
-
-
-class ServerSpecific(ServerRelated):
-    @data.declared_attr
-    def server_id(cls):
-        return data.Column(data.BigInteger, data.ForeignKey(data.Server.id), primary_key=True)
-
-    @property
-    def discord_server(self):
-        return somsiad.get_guild(self.server_id)
-
-
-class ChannelRelated:
-    channel_id = data.Column(data.BigInteger, index=True)
-
-    @property
-    def discord_channel(self):
-        return somsiad.get_channel(self.channel_id) if self.channel_id is not None else None
-
-
-class ChannelSpecific(ChannelRelated):
-    channel_id = data.Column(data.BigInteger, primary_key=True)
-
-    @property
-    def discord_channel(self):
-        return somsiad.get_channel(self.channel_id)
-
-
-class UserRelated:
-    user_id = data.Column(data.BigInteger, index=True)
-
-    @property
-    def discord_user(self) -> Optional[discord.Guild]:
-        return somsiad.get_user(self.user_id) if self.user_id is not None else None
-
-
-class UserSpecific(UserRelated):
-    user_id = data.Column(data.BigInteger, primary_key=True)
-
-    @property
-    def discord_user(self) -> Optional[discord.Guild]:
-        return somsiad.get_user(self.user_id)
-
-
-class MemberSpecific(ServerSpecific, UserSpecific):
-    @property
-    def discord_member(self) -> Optional[discord.Member]:
-        server = self.discord_server
-        return server.get_member(self.user_id) if server is not None else None
-
-
 class Essentials(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -574,6 +511,7 @@ class Prefix(commands.Cog):
 
 
 somsiad = Somsiad()
+
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, somsiad.signal_handler)

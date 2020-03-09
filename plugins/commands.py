@@ -12,12 +12,11 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
-from core import ServerRelated, UserRelated, ChannelRelated
 from utilities import utc_to_naive_local
 import data
 
 
-class Invocation(data.Base, ServerRelated, ChannelRelated, UserRelated):
+class Invocation(data.Base, data.MemberRelated, data.ChannelRelated):
     message_id = data.Column(data.BigInteger, primary_key=True)
     prefix = data.Column(data.String(min(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=False)
     full_command = data.Column(data.String(100), nullable=False, index=True)

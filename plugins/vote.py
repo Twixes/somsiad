@@ -16,13 +16,12 @@ import re
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import ChannelRelated, UserRelated, cooldown
-from configuration import configuration
+from core import cooldown
 from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 import data
 
 
-class Ballot(data.Base, ChannelRelated, UserRelated):
+class Ballot(data.Base, data.ChannelRelated, data.UserRelated):
     urn_message_id = data.Column(data.BigInteger, primary_key=True)
     matter = data.Column(data.String(50), nullable=False)
     letters = data.Column(data.String(26))

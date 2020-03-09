@@ -14,17 +14,17 @@
 import io
 import discord
 from discord.ext import commands
-from core import ServerSpecific, ChannelRelated, Help, cooldown
+from core import Help, cooldown
 from utilities import first_url, word_number_form
 import data
 
 channel_being_processed_for_servers = {}
 
 
-class PinArchive(data.Base, ServerSpecific, ChannelRelated):
+class PinArchive(data.Base, data.ServerSpecific, data.ChannelRelated):
     async def archive(self, bot: commands.Bot, channel: discord.TextChannel) -> int:
         """Archives the provided message."""
-        archive_channel = self.discord_channel
+        archive_channel = self.discord_channel(bot)
         messages = await channel.pins()
         if not messages:
             raise ValueError
@@ -105,7 +105,7 @@ class Pins(commands.Cog):
             embed = self.bot.generate_embed('✅', f'Ustawiono #{channel} jako kanał archiwum przypiętych wiadomości')
         else:
             if pin_archive is not None and pin_archive.channel_id is not None:
-                notice = f'Kanałem archiwum przypiętych wiadomości jest #{pin_archive.discord_channel}'
+                notice = f'Kanałem archiwum przypiętych wiadomości jest #{pin_archive.discord_channel(self.bot)}'
             else:
                 notice = 'Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości'
             embed = self.bot.generate_embed('🗃️', notice)
@@ -136,7 +136,7 @@ class Pins(commands.Cog):
                 pin_archive = session.query(PinArchive).get(ctx.guild.id)
                 if pin_archive is None or pin_archive.channel_id is None:
                     emoji, notice = '⚠️', 'Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości'
-                elif pin_archive.discord_channel is None:
+                elif pin_archive.discord_channel(self.bot) is None:
                     emoji, notice = '⚠️', 'Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje'
                 elif channel_being_processed_for_servers.get(ctx.guild.id) is not None:
                     emoji, notice = (
@@ -144,10 +144,10 @@ class Pins(commands.Cog):
                         f'#{channel_being_processed_for_servers[ctx.guild.id]}'
                     )
                 else:
-                    channel_being_processed_for_servers[ctx.guild.id] = pin_archive.discord_channel
+                    channel_being_processed_for_servers[ctx.guild.id] = pin_archive.discord_channel(self.bot)
                     try:
                         try:
-                            async with pin_archive.discord_channel.typing():
+                            async with channel_being_processed_for_servers[ctx.guild.id].typing():
                                 archived = await pin_archive.archive(self.bot, ctx.channel)
                         except ValueError:
                             emoji, notice = '🔴', 'Brak przypiętych wiadomości do zarchiwizowania'

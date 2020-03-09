@@ -18,16 +18,16 @@ import itertools
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import Help, ServerSpecific, UserSpecific, ChannelRelated, cooldown
+from core import Help, cooldown
 from utilities import word_number_form, calculate_age
 import data
 
 
-class BirthdayPublicnessLink(data.Base, ServerSpecific):
+class BirthdayPublicnessLink(data.Base, data.ServerSpecific):
     born_person_user_id = data.Column(data.BigInteger, data.ForeignKey('born_persons.user_id'), primary_key=True)
 
 
-class BornPerson(data.Base, UserSpecific):
+class BornPerson(data.Base, data.UserSpecific):
     EDGE_YEAR = 1900
     birthday = data.Column(data.Date)
     birthday_public_servers = data.relationship(
@@ -45,8 +45,8 @@ class BornPerson(data.Base, UserSpecific):
         return server is None or session.query(data.Server).get(server.id) in self.birthday_public_servers
 
 
-class BirthdayNotifier(data.Base, ServerSpecific, ChannelRelated):
-    BirthdayToday = namedtuple('BirthdayToday', ('discord_user', 'age'))
+class BirthdayNotifier(data.Base, data.ServerSpecific, data.ChannelRelated):
+    BirthdayToday = namedtuple('BirthdayToday', ('user_id', 'age'))
     WISHES = ['Sto lat', 'Wszystkiego najlepszego', 'Spełnienia marzeń', 'Szczęścia, zdrowia, pomyślności']
 
     def birthdays_today(self) -> List[BirthdayToday]:
@@ -58,7 +58,7 @@ class BirthdayNotifier(data.Base, ServerSpecific, ChannelRelated):
                     born_person.birthday is not None and
                     (born_person.birthday.day, born_person.birthday.month) == today_tuple
             ):
-                birthdays_today.append(self.BirthdayToday(born_person.discord_user, born_person.age()))
+                birthdays_today.append(self.BirthdayToday(born_person.user_id, born_person.age()))
         birthdays_today.sort(key=lambda birthday_today: birthday_today.age or 0)
         return birthdays_today
 
@@ -151,12 +151,14 @@ class Birthday(commands.Cog):
         wishes = birthday_notifier.WISHES.copy()
         random.shuffle(wishes)
         for birthday_today, wish in zip(birthday_notifier.birthdays_today(), itertools.cycle(wishes)):
-            if birthday_today.age:
-                notice = f'{wish} z okazji {birthday_today.age}. urodzin!'
-            else:
-                notice = f'{wish} z okazji urodzin!'
-            embed = self.bot.generate_embed('🎂', notice)
-            await birthday_notifier.discord_channel.send(birthday_today.discord_user.mention, embed=embed)
+            channel = birthday_notifier.discord_channel(self.bot)
+            if channel.guild.get_member(birthday_today.user_id) is not None:
+                if birthday_today.age:
+                    notice = f'{wish} z okazji {birthday_today.age}. urodzin!'
+                else:
+                    notice = f'{wish} z okazji urodzin!'
+                embed = self.bot.generate_embed('🎂', notice)
+                await channel.send(f'<@{birthday_today.user_id}>', embed=embed)
 
     async def send_all_birthday_today_notifications(self):
         with data.session(commit=True) as session:
@@ -490,7 +492,7 @@ class Birthday(commands.Cog):
         with data.session() as session:
             birthday_notifier = session.query(BirthdayNotifier).get(ctx.guild.id)
             if birthday_notifier is not None and birthday_notifier.channel_id is not None:
-                title = f'✅ Powiadomienia o urodzinach są włączone na #{birthday_notifier.discord_channel}'
+                title = f'✅ Powiadomienia o urodzinach są włączone na #{birthday_notifier.discord_channel(self.bot)}'
                 description = self.NOTIFICATIONS_EXPLANATION
             else:
                 title = f'🔴 Powiadomienia o urodzinach są wyłączone'

@@ -14,12 +14,12 @@
 import datetime as dt
 import discord
 from discord.ext import commands
-from core import ChannelRelated, UserRelated, cooldown
+from core import cooldown
 from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
 import data
 
 
-class Reminder(data.Base, ChannelRelated, UserRelated):
+class Reminder(data.Base, data.ChannelRelated, data.UserRelated):
     MAX_CONTENT_LENGTH = 100
 
     confirmation_message_id = data.Column(data.BigInteger, primary_key=True)

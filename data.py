@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Any, Union, Sequence, Dict
+from typing import Any, Optional, Union, Sequence, Dict
 from contextlib import contextmanager
 from sqlalchemy import (
     func, create_engine, Column, Boolean, Integer, SmallInteger, BigInteger, String, Date, DateTime, ForeignKey
@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session as RawSession, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.dialects import postgresql
 import discord
+from discord.ext import commands
 from configuration import configuration
 
 engine = create_engine(configuration['database_url'])
@@ -101,3 +102,56 @@ class Server(Base):
     def register_all(cls, servers: Sequence[discord.Guild]):
         values = [{'id': server.id, 'joined_at': server.me.joined_at} for server in servers]
         insert_or_ignore(cls, values)
+
+
+class ServerRelated:
+    @declared_attr
+    def server_id(cls):
+        return Column (BigInteger, ForeignKey (Server.id), index=True)
+
+    @declared_attr
+    def server(self):
+        return relationship (Server)
+
+    def discord_server(self, bot: commands.Bot) -> Optional[discord.Guild]:
+        return bot.get_guild(self.server_id) if self.server_id is not None else None
+
+
+class ServerSpecific(ServerRelated):
+    @declared_attr
+    def server_id(cls):
+        return Column (BigInteger, ForeignKey (Server.id), primary_key=True)
+
+
+class ChannelRelated:
+    channel_id = Column (BigInteger, index=True)
+
+    def discord_channel(self, bot: commands.Bot) -> Optional[discord.TextChannel]:
+        return bot.get_channel(self.channel_id) if self.channel_id is not None else None
+
+
+class ChannelSpecific(ChannelRelated):
+    channel_id = Column (BigInteger, primary_key=True)
+
+
+class UserRelated:
+    user_id = Column (BigInteger, index=True)
+
+    def discord_user(self, bot: commands.Bot) -> Optional[discord.Guild]:
+        return bot.get_user(self.user_id) if self.user_id is not None else None
+
+
+class UserSpecific(UserRelated):
+    user_id = Column (BigInteger, primary_key=True)
+
+
+class MemberRelated(ServerRelated, UserRelated):
+    def discord_member(self, bot: commands.Bot) -> Optional[discord.Member]:
+        server = self.discord_server(bot)
+        return server.get_member(self.user_id) if server is not None and self.user_id is not None else None
+
+
+class MemberSpecific(ServerSpecific, UserSpecific):
+    def discord_member(self, bot: commands.Bot) -> Optional[discord.Member]:
+        server = self.discord_server(bot)
+        return server.get_member(self.user_id) if server is not None else None
