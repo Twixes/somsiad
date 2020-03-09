@@ -100,7 +100,9 @@ class Server(Base):
 
     @classmethod
     def register_all(cls, servers: Sequence[discord.Guild]):
-        values = [{'id': server.id, 'joined_at': server.me.joined_at} for server in servers]
+        values = [{
+            'id': server.id, 'joined_at': server.me.joined_at if server.me is not None else None
+        } for server in servers]
         insert_or_ignore(cls, values)
 
 
