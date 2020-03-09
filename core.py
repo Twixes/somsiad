@@ -239,7 +239,8 @@ class Somsiad(commands.Bot):
                 except discord.Forbidden:
                     pass
                 error_embed = self.generate_embed(
-                    '⚠️', f'Nie mogę wysyłać wiadomości na kanale #{ctx.channel} serwera {ctx.guild}'
+                    '⚠️', f'Nie mogę wysłać odpowiedzi na komendę {ctx.invoked_with}',
+                    f'Brak mi uprawnień na kanale #{ctx.channel} serwera {ctx.guild}.'
                 )
                 await self.send(ctx, direct=True, embed=error_embed)
         return messages[0] if len(messages) == 1 else messages
