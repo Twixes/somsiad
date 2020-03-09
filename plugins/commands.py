@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import datetime as dt
 from discord.ext import commands
 from utilities import utc_to_naive_local
 import data
@@ -22,7 +23,7 @@ class Invocation(data.Base, data.MemberRelated, data.ChannelRelated):
     full_command = data.Column(data.String(100), nullable=False, index=True)
     root_command = data.Column(data.String(100), nullable=False, index=True)
     created_at = data.Column(data.DateTime, nullable=False)
-    has_been_completed = data.Column(data.Boolean, nullable=False, default=False)
+    completed_at = data.Column(data.DateTime)
 
 
 class Commands(commands.Cog):
@@ -45,7 +46,7 @@ class Commands(commands.Cog):
     async def on_command_completion(self, ctx: commands.Context):
         with data.session(commit=True) as session:
             invocation = session.query(Invocation).get(ctx.message.id)
-            invocation.has_been_completed = True
+            invocation.completed_at = dt.datetime.now()
 
 
 def setup(bot: commands.Bot):
