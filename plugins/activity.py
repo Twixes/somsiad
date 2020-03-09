@@ -131,7 +131,9 @@ class Report:
         await self._fill_in_details()
         with data.session() as session:
             existent_channels = self.ctx.guild.text_channels
-            existent_channel_ids = [channel.id for channel in existent_channels]
+            existent_channel_ids = [
+                channel.id for channel in existent_channels if channel.permissions_for(self.ctx.me).read_messages
+            ]
             # process subject type
             if self.type == self.Type.SERVER:
                 for channel in existent_channels:
@@ -741,7 +743,7 @@ class Activity(commands.Cog):
     @stat.error
     async def stat_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
-            await self.bot.send(ctx, embed=self.ctx.bot.generate_embed(
+            await self.bot.send(ctx, embed=self.bot.generate_embed(
                 '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika ani kanału'
             ))
 
@@ -766,7 +768,7 @@ class Activity(commands.Cog):
     async def stat_channel_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await self.bot.send(
-                ctx, embed=self.ctx.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
+                ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
             )
 
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
@@ -784,7 +786,7 @@ class Activity(commands.Cog):
     async def stat_member_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
             await self.bot.send(
-                ctx, embed=self.ctx.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+                ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             )
 
 
