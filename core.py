@@ -221,13 +221,27 @@ class Somsiad(commands.Bot):
         content_elements = tuple(filter(None, (text, ctx.author.mention if not direct or not mention else None)))
         content = ' '.join(content_elements) if content_elements else None
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
-            await ctx.message.add_reaction('📫')
+            try:
+                await ctx.message.add_reaction('📫')
+            except discord.Forbidden:
+                pass
         messages = []
-        messages.append(await destination.send(
-            content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
-        ))
-        for extra_embed in embeds[1:]:
-            messages.append(await destination.send(embed=extra_embed, delete_after=delete_after))
+        try:
+            messages.append(await destination.send(
+                content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
+            ))
+            for extra_embed in embeds[1:]:
+                messages.append(await destination.send(embed=extra_embed, delete_after=delete_after))
+        except discord.Forbidden:
+            if not direct and ctx.guild is not None and 'bot' not in ctx.guild.name.lower():
+                try:
+                    await ctx.message.add_reaction('⚠️')
+                except discord.Forbidden:
+                    pass
+                error_embed = self.generate_embed(
+                    '⚠️', f'Nie mogę wysyłać wiadomości na kanale #{ctx.channel} serwera {ctx.guild}'
+                )
+                await self.send(ctx, direct=True, embed=error_embed)
         return messages[0] if len(messages) == 1 else messages
 
     def register_error(self, event_method: str, error: Exception, ctx: Optional[commands.Context] = None):
