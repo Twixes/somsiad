@@ -13,19 +13,28 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-if [ ! -z "$1" ]
+if [[ ${1::1} == "!" ]]
 then
-    if command -V python$1 &>/dev/null
+    OPTIONS="-m cProfile -s tottime -o somsiad.cprof"
+    OPTIONS_PRESENTATION=" z profilowaniem"
+    ARGUMENT=${1:1}
+else
+    ARGUMENT=$1
+fi
+
+if [ ! -z "$ARGUMENT" ]
+then
+    if command -V python$ARGUMENT &>/dev/null
     then
-        PYTHON_VERSION_PRESENTATION="$(python$1 -V)"
+        PYTHON_VERSION_PRESENTATION="$(python$ARGUMENT -V)"
         if [[ $PYTHON_VERSION_PRESENTATION == "Python 3.7."* ]] || [[ $PYTHON_VERSION_PRESENTATION == "Python 3.8."* ]]
         then
-            PYTHON_VERSION="$1"
+            PYTHON_VERSION="$ARGUMENT"
         else
-            echo "Podana komenda python$1 to $PYTHON_VERSION_PRESENTATION, nie obsługiwany 3.7.* lub 3.8.*!"
+            echo "Podana komenda python$ARGUMENT to $PYTHON_VERSION_PRESENTATION, nie obsługiwany 3.7.* lub 3.8.*!"
         fi
     else
-        echo "Podana komenda python$1 nie działa!"
+        echo "Podana komenda python$ARGUMENT nie działa!"
     fi
 else
     if command -V python3 &>/dev/null
@@ -55,10 +64,9 @@ then
         echo "Spełnianie zależności..."
         pip$PYTHON_VERSION install -q -U pip
         pip$PYTHON_VERSION install -q -U -r $(dirname "$BASH_SOURCE")/requirements.txt
-        echo "Uruchamianie przy użyciu python$PYTHON_VERSION..."
-        python$PYTHON_VERSION $(dirname "$BASH_SOURCE")/core.py
-        # python$PYTHON_VERSION -m cProfile -s tottime -o somsiad.cprof $(dirname "$BASH_SOURCE")/core.py
-elif [ -z "$1" ]
+        echo "Uruchamianie$OPTIONS_PRESENTATION przy użyciu python$PYTHON_VERSION..."
+        python$PYTHON_VERSION $OPTIONS $(dirname "$BASH_SOURCE")/core.py
+elif [ -z "$ARGUMENT" ]
 then
     if [ -z "$PYTHON_VERSION_PRESENTATION" ]
     then
