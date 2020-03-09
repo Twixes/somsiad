@@ -143,7 +143,7 @@ class BotOwnerTools(commands.Cog):
                 embed.add_field(name=announcement[n].strip(), value=announcement[n+1].strip(), inline=False)
 
         for server in ctx.bot.guilds:
-            if 'bot' not in server.name.lower():
+            if not server.name or 'bot' not in server.name.lower():
                 for channel in server.text_channels:
                     if not channel.is_news():
                         try:

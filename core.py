@@ -155,12 +155,13 @@ class Somsiad(commands.Bot):
 
     @property
     def server_count(self) -> int:
-        return len([server.id for server in self.guilds if 'bot' not in server.name.lower()])
+        return len([server.id for server in self.guilds if not server.name or 'bot' not in server.name.lower()])
 
     @property
     def user_count(self) -> int:
         return len({
-            member.id for server in self.guilds for member in server.members if 'bot' not in server.name.lower()
+            member.id for server in self.guilds for member in server.members
+            if not server.name or 'bot' not in server.name.lower()
         })
 
     def print_info(self) -> str:
