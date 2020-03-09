@@ -78,7 +78,10 @@ class Birthday(commands.Cog):
     COMMANDS = (
         Help.Command(('zapamiętaj', 'zapamietaj', 'ustaw'), 'data', 'Zapamiętuje twoją datę urodzin.'),
         Help.Command('zapomnij', (), 'Zapomina twoją datę urodzin.'),
-        Help.Command('upublicznij', (), 'Upublicznia twoją datę urodzin na serwerze.'),
+        Help.Command(
+            'upublicznij', (), 'Upublicznia twoją datę urodzin na serwerze. '
+            'Dzięki temu mogą też działać serwerowe powiadomienia o urodzinach.'
+        ),
         Help.Command('utajnij', (), 'Utajnia twoją datę urodzin na serwerze.'),
         Help.Command('gdzie', (), 'Informuje na jakich serwerach twoja data urodzin jest w tym momencie publiczna.'),
         Help.Command(
