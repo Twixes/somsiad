@@ -66,7 +66,8 @@ class Somsiad(commands.Bot):
         commands.MissingRequiredArgument,
         commands.BadArgument,
         commands.BadUnionArgument,
-        commands.CommandOnCooldown
+        commands.CommandOnCooldown,
+        commands.NotOwner
     )
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
