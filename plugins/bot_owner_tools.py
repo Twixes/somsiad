@@ -99,11 +99,11 @@ class BotOwnerTools(commands.Cog):
     @commands.command(aliases=['wejdź'])
     @cooldown()
     @commands.is_owner()
-    async def enter(self, ctx, *, server_name):
+    async def enter(self, ctx, *, server_name_or_id):
         """Generates an invite to the provided server."""
         invite = None
         for server in ctx.bot.guilds:
-            if server.name == server_name:
+            if server_name_or_id in (server.name, str(server.id)):
                 for channel in server.channels:
                     if (
                             not isinstance(channel, discord.CategoryChannel)
