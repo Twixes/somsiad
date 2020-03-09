@@ -66,38 +66,39 @@ class Oof(commands.Cog):
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             await self.bot.send(ctx, embed=embed)
 
-    @oof_how_many.command(aliases=['server', 'serwer'])
+    @oof_how_many.command(aliases=['server', 'serwer', 'ranking'])
     @cooldown()
     @commands.guild_only()
     async def oof_how_many_server(self, ctx):
         await ctx.invoke(self.oof_server)
 
-    @oof.command(aliases=['server', 'serwer'])
+    @oof.command(aliases=['server', 'serwer', 'ranking'])
     @cooldown()
     @commands.guild_only()
     async def oof_server(self, ctx):
-        with data.session() as session:
-            total_oofs = session.query(data.func.sum(Oofer.oofs)).scalar()
-            top_results = session.query(
-                Oofer,
-                data.func.dense_rank().over(order_by = Oofer.oofs.desc()).label('rank')
-            ).limit(25).all()
-        ranking = []
-        for result in top_results:
-            if result.rank > 10:
-                break
-            ranking.append(
-                f'{result.rank}. <@{result.Oofer.user_id}> – '
-                f'{word_number_form(result.Oofer.oofs, "oofnięcie", "oofnięcia", "oofnięć")}'
-            )
-        if total_oofs:
-            notice = f'Do tej pory oofnięto na serwerze {word_number_form(total_oofs, "raz", "razy")}'
-        else:
-            notice = 'Na serwerze nie oofnięto jeszcze ani razu'
-        embed = self.bot.generate_embed('💨', notice)
-        if ranking:
-            embed.add_field(name='Najaktywniejsi ooferzy', value='\n'.join(ranking), inline=False)
-        await self.bot.send(ctx, embed=embed)
+        async with ctx.typing():
+            with data.session() as session:
+                total_oofs = session.query(data.func.sum(Oofer.oofs).filter(Oofer.server_id == ctx.guild.id)).scalar()
+                top_results = session.query(
+                    Oofer,
+                    data.func.dense_rank().over(order_by = Oofer.oofs.desc()).label('rank')
+                ).filter(Oofer.server_id == ctx.guild.id).limit(25).all()
+            ranking = []
+            for result in top_results:
+                if result.rank > 10:
+                    break
+                ranking.append(
+                    f'{result.rank}. <@{result.Oofer.user_id}> – '
+                    f'{word_number_form(result.Oofer.oofs, "oofnięcie", "oofnięcia", "oofnięć")}'
+                )
+            if total_oofs:
+                notice = f'Do tej pory oofnięto na serwerze {word_number_form(total_oofs, "raz", "razy")}'
+            else:
+                notice = 'Na serwerze nie oofnięto jeszcze ani razu'
+            embed = self.bot.generate_embed('💨', notice)
+            if ranking:
+                embed.add_field(name='Najaktywniejsi ooferzy', value='\n'.join(ranking), inline=False)
+            await self.bot.send(ctx, embed=embed)
 
 
 def setup(bot: commands.Bot):
