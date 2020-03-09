@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-# Copyright 2019 Twixes
+# Copyright 2019-2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -14,6 +14,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 source ./.env
-VERSION=$(./version.py)
-sentry-cli releases new -p "${SENTRY_PROJ:-somsiad}" "${SENTRY_PROJ:-somsiad}@$VERSION" --finalize
-sentry-cli releases set-commits --auto "${SENTRY_PROJ:-somsiad}@$VERSION"
+VERSION_NUMBER=$(./version.py)
+VERSION="${SENTRY_PROJ:-somsiad}@$VERSION_NUMBER"
+sentry-cli releases new -p "${SENTRY_PROJ:-somsiad}" "$VERSION"
+sentry-cli releases set-commits --auto "$VERSION"
+sentry-cli releases finalize "$VERSION"
+sentry-cli releases deploys "$VERSION" new -e "$HOSTNAME"
