@@ -457,7 +457,7 @@ class Report:
             max_daily_message_date_isoformat, max_daily_message_count = max(
                 self.messages_over_date.items(), key=lambda pair: pair[1]
             )
-            max_daily_message_date = dt.datetime.strptime(max_daily_message_date_isoformat, '%Y-%m-%d').date()
+            max_daily_message_date = dt.date.fromisoformat(max_daily_message_date_isoformat)
             self.embed.add_field(
                 name='Maksymalnie wiadomości dziennie',
                 value=f'{max_daily_message_count:n} ({max_daily_message_date.strftime("%-d %B %Y")})'

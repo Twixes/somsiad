@@ -84,8 +84,8 @@ class TMDb(commands.Cog):
     def generate_person_embed(self, result: dict) -> discord.Embed:
         is_female = result['gender'] == 1
         today = dt.date.today()
-        birth_date = dt.datetime.strptime(result['birthday'], '%Y-%m-%d').date() if result['birthday'] else None
-        death_date = dt.datetime.strptime(result['deathday'], '%Y-%m-%d').date() if result['deathday'] else None
+        birth_date = dt.date.fromisoformat(result['birthday']) if result['birthday'] else None
+        death_date = dt.date.fromisoformat(result['deathday']) if result['deathday'] else None
         if birth_date is not None and (birth_date.month, birth_date.day) == (today.month, today.day):
             emoji = '🎂'
         else:
@@ -115,7 +115,7 @@ class TMDb(commands.Cog):
         return embed
 
     def generate_movie_embed(self, result: dict) -> discord.Embed:
-        release_date = dt.datetime.strptime(result['release_date'], '%Y-%m-%d').date()
+        release_date = dt.date.fromisoformat(result['release_date'])
         embed = self.bot.generate_embed(
             '🎞', f'{result["title"]} ({result["release_date"][:4]})', result.get('tagline'),
             url=f'https://www.themoviedb.org/movie/{result["id"]}'
@@ -145,8 +145,8 @@ class TMDb(commands.Cog):
         return embed
 
     def generate_tv_embed(self, result: dict) -> discord.Embed:
-        first_air_date = dt.datetime.strptime(result['first_air_date'], '%Y-%m-%d').date()
-        last_air_date = dt.datetime.strptime(result['last_air_date'], '%Y-%m-%d').date()
+        first_air_date = dt.date.fromisoformat(result['first_air_date'])
+        last_air_date = dt.date.fromisoformat(result['last_air_date'])
         air_years_range = str(first_air_date.year)
         if result['in_production']:
             air_years_range += '–'
@@ -192,7 +192,7 @@ class TMDb(commands.Cog):
         for season in result['seasons']:
             if season['season_number'] > 0:
                 if season["air_date"]:
-                    air_date_presentation = dt.datetime.strptime(season['air_date'], '%Y-%m-%d').strftime('%-d %B %Y')
+                    air_date_presentation = dt.date.fromisoformat(season['air_date']).strftime('%-d %B %Y')
                 else:
                     air_date_presentation = 'TBD'
                 season_parts.append(
