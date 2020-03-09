@@ -115,7 +115,7 @@ class TMDb(commands.Cog):
         return embed
 
     def generate_movie_embed(self, result: dict) -> discord.Embed:
-        release_date = dt.date.fromisoformat(result['release_date'])
+        release_date = dt.date.fromisoformat(result['release_date']) if result['release_date'] else None
         embed = self.bot.generate_embed(
             '🎞', f'{result["title"]} ({result["release_date"][:4]})', result.get('tagline'),
             url=f'https://www.themoviedb.org/movie/{result["id"]}'
@@ -145,8 +145,8 @@ class TMDb(commands.Cog):
         return embed
 
     def generate_tv_embed(self, result: dict) -> discord.Embed:
-        first_air_date = dt.date.fromisoformat(result['first_air_date'])
-        last_air_date = dt.date.fromisoformat(result['last_air_date'])
+        first_air_date = dt.date.fromisoformat(result['first_air_date']) if result['first_air_date'] else None
+        last_air_date = dt.date.fromisoformat(result['last_air_date']) if result['last_air_date'] else None
         air_years_range = str(first_air_date.year)
         if result['in_production']:
             air_years_range += '–'
@@ -191,7 +191,7 @@ class TMDb(commands.Cog):
         season_parts = []
         for season in result['seasons']:
             if season['season_number'] > 0:
-                if season["air_date"]:
+                if season['air_date']:
                     air_date_presentation = dt.date.fromisoformat(season['air_date']).strftime('%-d %B %Y')
                 else:
                     air_date_presentation = 'TBD'
