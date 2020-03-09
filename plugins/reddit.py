@@ -25,7 +25,7 @@ class Reddit(commands.Cog):
         url = f'https://www.reddit.com/r/{subreddit_name}'
         response = None
         status = None
-        async with self.bot.session.get(f'{url}/about.json', headers=self.bot.HEADERS) as request:
+        async with self.bot.session.get(f'{url}/about.json') as request:
             status = request.status
             if status == 200:
                 response = await request.json()
@@ -57,7 +57,7 @@ class Reddit(commands.Cog):
         url = f'https://www.reddit.com/user/{username}'
         response = None
         status = None
-        async with self.bot.session.get(f'{url}/about.json', headers=self.bot.HEADERS) as request:
+        async with self.bot.session.get(f'{url}/about.json') as request:
             status = request.status
             if status == 200:
                 response = await request.json()

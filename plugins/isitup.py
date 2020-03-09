@@ -42,7 +42,7 @@ class IsItUp(commands.Cog):
                 url = f'{protocol}://{rest}'
                 try:
                     for method in (self.bot.session.head, self.bot.session.get):
-                        async with method(url, allow_redirects=True, headers=self.bot.HEADERS) as request:
+                        async with method(url, allow_redirects=True) as request:
                             if request.status == 405 and request.method != 'get':
                                 continue
                             status = request.status

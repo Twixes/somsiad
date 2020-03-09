@@ -49,7 +49,7 @@ class UrbanDictionary(commands.Cog):
     async def urban_dictionary(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
         params = {'term': query}
-        async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+        async with self.bot.session.get(self.API_URL, params=params) as request:
             if request.status == 200:
                 response = await request.json()
                 if response['list']:

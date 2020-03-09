@@ -33,7 +33,7 @@ class WolframAlpha(commands.Cog):
     async def fetch_pods(self, query: str) -> Optional[dict]:
         try:
             params = {'input': query, **self.API_PARAMS}
-            async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+            async with self.bot.session.get(self.API_URL, params=params) as request:
                 if request.status == 200:
                     response = await request.json(content_type='text/plain;charset=utf-8')
                     result = response['queryresult']

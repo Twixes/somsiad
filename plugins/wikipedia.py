@@ -55,9 +55,7 @@ class Wikipedia(commands.Cog):
         search_result = self.SearchResult(language)
         try:
             # use OpenSearch API first to get accurate page title of the result
-            async with self.bot.session.get(
-                    self.link(language, 'w/api.php'), headers=self.bot.HEADERS, params=params
-            ) as title_request:
+            async with self.bot.session.get(self.link(language, 'w/api.php'), params=params) as title_request:
                 search_result.status = title_request.status
                 if title_request.status == 200:
                     title_data = await title_request.json()
@@ -65,7 +63,7 @@ class Wikipedia(commands.Cog):
                         # use the title retrieved from the OpenSearch response as a search term in the REST request
                         query = title_data[1][0]
                         async with self.bot.session.get(
-                                self.link(language, f'api/rest_v1/page/summary/{query}'), headers=self.bot.HEADERS
+                                self.link(language, f'api/rest_v1/page/summary/{query}')
                         ) as article_request:
                             search_result.status = article_request.status
                             if article_request.status == 200:

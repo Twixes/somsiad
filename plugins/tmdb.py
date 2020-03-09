@@ -49,7 +49,7 @@ class TMDb(commands.Cog):
     async def fetch_result_and_generate_embed(self, query: str, media_type: Optional[str] = None) -> discord.Embed:
         params = {'api_key': configuration['tmdb_key'], 'query': query, 'language': 'pl-PL', 'region': 'PL'}
         search_url = f'https://api.themoviedb.org/3/search/{media_type or "multi"}'
-        async with self.bot.session.get(search_url, headers=self.bot.HEADERS, params=params) as request:
+        async with self.bot.session.get(search_url, params=params) as request:
             if request.status != 200:
                 embed = self.bot.generate_embed('⚠️', f'Nie udało się połączyć z serwisem')
             else:
@@ -60,8 +60,7 @@ class TMDb(commands.Cog):
                     search_result = response['results'][0]
                     media_type = media_type or search_result['media_type']
                     async with self.bot.session.get(
-                        f'https://api.themoviedb.org/3/{media_type}/{search_result["id"]}',
-                        headers=self.bot.HEADERS, params=params
+                        f'https://api.themoviedb.org/3/{media_type}/{search_result["id"]}', params=params
                     ) as request:
                         if request.status != 200:
                             embed = self.bot.generate_embed('⚠️', f'Nie udało się połączyć z serwisem')

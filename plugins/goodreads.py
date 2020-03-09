@@ -35,7 +35,7 @@ class Goodreads(commands.Cog):
             'q': query,
             'key': configuration['goodreads_key']
         }
-        async with self.bot.session.get(self.API_SEARCH_URL, headers=self.bot.HEADERS, params=params) as response:
+        async with self.bot.session.get(self.API_SEARCH_URL, params=params) as response:
             if response.status == 200:
                 books = []
                 results_text = await response.text()

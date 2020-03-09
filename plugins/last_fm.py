@@ -32,7 +32,7 @@ class LastFM(commands.Cog):
         }
         try:
             # use OpenSearch API first to get accurate page title of the result
-            async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+            async with self.bot.session.get(self.API_URL, params=params) as request:
                 if request.status == 200:
                     user_info = await request.json()
                     if 'error' in user_info:
@@ -50,7 +50,7 @@ class LastFM(commands.Cog):
             'limit': limit
         }
         try:
-            async with self.bot.session.get(self.API_URL, headers=self.bot.HEADERS, params=params) as request:
+            async with self.bot.session.get(self.API_URL, params=params) as request:
                 if request.status == 200:
                     user_recent_tracks = await request.json()
                     if 'error' in user_recent_tracks:
