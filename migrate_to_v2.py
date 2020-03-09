@@ -129,7 +129,6 @@ class ServerDataManager:
         self.servers[server_id]['db_cursor'].execute(
             'SELECT name FROM sqlite_master WHERE type = "table"'
         )
-
         tables = [table['name'] for table in self.servers[server_id]['db_cursor'].fetchall()]
 
         for table in tables:
@@ -254,17 +253,17 @@ def migrate_from_db_to_sqlalchemy_oof():
 def migrate_from_db_to_sqlalchemy_moderation():
     print('Migrating moderation from .db files to SQLAlchemy... ')
     session = data.Session()
-    session.add_all([
-        Event(
-            server_id=server_id, type=event['event_type'], user_id=event['subject_user_id'],
-            channel_id=event['channel_id'], executing_user_id=event['executing_user_id'], details=event['reason'],
-            occurred_at=dt.datetime.fromtimestamp(event['posix_timestamp']).replace(tzinfo=dt.timezone.utc)
-        )
-        for server_id, server in server_data_manager.servers.items()
-        if 'files' in server
-        for event in server['files']
-    ])
-    session.commit()
+    for server_id, server in server_data_manager.servers.items():
+        if 'files' in server:
+            for event in server['files']:
+                event = Event(
+                    server_id=server_id, type=event['event_type'], user_id=event['subject_user_id'],
+                    channel_id=event['channel_id'], executing_user_id=event['executing_user_id'],
+                    details=event['reason'],
+                    occurred_at=dt.datetime.fromtimestamp(event['posix_timestamp']).replace(tzinfo=dt.timezone.utc)
+                )
+                session.add(event)
+        session.commit()
     session.close()
     print('Done: moderation migrated')
 
