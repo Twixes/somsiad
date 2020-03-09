@@ -245,7 +245,7 @@ class Somsiad(commands.Bot):
                         )
                     }
                     scope.set_tag('full_command', ctx.command.qualified_name)
-                    scope.set_tag('root_command', ctx.command.root_parent or ctx.command.qualified_name)
+                    scope.set_tag('root_command', str(ctx.command.root_parent or ctx.command.qualified_name))
                     scope.set_context('message', {
                         'prefix': ctx.prefix, 'content': ctx.message.content,
                         'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
