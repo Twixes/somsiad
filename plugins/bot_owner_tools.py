@@ -22,7 +22,7 @@ class BotOwnerTools(commands.Cog):
 
     def v2_embed(self) -> discord.Embed:
         embed = self.bot.generate_embed(
-            '📢', 'Somsiad 2.0.0', 'Nowa wersja już tu jest, a w niej wiele nowych funkcji i usprawnień. Poniżej najważniejsze z nich.'
+            '📢', 'Somsiad 2.0', 'Nowa wersja już tu jest, a w niej wiele nowych funkcji i usprawnień. Poniżej najważniejsze z nich.'
         )
         embed.add_field(
             name='🔧',
