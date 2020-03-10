@@ -13,6 +13,7 @@
 
 from typing import Optional, Union, Tuple
 import re
+import itertools
 import random
 import discord
 from discord.ext import commands
@@ -21,17 +22,23 @@ from core import cooldown
 
 class React(commands.Cog):
     """Handles reacting to messages."""
-    DIACRITIC_CHARACTERS = {
+    DIACRITIC_CONVERSIONS = {
         'ą': ('aw', 'a'), 'ć': ('ci', 'c'), 'ę': ('ew', 'e'), 'ń': ('ni', 'n'), 'ł': ('el', 'l'), 'ó': ('oo', 'o'),
         'ś': ('si', 's'), 'ż': ('zg', 'z'), 'ź': ('zi', 'z')
     }
-    ASCII_CHARACTERS = {
+    TRIPLE_EMOJIS = {
+        'sos': '🆘', '100': '💯', 'zzz': '💤', 'atm': '🏧', 'abc': '🔤', 'up!': '🆙', 'new': '🆕'
+    }
+    DOUBLE_EMOJIS = {
+        '!!': '‼️', '!?': '⁉️', 'ng': '🆖', 'ok': '🆗', 'up': '🆙', 'wc': '🚾', 'ab': '🆎', 'cl': '🆑', 'vs': '🆚'
+    }
+    SINGLE_EMOJIS = {
         '0': ('0️⃣',), '1': ('1⃣',), '2': ('2⃣',), '3': ('3⃣',), '4': ('4️⃣',), '5': ('5️⃣',), '6': ('6️⃣',),
         '7': ('7️⃣',), '8': ('8️⃣',), '9': ('9️⃣',), 'a': ('🇦', '🅰'), 'b': ('🇧', '🅱'), 'c': ('🇨',), 'd': ('🇩',),
         'e': ('🇪',), 'f': ('🇫',), 'g': ('🇬',), 'h': ('🇭',), 'i': ('🇮', 'ℹ️'), 'j': ('🇯',), 'k': ('🇰',),
-        'l': ('🇱',), 'm': ('🇲',), 'n': ('🇳',), 'o': ('🇴', '🅾'), 'p': ('🇵',), 'q': ('🇶',), 'r': ('🇷',),
-        's': ('🇸',), 't': ('🇹',), 'u': ('🇺',), 'v': ('🇻',), 'w': ('🇼',), 'x': ('🇽',), 'y': ('🇾',), 'z': ('🇿',),
-        '?': ('❓',), '!': ('❗',), '^': ('⬆',), '>': ('▶',), '<': ('◀',)
+        'l': ('🇱',), 'm': ('🇲', 'Ⓜ️'), 'n': ('🇳', '🆕'), 'o': ('🇴', '🅾', '⭕️'), 'p': ('🇵', '🅿️'), 'q': ('🇶',),
+        'r': ('🇷',), 's': ('🇸',), 't': ('🇹',), 'u': ('🇺',), 'v': ('🇻',), 'w': ('🇼',), 'x': ('🇽', '❌'),
+        'y': ('🇾',), 'z': ('🇿', '💤'), '?': ('❓',), '!': ('❗',), '^': ('⬆',), '>': ('▶',), '<': ('◀',)
     }
     CUSTOM_EMOJI_REGEX = re.compile(r'<:\S+?:(\d+)>')
 
@@ -55,7 +62,7 @@ class React(commands.Cog):
         for i, character in enumerate(emojis):
             if len(used_emojis) >= 20:
                 break
-            if not isinstance(character, str):
+            if character is None or not isinstance(character, str):
                 continue
             if character == ' ':
                 while True:
@@ -64,24 +71,47 @@ class React(commands.Cog):
                 emojis[i] = random_emoji
                 used_emojis.add(random_emoji)
                 continue
-            if character in self.DIACRITIC_CHARACTERS:
+            if character in self.DIACRITIC_CONVERSIONS:
                 if diacritic_replacements.get(character) is None:
                     valid_emoji_names = (
-                        self.DIACRITIC_CHARACTERS[character][0][-2:], self.DIACRITIC_CHARACTERS[character][0]
+                        self.DIACRITIC_CONVERSIONS[character][0][-2:], self.DIACRITIC_CONVERSIONS[character][0]
                     )
                     for emoji in server.emojis:
                         if emoji.name.lower() in valid_emoji_names:
                             diacritic_replacements[character] = emoji
                             break
                     else:
-                        diacritic_replacements[character] = self.DIACRITIC_CHARACTERS[character][1]
+                        diacritic_replacements[character] = self.DIACRITIC_CONVERSIONS[character][1]
                 emojis[i] = diacritic_replacements[character]
-            for emoji in self.ASCII_CHARACTERS.get(emojis[i], ()):
+            try:
+                triple = emojis[i] + emojis[i+1] + emojis[i+2]
+            except IndexError:
+                pass
+            else:
+                triple_emoji = self.TRIPLE_EMOJIS.get(triple)
+                if triple_emoji and triple_emoji not in used_emojis:
+                    emojis[i] = triple_emoji
+                    emojis[i+1] = None
+                    emojis[i+2] = None
+                    used_emojis.add(triple_emoji)
+                    continue
+            try:
+                double = emojis[i] + emojis[i+1]
+            except IndexError:
+                pass
+            else:
+                double_emoji = self.DOUBLE_EMOJIS.get(double)
+                if double_emoji and double_emoji not in used_emojis:
+                    emojis[i] = double_emoji
+                    emojis[i+1] = None
+                    used_emojis.add(double_emoji)
+                    continue
+            for emoji in self.SINGLE_EMOJIS.get(emojis[i], ()):
                 if emoji not in used_emojis:
                     emojis[i] = emoji
                     used_emojis.add(emoji)
                     break
-        unique_emojis = tuple(emojis[:20])
+        unique_emojis = tuple(itertools.islice(filter(None, emojis), 20))
         return unique_emojis
 
     async def _find_message(self, ctx: commands.Context, member: discord.Member = None) -> discord.Message:
