@@ -680,6 +680,7 @@ class Report:
     def _plot_activity_by_channel(self, ax):
         # plot the chart
         channels = [self.ctx.bot.get_channel(channel) for channel in self.relevant_channel_stats]
+        channel_names = [f'#{channel}' for channel in channels]
         channel_existence_lengths = (
             (self.timeframe_end_date - utc_to_naive_local(channel.created_at).date()).days + 1 for channel in channels
         )
@@ -691,10 +692,9 @@ class Report:
             channel_stats['message_count'] / channel_existence_length for channel_stats, channel_existence_length
             in zip(self.relevant_channel_stats.values(), channel_existence_lengths)
         ]
-        channel_names = [f'#{channel}' for channel in channels]
         ax.bar(
-            channel_names,
-            average_daily_message_counts,
+            channel_names[:40],
+            average_daily_message_counts[:40],
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1
