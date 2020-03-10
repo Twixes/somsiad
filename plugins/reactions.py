@@ -26,20 +26,22 @@ class React(commands.Cog):
         'ą': ('aw', 'a'), 'ć': ('ci', 'c'), 'ę': ('ew', 'e'), 'ń': ('ni', 'n'), 'ł': ('el', 'l'), 'ó': ('oo', 'o'),
         'ś': ('si', 's'), 'ż': ('zg', 'z'), 'ź': ('zi', 'z')
     }
-    TRIPLE_EMOJIS = {
-        'sos': '🆘', '100': '💯', 'zzz': '💤', 'atm': '🏧', 'abc': '🔤', 'up!': '🆙', 'new': '🆕'
-    }
-    DOUBLE_EMOJIS = {
-        '!!': '‼️', '!?': '⁉️', 'ng': '🆖', 'ok': '🆗', 'up': '🆙', 'wc': '🚾', 'ab': '🆎', 'cl': '🆑', 'vs': '🆚'
-    }
-    SINGLE_EMOJIS = {
-        '0': ('0️⃣',), '1': ('1⃣',), '2': ('2⃣',), '3': ('3⃣',), '4': ('4️⃣',), '5': ('5️⃣',), '6': ('6️⃣',),
-        '7': ('7️⃣',), '8': ('8️⃣',), '9': ('9️⃣',), 'a': ('🇦', '🅰'), 'b': ('🇧', '🅱'), 'c': ('🇨',), 'd': ('🇩',),
-        'e': ('🇪',), 'f': ('🇫',), 'g': ('🇬',), 'h': ('🇭',), 'i': ('🇮', 'ℹ️'), 'j': ('🇯',), 'k': ('🇰',),
-        'l': ('🇱',), 'm': ('🇲', 'Ⓜ️'), 'n': ('🇳', '🆕'), 'o': ('🇴', '🅾', '⭕️'), 'p': ('🇵', '🅿️'), 'q': ('🇶',),
-        'r': ('🇷',), 's': ('🇸',), 't': ('🇹',), 'u': ('🇺',), 'v': ('🇻',), 'w': ('🇼',), 'x': ('🇽', '❌'),
-        'y': ('🇾',), 'z': ('🇿', '💤'), '?': ('❓',), '!': ('❗',), '^': ('⬆',), '>': ('▶',), '<': ('◀',)
-    }
+    EMOJIS = [
+        {
+            '0': '0️⃣', '1': '1⃣', '2': '2⃣', '3': '3⃣', '4': '4️⃣', '5': '5️⃣', '6': '6️⃣', '7': '7️⃣', '8': '8️⃣',
+            '9': '9️⃣', 'a': '🇦🅰', 'b': '🇧🅱', 'c': '🇨©️', 'd': '🇩', 'e': '🇪', 'f': '🇫', 'g': '🇬', 'h': '🇭',
+            'i': '🇮ℹ️', 'j': '🇯', 'k': '🇰', 'l': '🇱', 'm': '🇲Ⓜ️', 'n': '🇳🆕', 'o': '🇴🅾⭕️', 'p': '🇵🅿️',
+            'q': '🇶', 'r': '🇷®️', 's': '🇸', 't': '🇹', 'u': '🇺', 'v': '🇻', 'w': '🇼', 'x': '🇽❌', 'y': '🇾',
+            'z': '🇿💤', '?': '❓', '!': '❗', '#': '#️⃣', '*': '*️⃣', 'tm': '™️',   '^': '⬆', '>': '▶', '<': '◀'
+        }, {
+            '!!': '‼️', '!?': '⁉️', 'ng': '🆖', 'ok': '🆗', 'up': '🆙', 'wc': '🚾', 'ab': '🆎', 'cl': '🆑', 'vs': '🆚',
+            'id': '🆔', '10': '🔟'
+        }, {
+            'sos': '🆘', '100': '💯', 'zzz': '💤', 'atm': '🏧', 'abc': '🔤', 'up!': '🆙', 'new': '🆕'
+        }, {
+            'abcd': '🔠🔡', 'cool': '🆒', 'free': '🆓', '1234': '🔢'
+        }
+    ]
     CUSTOM_EMOJI_REGEX = re.compile(r'<:\S+?:(\d+)>')
 
     def __init__(self, bot: commands.Bot):
@@ -83,34 +85,24 @@ class React(commands.Cog):
                     else:
                         diacritic_replacements[character] = self.DIACRITIC_CONVERSIONS[character][1]
                 emojis[i] = diacritic_replacements[character]
-            try:
-                triple = emojis[i] + emojis[i+1] + emojis[i+2]
-            except IndexError:
-                pass
-            else:
-                triple_emoji = self.TRIPLE_EMOJIS.get(triple)
-                if triple_emoji and triple_emoji not in used_emojis:
-                    emojis[i] = triple_emoji
-                    emojis[i+1] = None
-                    emojis[i+2] = None
-                    used_emojis.add(triple_emoji)
+            was_emoji_found = False
+            for extra_length, group_emojis in reversed(tuple(enumerate(self.EMOJIS, 1))):
+                group = emojis[i]
+                try:
+                    for extra_i in range(1, extra_length):
+                        group += emojis[i+extra_i]
+                except IndexError:
                     continue
-            try:
-                double = emojis[i] + emojis[i+1]
-            except IndexError:
-                pass
-            else:
-                double_emoji = self.DOUBLE_EMOJIS.get(double)
-                if double_emoji and double_emoji not in used_emojis:
-                    emojis[i] = double_emoji
-                    emojis[i+1] = None
-                    used_emojis.add(double_emoji)
-                    continue
-            for emoji in self.SINGLE_EMOJIS.get(emojis[i], ()):
-                if emoji not in used_emojis:
-                    emojis[i] = emoji
-                    used_emojis.add(emoji)
-                    break
+                else:
+                    for emoji in group_emojis.get(group, ''):
+                        if emoji and emoji not in used_emojis:
+                            emojis[i] = emoji
+                            for extra_i in range(1, extra_length):
+                                emojis[i+extra_i] = None
+                            used_emojis.add(emoji)
+                            was_emoji_found = True
+                            break
+                    if was_emoji_found: break
         unique_emojis = tuple(itertools.islice(filter(None, emojis), 20))
         return unique_emojis
 
