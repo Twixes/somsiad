@@ -459,7 +459,10 @@ class Prefix(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.group(aliases=['prefiks', 'przedrostek'], invoke_without_command=True)
+    @commands.group(
+        aliases=['prefixes', 'prefixy', 'prefiks', 'prefiksy', 'przedrostek', 'przedrostki'],
+        invoke_without_command=True
+    )
     @cooldown()
     async def prefix(self, ctx):
         """Command prefix commands."""
