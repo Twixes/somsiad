@@ -197,7 +197,7 @@ class Somsiad(commands.Bot):
         prefix_safe_command_names = ('prefiks', 'info', 'ping', 'pomocy')
         for command in itertools.cycle(prefix_safe_command_names):
             await self.change_presence(
-                activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
+                activity=discord.Game(name=f'Kiedyś to było / {configuration["command_prefix"]}{command}')
             )
             await asyncio.sleep(60)
 
@@ -448,7 +448,7 @@ class Prefix(commands.Cog):
     COMMANDS = (
         Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks bądź obowiązujące prefiksy.'),
         Help.Command(
-            ('ustaw'), (), 'Ustawia na serwerze podany prefiks bądź podane prefiksy oddzielone "|". '
+            ('ustaw'), (), 'Ustawia na serwerze podany prefiks bądź podane prefiksy oddzielone " lub ". '
             'Wymaga uprawnień administratora.'
         ),
         Help.Command(
@@ -480,7 +480,7 @@ class Prefix(commands.Cog):
                 notice = 'Obowiązuje domyślny prefiks'
                 prefixes = [configuration['command_prefix']]
             else:
-                prefixes = data_server.command_prefix.split('|')
+                prefixes = data_server.command_prefix.split(' lub ')
                 prefixes.sort(key=len, reverse=True)
                 applies_form = word_number_form(
                     len(prefixes), 'Obowiązuje', 'Obowiązują', 'Obowiązuje', include_number=False
@@ -512,7 +512,7 @@ class Prefix(commands.Cog):
     async def prefix_set(self, ctx, *, new_prefixes_raw: str):
         """Sets a new command prefix."""
         new_prefixes = tuple(sorted(
-            filter(None, (prefix.strip() for prefix in new_prefixes_raw.strip('|').split('|'))), key=len, reverse=True
+            filter(None, (prefix.strip() for prefix in new_prefixes_raw.split(' lub '))), key=len, reverse=True
         ))
         if not new_prefixes:
             raise commands.BadArgument('no valid prefixes')
@@ -558,10 +558,10 @@ class Prefix(commands.Cog):
         """Handles new command prefix setting errors."""
         notice = None
         if isinstance(error, commands.MissingRequiredArgument):
-            notice = 'Nie podano prefiksu bądź prefiksów oddzielonych "|"'
+            notice = 'Nie podano prefiksu bądź prefiksów oddzielonych " lub "'
         elif isinstance(error, commands.BadArgument):
             if str(error) == 'no valid prefixes':
-                notice = 'Nie podano prefiksu bądź prefiksów oddzielonych "|"'
+                notice = 'Nie podano prefiksu bądź prefiksów oddzielonych " lub "'
             elif str(error) == 'too long':
                 notice = 'Przekroczono maksymalną długość'
         if notice is not None:
