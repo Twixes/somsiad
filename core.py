@@ -93,6 +93,9 @@ class Somsiad(commands.Bot):
 
     async def on_ready(self):
         setlocale()
+        self.run_datetime = dt.datetime.now()
+        self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
+        print('Uaktualnianie tabeli serwerów...')
         data.Server.register_all(self.guilds)
         with data.session(commit=True) as session:
             joined_at_none_servers = session.query(data.Server).filter(data.Server.joined_at == None)
@@ -100,8 +103,6 @@ class Somsiad(commands.Bot):
                 discord_server = self.get_guild(server.id)
                 if discord_server is not None and discord_server.me is not None:
                     server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
-        self.run_datetime = dt.datetime.now()
-        self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
         self.loop.create_task(self.cycle_presence())
         self.print_info()
 
