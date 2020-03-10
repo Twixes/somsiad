@@ -197,7 +197,7 @@ class Somsiad(commands.Bot):
         prefix_safe_command_names = ('prefiks', 'info', 'ping', 'pomocy')
         for command in itertools.cycle(prefix_safe_command_names):
             await self.change_presence(
-                activity=discord.Game(name=f'Kiedyś to było / {configuration["command_prefix"]}{command}')
+                activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
             )
             await asyncio.sleep(60)
 
