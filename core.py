@@ -121,7 +121,7 @@ class Somsiad(commands.Bot):
             notice = 'Bot nie ma wymaganych do tego uprawnień'
         elif not isinstance(error, self.IGNORED_ERRORS):
             notice = 'Wystąpił nieznany błąd'
-            if configuration['sentry_dsn'] is not None:
+            if configuration['sentry_dsn']:
                 description = 'Okoliczności zajścia zostały zarejestrowane do analizy.'
             self.register_error('on_command', error, ctx)
         if notice is not None:
@@ -287,12 +287,10 @@ class Somsiad(commands.Bot):
                 data_server = session.query(data.Server).get(message.guild.id)
         else:
             data_server = None
-        does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
+        does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix
         is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_aliases)
         if does_server_have_custom_command_prefix:
-            custom_prefixes = data_server.command_prefix.split('|')
-            custom_prefixes.sort(key=len, reverse=True)
-            for prefix in custom_prefixes:
+            for prefix in data_server.command_prefix.split('|'):
                 prefixes.append(prefix + ' ')
                 prefixes.append(prefix)
         if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
@@ -300,6 +298,7 @@ class Somsiad(commands.Bot):
             prefixes.append(configuration['command_prefix'])
         if data_server is None:
             prefixes.append('')
+        prefixes.sort(key=len, reverse=True)
         return prefixes
 
 
@@ -475,7 +474,7 @@ class Prefix(commands.Cog):
         """Presents the current command prefix."""
         with data.session() as session:
             data_server = session.query(data.Server).get(ctx.guild.id) if ctx.guild is not None else None
-            is_prefix_custom = data_server is not None and data_server.command_prefix is not None
+            is_prefix_custom = data_server is not None and data_server.command_prefix
             if not is_prefix_custom:
                 notice = 'Obowiązuje domyślny prefiks'
                 prefixes = [configuration['command_prefix']]
@@ -609,7 +608,7 @@ somsiad = Somsiad()
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, somsiad.signal_handler)
-    if configuration['sentry_dsn'] is not None:
+    if configuration['sentry_dsn']:
         print('Inicjowanie połączenia z Sentry...')
         sentry_sdk.init(
             configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
