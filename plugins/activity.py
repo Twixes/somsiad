@@ -132,12 +132,12 @@ class Report:
         """Selects the right type of analysis depending on the subject."""
         await self._fill_in_details()
         with data.session() as session:
-            existent_channels = self.ctx.guild.text_channels
-            existent_channel_ids = [
-                channel.id for channel in existent_channels
+            existent_channels = [
+                channel for channel in self.ctx.guild.text_channels
                 if channel.permissions_for(self.ctx.me).read_messages and
                 (not isinstance(self.subject, discord.User) or channel.permissions_for(self.subject).read_messages)
             ]
+            existent_channel_ids = [channel.id for channel in existent_channels]
             # process subject type
             if self.type == self.Type.SERVER:
                 for channel in existent_channels:
