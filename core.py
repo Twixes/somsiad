@@ -69,6 +69,7 @@ class Somsiad(commands.Bot):
         commands.CommandOnCooldown,
         commands.NotOwner
     )
+    PREFIX_SAFE_COMMANDS = ('prefix', 'ping', 'info', 'help')
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
@@ -82,13 +83,7 @@ class Somsiad(commands.Bot):
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
             os.makedirs(self.cache_dir_path)
-        self.prefix_safe_commands = tuple((
-            variant
-            for command in
-            ('help', 'pomocy', 'pomoc', 'prefix', 'prefiks', 'przedrostek', 'info', 'informacje', 'ping')
-            for variant in
-            (f'{configuration["command_prefix"]} {command}', f'{configuration["command_prefix"]}{command}')
-        ))
+        self.prefix_safe_aliases = ()
         self.run_datetime = None
         self.session = None
         self.google_client = GoogleClient(
@@ -142,6 +137,12 @@ class Somsiad(commands.Bot):
         for path in os.scandir('plugins'):
             if path.is_file() and path.name.endswith('.py'):
                 self.load_extension(f'plugins.{path.name[:-3]}')
+        self.prefix_safe_aliases = tuple((
+            variant
+            for command in self.PREFIX_SAFE_COMMANDS
+            for alias in self.get_command(command).aliases
+            for variant in (configuration['command_prefix'] + ' ' + command, configuration['command_prefix'] + command)
+        ))
         data.create_all_tables()
         print('Łączenie z Discordem...')
         self.run(configuration['discord_token'], reconnect=True)
@@ -192,8 +193,8 @@ class Somsiad(commands.Bot):
 
     async def cycle_presence(self):
         """Cycle through prefix safe commands in the presence."""
-        prefix_safe_commands = ('pomocy', 'prefiks', 'info', 'ping')
-        for command in itertools.cycle(prefix_safe_commands):
+        prefix_safe_command_names = ('prefiks', 'info', 'ping', 'pomocy')
+        for command in itertools.cycle(prefix_safe_command_names):
             await self.change_presence(
                 activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
             )
@@ -287,7 +288,7 @@ class Somsiad(commands.Bot):
         else:
             data_server = None
         does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
-        is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_commands)
+        is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_aliases)
         if does_server_have_custom_command_prefix:
             custom_prefixes = data_server.command_prefix.split('|')
             custom_prefixes.sort(key=len, reverse=True)
