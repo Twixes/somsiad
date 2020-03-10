@@ -289,7 +289,9 @@ class Somsiad(commands.Bot):
         does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix is not None
         is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_commands)
         if does_server_have_custom_command_prefix:
-            for prefix in data_server.command_prefix.split('|'):
+            custom_prefixes = data_server.command_prefix.split('|')
+            custom_prefixes.sort(key=len, reverse=True)
+            for prefix in custom_prefixes:
                 prefixes.append(prefix + ' ')
                 prefixes.append(prefix)
         if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
@@ -475,7 +477,7 @@ class Prefix(commands.Cog):
                 prefixes = [configuration['command_prefix']]
             else:
                 prefixes = data_server.command_prefix.split('|')
-                prefixes.sort()
+                prefixes.sort(key=len, reverse=True)
                 applies_form = word_number_form(
                     len(prefixes), 'Obowiązuje', 'Obowiązują', 'Obowiązuje', include_number=False
                 )
@@ -505,7 +507,9 @@ class Prefix(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def prefix_set(self, ctx, *, new_prefixes_raw: str):
         """Sets a new command prefix."""
-        new_prefixes = tuple(filter(None, (prefix.strip() for prefix in new_prefixes_raw.strip('|').split('|'))))
+        new_prefixes = tuple(sorted(
+            filter(None, (prefix.strip() for prefix in new_prefixes_raw.strip('|').split('|'))), key=len, reverse=True
+        ))
         if not new_prefixes:
             raise commands.BadArgument('no valid prefixes')
         new_prefixes_processed = '|'.join(new_prefixes)
@@ -515,7 +519,7 @@ class Prefix(commands.Cog):
             data_server = session.query(data.Server).get(ctx.guild.id)
             if data_server.command_prefix:
                 previous_prefixes = data_server.command_prefix.split('|')
-                previous_prefixes.sort()
+                previous_prefixes.sort(key=len, reverse=True)
             else:
                 previous_prefixes = ()
             data_server.command_prefix = new_prefixes_processed
@@ -573,7 +577,7 @@ class Prefix(commands.Cog):
             data_server = session.query(data.Server).get(ctx.guild.id)
             if data_server.command_prefix:
                 previous_prefixes = data_server.command_prefix.split('|')
-                previous_prefixes.sort()
+                previous_prefixes.sort(key=len, reverse=True)
             else:
                 previous_prefixes = ()
             data_server.command_prefix = None
