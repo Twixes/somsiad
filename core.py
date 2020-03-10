@@ -492,7 +492,7 @@ class Prefix(commands.Cog):
                 notice = f'{applies_form} {prefix_form}'
             embed = self.bot.generate_embed('🔧', notice)
             if is_prefix_custom:
-                prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in prefixes))
+                prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in reversed(prefixes)))
             else:
                 prefixes_presentation = f'domyślna `{configuration["command_prefix"]}`'
             embed.add_field(
@@ -521,14 +521,10 @@ class Prefix(commands.Cog):
             raise commands.BadArgument('too long')
         with data.session(commit=True) as session:
             data_server = session.query(data.Server).get(ctx.guild.id)
-            if data_server.command_prefix:
-                previous_prefixes = data_server.command_prefix.split('|')
-                previous_prefixes.sort(key=len, reverse=True)
-            else:
-                previous_prefixes = ()
+            previous_prefixes = data_server.command_prefix.split('|') if data_server.command_prefix else ()
             data_server.command_prefix = new_prefixes_processed
         if previous_prefixes:
-            previous_prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in previous_prefixes))
+            previous_prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in reversed(previous_prefixes)))
         else:
             previous_prefixes_presentation = f'domyślna `{configuration["command_prefix"]}`'
         if set(previous_prefixes) == set(new_prefixes):
@@ -537,13 +533,13 @@ class Prefix(commands.Cog):
             )
             embed.add_field(
                 name='Wartości' if len(previous_prefixes) > 1 else 'Wartość',
-                value=' lub '.join((f'`{prefix}`' for prefix in previous_prefixes)), inline=False
+                value=' lub '.join((f'`{prefix}`' for prefix in reversed(previous_prefixes))), inline=False
             )
         else:
             embed = self.bot.generate_embed('✅', f'Ustawiono {"prefiks" if len(new_prefixes) == 1 else "prefiksy"}')
             embed.add_field(
                 name='Nowe wartości' if len(new_prefixes) > 1 else 'Nowa wartość',
-                value=' lub '.join((f'`{prefix}`' for prefix in new_prefixes)), inline=False
+                value=' lub '.join((f'`{prefix}`' for prefix in reversed(new_prefixes))), inline=False
             )
             embed.add_field(
                 name='Poprzednie wartości' if len(previous_prefixes) > 1 else 'Poprzednia wartość',
@@ -579,11 +575,7 @@ class Prefix(commands.Cog):
         """Reverts to the default command prefix."""
         with data.session(commit=True) as session:
             data_server = session.query(data.Server).get(ctx.guild.id)
-            if data_server.command_prefix:
-                previous_prefixes = data_server.command_prefix.split('|')
-                previous_prefixes.sort(key=len, reverse=True)
-            else:
-                previous_prefixes = ()
+            previous_prefixes = data_server.command_prefix.split('|') if data_server.command_prefix else ()
             data_server.command_prefix = None
         if not previous_prefixes:
             embed = self.bot.generate_embed('ℹ️', 'Już ustawiony jest prefiks domyślny')
@@ -593,7 +585,7 @@ class Prefix(commands.Cog):
             embed.add_field(name='Nowa wartość', value=f'domyślna `{configuration["command_prefix"]}`')
             embed.add_field(
                 name='Poprzednia wartość' if len(previous_prefixes) == 1 else 'Poprzednie wartości',
-                value=' lub '.join((f'`{prefix}`' for prefix in previous_prefixes)), inline=False
+                value=' lub '.join((f'`{prefix}`' for prefix in reversed(previous_prefixes))), inline=False
             )
         embed.add_field(
             name='Przykłady wywołań',
