@@ -14,6 +14,7 @@
 from typing import Union, Optional
 from collections import defaultdict, deque
 import enum
+import itertools
 import io
 import datetime as dt
 import calendar
@@ -45,6 +46,7 @@ class Report:
     BACKGROUND_COLOR = '#2f3136'
     FOREGROUND_COLOR = '#ffffff'
     ROLL = 7
+    STEP = 100_000
 
     queues = defaultdict(deque)
 
@@ -161,11 +163,18 @@ class Report:
                 relevant_message_metadata = relevant_message_metadata.filter(MessageMetadata.datetime >= since_datetime)
             await self._finalize_progress()
             # generate statistics from metadata cache
-            relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc()).all()
+            relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc())
+            for offset in itertools.count(step=self.STEP):
+                message_metadata_portion = relevant_message_metadata.offset(offset).limit(self.STEP).all()
+                if not message_metadata_portion:
+                    break
+                if self.earliest_relevant_message is None:
+                    self.earliest_relevant_message = message_metadata_portion[0]
+                self.latest_relevant_message = message_metadata_portion[-1]
+                for message_metadata in message_metadata_portion:
+                    self._update_running_stats(message_metadata)
             was_user_found = True
-            if relevant_message_metadata:
-                self.earliest_relevant_message = relevant_message_metadata[0]
-                self.latest_relevant_message = relevant_message_metadata[-1]
+            if self.total_message_count:
                 if since_datetime:
                     self.timeframe_start_date = since_datetime.date()
                 else:
@@ -175,8 +184,6 @@ class Report:
                         )
                     else:
                         self.timeframe_start_date = self.earliest_relevant_message.datetime.date()
-                for message_metadata in relevant_message_metadata:
-                    self._update_running_stats(message_metadata)
                 self.subject_relevancy_length = (self.init_datetime.date() - self.timeframe_start_date).days + 1
                 self.average_daily_message_count = round(self.total_message_count / self.subject_relevancy_length, 1)
             elif self.type == self.Type.DELETED_USER:
@@ -276,6 +283,7 @@ class Report:
 
     async def _update_metadata_cache(self, channel: discord.TextChannel, session: data.RawSession):
         try:
+            self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()
             relevant_message_metadata = session.query(MessageMetadata).filter(
                 MessageMetadata.channel_id == channel.id
             ).order_by(MessageMetadata.id.desc())
@@ -310,7 +318,11 @@ class Report:
                     self.messages_cached += 1
                     if self.messages_cached % 10_000 == 0:
                         await self._send_or_update_progress()
-            self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()
+                    if len(metadata_cache_update) % self.STEP == 0:
+                        metadata_cache_update.reverse()
+                        session.bulk_save_objects(metadata_cache_update)
+                        session.commit()
+                        metadata_cache_update = []
             metadata_cache_update.reverse()
             session.bulk_save_objects(metadata_cache_update)
             session.commit()
