@@ -134,14 +134,16 @@ class Report:
         with data.session() as session:
             existent_channels = self.ctx.guild.text_channels
             existent_channel_ids = [
-                channel.id for channel in existent_channels if channel.permissions_for(self.ctx.me).read_messages
+                channel.id for channel in existent_channels
+                if channel.permissions_for(self.ctx.me).read_messages and
+                (not isinstance(self.subject, discord.User) or channel.permissions_for(self.subject).read_messages)
             ]
             # process subject type
             if self.type == self.Type.SERVER:
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.channel_id.in_(existent_channel_ids)
+                    MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
             elif self.type == self.Type.CHANNEL:
                 await self._update_metadata_cache(self.subject, session)
@@ -152,8 +154,7 @@ class Report:
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.server_id == self.ctx.guild.id, MessageMetadata.user_id == self.subject_id,
-                    MessageMetadata.channel_id.in_(existent_channel_ids)
+                    MessageMetadata.user_id == self.subject_id, MessageMetadata.channel_id.in_(existent_channel_ids)
                 )
             since_datetime = None
             if self.last_days:
