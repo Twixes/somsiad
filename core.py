@@ -141,7 +141,7 @@ class Somsiad(commands.Bot):
             variant
             for command in self.PREFIX_SAFE_COMMANDS
             for alias in self.get_command(command).aliases
-            for variant in (configuration['command_prefix'] + ' ' + command, configuration['command_prefix'] + command)
+            for variant in (configuration['command_prefix'] + ' ' + command, configuration['command_prefix'] + alias)
         ))
         data.create_all_tables()
         print('Łączenie z Discordem...')
