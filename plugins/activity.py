@@ -693,8 +693,8 @@ class Report:
             in zip(self.relevant_channel_stats.values(), channel_existence_lengths)
         ]
         ax.bar(
-            channel_names[:40],
-            average_daily_message_counts[:40],
+            channel_names,
+            average_daily_message_counts,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1
