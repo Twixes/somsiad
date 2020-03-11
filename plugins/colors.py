@@ -25,7 +25,7 @@ class Colors(commands.Cog):
     GROUP = Help.Command(
         ('kolory', 'kolor', 'kolorki', 'kolorek'), (),
         'Komendy związane z kolorami nicków samodzielnie wybieranymi przez użytkowników. '
-        'Odbywa się to z użyciem ról o nazwie zaczynającej się prefiksem "🎨 ".'
+        'Odbywa się to z użyciem ról o nazwach zaczynających się emoji "🎨".'
     )
     COMMANDS = (
         Help.Command(('role', 'lista'), (), 'Zwraca listę dostępnych kolorów–ról.'),
@@ -55,7 +55,7 @@ class Colors(commands.Cog):
     @cooldown()
     @commands.guild_only()
     async def roles(self, ctx):
-        relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
+        relevant_roles = list(filter(lambda role: role.name.startswith('🎨'), ctx.guild.roles))
         roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
         sorted_roles = sorted(relevant_roles, key=lambda role: colorsys.rgb_to_hsv(*role.color.to_rgb()))
         if relevant_roles:
@@ -84,16 +84,16 @@ class Colors(commands.Cog):
         is_random = False
         if isinstance(role_candidate, str):
             is_random = all((character == '?' for character in role_candidate))
-            relevant_roles = list(filter(lambda role: role.name.startswith('🎨 '), ctx.guild.roles))
+            relevant_roles = list(filter(lambda role: role.name.startswith('🎨'), ctx.guild.roles))
             if is_random and relevant_roles:
                 role = random.choice(relevant_roles)
             else:
                 role_name = role_candidate.lstrip('🎨').lstrip().lower()
                 for this_role in ctx.guild.roles:
-                    if this_role.name.startswith('🎨 ') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
+                    if this_role.name.startswith('🎨') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
                         role = this_role
                         break
-        elif isinstance(role_candidate, discord.Role) and role_candidate.name.startswith('🎨 '):
+        elif isinstance(role_candidate, discord.Role) and role_candidate.name.startswith('🎨'):
             role = role_candidate
         if role is None:
             emoji, notice = '❔', 'Nie znaleziono pasującego koloru–roli'
@@ -103,7 +103,7 @@ class Colors(commands.Cog):
             already_present = False
             roles_for_removal = []
             for this_role in ctx.author.roles:
-                if this_role.name.startswith('🎨 '):
+                if this_role.name.startswith('🎨'):
                     if this_role == role:
                         already_present = True
                     else:
@@ -139,11 +139,11 @@ class Colors(commands.Cog):
         about_member = None
         if isinstance(subject_candidate, discord.Member):
             for this_role in subject_candidate.roles:
-                if this_role.name.startswith('🎨 '):
+                if this_role.name.startswith('🎨'):
                     role = this_role
                     break
             about_member = subject_candidate
-        elif isinstance(subject_candidate, discord.Role) and subject_candidate.name.startswith('🎨 '):
+        elif isinstance(subject_candidate, discord.Role) and subject_candidate.name.startswith('🎨'):
             role = subject_candidate
         elif isinstance(subject_candidate, str):
             hex_candidate = subject_candidate.lstrip('#')
@@ -162,7 +162,7 @@ class Colors(commands.Cog):
             else:
                 role_name = subject_candidate.lstrip('🎨').lstrip().lower()
                 for this_role in ctx.guild.roles:
-                    if this_role.name.startswith('🎨 ') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
+                    if this_role.name.startswith('🎨') and this_role.name.lstrip('🎨').lstrip().lower() == role_name:
                         role = this_role
                         break
         if role is not None:
@@ -193,7 +193,7 @@ class Colors(commands.Cog):
     @cooldown()
     @commands.guild_only()
     async def clear(self, ctx):
-        roles_for_removal = [role for role in ctx.author.roles if role.name.startswith('🎨 ')]
+        roles_for_removal = [role for role in ctx.author.roles if role.name.startswith('🎨')]
         color = self.GRAY
         if roles_for_removal:
             try:
