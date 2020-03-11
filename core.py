@@ -236,7 +236,7 @@ class Somsiad(commands.Bot):
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
             try:
                 await ctx.message.add_reaction('📫')
-            except discord.Forbidden:
+            except (discord.Forbidden, discord.NotFound):
                 pass
         messages = []
         try:
@@ -249,7 +249,7 @@ class Somsiad(commands.Bot):
             if not direct and ctx.guild is not None and 'bot' not in ctx.guild.name.lower():
                 try:
                     await ctx.message.add_reaction('⚠️')
-                except discord.Forbidden:
+                except (discord.Forbidden, discord.NotFound):
                     pass
                 error_embed = self.generate_embed(
                     '⚠️', f'Nie mogę wysłać odpowiedzi na komendę {ctx.invoked_with}',
