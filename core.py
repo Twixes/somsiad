@@ -293,7 +293,10 @@ class Somsiad(commands.Bot):
             prefixes.append(configuration['command_prefix'] + ' ')
             prefixes.append(configuration['command_prefix'])
             prefixes.append('')
-        if message.content.startswith(self.prefix_safe_aliases) and configuration['command_prefix'] not in prefixes:
+        if (
+                message.content.lower().startswith(self.prefix_safe_aliases) and
+                configuration['command_prefix'] not in prefixes
+        ):
             prefixes.append(configuration['command_prefix'] + ' ')
             prefixes.append(configuration['command_prefix'])
         prefixes.sort(key=len, reverse=True)
