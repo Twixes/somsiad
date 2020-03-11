@@ -20,34 +20,38 @@ class BotOwnerTools(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(aliases=['wejdź'])
-    @cooldown()
+    @commands.command(aliases=['wejdź', 'wejdz'])
     @commands.is_owner()
     async def enter(self, ctx, *, server_name_or_id):
         """Generates an invite to the provided server."""
+        server = None
         invite = None
-        for server in ctx.bot.guilds:
-            if server_name_or_id in (server.name, str(server.id)):
-                for channel in server.channels:
-                    if (
-                            not isinstance(channel, discord.CategoryChannel)
-                            and server.me.permissions_in(channel).create_instant_invite
-                    ):
-                        invite = await channel.create_invite(max_uses=1)
-                        break
+        for this_server in ctx.bot.guilds:
+            if server_name_or_id in (this_server.name, str(this_server.id)):
+                server = this_server
                 break
-
+        if server is not None:
+            for channel in server.channels:
+                if (
+                        not isinstance(channel, discord.CategoryChannel)
+                        and server.me.permissions_in(channel).create_instant_invite
+                ):
+                    try: invite = await channel.create_invite(max_uses=1)
+                    except: continue
+                    else: break
+        else:
+            await self.bot.send(ctx, '⚠️ Nie znaleziono podanego serwera')
         if invite is not None:
             await self.bot.send(ctx, invite.url)
+        else:
+            await self.bot.send(ctx, '⚠️ Nie udało się utworzyć zaproszenia')
 
     @commands.group(aliases=['ogłoś', 'oglos'], case_insensitive=True)
-    @cooldown()
     @commands.is_owner()
     async def announce(self, _):
         pass
 
     @announce.command(aliases=['globalnie'])
-    @cooldown()
     @commands.is_owner()
     async def announce_globally(self, ctx, *, raw_announcement):
         """Makes an announcement on all servers smaller than 10000 members not containing "bot" in their name."""
@@ -72,8 +76,6 @@ class BotOwnerTools(commands.Cog):
                             break
 
     @announce.command(aliases=['lokalnie'])
-    @cooldown()
-    @commands.is_owner()
     @commands.guild_only()
     async def announce_locally(self, ctx, *, raw_announcement):
         """Makes an announcement only on the server where the command was invoked."""
@@ -94,7 +96,6 @@ class BotOwnerTools(commands.Cog):
                 break
 
     @commands.command(aliases=['wyłącz', 'wylacz', 'stop'])
-    @cooldown()
     @commands.is_owner()
     async def shutdown(self, ctx):
         """Shuts down the bot."""
@@ -103,7 +104,6 @@ class BotOwnerTools(commands.Cog):
         await ctx.bot.close()
 
     @commands.command(aliases=['błąd', 'blad', 'błont', 'blont'])
-    @cooldown()
     @commands.is_owner()
     async def error(self, ctx):
         """Causes an error."""
