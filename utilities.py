@@ -293,19 +293,31 @@ def interpret_str_as_datetime(
         timedelta_elements = ['days', 'hours', 'minutes', 'seconds']
         timedelta_arguments = {element: 0 for element in timedelta_elements}
         try: # string as numbers of minute strategy
-            timedelta_arguments['minutes'] = int(string)
+            timedelta_arguments['minutes'] = float(string)
         except ValueError: # string as custom format strategy
             current_argument_index = 0
             current_stack = ''
+            value = None
             for character in string:
-                if character.isnumeric():
-                    current_stack += character
+                try:
+                    value = float(current_stack + character)
+                except ValueError:
+                    try:
+                        value = locale.atof(current_stack + character)
+                    except ValueError:
+                        if value is not None:
+                            while character.lower() != timedelta_elements[current_argument_index][0]:
+                                current_argument_index += 1
+                            timedelta_arguments[timedelta_elements[current_argument_index]] = value
+                            current_argument_index += 1
+                            current_stack = ''
+                            value = None
+                        else:
+                            raise ValueError
+                    else:
+                        current_stack += character
                 else:
-                    while character.lower() != timedelta_elements[current_argument_index][0]:
-                        current_argument_index += 1
-                    timedelta_arguments[timedelta_elements[current_argument_index]] = int(current_stack)
-                    current_argument_index += 1
-                    current_stack = ''
+                    current_stack += character
     except (ValueError, KeyError): # string as datetime strategy
         string = string.replace('-', '.').replace('/', '.').replace(':', '.')
         for datetime_format in DATETIME_FORMATS:
