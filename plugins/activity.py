@@ -135,7 +135,7 @@ class Report:
             existent_channels = [
                 channel for channel in self.ctx.guild.text_channels
                 if channel.permissions_for(self.ctx.me).read_messages and
-                (not isinstance(self.subject, discord.User) or channel.permissions_for(self.subject).read_messages)
+                (not isinstance(self.subject, discord.Member) or channel.permissions_for(self.subject).read_messages)
             ]
             existent_channel_ids = [channel.id for channel in existent_channels]
             # process subject type
