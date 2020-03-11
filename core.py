@@ -84,6 +84,7 @@ class Somsiad(commands.Bot):
         if not os.path.exists(self.cache_dir_path):
             os.makedirs(self.cache_dir_path)
         self.prefix_safe_aliases = ()
+        self.prefixes = {}
         self.run_datetime = None
         self.session = None
         self.google_client = GoogleClient(
@@ -95,14 +96,15 @@ class Somsiad(commands.Bot):
         setlocale()
         self.run_datetime = dt.datetime.now()
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
-        print('Uaktualnianie tabeli serwerów...')
+        print('Przygotowywanie danych serwerów...')
         data.Server.register_all(self.guilds)
         with data.session(commit=True) as session:
-            joined_at_none_servers = session.query(data.Server).filter(data.Server.joined_at == None)
-            for server in joined_at_none_servers:
-                discord_server = self.get_guild(server.id)
-                if discord_server is not None and discord_server.me is not None:
-                    server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
+            for server in session.query(data.Server):
+                self.prefixes[server.id] = tuple(server.command_prefix.split('|')) if server.command_prefix else ()
+                if server.joined_at is None:
+                    discord_server = self.get_guild(server.id)
+                    if discord_server is not None and discord_server.me is not None:
+                        server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
         self.loop.create_task(self.cycle_presence())
         self.print_info()
 
@@ -141,7 +143,7 @@ class Somsiad(commands.Bot):
         self.prefix_safe_aliases = tuple((
             variant
             for command in self.PREFIX_SAFE_COMMANDS
-            for alias in self.get_command(command).aliases
+            for alias in [self.get_command(command).name] + self.get_command(command).aliases
             for variant in (configuration['command_prefix'] + ' ' + command, configuration['command_prefix'] + alias)
         ))
         data.create_all_tables()
@@ -284,21 +286,16 @@ class Somsiad(commands.Bot):
     def _get_prefix(self, bot: commands.Bot, message: discord.Message) -> List[str]:
         prefixes = [f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ', f'{bot.user} ']
         if message.guild is not None:
-            with data.session() as session:
-                data_server = session.query(data.Server).get(message.guild.id)
+            for extra_prefix in self.prefixes.get(message.guild.id) or (configuration['command_prefix'],):
+                prefixes.append(extra_prefix + ' ')
+                prefixes.append(extra_prefix)
         else:
-            data_server = None
-        does_server_have_custom_command_prefix = data_server is not None and data_server.command_prefix
-        is_message_a_prefix_safe_command = message.content.startswith(self.prefix_safe_aliases)
-        if does_server_have_custom_command_prefix:
-            for prefix in data_server.command_prefix.split('|'):
-                prefixes.append(prefix + ' ')
-                prefixes.append(prefix)
-        if not does_server_have_custom_command_prefix or is_message_a_prefix_safe_command:
             prefixes.append(configuration['command_prefix'] + ' ')
             prefixes.append(configuration['command_prefix'])
-        if data_server is None:
             prefixes.append('')
+        if message.content.startswith(self.prefix_safe_aliases) and configuration['command_prefix'] not in prefixes:
+            prefixes.append(configuration['command_prefix'] + ' ')
+            prefixes.append(configuration['command_prefix'])
         prefixes.sort(key=len, reverse=True)
         return prefixes
 
@@ -471,45 +468,40 @@ class Prefix(commands.Cog):
 
     @prefix.command(aliases=['sprawdź', 'sprawdz'])
     @cooldown()
-    async def prefix_check(self, ctx):
+    async def check(self, ctx):
         """Presents the current command prefix."""
-        with data.session() as session:
-            data_server = session.query(data.Server).get(ctx.guild.id) if ctx.guild is not None else None
-            is_prefix_custom = data_server is not None and data_server.command_prefix
-            if not is_prefix_custom:
-                notice = 'Obowiązuje domyślny prefiks'
-                prefixes = [configuration['command_prefix']]
-            else:
-                prefixes = data_server.command_prefix.split(' lub ')
-                prefixes.sort(key=len, reverse=True)
-                applies_form = word_number_form(
-                    len(prefixes), 'Obowiązuje', 'Obowiązują', 'Obowiązuje', include_number=False
-                )
-                prefix_form = word_number_form(
-                    len(prefixes), 'własny prefiks serwerowy', 'własne prefiksy serwerowe',
-                    'własnych prefiksów serwerowych'
-                )
-                notice = f'{applies_form} {prefix_form}'
-            embed = self.bot.generate_embed('🔧', notice)
-            if is_prefix_custom:
-                prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in reversed(prefixes)))
-            else:
-                prefixes_presentation = f'domyślna `{configuration["command_prefix"]}`'
-            embed.add_field(
-                name='Wartość' if len(prefixes) == 1 else 'Wartości', value=prefixes_presentation, inline=False
+        if not self.bot.prefixes.get(ctx.guild.id):
+            extra_prefixes = (configuration['command_prefix'],)
+            extra_prefixes_presentation = f'domyślna `{configuration["command_prefix"]}`'
+            notice = 'Obowiązuje domyślny prefiks'
+        else:
+            extra_prefixes = self.bot.prefixes[ctx.guild.id]
+            applies_form = word_number_form(
+                len(extra_prefixes), 'Obowiązuje', 'Obowiązują', 'Obowiązuje', include_number=False
             )
-            embed.add_field(
-                name='Przykłady wywołań',
-                value=f'`{random.choice(prefixes)}wersja` lub `{random.choice(prefixes)} oof` lub `{ctx.me} urodziny`',
-                inline=False
+            prefix_form = word_number_form(
+                len(extra_prefixes), 'własny prefiks serwerowy', 'własne prefiksy serwerowe',
+                'własnych prefiksów serwerowych'
             )
+            notice = f'{applies_form} {prefix_form}'
+            extra_prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in reversed(extra_prefixes)))
+        embed = self.bot.generate_embed('🔧', notice)
+        embed.add_field(
+            name='Wartość' if len(extra_prefixes) == 1 else 'Wartości', value=extra_prefixes_presentation, inline=False
+        )
+        embed.add_field(
+            name='Przykłady wywołań',
+            value=f'`{random.choice(extra_prefixes)}wersja` lub `{random.choice(extra_prefixes)} oof` '
+            f'lub `{ctx.me} urodziny`',
+            inline=False
+        )
         await self.bot.send(ctx, embed=embed)
 
     @prefix.command(aliases=['ustaw'])
     @cooldown()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
-    async def prefix_set(self, ctx, *, new_prefixes_raw: str):
+    async def set(self, ctx, *, new_prefixes_raw: str):
         """Sets a new command prefix."""
         new_prefixes = tuple(sorted(
             filter(None, (prefix.strip() for prefix in new_prefixes_raw.split(' lub '))), key=len, reverse=True
@@ -519,6 +511,7 @@ class Prefix(commands.Cog):
         new_prefixes_processed = '|'.join(new_prefixes)
         if len(new_prefixes_processed) > data.Server.COMMAND_PREFIX_MAX_LENGTH:
             raise commands.BadArgument('too long')
+        self.bot.prefixes[ctx.guild.id] = new_prefixes
         with data.session(commit=True) as session:
             data_server = session.query(data.Server).get(ctx.guild.id)
             previous_prefixes = data_server.command_prefix.split('|') if data_server.command_prefix else ()
@@ -553,8 +546,8 @@ class Prefix(commands.Cog):
         )
         await self.bot.send(ctx, embed=embed)
 
-    @prefix_set.error
-    async def prefix_set_error(self, ctx, error):
+    @set.error
+    async def set_error(self, ctx, error):
         """Handles new command prefix setting errors."""
         notice = None
         if isinstance(error, commands.MissingRequiredArgument):
@@ -571,8 +564,9 @@ class Prefix(commands.Cog):
     @cooldown()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
-    async def prefix_restore(self, ctx):
+    async def restore(self, ctx):
         """Reverts to the default command prefix."""
+        self.bot.prefixes[ctx.guild.id] = ()
         with data.session(commit=True) as session:
             data_server = session.query(data.Server).get(ctx.guild.id)
             previous_prefixes = data_server.command_prefix.split('|') if data_server.command_prefix else ()
