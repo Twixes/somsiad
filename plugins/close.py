@@ -25,7 +25,7 @@ class Closing:
     STEPS = (0, 1, 2, 3, 4, 5, 10, 15, 30, 60, 120, 180, 300, 600, 900, 1800, 3600, 7200, 10800, 21600, 43200, 86400)
 
     def __init__(self, ctx: commands.Context, countdown_time: Union[Number, dt.datetime]):
-        self.init_datetime = dt.datetime.now().astimezone()
+        self.init_datetime = dt.datetime.now()
         self.countdown_active = True
         self.ctx = ctx
 
@@ -67,7 +67,7 @@ class Closing:
             await self.ctx.channel.delete(reason=str(self.ctx.author))
         else:
             self.countdown_active = False
-            closing_defusal_timedelta = self.closing_datetime - dt.datetime.now().astimezone()
+            closing_defusal_timedelta = self.closing_datetime - dt.datetime.now()
             embed = self.ctx.bot.generate_embed(
                 '✋', 'Odliczanie zostało zatrzymane '
                 f'{human_amount_of_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
