@@ -295,7 +295,7 @@ def interpret_str_as_datetime(
 ) -> dt.datetime:
     """Interpret the provided string as a datetime."""
     now = now_override or dt.datetime.now()
-    string = string.replace('-', '.').replace('/', '.').replace(':', '.').replace(',', '.').strip('T')
+    string = string.replace(',', '.')
     timedelta_arguments = {}
     # string as numbers of minute strategy
     try:
@@ -319,6 +319,7 @@ def interpret_str_as_datetime(
             raise ValueError
     else:
         # string as datetime strategy
+        string = string.replace('-', '.').replace('/', '.').replace(':', '.').strip('T')
         for datetime_format in DATETIME_FORMATS:
             try:
                 datetime = dt.datetime.strptime(string, datetime_format.format)
