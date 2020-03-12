@@ -31,6 +31,12 @@ class DatetimeFormat:
     imply_day: bool = False
 
 
+DHMS_REGEX = re.compile(
+    r'^(?!$)(?:(?P<days>(?:\d+(?:[.,]\d*)?)|(?:[.,]\d*))d)?'
+    r'(?:(?P<hours>(?:\d+(?:[.,]\d*)?)|(?:[.,]\d*))[hg])?'
+    r'(?:(?P<minutes>(?:\d+(?:[.,]\d*)?)|(?:[.,]\d*))m(?:in)?)?'
+    r'(?:(?P<seconds>(?:\d+(?:[.,]\d*)?)|(?:[.,]\d*))s(?:ec)?)?$'
+)
 DATETIME_FORMATS = (
     DatetimeFormat('%d.%m.%YT%H.%M'),
     DatetimeFormat('%d.%m.%yT%H.%M'),
@@ -285,41 +291,34 @@ def days_as_weeks(number_of_days: int, none_if_no_weeks: bool = True) -> Optiona
 
 
 def interpret_str_as_datetime(
-        string: str, roll_over: bool = True, now_override: dt.datetime = None, years_in_future_limit: Optional[int] = 1
+        string: str, roll_over: bool = True, now_override: dt.datetime = None, years_in_future_limit: Optional[int] = 5
 ) -> dt.datetime:
     """Interpret the provided string as a datetime."""
     now = now_override or dt.datetime.now()
+    string = string.replace('-', '.').replace('/', '.').replace(':', '.').replace(',', '.').strip('T')
+    timedelta_arguments = {}
+    # string as numbers of minute strategy
     try:
-        timedelta_elements = ['days', 'hours', 'minutes', 'seconds']
-        timedelta_arguments = {element: 0 for element in timedelta_elements}
-        try: # string as numbers of minute strategy
-            timedelta_arguments['minutes'] = float(string)
-        except ValueError: # string as custom format strategy
-            current_argument_index = 0
-            current_stack = ''
-            value = None
-            for character in string:
-                try:
-                    value = float(current_stack + character)
-                except ValueError:
-                    try:
-                        value = locale.atof(current_stack + character)
-                    except ValueError:
-                        if value is not None:
-                            while character.lower() != timedelta_elements[current_argument_index][0]:
-                                current_argument_index += 1
-                            timedelta_arguments[timedelta_elements[current_argument_index]] = value
-                            current_argument_index += 1
-                            current_stack = ''
-                            value = None
-                        else:
-                            raise ValueError
-                    else:
-                        current_stack += character
-                else:
-                    current_stack += character
-    except (ValueError, KeyError): # string as datetime strategy
-        string = string.replace('-', '.').replace('/', '.').replace(':', '.')
+        timedelta_arguments['minutes'] = float(string)
+    except ValueError:
+        pass
+    # string as custom 'dhms' format strategy
+    match = DHMS_REGEX.match(string)
+    if match is not None:
+        for group, value in match.groupdict().items():
+            if value is None:
+                continue
+            try:
+                timedelta_arguments[group] = float(value)
+            except ValueError:
+                timedelta_arguments.clear()
+                break
+    if any(timedelta_arguments.values()):
+        datetime = now + dt.timedelta(**timedelta_arguments)
+        if years_in_future_limit is not None and datetime > now.replace(year=now.year+years_in_future_limit):
+            raise ValueError
+    else:
+        # string as datetime strategy
         for datetime_format in DATETIME_FORMATS:
             try:
                 datetime = dt.datetime.strptime(string, datetime_format.format)
@@ -345,10 +344,6 @@ def interpret_str_as_datetime(
                         datetime = datetime.replace(year=now.year+1)
                 break
         else:
-            raise ValueError
-    else:
-        datetime = now + dt.timedelta(**timedelta_arguments)
-        if years_in_future_limit is not None and datetime > now.replace(year=now.year+1):
             raise ValueError
     return datetime
 
