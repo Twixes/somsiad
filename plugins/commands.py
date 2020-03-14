@@ -32,6 +32,7 @@ class Commands(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command(self, ctx: commands.Context):
+        self.bot.commands_being_processed[ctx.command.qualified_name] += 1
         with data.session(commit=True) as session:
             invocation = Invocation(
                 message_id=ctx.message.id, server_id=ctx.guild.id if ctx.guild is not None else None,
@@ -44,6 +45,7 @@ class Commands(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
+        self.bot.commands_being_processed[ctx.command.qualified_name] -= 1
         with data.session(commit=True) as session:
             invocation = session.query(Invocation).get(ctx.message.id)
             invocation.completed_at = dt.datetime.now()

@@ -95,6 +95,18 @@ class BotOwnerTools(commands.Cog):
                 await channel.send(embed=embed)
                 break
 
+    @commands.command(aliases=['diag', 'diagnostyka'])
+    @commands.is_owner()
+    async def diagnostics(self, ctx):
+        """Causes an error."""
+        if not self.bot.diagnostics_on:
+            self.bot.diagnostics_on = True
+            embed = self.bot.generate_embed('🚦', 'Diagnostyka włączona')
+        else:
+            self.bot.diagnostics_on = False
+            embed = self.bot.generate_embed('🚥', 'Diagnostyka wyłączona')
+        await self.bot.send(ctx, embed=embed)
+
     @commands.command(aliases=['wyłącz', 'wylacz', 'stop'])
     @commands.is_owner()
     async def shutdown(self, ctx):

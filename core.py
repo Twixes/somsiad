@@ -15,6 +15,7 @@
 
 
 from typing import Optional, Union, Sequence, Tuple, List
+from collections import defaultdict
 import os
 import sys
 import signal
@@ -85,6 +86,8 @@ class Somsiad(commands.Bot):
             os.makedirs(self.cache_dir_path)
         self.prefix_safe_aliases = ()
         self.prefixes = {}
+        self.diagnostics_on = False
+        self.commands_being_processed = defaultdict(int)
         self.run_datetime = None
         self.session = None
         self.google_client = GoogleClient(
@@ -233,6 +236,17 @@ class Somsiad(commands.Bot):
         destination = ctx.author if direct else ctx.channel
         content_elements = tuple(filter(None, (text, ctx.author.mention if not direct or not mention else None)))
         content = ' '.join(content_elements) if content_elements else None
+        if self.diagnostics_on and ctx.author.id == self.owner_id:
+            processing_timedelta = dt.datetime.utcnow() - ctx.message.created_at
+            now_also = ', '.join(
+                (f'{command} ({number})' for command, number in self.commands_being_processed.items() if number > 0)
+            )
+            diagnostics = (
+                f'{round(self.latency, 2):n} s opóźnienia (przy uruchomieniu) | '
+                f'{round(processing_timedelta.total_seconds(), 2):n} s wykonania | '
+                f'w tym momencie: {now_also or "brak komend"}'
+            )
+            content += f'\n{diagnostics}'
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
             try:
                 await ctx.message.add_reaction('📫')
@@ -240,9 +254,9 @@ class Somsiad(commands.Bot):
                 pass
         messages = []
         try:
-            messages.append(await destination.send(
+            messages = [await destination.send(
                 content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
-            ))
+            )]
             for extra_embed in embeds[1:]:
                 messages.append(await destination.send(embed=extra_embed, delete_after=delete_after))
         except discord.Forbidden:
