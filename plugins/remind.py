@@ -76,7 +76,7 @@ class Remind(commands.Cog):
         if len(content) > Reminder.MAX_CONTENT_LENGTH:
             raise commands.BadArgument
         description = (
-            f'Przypomnę ci tutaj "{content}" {human_datetime(execute_at)}.\n*Przypomnienie zostanie anulowane '
+            f'**Przypomnę ci tutaj "{content}" {human_datetime(execute_at)}.\n**Przypomnienie zostanie anulowane '
             'jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
         )
         embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description)

@@ -111,8 +111,8 @@ class Vote(commands.Cog):
         description = 'Zagłosuj w tej sprawie przy użyciu reakcji.'
         if conclude_at is not None:
             description += (
-                f'\nWyniki zostaną ogłoszone {human_datetime(conclude_at)}.\n*Ogłoszenie wyników zostanie anulowane '
-                'jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
+                f'\n**Wyniki zostaną ogłoszone {human_datetime(conclude_at)}.**\n*Ogłoszenie wyników zostanie '
+                'anulowane jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
             )
         embed = self.bot.generate_embed('🗳', matter, description)
         urn_message = await self.bot.send(ctx, embed=embed)
