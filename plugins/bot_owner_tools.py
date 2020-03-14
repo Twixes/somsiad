@@ -107,7 +107,7 @@ class BotOwnerTools(commands.Cog):
             embed = self.bot.generate_embed('🚥', 'Diagnostyka wyłączona')
         await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['wyłącz', 'wylacz', 'stop'])
+    @commands.command(aliases=['wyłącz', 'wylacz'])
     @commands.is_owner()
     async def shutdown(self, ctx):
         """Shuts down the bot."""
