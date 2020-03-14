@@ -78,48 +78,53 @@ class Disco(commands.Cog):
             video_url = query
         if video_url is not None:
             video_id = pytube.extract.video_id(video_url)
-            video = await self.bot.loop.run_in_executor(None, pytube.YouTube, video_url)
-            embed = self.generate_embed(channel, video, 'Pobieranie', '⏳')
-            message = await self.bot.send(ctx, embed=embed)
-            streams = video.streams.filter(only_audio=True).order_by('abr').desc()
-            stream = streams[0]
-            i = 0
-            while stream.filesize > configuration['disco_max_file_size_in_mib'] * 1_048_576:
-                i += 1
-                try:
-                    stream = streams[i]
-                except IndexError:
-                    embed = self.generate_embed(channel, video, 'Plik zbyt duży', '⚠️')
-                    break
+            try:
+                video = await self.bot.loop.run_in_executor(None, pytube.YouTube, video_url)
+            except:
+                embed = self.bot.generate_embed('⚠️', 'Nie można zagrać tego utworu')
+                await self.bot.send(ctx, embed=embed)
             else:
-                path = os.path.join(self.cache_dir_path, f'{video_id} - {stream.default_filename}')
-                if not os.path.isfile(path):
-                    functools.partial(stream.download, data={'output_path': self.cache_dir_path, 'filename_prefix': video_id})
-                    await self.bot.loop.run_in_executor(None, functools.partial(
-                        stream.download, output_path=self.cache_dir_path, filename_prefix=f'{video_id} - '
-                    ))
-                if channel.guild.voice_client is not None:
-                    channel.guild.voice_client.stop()
-                song_audio = discord.PCMVolumeTransformer(
-                    discord.FFmpegPCMAudio(path), self.servers[channel.guild.id]['volume']
-                )
-                self.servers[channel.guild.id]['song_audio'] = song_audio
-                self.servers[channel.guild.id]['song_url'] = video_url
-                async def try_edit(embed: discord.Embed):
+                embed = self.generate_embed(channel, video, 'Pobieranie', '⏳')
+                message = await self.bot.send(ctx, embed=embed)
+                streams = video.streams.filter(only_audio=True).order_by('abr').desc()
+                stream = streams[0]
+                i = 0
+                while stream.filesize > configuration['disco_max_file_size_in_mib'] * 1_048_576:
+                    i += 1
                     try:
-                        await message.edit(embed=embed)
-                    except discord.NotFound:
-                        pass
-                def after(error):
-                    song_audio.cleanup()
-                    embed = self.generate_embed(channel, video, 'Zakończono', '⏹')
-                    try:
-                        self.bot.loop.create_task(try_edit(embed))
-                    except discord.NotFound:
-                        pass
-                embed = self.generate_embed(channel, video, 'Odtwarzanie', '▶️')
-                channel.guild.voice_client.play(self.servers[channel.guild.id]['song_audio'], after=after)
-            await message.edit(embed=embed)
+                        stream = streams[i]
+                    except IndexError:
+                        embed = self.generate_embed(channel, video, 'Plik zbyt duży', '⚠️')
+                        break
+                else:
+                    path = os.path.join(self.cache_dir_path, f'{video_id} - {stream.default_filename}')
+                    if not os.path.isfile(path):
+                        functools.partial(stream.download, data={'output_path': self.cache_dir_path, 'filename_prefix': video_id})
+                        await self.bot.loop.run_in_executor(None, functools.partial(
+                            stream.download, output_path=self.cache_dir_path, filename_prefix=f'{video_id} - '
+                        ))
+                    if channel.guild.voice_client is not None:
+                        channel.guild.voice_client.stop()
+                    song_audio = discord.PCMVolumeTransformer(
+                        discord.FFmpegPCMAudio(path), self.servers[channel.guild.id]['volume']
+                    )
+                    self.servers[channel.guild.id]['song_audio'] = song_audio
+                    self.servers[channel.guild.id]['song_url'] = video_url
+                    async def try_edit(embed: discord.Embed):
+                        try:
+                            await message.edit(embed=embed)
+                        except discord.NotFound:
+                            pass
+                    def after(error):
+                        song_audio.cleanup()
+                        embed = self.generate_embed(channel, video, 'Zakończono', '⏹')
+                        try:
+                            self.bot.loop.create_task(try_edit(embed))
+                        except discord.NotFound:
+                            pass
+                    embed = self.generate_embed(channel, video, 'Odtwarzanie', '▶️')
+                    channel.guild.voice_client.play(self.servers[channel.guild.id]['song_audio'], after=after)
+                await message.edit(embed=embed)
         else:
             embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
             await self.bot.send(ctx, embed=embed)
