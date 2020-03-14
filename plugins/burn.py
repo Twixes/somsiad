@@ -43,17 +43,21 @@ class Burn(commands.Cog):
         except discord.NotFound:
             pass
         else:
-            await target_message.delete()
-            burning_description = md_link(
-                f'Usunięto twoją wiadomość wysłaną {human_datetime(requested_at)}.', confirmation_message.jump_url
-            )
-            burning_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', burning_description)
-            burning_message = await channel.send(f'<@{user_id}>', embed=burning_embed)
-            confirmation_description = md_link(
-                f'Usunięto twoją wiadomość {human_datetime()}.', burning_message.jump_url
-            )
-            confirmation_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', confirmation_description)
-            await confirmation_message.edit(embed=confirmation_embed)
+            try:
+                await target_message.delete()
+            except discord.NotFound:
+                pass
+            else:
+                burning_description = md_link(
+                    f'Usunięto twoją wiadomość wysłaną {human_datetime(requested_at)}.', confirmation_message.jump_url
+                )
+                burning_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', burning_description)
+                burning_message = await channel.send(f'<@{user_id}>', embed=burning_embed)
+                confirmation_description = md_link(
+                    f'Usunięto twoją wiadomość {human_datetime()}.', burning_message.jump_url
+                )
+                confirmation_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', confirmation_description)
+                await confirmation_message.edit(embed=confirmation_embed)
         with data.session(commit=True) as session:
             reminder = session.query(Burning).get(confirmation_message_id)
             reminder.has_been_executed = True
