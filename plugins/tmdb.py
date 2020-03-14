@@ -17,7 +17,7 @@ import discord
 from discord.ext import commands
 from core import Help, cooldown
 from configuration import configuration
-from utilities import word_number_form, calculate_age, human_amount_of_time
+from utilities import word_number_form, calculate_age, human_amount_of_time, text_snippet
 
 
 class TMDb(commands.Cog):
@@ -137,7 +137,7 @@ class TMDb(commands.Cog):
             )
             embed.add_field(name='Gatunki' if len(result['genres']) > 1 else 'Gatunek', value=' / '.join((genre_parts)))
         if result['overview']:
-            embed.add_field(name='Opis', value=result['overview'], inline=False)
+            embed.add_field(name='Opis', value=text_snippet(result['overview'], 500), inline=False)
         if result.get('poster_path'):
             embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/w342{result["poster_path"]}')
         if result.get('backdrop_path'):
@@ -189,21 +189,31 @@ class TMDb(commands.Cog):
             )
             embed.add_field(name='Gatunki' if len(result['genres']) > 1 else 'Gatunek', value=' / '.join((genre_parts)))
         season_parts = []
+        season_counter = 0
         for season in result['seasons']:
-            if season['season_number'] > 0:
-                if season['air_date']:
-                    air_date_presentation = dt.date.fromisoformat(season['air_date']).strftime('%-d %B %Y')
-                else:
-                    air_date_presentation = 'TBD'
-                season_parts.append(
-                    f'[{season["season_number"]}. '
-                    f'{word_number_form(season["episode_count"] or "?", "odcinek", "odcinki", "odcinków")} '
-                    f'(premiera {air_date_presentation})]'
-                    f'(https://www.themoviedb.org/tv/{result["id"]}/season/{season["season_number"]})'
-                )
+            if season['season_number'] < 1:
+                continue
+            season_counter += 1
+            if season['season_number'] > 10:
+                continue
+            if season['air_date']:
+                air_date_presentation = dt.date.fromisoformat(season['air_date']).strftime('%-d %B %Y')
+            else:
+                air_date_presentation = 'TBD'
+            season_parts.append(
+                f'[{season["season_number"]}. '
+                f'{word_number_form(season["episode_count"] or "?", "odcinek", "odcinki", "odcinków")} '
+                f'(premiera {air_date_presentation})]'
+                f'(https://www.themoviedb.org/tv/{result["id"]}/season/{season["season_number"]})'
+            )
+        if season_counter > 10:
+            following_form = word_number_form(season_counter - 10, 'kolejny', 'kolejne', 'kolejnych')
+            season_parts.append(
+                f'[…i jeszcze {following_form}](https://www.themoviedb.org/tv/{result["id"]}/seasons)'
+            )
         embed.add_field(name='Sezony', value='\n'.join(season_parts), inline=False)
         if result['overview']:
-            embed.add_field(name='Opis', value=result['overview'], inline=False)
+            embed.add_field(name='Opis', value=text_snippet(result['overview'], 500), inline=False)
         if result.get('poster_path'):
             embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/w342{result["poster_path"]}')
         if result.get('backdrop_path'):
