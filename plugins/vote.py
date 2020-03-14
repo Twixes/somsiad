@@ -17,13 +17,15 @@ import datetime as dt
 import discord
 from discord.ext import commands
 from core import cooldown
-from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
+from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, word_number_form, md_link
 import data
 
 
 class Ballot(data.Base, data.ChannelRelated, data.UserRelated):
+    MAX_MATTER_LENGTH = 200
+
     urn_message_id = data.Column(data.BigInteger, primary_key=True)
-    matter = data.Column(data.String(50), nullable=False)
+    matter = data.Column(data.String(MAX_MATTER_LENGTH), nullable=False)
     letters = data.Column(data.String(26))
     commenced_at = data.Column(data.DateTime, nullable=False)
     conclude_at = data.Column(data.DateTime, nullable=False)
@@ -102,6 +104,8 @@ class Vote(commands.Cog):
             self, ctx, conclude_at: Optional[interpret_str_as_datetime] = None,
             *, matter: commands.clean_content(fix_channel_mentions=True)
     ):
+        if len(matter) > Ballot.MAX_MATTER_LENGTH:
+            raise commands.BadArgument
         letters = ''.join({match[0]: None for match in self.LETTER_REGEX.findall(matter)})
         #''.join([
         #    letter for letter in self.LETTER_EMOJIS if f'{letter}.' in matter or f'{letter}:' in matter
@@ -136,8 +140,14 @@ class Vote(commands.Cog):
 
     @vote.error
     async def vote_error(self, ctx, error):
+        notice = None
         if isinstance(error, commands.MissingRequiredArgument):
-            embed = self.bot.generate_embed('⚠️', 'Nie podano sprawy w jakiej ma się odbyć głosowanie')
+            notice = 'Nie podano sprawy w jakiej ma się odbyć głosowanie'
+        elif isinstance(error, commands.BadArgument):
+            character_form = word_number_form(Ballot.MAX_MATTER_LENGTH, 'znak', 'znaki', 'znaków')
+            notice = f'Tekstu sprawy nie może być dłuższy niż {character_form}'
+        if notice is not None:
+            embed = self.bot.generate_embed('⚠️', notice)
             await self.bot.send(ctx, embed=embed)
 
 
