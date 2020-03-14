@@ -90,7 +90,8 @@ class TMDb(commands.Cog):
         else:
             emoji = self.PROFESSIONS.get(result['known_for_department']) or ('👩' if is_female else '👨')
         embed = self.bot.generate_embed(emoji, result['name'], url=f'https://www.themoviedb.org/person/{result["id"]}')
-        embed.add_field(name='Data urodzenia', value=birth_date.strftime('%-d %B %Y'))
+        if birth_date is not None:
+            embed.add_field(name='Data urodzenia', value=birth_date.strftime('%-d %B %Y'))
         if death_date is not None:
             embed.add_field(name='Data śmierci', value=death_date.strftime('%-d %B %Y'))
         embed.add_field(name='Wiek', value=calculate_age(birth_date, death_date))
