@@ -373,7 +373,7 @@ class Birthday(commands.Cog):
             born_person = session.query(BornPerson).get(ctx.author.id)
             birthday_public_servers_presentation, extra = self._get_birthday_public_servers_presentation(
                 born_person, on_server_id=ctx.guild.id if ctx.guild else None, period=False
-            )
+            ) if born_person is not None else 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać', None
         embed = discord.Embed(
             title=f':information_source: {birthday_public_servers_presentation}',
             description=extra,
