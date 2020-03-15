@@ -13,17 +13,20 @@
 
 import datetime as dt
 from discord.ext import commands
-from utilities import utc_to_naive_local
+from utilities import utc_to_naive_local, text_snippet
 import data
 
 
 class Invocation(data.Base, data.MemberRelated, data.ChannelRelated):
+    MAX_ERROR_LENGTH = 300
+
     message_id = data.Column(data.BigInteger, primary_key=True)
     prefix = data.Column(data.String(min(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=False)
     full_command = data.Column(data.String(100), nullable=False, index=True)
     root_command = data.Column(data.String(100), nullable=False, index=True)
     created_at = data.Column(data.DateTime, nullable=False)
-    completed_at = data.Column(data.DateTime)
+    exited_at = data.Column(data.DateTime)
+    error = data.Column(data.String(MAX_ERROR_LENGTH))
 
 
 class Commands(commands.Cog):
@@ -32,7 +35,6 @@ class Commands(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command(self, ctx: commands.Context):
-        self.bot.commands_being_processed[ctx.command.qualified_name] += 1
         with data.session(commit=True) as session:
             invocation = Invocation(
                 message_id=ctx.message.id, server_id=ctx.guild.id if ctx.guild is not None else None,
@@ -45,10 +47,16 @@ class Commands(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
-        self.bot.commands_being_processed[ctx.command.qualified_name] -= 1
         with data.session(commit=True) as session:
             invocation = session.query(Invocation).get(ctx.message.id)
-            invocation.completed_at = dt.datetime.now()
+            invocation.exited_at = dt.datetime.now()
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+        with data.session(commit=True) as session:
+            invocation = session.query(Invocation).get(ctx.message.id)
+            invocation.exited_at = dt.datetime.now()
+            invocation.error = text_snippet(str(error), Invocation.MAX_ERROR_LENGTH)
 
 
 def setup(bot: commands.Bot):

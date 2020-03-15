@@ -114,7 +114,14 @@ class Somsiad(commands.Bot):
     async def on_error(self, event_method, *args, **kwargs):
         self.register_error(event_method, sys.exc_info()[1])
 
+    async def on_command(self, ctx):
+        self.commands_being_processed[ctx.command.qualified_name] += 1
+
+    async def on_command_completion(self, ctx):
+        self.commands_being_processed[ctx.command.qualified_name] -= 1
+
     async def on_command_error(self, ctx, error):
+        self.commands_being_processed[ctx.command.qualified_name] -= 1
         notice = None
         description = ''
         if isinstance(error, commands.NoPrivateMessage):
@@ -160,7 +167,7 @@ class Somsiad(commands.Bot):
         await super().close()
         sys.exit(0)
 
-    def signal_handler(self, signal, frame):
+    def signal_handler(self, _, __):
         asyncio.run(self.close())
 
     def invite_url(self) -> str:
@@ -244,7 +251,7 @@ class Somsiad(commands.Bot):
             diagnostics = (
                 f'{round(self.latency, 2):n} s opóźnienia (przy uruchomieniu) | '
                 f'{round(processing_timedelta.total_seconds(), 2):n} s wykonania | '
-                f'w tym momencie: {now_also or "brak komend"}'
+                f'w tym momencie: {now_also or "nic"}'
             )
             content += f'\n{diagnostics}'
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
@@ -453,6 +460,32 @@ class Essentials(commands.Cog):
                 if message.author == ctx.me and member in message.mentions:
                     await message.delete()
                     break
+
+    @commands.command(aliases=['diag', 'diagnostyka'])
+    @commands.is_owner()
+    async def diagnostics(self, ctx):
+        """Causes an error."""
+        if not self.bot.diagnostics_on:
+            self.bot.diagnostics_on = True
+            embed = self.bot.generate_embed('🚦', 'Diagnostyka włączona')
+        else:
+            self.bot.diagnostics_on = False
+            embed = self.bot.generate_embed('🚥', 'Diagnostyka wyłączona')
+        await self.bot.send(ctx, embed=embed)
+
+    @commands.command(aliases=['wyłącz', 'wylacz'])
+    @commands.is_owner()
+    async def shutdown(self, ctx):
+        """Shuts down the bot."""
+        embed = self.bot.generate_embed('🛑', 'Wyłączanie bota…')
+        await self.bot.send(ctx, embed=embed)
+        await ctx.bot.close()
+
+    @commands.command(aliases=['błąd', 'blad', 'błont', 'blont'])
+    @commands.is_owner()
+    async def error(self, ctx):
+        """Causes an error."""
+        await self.bot.send(ctx, 1 / 0)
 
 
 class Prefix(commands.Cog):

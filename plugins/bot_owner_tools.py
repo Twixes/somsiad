@@ -13,7 +13,6 @@
 
 import discord
 from discord.ext import commands
-from core import cooldown
 
 
 class BotOwnerTools(commands.Cog):
@@ -94,32 +93,6 @@ class BotOwnerTools(commands.Cog):
             if channel.permissions_for(ctx.me).send_messages:
                 await channel.send(embed=embed)
                 break
-
-    @commands.command(aliases=['diag', 'diagnostyka'])
-    @commands.is_owner()
-    async def diagnostics(self, ctx):
-        """Causes an error."""
-        if not self.bot.diagnostics_on:
-            self.bot.diagnostics_on = True
-            embed = self.bot.generate_embed('🚦', 'Diagnostyka włączona')
-        else:
-            self.bot.diagnostics_on = False
-            embed = self.bot.generate_embed('🚥', 'Diagnostyka wyłączona')
-        await self.bot.send(ctx, embed=embed)
-
-    @commands.command(aliases=['wyłącz', 'wylacz'])
-    @commands.is_owner()
-    async def shutdown(self, ctx):
-        """Shuts down the bot."""
-        embed = self.bot.generate_embed('🛑', 'Wyłączanie bota…')
-        await self.bot.send(ctx, embed=embed)
-        await ctx.bot.close()
-
-    @commands.command(aliases=['błąd', 'blad', 'błont', 'blont'])
-    @commands.is_owner()
-    async def error(self, ctx):
-        """Causes an error."""
-        await self.bot.send(ctx, 1 / 0)
 
 
 def setup(bot: commands.Bot):
