@@ -71,25 +71,30 @@ class GoogleClient:
             self, query: str, *, language: str = 'pl', safe: str = 'active', search_type: str = None
     ) -> Optional[GoogleResult]:
         query = self.search_client.list(
-            q=query, cx=self.custom_search_engine_id, hl=language, num=1, safe=safe, searchType=search_type
+            q=query, cx=self.custom_search_engine_id, hl=language, num=5 if search_type == 'image' else 1, safe=safe,
+            searchType=search_type
         )
         results = await self.loop.run_in_executor(None, query.execute)
-        if results['searchInformation']['totalResults'] == '0':
-            return None
-        result = results['items'][0]
-        if search_type == 'image':
-            return self.GoogleResult(
-                result['title'], result['snippet'], result['image']['contextLink'], result['displayLink'],
-                f'{result["link"].split("://")[0]}://{result["displayLink"]}', result['link'], search_type
-            )
-        try:
-            image_link = result['pagemap']['cse_image'][0]['src']
-        except KeyError:
-            image_link = None
-        return self.GoogleResult(
-            result['title'], result['snippet'], result['link'], result['displayLink'],
-            f'{result["link"].split("://")[0]}://{result["displayLink"]}', image_link, search_type
-        )
+        if results['searchInformation']['totalResults'] != '0':
+            if search_type == 'image':
+                for result in results['items']:
+                    if not result['link'] or result['link'].startswith('x-raw-image'):
+                        continue
+                    return self.GoogleResult(
+                        result['title'], result['snippet'], result['image']['contextLink'], result['displayLink'],
+                        f'{result["link"].split("://")[0]}://{result["displayLink"]}', result['link'], search_type
+                    )
+            else:
+                result = results['items'][0]
+                try:
+                    image_link = result['pagemap']['cse_image'][0]['src']
+                except KeyError:
+                    image_link = None
+                return self.GoogleResult(
+                    result['title'], result['snippet'], result['link'], result['displayLink'],
+                    f'{result["link"].split("://")[0]}://{result["displayLink"]}', image_link, search_type
+                )
+        return None
 
 
 class YouTubeClient:
