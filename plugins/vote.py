@@ -42,12 +42,19 @@ class Vote(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.ballots_set_off = set()
 
     async def set_off_ballot(
             self, urn_message_id: int, channel_id: int, user_id: int, matter: str, letters: Optional[str],
             commenced_at: dt.datetime, conclude_at: dt.datetime
     ):
+        if urn_message_id in self.ballots_set_off:
+            return
+        self.ballots_set_off.add(urn_message_id)
         await discord.utils.sleep_until(conclude_at.astimezone())
+        if urn_message_id not in self.ballots_set_off:
+            return
+        self.ballots_set_off.remove(urn_message_id)
         channel = self.bot.get_channel(channel_id)
         try:
             urn_message = await channel.fetch_message(urn_message_id)

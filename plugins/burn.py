@@ -30,12 +30,19 @@ class Burning(data.Base, data.ChannelRelated, data.UserRelated):
 class Burn(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.burnings_set_off = set()
 
     async def set_off_burning(
             self, confirmation_message_id: int, target_message_id: int, channel_id: int, user_id: int,
             requested_at: dt.datetime, execute_at: dt.datetime
     ):
+        if confirmation_message_id in self.burnings_set_off:
+            return
+        self.burnings_set_off.add(confirmation_message_id)
         await discord.utils.sleep_until(execute_at.astimezone())
+        if confirmation_message_id not in self.burnings_set_off:
+            return
+        self.burnings_set_off.remove(confirmation_message_id)
         channel = self.bot.get_channel(channel_id)
         try:
             target_message = await channel.fetch_message(target_message_id)

@@ -32,12 +32,19 @@ class Reminder(data.Base, data.ChannelRelated, data.UserRelated):
 class Remind(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.reminders_set_off = set()
 
     async def set_off_reminder(
             self, confirmation_message_id: int, channel_id: int, user_id: int, content: str,
             requested_at: dt.datetime, execute_at: dt.datetime
     ):
+        if confirmation_message_id in self.reminders_set_off:
+            return
+        self.reminders_set_off.add(confirmation_message_id)
         await discord.utils.sleep_until(execute_at.astimezone())
+        if confirmation_message_id not in self.reminders_set_off:
+            return
+        self.reminders_set_off.remove(confirmation_message_id)
         channel = self.bot.get_channel(channel_id)
         try:
             confirmation_message = await channel.fetch_message(confirmation_message_id)
@@ -76,7 +83,7 @@ class Remind(commands.Cog):
         if len(content) > Reminder.MAX_CONTENT_LENGTH:
             raise commands.BadArgument
         description = (
-            f'**Przypomnę ci tutaj "{content}" {human_datetime(execute_at)}.\n**Przypomnienie zostanie anulowane '
+            f'**Przypomnę ci tutaj "{content}" {human_datetime(execute_at)}.**\n*Przypomnienie zostanie anulowane '
             'jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
         )
         embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description)
