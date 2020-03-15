@@ -91,7 +91,7 @@ class React(commands.Cog):
                 try:
                     for extra_i in range(1, extra_length):
                         group += emojis[i+extra_i]
-                except IndexError:
+                except (IndexError, TypeError):
                     continue
                 else:
                     for emoji in group_emojis.get(group, ''):
