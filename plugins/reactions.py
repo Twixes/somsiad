@@ -52,7 +52,7 @@ class React(commands.Cog):
     ) -> Tuple[Union[str, discord.Emoji]]:
         """Converts message content string to emojis."""
         emojis = list(' '.join(filter(None, string.lower().split())))
-        used_emojis = {reaction.emoji for reaction in message.reactions}
+        used_emojis = {reaction.emoji for reaction in message.reactions if reaction.me}
         for match in reversed(tuple(self.CUSTOM_EMOJI_REGEX.finditer(string))):
             emoji = self.bot.get_emoji(int(match.groups()[0]))
             if emoji is not None and emoji not in used_emojis:
