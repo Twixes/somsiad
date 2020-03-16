@@ -19,6 +19,7 @@ from collections import defaultdict
 import os
 import sys
 import signal
+import psutil
 import traceback
 import asyncio
 import platform
@@ -96,6 +97,7 @@ class Somsiad(commands.Bot):
         self.youtube_client = YouTubeClient(configuration['google_key'], self.loop)
 
     async def on_ready(self):
+        psutil.cpu_percent()
         setlocale()
         self.run_datetime = dt.datetime.now()
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
@@ -248,10 +250,24 @@ class Somsiad(commands.Bot):
             now_also = ', '.join(
                 (f'{command} ({number})' for command, number in self.commands_being_processed.items() if number > 0)
             )
+            process = psutil.Process()
+            virtual_memory = psutil.virtual_memory()
+            swap_memory = psutil.swap_memory()
+            process_memory = process.memory_full_info()
+            try:
+                process_swap = process_memory.swap
+                swap_usage = f' + {process_swap / 1_048_576:n} MiB '
+            except AttributeError:
+                process_swap = 0.0
+                swap_usage = ' '
             diagnostics = (
-                f'{round(self.latency, 2):n} s opóźnienia (przy uruchomieniu) | '
-                f'{round(processing_timedelta.total_seconds(), 2):n} s wykonania | '
-                f'w tym momencie: {now_also or "nic"}'
+                f'```Python\nużycie procesora: ogólnie {psutil.cpu_percent():n}%\n'
+                f'użycie pamięci: {(process_memory.uss - process_swap) / 1_048_576:n} MiB{swap_usage}(ogólnie '
+                f'{(virtual_memory.total - virtual_memory.available) / 1_048_576:n} MiB + '
+                f'{swap_memory.used / 1_048_576:n} MiB) / {virtual_memory.total / 1_048_576:n} MiB + '
+                f'{swap_memory.total / 1_048_576:n} MiB\nopóźnienie połączenia (przy uruchomieniu): '
+                f'{round(self.latency, 2):n} s\nczas od wywołania komendy: '
+                f'{round(processing_timedelta.total_seconds(), 2):n} s\nw tym momencie: {now_also or "nic"}```'
             )
             content += f'\n{diagnostics}'
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
