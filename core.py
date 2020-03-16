@@ -123,7 +123,8 @@ class Somsiad(commands.Bot):
         self.commands_being_processed[ctx.command.qualified_name] -= 1
 
     async def on_command_error(self, ctx, error):
-        self.commands_being_processed[ctx.command.qualified_name] -= 1
+        if ctx.command is not None:
+            self.commands_being_processed[ctx.command.qualified_name] -= 1
         notice = None
         description = ''
         if isinstance(error, commands.NoPrivateMessage):

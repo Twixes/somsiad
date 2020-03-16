@@ -55,10 +55,11 @@ class Commands(commands.Cog):
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
         with data.session(commit=True) as session:
             invocation = session.query(Invocation).get(ctx.message.id)
-            invocation.exited_at = dt.datetime.now()
-            invocation.error = text_snippet(
-                str(error).replace('Command raised an exception: ', ''), Invocation.MAX_ERROR_LENGTH
-            )
+            if invocation is not None:
+                invocation.exited_at = dt.datetime.now()
+                invocation.error = text_snippet(
+                    str(error).replace('Command raised an exception: ', ''), Invocation.MAX_ERROR_LENGTH
+                )
 
 
 def setup(bot: commands.Bot):
