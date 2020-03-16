@@ -268,7 +268,7 @@ class Somsiad(commands.Bot):
                 f'{swap_memory.used / 1_048_576:n} MiB) / {virtual_memory.total / 1_048_576:n} MiB + '
                 f'{swap_memory.total / 1_048_576:n} MiB\nopóźnienie połączenia (przy uruchomieniu): '
                 f'{round(self.latency, 2):n} s\nczas od wywołania komendy: '
-                f'{round(processing_timedelta.total_seconds(), 2):n} s\nw tym momencie: {now_also or "nic"}```'
+                f'{round(processing_timedelta.total_seconds(), 2):n} s\nkomendy w tym momencie: {now_also or "brak"}```'
             )
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
             try:
