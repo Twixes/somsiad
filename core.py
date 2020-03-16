@@ -261,7 +261,7 @@ class Somsiad(commands.Bot):
             except AttributeError:
                 process_swap = 0.0
                 swap_usage = ' '
-            diagnostics = (
+            content += (
                 f'```Python\nużycie procesora: ogólnie {psutil.cpu_percent():n}%\n'
                 f'użycie pamięci: {(process_memory.uss - process_swap) / 1_048_576:n} MiB{swap_usage}(ogólnie '
                 f'{(virtual_memory.total - virtual_memory.available) / 1_048_576:n} MiB + '
@@ -270,7 +270,6 @@ class Somsiad(commands.Bot):
                 f'{round(self.latency, 2):n} s\nczas od wywołania komendy: '
                 f'{round(processing_timedelta.total_seconds(), 2):n} s\nw tym momencie: {now_also or "nic"}```'
             )
-            content += f'\n{diagnostics}'
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
             try:
                 await ctx.message.add_reaction('📫')
