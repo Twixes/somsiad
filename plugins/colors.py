@@ -19,6 +19,7 @@ import colorsys
 import discord
 from discord.ext import commands
 from core import Help, cooldown
+from utilities import word_number_form
 
 
 class Colors(commands.Cog):
@@ -64,7 +65,9 @@ class Colors(commands.Cog):
             ]
             random_role_index = random.randint(0, len(relevant_roles) - 1)
             role_parts[random_role_index] += ' ←'
-            emoji, notice = '🎨', 'Dostępne kolory–role'
+            available_form = word_number_form(len(role_parts), 'Dostępny', 'Dostępne', include_number=False)
+            color_role_form = word_number_form(len(role_parts), 'kolor–rola', 'kolory–role', 'kolorów–ról')
+            emoji, notice = '🎨', f'{available_form} {color_role_form}'
             description = '\n'.join(role_parts)
             color = sorted_roles[random_role_index].color
         else:
