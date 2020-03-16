@@ -23,7 +23,7 @@ import discord
 from discord.ext import commands
 from configuration import configuration
 
-engine = create_engine(configuration['database_url'])
+engine = create_engine(configuration['database_url'], pool_pre_ping=True)
 Session = sessionmaker(bind=engine)
 
 
