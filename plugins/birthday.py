@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Optional, Sequence, List
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import random
 import itertools
 import datetime as dt
@@ -127,6 +127,7 @@ class Birthday(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.already_notified = defaultdict(set)
 
     @staticmethod
     def _comprehend_date(date_string: str, formats: Sequence[str]) -> dt.date:
@@ -155,13 +156,19 @@ class Birthday(commands.Cog):
         random.shuffle(wishes)
         for birthday_today, wish in zip(birthday_notifier.birthdays_today(), itertools.cycle(wishes)):
             channel = birthday_notifier.discord_channel(self.bot)
-            if channel.guild.get_member(birthday_today.user_id) is not None:
-                if birthday_today.age:
-                    notice = f'{wish} z okazji {birthday_today.age}. urodzin!'
-                else:
-                    notice = f'{wish} z okazji urodzin!'
-                embed = self.bot.generate_embed('🎂', notice)
-                await channel.send(f'<@{birthday_today.user_id}>', embed=embed)
+            key = f'{channel.guild.id}-{dt.date.today()}'
+            if (
+                    channel.guild.get_member(birthday_today.user_id) is None or
+                    birthday_today.user_id in self.already_notified[key]
+            ):
+                continue
+            self.already_notified[key].add(birthday_today.user_id)
+            if birthday_today.age:
+                notice = f'{wish} z okazji {birthday_today.age}. urodzin!'
+            else:
+                notice = f'{wish} z okazji urodzin!'
+            embed = self.bot.generate_embed('🎂', notice)
+            await channel.send(f'<@{birthday_today.user_id}>', embed=embed)
 
     async def send_all_birthday_today_notifications(self):
         with data.session(commit=True) as session:
