@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from difflib import SequenceMatcher
+from urllib.error import HTTPError
 import discord
 from discord.ext import commands
 from core import cooldown
@@ -52,14 +53,18 @@ class Spotify(commands.Cog):
             )
             # search for the song on YouTube
             youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
-            youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
-            # add a link to a YouTube video if a match was found
-            if (
-                    youtube_search_result is not None and
-                    SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
-            ):
-                embed.add_field(name='Posłuchaj na YouTube', value=youtube_search_result.url, inline=False)
-                embed.set_image(url=youtube_search_result.thumbnail_url)
+            try:
+                youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
+            except HTTPError:
+                pass
+            else:
+                # add a link to a YouTube video if a match was found
+                if (
+                        youtube_search_result is not None and
+                        SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
+                ):
+                    embed.add_field(name='Posłuchaj na YouTube', value=youtube_search_result.url, inline=False)
+                    embed.set_image(url=youtube_search_result.thumbnail_url)
             embed.set_footer(text=self.FOOTER_TEXT, icon_url=self.FOOTER_ICON_URL)
         await self.bot.send(ctx, embed=embed)
 

@@ -14,6 +14,7 @@
 from typing import Optional, Union
 from numbers import Number
 from collections import defaultdict
+from urllib.error import HTTPError
 import functools
 import os
 import locale
@@ -72,8 +73,12 @@ class Disco(commands.Cog):
         try:
             pytube.extract.video_id(query)
         except pytube.exceptions.RegexMatchError:
-            search_result = await self.bot.youtube_client.search(query)
-            video_url = search_result.url if search_result is not None else None
+            try:
+                search_result = await self.bot.youtube_client.search(query)
+            except HTTPError:
+                video_url = None
+            else:
+                video_url = search_result.url if search_result is not None else None
         else:
             video_url = query
         if video_url is not None:
