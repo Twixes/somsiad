@@ -9,7 +9,7 @@ google-api-python-client==1.7.11
 pytube3==9.6.4
 praw==6.5.1
 matplotlib==3.2.0
-sentry-sdk==0.14.2
+sentry-sdk==0.14.3
 aiocontextvars==0.2.2
 ImageHash==4.0
 numpy==1.18.2
