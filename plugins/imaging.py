@@ -24,22 +24,22 @@ from utilities import word_number_form, utc_to_naive_local
 
 
 class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
+    HASH_SIZE = 10
+
     attachment_id = data.Column(data.BigInteger, primary_key=True)
     message_id = data.Column(data.BigInteger, nullable=False)
-    hash_string = data.Column(data.String(20), nullable=False)
-    hash_length = data.Column(data.SmallInteger, nullable=False)
+    hash = data.Column(data.String(25), nullable=False)
     sent_at = data.Column(data.DateTime, nullable=False)
 
     def calculate_similarity_to(self, other) -> float:
-        self_hash_binary = int(self.hash_string, 16)
-        other_hash_binary = int(other.hash_string, 16)
+        self_hash_binary = int(self.hash, 16)
+        other_hash_binary = int(other.hash, 16)
         negated_xor = ~(self_hash_binary ^ other_hash_binary)
-        identical_count = 0
-        total_count = max(self.hash_length, other.hash_length)
-        for _ in range(total_count):
-            identical_count += negated_xor & 1
+        identical_bits_count = 0
+        for _ in range(self.HASH_SIZE**2):
+            identical_bits_count += negated_xor & 1
             negated_xor >>= 1
-        return (identical_count / total_count)**2
+        return identical_bits_count / self.HASH_SIZE**2
 
     async def get_presentation(self, bot: commands.Bot, ctx: commands.Context) -> str:
         parts = [self.sent_at.strftime('%-d %B %Y o %H:%M')]
@@ -80,13 +80,13 @@ class Imaging(commands.Cog):
                     continue
                 else:
                     try:
-                        hash_string, hash_length = self._hash(image_bytes)
+                        hash_string = self._hash(image_bytes)
                     except PIL.Image.UnidentifiedImageError:
                         continue
                     images9000.append(Image9000(
                         attachment_id=attachment.id, message_id=message.id, user_id=message.author.id,
-                        channel_id=message.channel.id, server_id=message.guild.id, hash_string=hash_string,
-                        hash_length=hash_length, sent_at=utc_to_naive_local(message.created_at)
+                        channel_id=message.channel.id, server_id=message.guild.id, hash=hash_string,
+                        sent_at=utc_to_naive_local(message.created_at)
                     ))
         with data.session(commit=True) as session:
             session.bulk_save_objects(images9000)
@@ -124,10 +124,10 @@ class Imaging(commands.Cog):
         return image_bytes
 
     @staticmethod
-    def _hash(image_bytes: BinaryIO) -> Tuple[str, int]:
+    def _hash(image_bytes: BinaryIO) -> str:
         image = PIL.Image.open(image_bytes)
-        image_hash = imagehash.phash(image)
-        return str(image_hash), len(image_hash.hash.flatten())
+        image_hash = imagehash.phash(image, Image9000.HASH_SIZE)
+        return str(image_hash)
 
     @staticmethod
     async def extract_image(message: discord.Message) -> ExtractedImage:
@@ -219,7 +219,7 @@ class Imaging(commands.Cog):
                             Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
                     ):
                         similarity = base_image9000.calculate_similarity_to(other_image9000)
-                        if similarity > 0.8:
+                        if similarity > 0.9:
                             similar.append((other_image9000, similarity))
                     address = 'ciebie' if sent_by == ctx.author else str(sent_by)
                     if similar:
@@ -235,8 +235,8 @@ class Imaging(commands.Cog):
                             embed.add_field(
                                 name=await image9000.get_presentation(self.bot, ctx),
                                 value=f'[{int(round(similarity*100))}% pewności]'
-                                f'(https://discordapp.com/channels/{image9000.server_id}/{image9000.channel_id}/'
-                                f'{image9000.message_id})',
+                                f'(https://discordapp.com/channels/{image9000.server_id}/'
+                                f'{image9000.channel_id}/{image9000.message_id})',
                                 inline=False
                             )
                         occurences_form = word_number_form(
