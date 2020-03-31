@@ -71,7 +71,10 @@ class Imaging(commands.Cog):
                 except (discord.HTTPException, discord.NotFound):
                     continue
                 else:
-                    hash_string, hash_length = self._hash(image_bytes)
+                    try:
+                        hash_string, hash_length = self._hash(image_bytes)
+                    except PIL.Image.UnidentifiedImageError:
+                        continue
                     images9000.append(Image9000(
                         attachment_id=attachment.id, message_id=message.id, user_id=message.author.id,
                         channel_id=message.channel.id, server_id=message.guild.id, hash_string=hash_string,
@@ -156,10 +159,14 @@ class Imaging(commands.Cog):
         attachment, input_image_bytes = await self.find_image(ctx.channel, sent_by=sent_by)
         times = times_or_degrees // 90 if times_or_degrees % 90 == 0 else times_or_degrees
         if input_image_bytes:
-            output_image_bytes = await self.bot.loop.run_in_executor(None, self._rotate, input_image_bytes, times)
-            await self.bot.send(
-                ctx, file=discord.File(output_image_bytes, filename=attachment.filename or 'rotated.jpeg')
-            )
+            try:
+                output_image_bytes = await self.bot.loop.run_in_executor(None, self._rotate, input_image_bytes, times)
+            except PIL.Image.UnidentifiedImageError:
+                await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do obrócenia'))
+            else:
+                await self.bot.send(
+                    ctx, file=discord.File(output_image_bytes, filename=attachment.filename or 'rotated.jpeg')
+                )
         else:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do obrócenia'))
 
@@ -173,10 +180,16 @@ class Imaging(commands.Cog):
         """
         attachment, input_image_bytes = await self.find_image(ctx.channel, sent_by=sent_by)
         if input_image_bytes:
-            output_image_bytes = await self.bot.loop.run_in_executor(None, self._deepfry, input_image_bytes, doneness)
-            await self.bot.send(
-                ctx, file=discord.File(output_image_bytes, filename=attachment.filename or 'deepfried.jpeg')
-            )
+            try:
+                output_image_bytes = await self.bot.loop.run_in_executor(
+                    None, self._deepfry, input_image_bytes, doneness
+                )
+            except PIL.Image.UnidentifiedImageError:
+                await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do usmażenia'))
+            else:
+                await self.bot.send(
+                    ctx, file=discord.File(output_image_bytes, filename=attachment.filename or 'deepfried.jpeg')
+                )
         else:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do usmażenia'))
 
@@ -190,40 +203,43 @@ class Imaging(commands.Cog):
             with data.session() as session:
                 similar = []
                 base_image9000 = session.query(Image9000).get(attachment.id)
-                sent_by = ctx.guild.get_member(base_image9000.user_id)
-                for other_image9000 in session.query(Image9000).filter(
-                        Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
-                ):
-                    similarity = base_image9000.calculate_similarity_to(other_image9000)
-                    if similarity > 0.8:
-                        similar.append((other_image9000, similarity))
-                address = 'ciebie' if sent_by == ctx.author else str(sent_by)
-                if similar:
-                    occurences_form = word_number_form(len(similar), 'wystąpienie', 'wystąpienia', 'wystąpień')
-                    embed = self.bot.generate_embed(
-                        '🤖', f'Wykryłem {occurences_form} wcześniej na serwere obrazka wysłanego przez {address}'
-                    )
-                    for image9000, similarity in similar:
-                        channel = image9000.discord_channel(self.bot)
-                        if channel is None:
-                            continue
-                        try:
-                            await channel.fetch_message(image9000.message_id)
-                        except discord.NotFound:
-                            continue
-                        embed.add_field(
-                            name=await image9000.get_presentation(self.bot),
-                            value=f'[{int(round(similarity*100))}% pewności]'
-                            f'(https://discordapp.com/channels/{image9000.server_id}/{image9000.channel_id}/'
-                            f'{image9000.message_id})',
-                            inline=False
-                        )
+                if base_image9000 is None:
+                    embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
                 else:
-                    embed = self.bot.generate_embed(
-                        '🤖', f'Nie wykryłem, aby obrazek wysłany przez {address} wystąpił wcześniej na serwerze'
-                    )
+                    sent_by = ctx.guild.get_member(base_image9000.user_id)
+                    for other_image9000 in session.query(Image9000).filter(
+                            Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
+                    ):
+                        similarity = base_image9000.calculate_similarity_to(other_image9000)
+                        if similarity > 0.8:
+                            similar.append((other_image9000, similarity))
+                    address = 'ciebie' if sent_by == ctx.author else str(sent_by)
+                    if similar:
+                        occurences_form = word_number_form(len(similar), 'wystąpienie', 'wystąpienia', 'wystąpień')
+                        embed = self.bot.generate_embed(
+                            '🤖', f'Wykryłem {occurences_form} wcześniej na serwere obrazka wysłanego przez {address}'
+                        )
+                        for image9000, similarity in similar:
+                            channel = image9000.discord_channel(self.bot)
+                            if channel is None:
+                                continue
+                            try:
+                                await channel.fetch_message(image9000.message_id)
+                            except discord.NotFound:
+                                continue
+                            embed.add_field(
+                                name=await image9000.get_presentation(self.bot),
+                                value=f'[{int(round(similarity*100))}% pewności]'
+                                f'(https://discordapp.com/channels/{image9000.server_id}/{image9000.channel_id}/'
+                                f'{image9000.message_id})',
+                                inline=False
+                            )
+                    else:
+                        embed = self.bot.generate_embed(
+                            '🤖', f'Nie wykryłem, aby obrazek wysłany przez {address} wystąpił wcześniej na serwerze'
+                        )
         else:
-            embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
+            embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
         await self.bot.send(ctx, embed=embed)
 
 
