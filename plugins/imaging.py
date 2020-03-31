@@ -244,13 +244,13 @@ class Imaging(commands.Cog):
                             'wcześniejsze wystąpienie', 'wcześniejsze wystąpienia', 'wcześniejszych wystąpień'
                         )
                         embed.title = (
-                            f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego o '
-                            f'{base_image9000.sent_at.strftime("%-H:%M")} przez {address}'
+                            f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {address} o '
+                            f'{base_image9000.sent_at.strftime("%-H:%M")}'
                         )
                     else:
                         embed = self.bot.generate_embed(
-                            '🤖', f'Nie wykryłem, aby obrazek wysłany o {base_image9000.sent_at.strftime("%-H:%M")} '
-                            f'przez {address} wystąpił wcześniej na serwerze'
+                            '🤖', f'Nie wykryłem, aby obrazek wysłany przez {address} '
+                            f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze'
                         )
         else:
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
