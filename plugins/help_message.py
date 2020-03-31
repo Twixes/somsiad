@@ -149,12 +149,16 @@ class Help(commands.Cog):
         ),
         _Help.Command('oof serwer', (), 'Zlicza oofnięcia na serwerze i generuje ranking ooferów.'),
         _Help.Command(
-            ('obróć', 'obroc', 'niewytrzymie'), '?ile razy',
-            'Obraca ostatni załączony na kanale obrazek <?ile razy> (domyślnie 1) zgodnie z ruchem wskazówek zegara.'
+            ('obróć', 'obroc', 'niewytrzymie'), ('?użytkownik', '?stopni/razy'),
+            'Obraca ostatni załączony na kanale lub, jeśli podano <?użytkownika>, na kanale przez <?użytkownika> obrazek <?stopni/razy> (domyślnie 90 stopni/1 raz) zgodnie z ruchem wskazówek zegara.'
         ),
         _Help.Command(
             ('deepfry', 'usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'),
-            '?poziom usmażenia', 'Smaży ostatni załączony na kanale obrazek <?poziom usmażenia> razy (domyślnie 2). '
+            ('?użytkownik', '?poziom usmażenia'), 'Smaży ostatni załączony na kanale lub, jeśli podano <?użytkownika>, na kanale przez <?użytkownika> obrazek <?poziom usmażenia> razy (domyślnie 2 razy). '
+        ),
+        _Help.Command(
+            ('robot9000', 'r9k', 'było', 'bylo', 'byo'),
+            '?użytkownik', 'Sprawdza czy ostatnio załączony na kanale lub, jeśli podano <?użytkownika>, na kanale przez <?użytkownika> obrazek pojawił się wcześniej na serwerze.'
         ),
         _Help.Command('tableflip', (), '(╯°□°）╯︵ ┻━┻'),
         _Help.Command('unflip', (), '┬─┬ ノ( ゜-゜ノ)'),
