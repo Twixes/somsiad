@@ -41,16 +41,24 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
             negated_xor >>= 1
         return (identical_count / total_count)**2
 
-    async def get_presentation(self, bot: commands.Bot) -> str:
+    async def get_presentation(self, bot: commands.Bot, ctx: commands.Context) -> str:
         parts = [self.sent_at.strftime('%-d %B %Y o %H:%M')]
-        if self.channel_id is not None:
-            discord_channel = self.discord_channel(bot)
-            parts.append(f'na #{discord_channel}' if discord_channel is not None else 'na usuniętym kanale')
-        if self.user_id is not None:
-            discord_user = self.discord_user(bot)
-            if discord_user is None:
-                discord_user = await bot.fetch_user(self.user_id)
-            parts.append(f'przez {discord_user}' if discord_user is not None else 'przez usuniętego użytkownika')
+        discord_channel = self.discord_channel(bot)
+        if discord_channel is None:
+            parts.append('na usuniętym kanale')
+        elif discord_channel == ctx.channel:
+            parts.append(f'na tym kanale')
+        else:
+            parts.append(f'na #{discord_channel}')
+        discord_user = self.discord_user(bot)
+        if discord_user is None:
+            discord_user = await bot.fetch_user(self.user_id)
+        if discord_user is None:
+            parts.append('przez usuniętego użytkownika')
+        elif discord_user == ctx.author:
+            parts.append('przez ciebie')
+        else:
+            parts.append(f'przez {discord_user}')
         return ' '.join(parts)
 
 
@@ -215,13 +223,7 @@ class Imaging(commands.Cog):
                             similar.append((other_image9000, similarity))
                     address = 'ciebie' if sent_by == ctx.author else str(sent_by)
                     if similar:
-                        occurences_form = word_number_form(
-                            len(similar),
-                            'wcześniejsze wystąpienie', 'wcześniejsze wystąpienia', 'wcześniejszych wystąpień'
-                        )
-                        embed = self.bot.generate_embed(
-                            '🤖', f'Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {address}'
-                        )
+                        embed = self.bot.generate_embed()
                         for image9000, similarity in similar:
                             channel = image9000.discord_channel(self.bot)
                             if channel is None:
@@ -231,15 +233,20 @@ class Imaging(commands.Cog):
                             except discord.NotFound:
                                 continue
                             embed.add_field(
-                                name=await image9000.get_presentation(self.bot),
+                                name=await image9000.get_presentation(self.bot, ctx),
                                 value=f'[{int(round(similarity*100))}% pewności]'
                                 f'(https://discordapp.com/channels/{image9000.server_id}/{image9000.channel_id}/'
                                 f'{image9000.message_id})',
                                 inline=False
                             )
+                        occurences_form = word_number_form(
+                            len(embed.fields),
+                            'wcześniejsze wystąpienie', 'wcześniejsze wystąpienia', 'wcześniejszych wystąpień'
+                        )
+                        embed.title = f'🤖 Wykryłem {occurences_form} na serwerze wysłanego przez {address} obrazka'
                     else:
                         embed = self.bot.generate_embed(
-                            '🤖', f'Nie wykryłem, aby obrazek wysłany przez {address} wystąpił wcześniej na serwerze'
+                            '🤖', f'Nie wykryłem, aby wysłany przez {address} obrazek wystąpił wcześniej na serwerze'
                         )
         else:
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
