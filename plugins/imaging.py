@@ -215,9 +215,12 @@ class Imaging(commands.Cog):
                             similar.append((other_image9000, similarity))
                     address = 'ciebie' if sent_by == ctx.author else str(sent_by)
                     if similar:
-                        occurences_form = word_number_form(len(similar), 'wystąpienie', 'wystąpienia', 'wystąpień')
+                        occurences_form = word_number_form(
+                            len(similar),
+                            'wcześniejsze wystąpienie', 'wcześniejsze wystąpienia', 'wcześniejszych wystąpień'
+                        )
                         embed = self.bot.generate_embed(
-                            '🤖', f'Wykryłem {occurences_form} wcześniej na serwere obrazka wysłanego przez {address}'
+                            '🤖', f'Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {address}'
                         )
                         for image9000, similarity in similar:
                             channel = image9000.discord_channel(self.bot)
