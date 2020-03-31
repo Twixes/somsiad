@@ -45,7 +45,7 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
             type_presentation = 'Opuszczenie'
         parts = [
             type_presentation,
-            self.occurred_at.strftime('%-d %B %Y o %H:%M')
+            self.occurred_at.strftime('%-d %B %Y o %-H:%M')
         ]
         if self.channel_id is not None:
             discord_channel = self.discord_channel(bot)

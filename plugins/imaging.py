@@ -42,7 +42,7 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
         return identical_bits_count / self.HASH_SIZE**2
 
     async def get_presentation(self, bot: commands.Bot, ctx: commands.Context) -> str:
-        parts = [self.sent_at.strftime('%-d %B %Y o %H:%M')]
+        parts = [self.sent_at.strftime('%-d %B %Y o %-H:%M')]
         discord_channel = self.discord_channel(bot)
         if discord_channel is None:
             parts.append('na usuniętym kanale')
@@ -243,10 +243,14 @@ class Imaging(commands.Cog):
                             len(embed.fields),
                             'wcześniejsze wystąpienie', 'wcześniejsze wystąpienia', 'wcześniejszych wystąpień'
                         )
-                        embed.title = f'🤖 Wykryłem {occurences_form} na serwerze wysłanego przez {address} obrazka'
+                        embed.title = (
+                            f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego o '
+                            f'{base_image9000.sent_at.strftime("%-H:%M")} przez {address}'
+                        )
                     else:
                         embed = self.bot.generate_embed(
-                            '🤖', f'Nie wykryłem, aby wysłany przez {address} obrazek wystąpił wcześniej na serwerze'
+                            '🤖', f'Nie wykryłem, aby obrazek wysłany o {base_image9000.sent_at.strftime("%-H:%M")} '
+                            f'przez {address} obrazek wystąpił wcześniej na serwerze'
                         )
         else:
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
