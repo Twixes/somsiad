@@ -481,7 +481,8 @@ class Report:
         """Adds the list of top active channels to the report embed."""
         visible_channel_ids = [
             channel_id for channel_id in self.relevant_channel_stats
-            if self.ctx.bot.get_channel(channel_id).permissions_for(self.ctx.author).read_messages and
+            if self.ctx.bot.get_channel(channel_id) and
+            self.ctx.bot.get_channel(channel_id).permissions_for(self.ctx.author).read_messages and
             self.relevant_channel_stats[channel_id]['message_count']
         ]
         visible_channel_ids.sort(

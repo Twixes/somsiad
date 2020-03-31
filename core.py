@@ -282,7 +282,7 @@ class Somsiad(commands.Bot):
             )]
             for extra_embed in embeds[1:]:
                 messages.append(await destination.send(embed=extra_embed, delete_after=delete_after))
-        except discord.Forbidden:
+        except (discord.Forbidden, discord.NotFound):
             if not direct and ctx.guild is not None and 'bot' not in ctx.guild.name.lower():
                 try:
                     await ctx.message.add_reaction('⚠️')
@@ -305,7 +305,7 @@ class Somsiad(commands.Bot):
                     scope.user = {
                         'id': ctx.author.id, 'username': str(ctx.author),
                         'activities': (
-                            ', '.join((activity.name for activity in ctx.author.activities))
+                            ', '.join(filter(None, (activity.name for activity in ctx.author.activities)))
                             if ctx.guild is not None else None
                         )
                     }

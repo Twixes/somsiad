@@ -55,7 +55,7 @@ class Disco(commands.Cog):
     async def channel_connect(channel: discord.VoiceChannel):
         if channel.guild.voice_client is None:
             await channel.connect()
-        elif channel.guild.me.voice.channel != channel:
+        elif channel.guild.voice_client.channel != channel:
             await channel.guild.voice_client.move_to(channel)
 
     @staticmethod
@@ -128,6 +128,7 @@ class Disco(commands.Cog):
                         except discord.NotFound:
                             pass
                     embed = self.generate_embed(channel, video, 'Odtwarzanie', '▶️')
+                    await self.channel_connect(channel)
                     channel.guild.voice_client.play(self.servers[channel.guild.id]['song_audio'], after=after)
                 await message.edit(embed=embed)
         else:
@@ -311,7 +312,10 @@ class Disco(commands.Cog):
                 title=':warning: Nie rozłączono z kanałem głosowym, bo bot nie jest połączony z żadnym!',
                 color=self.bot.COLOR
             )
-        elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
+        elif (
+                (ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel) and
+                len(ctx.me.voice.channel.members) > 1
+        ):
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
                 color=self.bot.COLOR

@@ -125,6 +125,7 @@ class React(commands.Cog):
     ):
         """Converts the provided string to emojis and reacts with them."""
         message = await self._find_message(ctx, member)
+        if message is None: return
         emojis = self._convert_string(characters, message, ctx.guild) if convert else characters
         for emoji in emojis:
             try:
