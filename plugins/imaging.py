@@ -250,7 +250,7 @@ class Imaging(commands.Cog):
                     else:
                         embed = self.bot.generate_embed(
                             '🤖', f'Nie wykryłem, aby obrazek wysłany o {base_image9000.sent_at.strftime("%-H:%M")} '
-                            f'przez {address} obrazek wystąpił wcześniej na serwerze'
+                            f'przez {address} wystąpił wcześniej na serwerze'
                         )
         else:
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
