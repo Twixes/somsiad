@@ -32,14 +32,7 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
     sent_at = data.Column(data.DateTime, nullable=False)
 
     def calculate_similarity_to(self, other) -> float:
-        self_hash_binary = int(self.hash, 16)
-        other_hash_binary = int(other.hash, 16)
-        negated_xor = ~(self_hash_binary ^ other_hash_binary)
-        identical_bits_count = 0
-        for _ in range(self.HASH_SIZE**2):
-            identical_bits_count += negated_xor & 1
-            negated_xor >>= 1
-        return identical_bits_count / self.HASH_SIZE**2
+        return (self.HASH_SIZE**2 - bin(int(self.hash, 16) ^ int(other.hash, 16)).count('1')) / self.HASH_SIZE**2
 
     async def get_presentation(self, bot: commands.Bot, ctx: commands.Context) -> str:
         parts = [self.sent_at.strftime('%-d %B %Y o %-H:%M')]
@@ -131,7 +124,7 @@ class Imaging(commands.Cog):
 
     @staticmethod
     async def extract_image(message: discord.Message) -> ExtractedImage:
-        attachment, filename, image_bytes = None, None, None
+        attachment, image_bytes = None, None
         for i_attachment in message.attachments:
             if i_attachment.height and i_attachment.width:
                 image_bytes_cache = io.BytesIO()
@@ -219,7 +212,7 @@ class Imaging(commands.Cog):
                             Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
                     ):
                         similarity = base_image9000.calculate_similarity_to(other_image9000)
-                        if similarity > 0.9:
+                        if similarity >= 0.7:
                             similar.append((other_image9000, similarity))
                     address = 'ciebie' if sent_by == ctx.author else str(sent_by)
                     if similar:
