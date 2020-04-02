@@ -364,8 +364,8 @@ def calculate_age(birth_date: dt.date, at_date: Optional[dt.date] = None) -> int
     return age
 
 
-def md_link(text: str, url: str) -> str:
-    return f'[{text}]({url})'
+def md_link(text: str, url: Optional[str]) -> str:
+    return f'[{text}]({url})' if url else text
 
 
 def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant') -> np.ndarray:
