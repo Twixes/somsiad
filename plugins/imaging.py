@@ -20,7 +20,7 @@ import discord
 from discord.ext import commands
 from core import cooldown
 import data
-from utilities import word_number_form, utc_to_naive_local
+from utilities import word_number_form, md_link, utc_to_naive_local
 
 
 class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -219,17 +219,21 @@ class Imaging(commands.Cog):
                         embed = self.bot.generate_embed()
                         for image9000, similarity in similar:
                             channel = image9000.discord_channel(self.bot)
-                            if channel is None:
-                                continue
-                            try:
-                                await channel.fetch_message(image9000.message_id)
-                            except discord.NotFound:
-                                continue
+                            message = None
+                            info = ''
+                            if channel is not None:
+                                try:
+                                    message = await channel.fetch_message(image9000.message_id)
+                                except discord.NotFound:
+                                    info = ' (wiadomość usunięta)'
+                            else:
+                                info = ' (kanał usunięty)'
+                            similarity_presentantion = f'{int(round(similarity*100))}% pewności'
                             embed.add_field(
                                 name=await image9000.get_presentation(self.bot, ctx),
-                                value=f'[{int(round(similarity*100))}% pewności]'
-                                f'(https://discordapp.com/channels/{image9000.server_id}/'
-                                f'{image9000.channel_id}/{image9000.message_id})',
+                                value=md_link(
+                                    similarity_presentantion, message.jump_url if message is not None else None
+                                ) + info,
                                 inline=False
                             )
                         occurences_form = word_number_form(
