@@ -76,6 +76,7 @@ class BotOwnerTools(commands.Cog):
 
     @announce.command(aliases=['lokalnie'])
     @commands.guild_only()
+    @commands.is_owner()
     async def announce_locally(self, ctx, *, raw_announcement):
         """Makes an announcement only on the server where the command was invoked."""
         announcement = raw_announcement.replace('\\n','\n').strip(';').split(';')
@@ -93,6 +94,11 @@ class BotOwnerTools(commands.Cog):
             if channel.permissions_for(ctx.me).send_messages:
                 await channel.send(embed=embed)
                 break
+
+    @commands.command(aliases=['wyślij', 'wyslij'])
+    @commands.is_owner()
+    async def send(self, _, channel_id: int, *, content):
+        await self.bot.get_channel(channel_id).send(content)
 
 
 def setup(bot: commands.Bot):
