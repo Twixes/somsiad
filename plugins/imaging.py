@@ -34,29 +34,21 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
     def calculate_similarity_to(self, other) -> float:
         return (self.HASH_SIZE**2 - bin(int(self.hash, 16) ^ int(other.hash, 16)).count('1')) / self.HASH_SIZE**2
 
-    async def get_presentation(self, bot: commands.Bot, ctx: commands.Context) -> str:
+    async def get_presentation(self, bot: commands.Bot) -> str:
         parts = [self.sent_at.strftime('%-d %B %Y o %-H:%M')]
         discord_channel = self.discord_channel(bot)
-        if discord_channel is None:
-            parts.append('na usuniętym kanale')
-        elif discord_channel == ctx.channel:
-            parts.append(f'na tym kanale')
-        else:
-            parts.append(f'na #{discord_channel}')
+        parts.append('na usuniętym kanale' if discord_channel is None else f'na #{discord_channel}')
         discord_user = self.discord_user(bot)
         if discord_user is None:
             discord_user = await bot.fetch_user(self.user_id)
-        if discord_user is None:
-            parts.append('przez usuniętego użytkownika')
-        elif discord_user == ctx.author:
-            parts.append('przez ciebie')
-        else:
-            parts.append(f'przez {discord_user}')
+        parts.append(f'przez {"przez usuniętego użytkownika" if discord_user is None else discord_user}')
         return ' '.join(parts)
 
 
 class Imaging(commands.Cog):
     ExtractedImage = Tuple[Optional[discord.Attachment], Optional[BinaryIO]]
+
+    IMAGE9000_SIMILARITY_TRESHOLD = 0.75
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -212,9 +204,8 @@ class Imaging(commands.Cog):
                             Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
                     ):
                         similarity = base_image9000.calculate_similarity_to(other_image9000)
-                        if similarity >= 0.7:
+                        if similarity >= self.IMAGE9000_SIMILARITY_TRESHOLD:
                             similar.append((other_image9000, similarity))
-                    address = 'ciebie' if sent_by == ctx.author else str(sent_by)
                     if similar:
                         embed = self.bot.generate_embed()
                         for image9000, similarity in similar:
@@ -230,7 +221,7 @@ class Imaging(commands.Cog):
                                 info = ' (kanał usunięty)'
                             similarity_presentantion = f'{int(round(similarity*100))}% pewności'
                             embed.add_field(
-                                name=await image9000.get_presentation(self.bot, ctx),
+                                name=await image9000.get_presentation(self.bot),
                                 value=md_link(
                                     similarity_presentantion, message.jump_url if message is not None else None
                                 ) + info,
@@ -241,12 +232,12 @@ class Imaging(commands.Cog):
                             'wcześniejsze wystąpienie', 'wcześniejsze wystąpienia', 'wcześniejszych wystąpień'
                         )
                         embed.title = (
-                            f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {address} o '
+                            f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {sent_by} o '
                             f'{base_image9000.sent_at.strftime("%-H:%M")}'
                         )
                     else:
                         embed = self.bot.generate_embed(
-                            '🤖', f'Nie wykryłem, aby obrazek wysłany przez {address} '
+                            '🤖', f'Nie wykryłem, aby obrazek wysłany przez {sent_by} '
                             f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze'
                         )
         else:
