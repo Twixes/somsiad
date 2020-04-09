@@ -67,12 +67,9 @@ class BotOwnerTools(commands.Cog):
             if not server.name or 'bot' not in server.name.lower():
                 for channel in server.text_channels:
                     if not channel.is_news():
-                        try:
-                            await channel.send(embed=embed)
-                        except:
-                            continue
-                        else:
-                            break
+                        try: await channel.send(embed=embed)
+                        except: continue
+                        else: break
 
     @announce.command(aliases=['lokalnie'])
     @commands.guild_only()
@@ -97,8 +94,14 @@ class BotOwnerTools(commands.Cog):
 
     @commands.command(aliases=['wyślij', 'wyslij'])
     @commands.is_owner()
-    async def send(self, _, channel_id: int, *, content):
-        await self.bot.get_channel(channel_id).send(content)
+    async def send(self, ctx, channel_id: int, *, content):
+        channel = self.bot.get_channel(channel_id)
+        if channel is not None:
+            await channel.send(content)
+        else:
+            await self.bot.send(ctx, embed=self.bot.generate_embed(
+                '⚠️', f'Nie znaleziono kanału o ID {channel_id}'
+            ))
 
 
 def setup(bot: commands.Bot):
