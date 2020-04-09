@@ -70,6 +70,9 @@ class Help(commands.Cog):
             'Sprawdza znaczenie <wyrażenia> w [Urban Dictionary](https://www.urbandictionary.com).'
         ),
         _Help.Command(
+            'miejski', 'wyrażenie', 'Sprawdza znaczenie <wyrażenia> w [Miejskim](https://miejski.pl).'
+        ),
+        _Help.Command(
             ('wolframalpha', 'wolfram', 'wa', 'kalkulator', 'oblicz', 'policz', 'przelicz', 'konwertuj'),
             ('zapytanie',),
             '[Wolfram Alpha](https://www.wolframalpha.com/) – oblicza, przelicza, podaje najróżniejsze informacje. '
