@@ -54,11 +54,14 @@ class UrbanDictionary(commands.Cog):
                 response = await request.json()
                 if response['list']:
                     result = response['list'][0] # get top definition
-                    definition = self.expand_links(text_snippet(result['definition'], 500))
                     embed = self.bot.generate_embed(
-                        None, result['word'], definition, url=result['permalink'],
+                        None, result['word'], url=result['permalink'],
                         timestamp=dt.datetime.fromisoformat(result['written_on'][:-1])
                     )
+                    definition = self.expand_links(text_snippet(result['definition'], 500))
+                    embed.add_field(name='Definicja', value=definition, inline=False)
+                    example = self.expand_links(text_snippet(result['example'], 500))
+                    embed.add_field(name='Przykład', value=f'*{example}*', inline=False)
                     embed.add_field(name='👍', value=f'{result["thumbs_up"]:n}')
                     embed.add_field(name='👎', value=f'{result["thumbs_down"]:n}')
                 else:
