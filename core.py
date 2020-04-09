@@ -211,9 +211,12 @@ class Somsiad(commands.Bot):
         """Cycle through prefix safe commands in the presence."""
         prefix_safe_command_names = ('prefiks', 'info', 'ping', 'pomocy')
         for command in itertools.cycle(prefix_safe_command_names):
-            await self.change_presence(
-                activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
-            )
+            try:
+                await self.change_presence(
+                    activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
+                )
+            except:
+                pass
             await asyncio.sleep(60)
 
     def generate_embed(
