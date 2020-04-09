@@ -88,6 +88,8 @@ class Burn(commands.Cog):
         ) + '\n*Spalenie zostanie anulowane jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
         confirmation_embed = self.bot.generate_embed('🔥', f'Spalę twoją wiadomość', confirmation_description)
         confirmation_message = await self.bot.send(ctx, embed=confirmation_embed)
+        if confirmation_message is None:
+            return
         try:
             details = {
                 'confirmation_message_id': confirmation_message.id, 'target_message_id': ctx.message.id,

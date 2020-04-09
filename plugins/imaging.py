@@ -16,6 +16,7 @@ import io
 import PIL.Image
 import PIL.ImageEnhance
 import imagehash
+import psycopg2.errors
 import discord
 from discord.ext import commands
 from core import cooldown
@@ -55,6 +56,8 @@ class Imaging(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if not message.attachments or message.guild is None:
+            return
         images9000 = []
         for attachment in message.attachments:
             if attachment.height and attachment.width:
@@ -66,15 +69,18 @@ class Imaging(commands.Cog):
                 else:
                     try:
                         hash_string = self._hash(image_bytes)
-                    except PIL.Image.UnidentifiedImageError:
+                    except:
                         continue
                     images9000.append(Image9000(
                         attachment_id=attachment.id, message_id=message.id, user_id=message.author.id,
                         channel_id=message.channel.id, server_id=message.guild.id, hash=hash_string,
                         sent_at=utc_to_naive_local(message.created_at)
                     ))
-        with data.session(commit=True) as session:
-            session.bulk_save_objects(images9000)
+        try:
+            with data.session(commit=True) as session:
+                session.bulk_save_objects(images9000)
+        except (psycopg2.errors.ForeignKeyViolation, psycopg2.errors.UniqueViolation):
+            pass
 
     @staticmethod
     def _rotate(image_bytes: BinaryIO, times: int):

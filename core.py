@@ -235,7 +235,7 @@ class Somsiad(commands.Bot):
             *, direct: bool = False, embed: Optional[discord.Embed] = None,
             embeds: Optional[Sequence[discord.Embed]] = None, file: Optional[discord.File] = None,
             files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None, mention: bool = True
-    ) -> Union[discord.Message, List[discord.Message]]:
+    ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is not None and embeds:
             raise ValueError('embed and embeds cannot be both passed at the same time')
         embeds = embeds or []
@@ -293,7 +293,9 @@ class Somsiad(commands.Bot):
                     f'Brak mi uprawnień na kanale #{ctx.channel} serwera {ctx.guild}.'
                 )
                 await self.send(ctx, direct=True, embed=error_embed)
-        return messages[0] if len(messages) == 1 else messages
+            return None
+        else:
+            return messages[0] if len(messages) == 1 else messages
 
     def register_error(self, event_method: str, error: Exception, ctx: Optional[commands.Context] = None):
         if configuration['sentry_dsn'] is None:

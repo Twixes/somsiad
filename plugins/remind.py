@@ -88,6 +88,8 @@ class Remind(commands.Cog):
         )
         embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description)
         confirmation_message = await self.bot.send(ctx, embed=embed)
+        if confirmation_message is None:
+            return
         try:
             details = {
                 'confirmation_message_id': confirmation_message.id, 'channel_id': ctx.channel.id, 'content': content,

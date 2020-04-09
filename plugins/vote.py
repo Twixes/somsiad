@@ -127,6 +127,8 @@ class Vote(commands.Cog):
             )
         embed = self.bot.generate_embed('🗳', matter, description)
         urn_message = await self.bot.send(ctx, embed=embed)
+        if urn_message is None:
+            return
         options = ('👍', '👎') if letters is None else tuple(map(self.LETTER_EMOJIS.get, letters))
         for option in options:
             await urn_message.add_reaction(option)

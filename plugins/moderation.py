@@ -15,6 +15,7 @@ from typing import Union, List
 import datetime as dt
 import discord
 from discord.ext import commands
+import psycopg2.errors
 from core import cooldown
 from utilities import word_number_form
 import data
@@ -92,30 +93,42 @@ class Moderation(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         """Adds the joining event to the member's file."""
-        with data.session(commit=True) as session:
-            event = Event(type='joined', server_id=member.guild.id, user_id=member.id)
-            session.add(event)
+        try:
+            with data.session(commit=True) as session:
+                event = Event(type='joined', server_id=member.guild.id, user_id=member.id)
+                session.add(event)
+        except psycopg2.errors.ForeignKeyViolation:
+            pass
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
         """Adds the removal event to the member's file."""
-        with data.session(commit=True) as session:
-            event = Event(type='left', server_id=member.guild.id, user_id=member.id)
-            session.add(event)
+        try:
+            with data.session(commit=True) as session:
+                event = Event(type='left', server_id=member.guild.id, user_id=member.id)
+                session.add(event)
+        except psycopg2.errors.ForeignKeyViolation:
+            pass
 
     @commands.Cog.listener()
     async def on_member_ban(self, server: discord.Guild, user: discord.User):
         """Adds the ban event to the member's file."""
-        with data.session(commit=True) as session:
-            event = Event(type='banned', server_id=server.id, user_id=user.id)
-            session.add(event)
+        try:
+            with data.session(commit=True) as session:
+                event = Event(type='banned', server_id=server.id, user_id=user.id)
+                session.add(event)
+        except psycopg2.errors.ForeignKeyViolation:
+            pass
 
     @commands.Cog.listener()
     async def on_member_unban(self, server: discord.Guild, user: discord.User):
         """Adds the unban event to the member's file."""
-        with data.session(commit=True) as session:
-            event = Event(type='unbanned', server_id=server.id, user_id=user.id)
-            session.add(event)
+        try:
+            with data.session(commit=True) as session:
+                event = Event(type='unbanned', server_id=server.id, user_id=user.id)
+                session.add(event)
+        except psycopg2.errors.ForeignKeyViolation:
+            pass
 
     @commands.command(aliases=['ostrzeż', 'ostrzez'])
     @cooldown()

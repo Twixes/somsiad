@@ -15,6 +15,7 @@ from typing import Optional, Union
 from numbers import Number
 from collections import defaultdict
 from urllib.error import HTTPError
+import asyncio.futures
 import functools
 import os
 import locale
@@ -53,19 +54,30 @@ class Disco(commands.Cog):
 
     @staticmethod
     async def channel_connect(channel: discord.VoiceChannel):
-        if channel.guild.voice_client is None:
-            await channel.connect()
-        elif channel.guild.voice_client.channel != channel:
-            await channel.guild.voice_client.move_to(channel)
+        for _ in range(3):
+            try:
+                if channel.guild.voice_client is None:
+                    await channel.connect()
+                elif channel.guild.voice_client.channel != channel:
+                    await channel.guild.voice_client.move_to(channel)
+            except asyncio.futures.TimeoutError:
+                continue
+            else:
+                break
 
     @staticmethod
     async def server_disconnect(server: discord.Guild) -> Optional[discord.VoiceChannel]:
         if server.me.voice is None:
             return None
-        else:
-            channel = server.me.voice.channel
-            await server.voice_client.disconnect()
-            return channel
+        channel = server.me.voice.channel
+        for _ in range(3):
+            try:
+                await server.voice_client.disconnect()
+            except asyncio.futures.TimeoutError:
+                continue
+            else:
+                break
+        return channel
 
     async def channel_play_song(self, ctx: commands.Context, query: str):
         channel = ctx.author.voice.channel

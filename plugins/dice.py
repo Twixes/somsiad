@@ -22,10 +22,10 @@ class Dice(commands.Cog):
 
     @commands.command(aliases=['roll', 'rzuć', 'rzuc'])
     @cooldown()
-    async def roll_dice(self, ctx, arguments=''):
+    async def roll_dice(self, ctx, *, arguments=''):
         number_of_dice = 1
         number_of_sides_on_a_die = 6
-        parts = arguments.lower().replace('k', 'd').split()
+        parts = arguments.lower().replace('-', '').replace('k', 'd').split()
         try:
             if len(parts) == 1:
                 argument = parts[0]
@@ -37,21 +37,22 @@ class Dice(commands.Cog):
                 else:
                     # handle the argument if only either number_of_dice or number_of_sides_on_a_die were given
                     if argument.startswith('d'):
-                        number_of_sides_on_a_die = abs(int(argument.lstrip('d')))
+                        number_of_sides_on_a_die = int(argument.lstrip('d'))
                     else:
-                        number_of_dice = abs(int(argument))
+                        number_of_dice = int(argument)
             elif len(parts) >= 2:
                 # handle the arguments if there's 2 or more of them
                 if parts[0].startswith('d'):
-                    number_of_dice = abs(int(parts[1]))
-                    number_of_sides_on_a_die = abs(int(parts[0].lstrip('d')))
+                    number_of_dice = int(parts[1])
+                    number_of_sides_on_a_die = int(parts[0].lstrip('d'))
                 else:
-                    number_of_dice = abs(int(parts[0]))
-                    number_of_sides_on_a_die = abs(int(parts[1].lstrip('d')))
+                    number_of_dice = int(parts[0])
+                    number_of_sides_on_a_die = int(parts[1].lstrip('d'))
         except ValueError:
             raise commands.BadArgument
-
-        if number_of_sides_on_a_die > 1:
+        if number_of_dice == 0:
+            embed = self.bot.generate_embed('🎲', 'Nie rzucono kością')
+        elif number_of_sides_on_a_die > 1:
             # limit the number of dice to 100 or less
             number_of_dice = min(number_of_dice, 100)
             # limit the number of sides on a die to 100 million or less
@@ -79,7 +80,6 @@ class Dice(commands.Cog):
         else:
             embed = self.bot.generate_embed('⚠️', f'{number_of_sides_on_a_die}-ścienna kość nie ma sensu')
         await self.bot.send(ctx, embed=embed)
-
 
     @roll_dice.error
     async def roll_dice_error(self, ctx, error):
