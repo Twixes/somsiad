@@ -34,17 +34,16 @@ class Miejski(commands.Cog):
         async with self.bot.session.get(url) as request:
             if request.status == 200:
                 soup = BeautifulSoup(await request.text(), features='html.parser')
-                result = soup.find(id='words').ol.li # get top definition
-                for info in result(class_='info', ):
-                    if info.string is not None and info.string.startswith('Data dodania'):
-                        timestamp = dt.datetime.strptime(info.string.replace('Data dodania: ', ''), '%Y-%m-%d')
-                        break
+                result = soup.article # get top definition
+                timestamp = dt.datetime.strptime(
+                    result.find(class_='published-date').string.replace('Data dodania: ', ''), '%Y-%m-%d'
+                )
                 embed = self.bot.generate_embed(
                     None, result.h1.string, url=f'{url}#{result["id"]}', timestamp=timestamp
                 )
-                definition = result.find(class_='definition').get_text().strip()
+                definition = result.p.get_text().strip()
                 embed.add_field(name='Definicja', value=definition, inline=False)
-                example = result.find(class_='example').get_text().strip()
+                example = result.blockquote.get_text().strip()
                 embed.add_field(name='Przykład', value=f'*{example}*', inline=False)
                 rating = int(result.find(class_='rating').string)
                 embed.add_field(name='👍👎', value=f'{rating:n}')
