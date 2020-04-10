@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Optional
 import discord
 from discord.ext import commands
 
@@ -92,16 +93,18 @@ class BotOwnerTools(commands.Cog):
                 await channel.send(embed=embed)
                 break
 
-    @commands.command(aliases=['wyślij', 'wyslij'])
+    @commands.command(aliases=['wyślij', 'wyslij', 'sudo'])
     @commands.is_owner()
-    async def send(self, ctx, channel_id: int, *, content):
-        channel = self.bot.get_channel(channel_id)
+    async def send(self, ctx, channel_id: Optional[int] = None, *, content):
+        if channel_id is None:
+            channel = ctx.channel
+            await ctx.message.delete()
+        else:
+            channel = self.bot.get_channel(channel_id)
         if channel is not None:
             await channel.send(content)
         else:
-            await self.bot.send(ctx, embed=self.bot.generate_embed(
-                '⚠️', f'Nie znaleziono kanału o ID {channel_id}'
-            ))
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', f'Nie znaleziono kanału o ID {channel_id}'))
 
 
 def setup(bot: commands.Bot):
