@@ -41,10 +41,11 @@ class Miejski(commands.Cog):
                 embed = self.bot.generate_embed(
                     None, result.h1.string, url=f'{url}#{result["id"]}', timestamp=timestamp
                 )
-                definition = result.p.get_text().strip()
-                embed.add_field(name='Definicja', value=definition, inline=False)
-                example = result.blockquote.get_text().strip()
-                embed.add_field(name='Przykład', value=f'*{example}*', inline=False)
+                definition = result.p
+                embed.add_field(name='Definicja', value=definition.get_text().strip(), inline=False)
+                example = result.blockquote
+                if example is not None:
+                    embed.add_field(name='Przykład', value=f'*{example.get_text().strip()}*', inline=False)
                 rating = int(result.find(class_='rating').string)
                 embed.add_field(name='👍👎', value=f'{rating:n}')
             elif request.status == 404:
