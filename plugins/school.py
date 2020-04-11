@@ -124,6 +124,11 @@ class School(commands.Cog):
                 embed = self.bot.generate_embed('🖋', 'Dziś rozpoczęcie matur')
             elif current_school_period.days_passed == 0:
                 embed = self.bot.generate_embed('⛓', 'Dziś rozpoczęcie roku szkolnego')
+            elif current_school_period.end_date.year == 2020:
+                embed = self.bot.generate_embed(
+                    '❓', f'Nie wiadomo kiedy odbędą się matury', 'Może w czerwcu. A może nie.'
+                )
+                embed.add_field(name='Postęp', value='?')
             else:
                 embed = self.bot.generate_embed(
                     '🎓', f'Do rozpoczęcia matur {left_form} {day_form}',
@@ -141,7 +146,12 @@ class School(commands.Cog):
         embed.add_field(
             name='Data rozpoczęcia roku szkolnego', value=current_school_period.start_date.strftime('%-d %B %Y')
         )
-        embed.add_field(name='Data rozpoczęcia matur', value=current_school_period.end_date.strftime('%-d %B %Y'))
+        embed.add_field(
+            name='Data rozpoczęcia matur',
+            value='?' if current_school_period.end_date.year == 2020 else current_school_period.end_date.strftime(
+                '%-d %B %Y'
+            )
+        )
         await self.bot.send(ctx, embed=embed)
 
 
