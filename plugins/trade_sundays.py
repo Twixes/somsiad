@@ -264,7 +264,7 @@ class TradeSundays(commands.Cog):
                 notice = f'Najbliższa niedziela, {nearest_sunday_date.strftime("%-d %B")}, będzie handlowa'
         else:
             emoji = '🚫'
-            description = f'Następna niedziela handlowa będzie {nearest_trade_sunday_date.strftime("%-d %B")}.'
+            description = f'Następna niedziela handlowa to {nearest_trade_sunday_date.strftime("%-d %B")}.'
             if dt.date.today() == nearest_sunday_date:
                 notice = 'Dzisiejsza niedziela nie jest handlowa'
             else:
