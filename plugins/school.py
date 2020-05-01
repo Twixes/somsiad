@@ -56,11 +56,14 @@ class SchoolPeriod:
 
     def _find_end_date(self, end_year: int) -> dt.date:
         if self.matura:
-            day = 4
-            date = dt.date(year=end_year, month=5, day=day)
-            while date.isoweekday() > 5:
-                day += 1
+            if end_year == 2020:
+                date = dt.date(year=2020, month=6, day=8)
+            else:
+                day = 4
                 date = dt.date(year=end_year, month=5, day=day)
+                while date.isoweekday() > 5:
+                    day += 1
+                    date = dt.date(year=end_year, month=5, day=day)
         else:
             day = 21
             date = dt.date(year=end_year, month=6, day=day)
@@ -124,11 +127,6 @@ class School(commands.Cog):
                 embed = self.bot.generate_embed('🖋', 'Dziś rozpoczęcie matur')
             elif current_school_period.days_passed == 0:
                 embed = self.bot.generate_embed('⛓', 'Dziś rozpoczęcie roku szkolnego')
-            elif current_school_period.end_date.year == 2020:
-                embed = self.bot.generate_embed(
-                    '❓', f'Nie wiadomo kiedy odbędą się matury', 'Może w czerwcu. A może nie.'
-                )
-                embed.add_field(name='Postęp', value='?')
             else:
                 embed = self.bot.generate_embed(
                     '🎓', f'Do rozpoczęcia matur {left_form} {day_form}',
@@ -148,9 +146,7 @@ class School(commands.Cog):
         )
         embed.add_field(
             name='Data rozpoczęcia matur',
-            value='?' if current_school_period.end_date.year == 2020 else current_school_period.end_date.strftime(
-                '%-d %B %Y'
-            )
+            value=current_school_period.end_date.strftime('%-d %B %Y')
         )
         await self.bot.send(ctx, embed=embed)
 
