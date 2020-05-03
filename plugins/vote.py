@@ -80,11 +80,13 @@ class Vote(commands.Cog):
             urn_embed = self.bot.generate_embed(winning_emoji, matter)
             results_embed = self.bot.generate_embed(winning_emoji, matter, results_description)
             positions = ('Za', 'Przeciw') if letters is None else (f'Opcja {letter}' for letter in letters)
+            total_count = sum(results.values()) or 1 # guard against zero-division
             for position, emoji in zip(positions, emojis):
+                this_count = results[emoji]
+                this_percentage = this_count / total_count * 100
+                count_presentation = f'{this_count:n} ({round(this_percentage):n}%)'
                 if emoji in winning_emojis and winning_count > 0:
-                    count_presentation = f'**{results[emoji]}**'
-                else:
-                    count_presentation = results[emoji]
+                    count_presentation = f'**{count_presentation}**'
                 urn_embed.add_field(name=position, value=count_presentation)
                 results_embed.add_field(name=position, value=count_presentation)
             results_message = await channel.send(f'<@{user_id}>', embed=results_embed)
@@ -114,9 +116,6 @@ class Vote(commands.Cog):
         if len(matter) > Ballot.MAX_MATTER_LENGTH:
             raise commands.BadArgument
         letters = ''.join({match[0]: None for match in self.LETTER_REGEX.findall(matter)})
-        #''.join([
-        #    letter for letter in self.LETTER_EMOJIS if f'{letter}.' in matter or f'{letter}:' in matter
-        #])
         if len(letters) < 2:
             letters = None
         description = 'Zagłosuj w tej sprawie przy użyciu reakcji.'
