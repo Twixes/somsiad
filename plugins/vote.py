@@ -58,7 +58,7 @@ class Vote(commands.Cog):
         channel = self.bot.get_channel(channel_id)
         try:
             urn_message = await channel.fetch_message(urn_message_id)
-        except discord.NotFound:
+        except (AttributeError, discord.NotFound):
             pass
         else:
             emojis = ('👍', '👎') if letters is None else tuple(map(self.LETTER_EMOJIS.get, letters))

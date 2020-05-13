@@ -156,6 +156,8 @@ class Birthday(commands.Cog):
         random.shuffle(wishes)
         for birthday_today, wish in zip(birthday_notifier.birthdays_today(), itertools.cycle(wishes)):
             channel = birthday_notifier.discord_channel(self.bot)
+            if channel is None:
+                return
             key = f'{channel.guild.id}-{dt.date.today()}'
             if (
                     channel.guild.get_member(birthday_today.user_id) is None or

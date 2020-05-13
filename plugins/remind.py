@@ -48,7 +48,7 @@ class Remind(commands.Cog):
         channel = self.bot.get_channel(channel_id)
         try:
             confirmation_message = await channel.fetch_message(confirmation_message_id)
-        except discord.NotFound:
+        except (AttributeError, discord.NotFound):
             pass
         else:
             reminder_description = md_link(

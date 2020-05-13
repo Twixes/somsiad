@@ -47,7 +47,7 @@ class Burn(commands.Cog):
         try:
             target_message = await channel.fetch_message(target_message_id)
             confirmation_message = await channel.fetch_message(confirmation_message_id)
-        except discord.NotFound:
+        except (AttributeError, discord.NotFound):
             pass
         else:
             try:
