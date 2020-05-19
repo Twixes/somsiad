@@ -13,6 +13,7 @@
 
 from typing import BinaryIO, Optional, Tuple
 import io
+import time
 import PIL.Image
 import PIL.ImageEnhance
 import imagehash
@@ -205,10 +206,13 @@ class Imaging(commands.Cog):
                 if base_image9000 is None:
                     embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
                 else:
+                    init_time = time.time()
+                    comparison_count = 0
                     sent_by = ctx.guild.get_member(base_image9000.user_id)
                     for other_image9000 in session.query(Image9000).filter(
                             Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
                     ):
+                        comparison_count += 1
                         similarity = base_image9000.calculate_similarity_to(other_image9000)
                         if similarity >= self.IMAGE9000_SIMILARITY_TRESHOLD:
                             similar.append((other_image9000, similarity))
@@ -246,6 +250,13 @@ class Imaging(commands.Cog):
                             '🤖', f'Nie wykryłem, aby obrazek wysłany przez {sent_by} '
                             f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze'
                         )
+                    comparison_time = time.time() - init_time
+                    seen_image_form = word_number_form(
+                        comparison_count, 'obrazek zobaczony', 'obrazki zobaczone', 'obrazków zobaczonych'
+                    )
+                    embed.set_footer(
+                        text=f'Przejrzano {seen_image_form} do tej pory na serwerze w {round(comparison_time, 2):n} s.'
+                    )
         else:
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
         await self.bot.send(ctx, embed=embed)
