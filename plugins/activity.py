@@ -55,6 +55,7 @@ class Report:
     class Type(enum.Enum):
         SERVER = enum.auto()
         CHANNEL = enum.auto()
+        CATEGORY = enum.auto()
         MEMBER = enum.auto()
         USER = enum.auto()
         DELETED_USER = enum.auto()
@@ -137,24 +138,31 @@ class Report:
                 if channel.permissions_for(self.ctx.me).read_messages and
                 (not isinstance(self.subject, discord.Member) or channel.permissions_for(self.subject).read_messages)
             ]
-            existent_channel_ids = [channel.id for channel in existent_channels]
             # process subject type
             if self.type == self.Type.SERVER:
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.channel_id.in_(existent_channel_ids)
+                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels])
                 )
             elif self.type == self.Type.CHANNEL:
                 await self._update_metadata_cache(self.subject, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
                     MessageMetadata.channel_id == self.subject_id
                 )
+            if self.type == self.Type.CATEGORY:
+                existent_channels = [channel for channel in self.subject.channels if channel in existent_channels]
+                for channel in existent_channels:
+                    await self._update_metadata_cache(channel, session)
+                relevant_message_metadata = session.query(MessageMetadata).filter(
+                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels])
+                )
             elif self.type in (self.Type.MEMBER, self.Type.USER, self.Type.DELETED_USER):
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.user_id == self.subject_id, MessageMetadata.channel_id.in_(existent_channel_ids)
+                    MessageMetadata.user_id == self.subject_id,
+                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels])
                 )
             since_datetime = None
             if self.last_days:
@@ -209,6 +217,9 @@ class Report:
             if self.type == self.Type.SERVER:
                 title += f' na serwerze {self.subject}'
                 subject_identification = f'server-{self.subject_id}'
+            elif self.type == self.Type.CATEGORY:
+                title += f' w kategorii {self.subject}'
+                subject_identification = f'server-{self.ctx.guild.id}-category-{self.subject_id}'
             else:
                 subject_identification = f'server-{self.ctx.guild.id}-user-{self.subject_id}'
                 if self.type in (self.Type.MEMBER, self.Type.USER):
@@ -271,6 +282,13 @@ class Report:
             if not self.subject.permissions_for(self.ctx.author).read_messages:
                 raise commands.BadArgument
             self._generate_relevant_embed = self._generate_channel_embed
+            timeframe_start_date_utc = self.subject.created_at
+        elif isinstance(self.subject, discord.CategoryChannel):
+            self.type = self.Type.CATEGORY
+            # raise an exception if the requesting user doesn't have access to the channel
+            if not self.subject.permissions_for(self.ctx.author).read_messages:
+                raise commands.BadArgument
+            self._generate_relevant_embed = self._generate_category_embed
             timeframe_start_date_utc = self.subject.created_at
         elif isinstance(self.subject, discord.Member):
             self.type = self.Type.MEMBER
@@ -407,6 +425,28 @@ class Report:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name)
         self.embed.add_field(name='Członków', value=f'{len(self.subject.members):n}')
         self._embed_general_message_stats()
+        self._embed_top_active_user_stats()
+
+    def _generate_category_embed(self):
+        """Analyzes the subject as a category."""
+        self.embed = self.ctx.bot.generate_embed(
+            '📈', f'Przygotowano raport o kategorii {self.subject}', self.description
+        )
+        self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
+        if self.total_message_count:
+            earliest = self.earliest_relevant_message
+            self.embed.add_field(
+                name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
+                value=md_link(
+                    human_datetime(earliest.datetime),
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                ),
+                inline=False
+            )
+        self.embed.add_field(name='Kanałów tekstowych', value=f'{len(self.subject.text_channels):n}')
+        self.embed.add_field(name='Kanałów głosowych', value=f'{len(self.subject.voice_channels):n}')
+        self._embed_general_message_stats()
+        self._embed_top_visible_channel_stats()
         self._embed_top_active_user_stats()
 
     def _generate_member_embed(self):
@@ -723,13 +763,18 @@ class Report:
 class Activity(commands.Cog):
     GROUP = Help.Command(
         'stat', (), 'Komendy związane ze statystykami serwerowymi. '
-        'Użyj <?użytkownika/kanału> zamiast <?podkomendy>, by otrzymać raport statystyczny.'
+        'Użyj <?użytkownika/kanału/kategorii> zamiast <?podkomendy>, by otrzymać raport statystyczny.'
     )
     COMMANDS = (
         Help.Command('serwer', (), 'Wysyła raport o serwerze.'),
         Help.Command(
             ('kanał', 'kanal'), '?kanał',
             'Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.'
+        ),
+        Help.Command(
+            'kategoria', '?kategoria',
+            'Wysyła raport o kategorii. Jeśli nie podano kategorii, przyjmuje kategorię do której należy kanał, '
+            'na którym użyto komendy.'
         ),
         Help.Command(
             ('użytkownik', 'uzytkownik', 'user'), '?użytkownik',
@@ -741,10 +786,14 @@ class Activity(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.group(aliases=['activity', 'aktywność', 'aktywnosc'], invoke_without_command=True, case_insensitive=True)
+    @commands.group(
+        aliases=['staty', 'stats', 'activity', 'aktywność', 'aktywnosc'], invoke_without_command=True,
+        case_insensitive=True
+    )
     @cooldown()
     async def stat(
-            self, ctx, subject: Union[discord.TextChannel, discord.Member, discord.User, int] = None,
+            self, ctx,
+            subject: Union[discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, int] = None,
             last_days: int = None
     ):
         if subject is None:
@@ -758,7 +807,7 @@ class Activity(commands.Cog):
     async def stat_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
             await self.bot.send(ctx, embed=self.bot.generate_embed(
-                '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika ani kanału'
+                '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika, kanału ani kategorii'
             ))
 
     @stat.command(aliases=['server', 'serwer'])
@@ -783,6 +832,23 @@ class Activity(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await self.bot.send(
                 ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
+            )
+
+    @stat.command(aliases=['category', 'kategoria'])
+    @cooldown()
+    @commands.guild_only()
+    async def stat_category(self, ctx, category: discord.CategoryChannel = None, last_days: int = None):
+        if category is None and ctx.channel.category_id is None:
+            raise commands.BadArgument
+        async with ctx.typing():
+            report = Report(ctx, category or self.bot.get_channel(ctx.channel.category_id), last_days=last_days)
+            await report.enqueue()
+
+    @stat_category.error
+    async def stat_category_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await self.bot.send(
+                ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującej kategorii')
             )
 
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
