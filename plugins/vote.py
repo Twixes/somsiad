@@ -129,9 +129,9 @@ class Vote(commands.Cog):
         if urn_message is None:
             return
         options = ('👍', '👎') if letters is None else tuple(map(self.LETTER_EMOJIS.get, letters))
-        for option in options:
-            await urn_message.add_reaction(option)
         try:
+            for option in options:
+                await urn_message.add_reaction(option)
             details = {
                 'urn_message_id': urn_message.id, 'channel_id': ctx.channel.id, 'matter': matter, 'letters': letters,
                 'user_id': ctx.author.id, 'commenced_at': utc_to_naive_local(ctx.message.created_at),
@@ -142,6 +142,9 @@ class Vote(commands.Cog):
                     reminder = Ballot(**details)
                     session.add(reminder)
                     self.bot.loop.create_task(self.set_off_ballot(**details))
+        except discord.Forbidden:
+            await urn_message.delete()
+            embed = self.bot.generate_embed('⚠️', 'Bot nie ma uprawnień do dodawania reakcji')
         except:
             await urn_message.delete()
             raise
