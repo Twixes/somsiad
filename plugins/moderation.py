@@ -17,15 +17,17 @@ import discord
 from discord.ext import commands
 import psycopg2.errors
 from core import cooldown
-from utilities import word_number_form
+from utilities import word_number_form, text_snippet
 import data
 
 
 class Event(data.Base, data.MemberRelated, data.ChannelRelated):
+    MAX_DETAILS_LENGTH = 1000
+
     id = data.Column(data.BigInteger, primary_key=True)
     type = data.Column(data.String(50), nullable=False)
     executing_user_id = data.Column(data.BigInteger, index=True)
-    details = data.Column(data.String(2000))
+    details = data.Column(data.String(MAX_DETAILS_LENGTH))
     occurred_at = data.Column(data.DateTime, nullable=False, default=dt.datetime.now)
 
     async def get_presentation(self, bot: commands.Bot) -> str:
@@ -136,6 +138,10 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def warn(self, ctx, subject_user: discord.Member, *, reason):
         """Warns the specified member."""
+        if reason and len(reason) > Event.MAX_DETAILS_LENGTH:
+            return await self.bot.send(
+                ctx, embed=self.bot.generate_embed('⚠️', f'Powód musi zawierać się w 1000 znaków lub mniej.')
+            )
         with data.session(commit=True) as session:
             warning_count_query = session.query(Event).filter(
                 Event.server_id == ctx.guild.id, Event.user_id == subject_user.id, Event.type == 'warned'
@@ -146,7 +152,7 @@ class Moderation(commands.Cog):
                 executing_user_id=ctx.author.id, details=reason
             )
             session.add(event)
-        await self.bot.send(
+        return await self.bot.send(
             ctx, embed=self.bot.generate_embed('✅', f'Ostrzeżono {subject_user} po raz {warning_count}.')
         )
 
@@ -170,10 +176,16 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, subject_user: discord.Member, *, reason):
         """Kicks the specified member."""
+        if reason and len(reason) > Event.MAX_DETAILS_LENGTH:
+            return await self.bot.send(
+                ctx, embed=self.bot.generate_embed('⚠️', f'Powód musi zawierać się w 1000 znaków lub mniej.')
+            )
         try:
             await subject_user.kick(reason=reason)
         except discord.Forbidden:
-            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Bot nie może wyrzucić tego użytkownika'))
+            return await self.bot.send(
+                ctx, embed=self.bot.generate_embed('⚠️', 'Bot nie może wyrzucić tego użytkownika')
+            )
         else:
             with data.session(commit=True) as session:
                 event = Event(
@@ -181,7 +193,7 @@ class Moderation(commands.Cog):
                     executing_user_id=ctx.author.id, details=reason
                 )
                 session.add(event)
-            await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Wyrzucono {subject_user}'))
+            return await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Wyrzucono {subject_user}'))
 
     @kick.error
     async def kick_error(self, ctx, error):
@@ -203,10 +215,16 @@ class Moderation(commands.Cog):
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, subject_user: discord.Member, *, reason):
         """Bans the specified member."""
+        if reason and len(reason) > Event.MAX_DETAILS_LENGTH:
+            return await self.bot.send(
+                ctx, embed=self.bot.generate_embed('⚠️', f'Powód musi zawierać się w 1000 znaków lub mniej.')
+            )
         try:
             await subject_user.ban(reason=reason)
         except discord.Forbidden:
-            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Bot nie może zbanować tego użytkownika'))
+            return await self.bot.send(
+                ctx, embed=self.bot.generate_embed('⚠️', 'Bot nie może zbanować tego użytkownika')
+            )
         else:
             with data.session(commit=True) as session:
                 event = Event(
@@ -214,7 +232,7 @@ class Moderation(commands.Cog):
                     executing_user_id=ctx.author.id, details=reason
                 )
                 session.add(event)
-            await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Zbanowano {subject_user}'))
+            return await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Zbanowano {subject_user}'))
 
     @ban.error
     async def ban_error(self, ctx, error):
@@ -311,7 +329,7 @@ class Moderation(commands.Cog):
             for event in events[-25:]:
                 embed.add_field(
                     name=await event.get_presentation(self.bot),
-                    value=event.details if event.details is not None else '—',
+                    value=text_snippet(event.details, Event.MAX_DETAILS_LENGTH) if event.details is not None else '—',
                     inline=False
                 )
         else:
