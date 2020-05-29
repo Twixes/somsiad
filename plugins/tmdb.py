@@ -124,7 +124,8 @@ class TMDb(commands.Cog):
             embed.add_field(name='Tytuł oryginalny', value=result['original_title'], inline=False)
         embed.add_field(name='Średnia ocen', value=f'{result["vote_average"]:n} / 10')
         embed.add_field(name='Głosów', value=f'{result["vote_count"]:n}')
-        embed.add_field(name='Data premiery', value=release_date.strftime('%-d %B %Y'))
+        if release_date is not None:
+            embed.add_field(name='Data premiery', value=release_date.strftime('%-d %B %Y'))
         if result['runtime']:
             embed.add_field(name='Długość', value=human_amount_of_time(result['runtime'] * 60))
         if result['budget']:
@@ -159,10 +160,11 @@ class TMDb(commands.Cog):
             embed.add_field(name='Tytuł oryginalny', value=result['original_name'], inline=False)
         embed.add_field(name='Średnia ocen', value=f'{result["vote_average"]:n} / 10')
         embed.add_field(name='Głosów', value=f'{result["vote_count"]:n}')
-        embed.add_field(
-            name='Data premiery pierwszego odcinka', value=first_air_date.strftime('%-d %B %Y'), inline=False
-        )
-        if last_air_date != first_air_date:
+        if first_air_date is not None:
+            embed.add_field(
+                name='Data premiery pierwszego odcinka', value=first_air_date.strftime('%-d %B %Y'), inline=False
+            )
+        if last_air_date is not None and last_air_date != first_air_date:
             embed.add_field(
                 name=f'Data premiery ostatniego odcinka', value=last_air_date.strftime('%-d %B %Y'), inline=False
             )
