@@ -541,7 +541,11 @@ class Prefix(commands.Cog):
     @cooldown()
     async def check(self, ctx):
         """Presents the current command prefix."""
-        if not self.bot.prefixes.get(ctx.guild.id):
+        if not ctx.guild:
+            extra_prefixes = ('', configuration['command_prefix'])
+            extra_prefixes_presentation = f'brak lub domyślna `{configuration["command_prefix"]}`'
+            notice = 'W wiadomościach prywatnych prefiks jest zbędny (choć obowiązuje też domyślny)'
+        elif not self.bot.prefixes.get(ctx.guild.id):
             extra_prefixes = (configuration['command_prefix'],)
             extra_prefixes_presentation = f'domyślna `{configuration["command_prefix"]}`'
             notice = 'Obowiązuje domyślny prefiks'
@@ -561,10 +565,11 @@ class Prefix(commands.Cog):
             name='Wartość' if len(extra_prefixes) == 1 else 'Wartości', value=extra_prefixes_presentation, inline=False
         )
         embed.add_field(
-            name='Przykłady wywołań',
-            value=f'`{random.choice(extra_prefixes)}wersja` lub `{random.choice(extra_prefixes)} oof` '
-            f'lub `{ctx.me} urodziny`',
-            inline=False
+            name='Przykłady wywołań', value=(
+            f'`{random.choice(extra_prefixes)}wersja` lub `{random.choice(extra_prefixes)} oof` lub `{ctx.me} urodziny`'
+            if ctx.guild else
+            f'`wersja` lub `{configuration["command_prefix"]} oof` lub `{ctx.me} urodziny`'
+            ), inline=False
         )
         await self.bot.send(ctx, embed=embed)
 
