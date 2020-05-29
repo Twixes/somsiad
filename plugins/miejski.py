@@ -25,7 +25,7 @@ class Miejski(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(enabled=False)
     @cooldown()
     async def miejski(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
