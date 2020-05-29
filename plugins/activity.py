@@ -569,11 +569,11 @@ class Report:
     def _embed_analysis_metastats(self):
         """Adds information about analysis time as the report embed's footer."""
         completion_timedelta = dt.datetime.now() - self.init_datetime
-        completion_seconds = round(completion_timedelta.total_seconds(), 1)
+        completion_seconds = round(completion_timedelta.total_seconds(), 2)
         new_messages_form = word_number_form(self.messages_cached, "nowej wiadomości", "nowych wiadomości")
         if not self.initiated_queue_processing:
             queue_timedelta = self.out_of_queue_datetime - self.init_datetime
-            queue_seconds = round(queue_timedelta.total_seconds(), 1)
+            queue_seconds = round(queue_timedelta.total_seconds(), 2)
             footer_text = (
                 f'Wygenerowano w {completion_seconds:n} s (z czego {queue_seconds:n} s w serwerowej kolejce analizy) '
                 f'buforując metadane {new_messages_form}'
