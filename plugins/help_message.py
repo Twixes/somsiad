@@ -70,9 +70,6 @@ class Help(commands.Cog):
             'Sprawdza znaczenie <wyrażenia> w [Urban Dictionary](https://www.urbandictionary.com).'
         ),
         _Help.Command(
-            'miejski', 'wyrażenie', 'Sprawdza znaczenie <wyrażenia> w [Miejskim](https://miejski.pl).'
-        ),
-        _Help.Command(
             ('wolframalpha', 'wolfram', 'wa', 'kalkulator', 'oblicz', 'policz', 'przelicz', 'konwertuj'),
             ('zapytanie',),
             '[Wolfram Alpha](https://www.wolframalpha.com/) – oblicza, przelicza, podaje najróżniejsze informacje. '
@@ -93,9 +90,9 @@ class Help(commands.Cog):
             'Komendy związane z odtwarzaniem muzyki. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
         ),
         _Help.Command(
-            'stat', '?użytkownik/kanał/podkomenda',
+            'stat', '?użytkownik/kanał/kategoria/podkomenda',
             'Komendy związane ze statystykami serwerowymi. '
-            'Użyj bez <?użytkownika/kanału/podkomendy>, by dowiedzieć się więcej.',
+            'Użyj bez <?użytkownika/kanału/kategorii/podkomendy>, by dowiedzieć się więcej.',
         ),
         _Help.Command(
             'urodziny', '?podkomenda/użytkownik',
