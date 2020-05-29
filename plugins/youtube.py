@@ -13,6 +13,7 @@
 
 from discord.ext import commands
 from core import cooldown
+from utilities import HttpError
 
 
 class YouTube(commands.Cog):
@@ -27,14 +28,24 @@ class YouTube(commands.Cog):
         if query is None:
             result_url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
         else:
-            result = await self.bot.youtube_client.search(query)
-            result_url = result.url if result is not None else None
+            try:
+                result = await self.bot.youtube_client.search(query)
+            except HttpError as e:
+                if e.resp.status == 403:
+                    embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
+                    embed.set_footer(
+                        icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT
+                    )
+                    return await self.bot.send(ctx, embed=embed)
+                raise e
+            else:
+                result_url = result.url if result is not None else None
         if result_url is not None:
-            await self.bot.send(ctx, result_url)
+            return await self.bot.send(ctx, result_url)
         else:
             embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
             embed.set_footer(icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT)
-            await self.bot.send(ctx, embed=embed)
+            return await self.bot.send(ctx, embed=embed)
 
 
 def setup(bot: commands.Bot):

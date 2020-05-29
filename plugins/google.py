@@ -14,6 +14,7 @@
 from discord.ext import commands
 from googleapiclient.errors import HttpError
 from core import cooldown
+from utilities import HttpError
 
 
 class Google(commands.Cog):
@@ -30,11 +31,14 @@ class Google(commands.Cog):
         """Returns first matching website from Google using the provided Custom Search Engine."""
         try:
             result = await self.bot.google_client.search(query)
-        except HttpError:
-            embed = self.bot.generate_embed(
-                '⚠️', 'Nie udało się połączyć z serwerem wyszukiwania',
-                'Możliwe, że wyczerpał się dzienny limit wyszukiwań.'
-            )
+        except HttpError as e:
+            if e.resp.status == 403:
+                embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
+                embed.set_footer(
+                    icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT
+                )
+                return await self.bot.send(ctx, embed=embed)
+            raise e
         else:
             if result is None:
                 embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
@@ -53,11 +57,14 @@ class Google(commands.Cog):
         """Returns first matching image from Google using the provided Custom Search Engine."""
         try:
             result = await self.bot.google_client.search(query, search_type='image')
-        except HttpError:
-            embed = self.bot.generate_embed(
-                '⚠️', 'Nie udało się połączyć z serwerem wyszukiwania',
-                'Możliwe, że wyczerpał się dzienny limit wyszukiwań.'
-            )
+        except HttpError as e:
+            if e.resp.status == 403:
+                embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
+                embed.set_footer(
+                    icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT
+                )
+                return await self.bot.send(ctx, embed=embed)
+            raise e
         else:
             if result is None:
                 embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')

@@ -21,6 +21,7 @@ import re
 import datetime as dt
 import numpy as np
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 
 @dataclass
