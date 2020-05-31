@@ -506,7 +506,7 @@ class Essentials(commands.Cog):
     async def shutdown_error(self, ctx, error):
         """HAL 9000"""
         if isinstance(error, commands.NotOwner):
-            embed = self.bot.generate_embed('🔴', "I'm sorry, Dave, I'm afraid I can't do that")
+            embed = self.bot.generate_embed('🔴', f"I'm sorry, {ctx.author.display_name}, I'm afraid I can't do that")
             return await self.bot.send(ctx, embed=embed)
         raise error
 
