@@ -498,9 +498,17 @@ class Essentials(commands.Cog):
     @commands.is_owner()
     async def shutdown(self, ctx):
         """Shuts down the bot."""
-        embed = self.bot.generate_embed('🛑', 'Wyłączanie bota…')
+        embed = self.bot.generate_embed('🛑', 'Wyłączam się…')
         await self.bot.send(ctx, embed=embed)
         await ctx.bot.close()
+
+    @shutdown.error
+    async def shutdown_error(self, ctx, error):
+        """HAL 9000"""
+        if isinstance(error, commands.NotOwner):
+            embed = self.bot.generate_embed('🔴', "I'm sorry, Dave, I'm afraid I can't do that")
+            return await self.bot.send(ctx, embed=embed)
+        raise error
 
     @commands.command(aliases=['błąd', 'blad', 'błont', 'blont'])
     @commands.is_owner()
