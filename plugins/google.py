@@ -18,9 +18,6 @@ from utilities import HttpError
 
 
 class Google(commands.Cog):
-    FOOTER_TEXT = 'Google'
-    FOOTER_ICON_URL = 'https://www.google.com/favicon.ico'
-
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
@@ -35,7 +32,7 @@ class Google(commands.Cog):
             if e.resp.status in (403, 429):
                 embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
                 embed.set_footer(
-                    icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT
+                    icon_url=self.bot.google_client.FOOTER_ICON_URL, text=self.bot.google_client.FOOTER_TEXT
                 )
                 return await self.bot.send(ctx, embed=embed)
             raise e
@@ -61,7 +58,7 @@ class Google(commands.Cog):
             if e.resp.status in (403, 429):
                 embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
                 embed.set_footer(
-                    icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT
+                    icon_url=self.bot.google_client.FOOTER_ICON_URL, text=self.bot.google_client.FOOTER_TEXT
                 )
                 return await self.bot.send(ctx, embed=embed)
             raise e
