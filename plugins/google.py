@@ -32,7 +32,7 @@ class Google(commands.Cog):
         try:
             result = await self.bot.google_client.search(query)
         except HttpError as e:
-            if e.resp.status == 403:
+            if e.resp.status in (403, 429):
                 embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
                 embed.set_footer(
                     icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT
@@ -58,7 +58,7 @@ class Google(commands.Cog):
         try:
             result = await self.bot.google_client.search(query, search_type='image')
         except HttpError as e:
-            if e.resp.status == 403:
+            if e.resp.status in (403, 429):
                 embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
                 embed.set_footer(
                     icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT
