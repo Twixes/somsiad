@@ -94,7 +94,8 @@ class TMDb(commands.Cog):
             embed.add_field(name='Data urodzenia', value=birth_date.strftime('%-d %B %Y'))
         if death_date is not None:
             embed.add_field(name='Data śmierci', value=death_date.strftime('%-d %B %Y'))
-        embed.add_field(name='Wiek', value=calculate_age(birth_date, death_date))
+        if birth_date is not None:
+            embed.add_field(name='Wiek', value=calculate_age(birth_date, death_date))
         known_for_parts = (
             f'[📺 {production["name"]} ({production["first_air_date"][:4]})]'
             f'(https://www.themoviedb.org/tv/{production["id"]})'

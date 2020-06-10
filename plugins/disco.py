@@ -130,15 +130,12 @@ class Disco(commands.Cog):
                     async def try_edit(embed: discord.Embed):
                         try:
                             await message.edit(embed=embed)
-                        except discord.NotFound:
+                        except (discord.Forbidden, discord.NotFound):
                             pass
                     def after(error):
                         song_audio.cleanup()
                         embed = self.generate_embed(channel, video, 'Zakończono', '⏹')
-                        try:
-                            self.bot.loop.create_task(try_edit(embed))
-                        except discord.NotFound:
-                            pass
+                        self.bot.loop.create_task(try_edit(embed))
                     embed = self.generate_embed(channel, video, 'Odtwarzanie', '▶️')
                     await self.channel_connect(channel)
                     channel.guild.voice_client.play(self.servers[channel.guild.id]['song_audio'], after=after)

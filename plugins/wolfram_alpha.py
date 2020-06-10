@@ -85,7 +85,7 @@ class WolframAlpha(commands.Cog):
                 if image is not None:
                     embed.set_image(url=image['src'])
             else:
-                embed = self.bot.generate_embed('🙁', f'Nie udało się zinterpretować zapytania "{query}"')
+                embed = self.bot.generate_embed('🙁', 'Nie udało się zinterpretować zapytania')
         embed.set_footer(text=self.FOOTER_TEXT, icon_url=self.FOOTER_ICON_URL)
         await self.bot.send(ctx, embed=embed)
 

@@ -79,7 +79,7 @@ class GoogleClient:
         if results['searchInformation']['totalResults'] != '0':
             if search_type == 'image':
                 for result in results['items']:
-                    if not result['link'] or result['link'].startswith('x-raw-image'):
+                    if not result['link'] or not result['link'].startswith('http'):
                         continue
                     return self.GoogleResult(
                         result['title'], result['snippet'], result['image']['contextLink'], result['displayLink'],
@@ -89,7 +89,8 @@ class GoogleClient:
                 result = results['items'][0]
                 try:
                     image_link = result['pagemap']['cse_image'][0]['src']
-                except KeyError:
+                    if not image_link.startswith('http'): raise ValueError
+                except (KeyError, ValueError):
                     image_link = None
                 return self.GoogleResult(
                     result['title'], result['snippet'], result['link'], result['displayLink'],
