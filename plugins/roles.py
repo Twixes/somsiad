@@ -14,7 +14,7 @@
 from collections import Counter
 from discord.ext import commands
 from core import cooldown
-from utilities import word_number_form
+from utilities import word_number_form, text_snippet
 
 
 class Roles(commands.Cog):
@@ -26,13 +26,13 @@ class Roles(commands.Cog):
     @commands.guild_only()
     async def roles(self, ctx):
         roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
-        roles = reversed(ctx.guild.roles[1:])
-        role_parts = [
+        roles = [role for role in reversed(ctx.guild.roles[1:]) if not role.name.startswith('🎨')]
+        role_lines = [
             f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}' for role in roles
         ]
         embed = self.bot.generate_embed(
-            '🔰', word_number_form(len(role_parts), 'rola', 'role', 'ról'),
-            '\n'.join(role_parts) if role_parts else None
+            '🔰', f'Na serwerze jest {word_number_form(len(roles), "rola", "role", "ról")}',
+            text_snippet('\n'.join(role_lines), 2048) if role_lines else None
         )
         await self.bot.send(ctx, embed=embed)
 
