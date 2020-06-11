@@ -8,7 +8,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Funkcje  
 
-* własne serwerowowe prefiksy komend  
+* własne serwerowe prefiksy komend  
 * odtwarzanie muzyki na czacie głosowym  
 * wysyłanie emotikon (tableflip, shrug, lenny face itp.)  
 * Magic 8-Ball  
@@ -29,11 +29,11 @@ Polski bot discordowy. Napisany w Pythonie.
 * wyszukiwanie definicji w [Urban Dictionary](https://www.urbandictionary.com)  
 * informacje o subredditach i użytkownikach [Reddita](https://reddit.com)  
 * rozpoczynanie głosowań z opcją opublikowania wyników po określonym czasie  
-* przypomienia  
+* przypomnienia  
 * zapamiętywanie urodzin użytkowników serwera i automatyczne składanie życzeń  
 * statystyki aktywności serwera/kanału/użytkownika wraz z wykresami  
 * samodzielne wybieranie koloru nicku przez użytkowników  
-* archiwizacja przypiętych wiadomości do wyznaczego kanału  
+* archiwizacja przypiętych wiadomości do wyznaczonego kanału  
 * funkcje moderacyjne: ostrzeganie, wyrzucanie, banowanie  
 * rejestrowanie zdarzeń związanych z członkami serwera (ostrzeżenia, wyrzucenia, bany, dołączenia, opuszczenia)  
 
@@ -82,12 +82,12 @@ https://github.com/Twixes/somsiad/releases/latest
 
 5. Uruchom bota:  
 `$ docker-compose up`  
-Ten pierwszy raz może chwilę potrwać, gdyż wszystko musi zostać zainstalowane i ustawione od zera, na szczęście następne uruchomienia będą prawie natychmiastowe.
+Ten pierwszy raz może chwilę potrwać, gdyż wszystko musi zostać zainstalowane i ustawione od zera – na szczęście następne uruchomienia będą prawie natychmiastowe.
 
 6. Zapraszaj Somsiada na serwery za pomocą linku podanego w konsoli po uruchomieniu.  
 Jeśli chcesz przełączyć bota na działanie w tle, użyj skrótu klawiszowego `Ctrl + P` + `Ctrl + Q` lub od razu używaj `docker-compose up` z opcją `-d`.
 
-7. Ekstra – przeprowadź release + deployement Sentry:  
+7. Ekstra – przeprowadź release + deployment Sentry:  
 `$ docker exec ${docker ps | grep somsiad_bot | awk '{print $1}'} /bin/sh sentry_release_deploy.sh`  
 
 ## Licencja  
@@ -178,12 +178,12 @@ https://github.com/Twixes/somsiad/releases/latest
 
 6. Run the bot:  
 `$ docker-compose up`  
-This first time may take a while as everything must be set up from nothing, luckily after that launching will be almost istant.
+This first time may take a while as everything must be set up from nothing – luckily after that launching will be almost instant.
 
 7. Invite Somsiad to servers with the link provided in the console upon launch.  
 If you want to switch the bot to running in the background, use combination `Ctrl + P` + `Ctrl + Q` or just run `docker-compose up` with option `-d`.
 
-7. Extra – perform a Sentry release + deployement:  
+7. Extra – perform a Sentry release + deployment:  
 `$ docker exec ${docker ps | grep somsiad_bot | awk '{print $1}'} /bin/sh sentry_release_deploy.sh`  
 
 ## License  
