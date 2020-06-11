@@ -87,6 +87,9 @@ Ten pierwszy raz może chwilę potrwać, gdyż wszystko musi zostać zainstalowa
 6. Zapraszaj Somsiada na serwery za pomocą linku podanego w konsoli po uruchomieniu.  
 Jeśli chcesz przełączyć bota na działanie w tle, użyj skrótu klawiszowego `Ctrl + P` + `Ctrl + Q` lub od razu używaj `docker-compose up` z opcją `-d`.
 
+7. Ekstra – przeprowadź release + deployement Sentry:  
+`$ docker exec ${docker ps | grep somsiad_bot | awk '{print $1}'} /bin/sh sentry_release_deploy.sh`  
+
 ## Licencja  
 
 Kod tego projektu udostępniony jest na licencji GPLv3.  
@@ -179,6 +182,9 @@ This first time may take a while as everything must be set up from nothing, luck
 
 7. Invite Somsiad to servers with the link provided in the console upon launch.  
 If you want to switch the bot to running in the background, use combination `Ctrl + P` + `Ctrl + Q` or just run `docker-compose up` with option `-d`.
+
+7. Extra – perform a Sentry release + deployement:  
+`$ docker exec ${docker ps | grep somsiad_bot | awk '{print $1}'} /bin/sh sentry_release_deploy.sh`  
 
 ## License  
 
