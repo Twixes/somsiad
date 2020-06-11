@@ -1,8 +1,9 @@
-version: '3'
+version: "3.8"
 
 services:
   bot:
     build: .
+    restart: on-failure
     environment:
       - DISCORD_TOKEN
       - COMMAND_PREFIX
@@ -23,6 +24,5 @@ services:
       - SENTRY_DSN
       - SENTRY_AUTH_TOKEN
       - SENTRY_ORG
-    command: python3.7 core.py
     volumes:
       - .:/code
