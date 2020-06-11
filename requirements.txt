@@ -5,11 +5,11 @@ psycopg2==2.8.5
 python-dotenv==0.13.0
 psutil==5.7.0
 defusedxml==0.6.0
-google-api-python-client==1.8.4
+google-api-python-client==1.9.2
 pytube3==9.6.4
 matplotlib==3.2.1
 sentry-sdk==0.14.4
 aiocontextvars==0.2.2
 ImageHash==4.1.0
-numpy==1.18.4
+numpy==1.18.5
 beautifulsoup4==4.9.1
