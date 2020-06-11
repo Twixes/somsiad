@@ -23,6 +23,6 @@ services:
       - SENTRY_DSN
       - SENTRY_AUTH_TOKEN
       - SENTRY_ORG
-    command: python core.py
+    command: python3.7 core.py
     volumes:
       - .:/code
