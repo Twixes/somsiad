@@ -76,7 +76,7 @@ class Somsiad(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix, help_command=None, description='Zawsze pomocny Somsiad',
-            case_insensitive=True
+            case_insensitive=True, shard_count=2
         )
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
