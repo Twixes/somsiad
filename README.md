@@ -75,7 +75,7 @@ https://github.com/Twixes/somsiad/releases/latest
 `$ tar -xvf somsiad-<wersja>.tar.gz`  
 `$ cd somsiad-<wersja>`  
 
-3. W głównym katalogu skopiuj plik `.sample.env` jako `.env`, a następnie wypełnij ten `.env` ustawieniami i kluczami według wzoru.
+3. W głównym katalogu skopiuj plik `.template.env` jako `.env`, a następnie wypełnij ten `.env` ustawieniami i kluczami według wzoru.
 
 4. Stwórz dockerową maszynę (w tym podstawowym przykładzie wykorzystamy domyślną o nazwie `default`):  
 `$ docker-machine create`  
@@ -168,7 +168,7 @@ https://github.com/Twixes/somsiad/releases/latest
 `$ tar -xvf somsiad-<version>.tar.gz`  
 `$ cd somsiad-<version>`  
 
-4. In the root directory copy file `.sample.env` as `.env` and complete that `.env` with settings according to the template.
+4. In the root directory copy file `.template.env` as `.env` and complete that `.env` with settings according to the template.
 
 5. Create a docker machine (in this example we'll use the default machine (`default`):  
 `$ docker-machine create`  
