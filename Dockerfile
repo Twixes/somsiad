@@ -9,6 +9,6 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen
 WORKDIR /code
 COPY requirements.txt ./
-RUN pip3.7 install --no-cache-dir -U -r requirements.txt
+RUN pip3 install --no-cache-dir -U -r requirements.txt
 COPY . .
-CMD python3.7 run.py
+CMD python3 run.py
