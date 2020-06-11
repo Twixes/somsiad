@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-source ./.env
 VERSION_NUMBER=$(./version.py)
 VERSION="${SENTRY_PROJ:-somsiad}@$VERSION_NUMBER"
 sentry-cli releases new -p "${SENTRY_PROJ:-somsiad}" "$VERSION"
