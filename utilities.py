@@ -152,7 +152,7 @@ def text_snippet(text: str, limit: int) -> str:
     stripped_text = text.strip()
     if len(stripped_text) <= limit:
         return stripped_text
-    words = stripped_text.split()
+    words = stripped_text.split(' ')
     if limit > len(words[0]):
         cut_text = words[0]
         for word in words[1:]:
