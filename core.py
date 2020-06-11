@@ -48,7 +48,7 @@ def cooldown(
     return decorator
 
 
-class Somsiad(commands.Bot):
+class Somsiad(commands.AutoShardedBot):
     COLOR = 0x7289da
     USER_AGENT = f'SomsiadBot/{__version__}'
     HEADERS = {'User-Agent': USER_AGENT}
@@ -190,7 +190,8 @@ class Somsiad(commands.Bot):
         info_lines = [
             f'\nPołączono jako {self.user} (ID {self.user.id}). '
             f'{word_number_form(self.user_count, "użytkownik", "użytkownicy", "użytkowników")} '
-            f'na {word_number_form(self.server_count, "serwerze", "serwerach")}.',
+            f'na {word_number_form(self.server_count, "serwerze", "serwerach")} '
+            f'z {word_number_form(self.shard_count, "sharda", "shardów")}.',
             '',
             self.invite_url(),
             '',
