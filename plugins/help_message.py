@@ -90,7 +90,10 @@ class Help(commands.Cog):
             'Komendy związane z odtwarzaniem muzyki. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
         ),
         _Help.Command(
-            'stat', '?użytkownik/kanał/kategoria/podkomenda',
+            'role', (), 'Wyświetla wszystkie role na serwerze wraz z liczbą członków je mających.'
+        ),
+        _Help.Command(
+            ('stat', 'staty', 'aktywnosć', 'aktywnosc'), '?użytkownik/kanał/kategoria/podkomenda',
             'Komendy związane ze statystykami serwerowymi. '
             'Użyj bez <?użytkownika/kanału/kategorii/podkomendy>, by dowiedzieć się więcej.',
         ),
