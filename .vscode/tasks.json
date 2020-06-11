@@ -1,0 +1,35 @@
+{
+  // https://go.microsoft.com/fwlink/?LinkId=733558
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run with docker-compose up",
+      "type": "shell",
+      "command": "docker-compose up",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Debug with docker-compose up",
+      "type": "shell",
+      "command": "docker-compose up",
+      "options": {
+        "env": {
+          "PTVSD": "yes"
+        }
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "panel": "dedicated"
+      }
+    }
+  ]
+}
