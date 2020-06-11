@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright 2018-2020 ondondil & Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
@@ -12,7 +10,6 @@
 
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
-
 
 from typing import Optional, Union, Sequence, Tuple, List
 from collections import defaultdict
@@ -675,14 +672,3 @@ class Prefix(commands.Cog):
 
 
 somsiad = Somsiad()
-
-
-if __name__ == '__main__':
-    signal.signal(signal.SIGINT, somsiad.signal_handler)
-    if configuration['sentry_dsn']:
-        print('Inicjowanie połączenia z Sentry...')
-        sentry_sdk.init(
-            configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
-            integrations=[SqlalchemyIntegration(), AioHttpIntegration()]
-        )
-    somsiad.load_and_run()

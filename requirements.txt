@@ -13,3 +13,4 @@ aiocontextvars==0.2.2
 ImageHash==4.1.0
 numpy==1.18.5
 beautifulsoup4==4.9.1
+ptvsd==4.3.2

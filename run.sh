@@ -65,7 +65,7 @@ then
         pip$PYTHON_VERSION install -q -U pip
         pip$PYTHON_VERSION install -q -U -r $(dirname "$BASH_SOURCE")/requirements.txt
         echo "Uruchamianie$OPTIONS_PRESENTATION przy użyciu python$PYTHON_VERSION..."
-        python$PYTHON_VERSION $OPTIONS $(dirname "$BASH_SOURCE")/core.py
+        python$PYTHON_VERSION $OPTIONS $(dirname "$BASH_SOURCE")/run.py
 elif [ -z "$ARGUMENT" ]
 then
     if [ -z "$PYTHON_VERSION_PRESENTATION" ]

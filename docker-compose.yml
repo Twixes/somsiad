@@ -5,20 +5,23 @@ services:
     build: .
     restart: on-failure
     environment:
-      - DISCORD_TOKEN
-      - COMMAND_PREFIX
-      - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
-      - DATABASE_URL
-      - GOOGLE_KEY
-      - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
-      - GOODREADS_KEY
-      - TMDB_KEY
-      - LAST_FM_KEY
-      - YANDEX_TRANSLATE_KEY
-      - WOLFRAM_ALPHA_APP_ID
-      - DISCO_MAX_FILE_SIZE_IN_MIB
-      - SENTRY_DSN
-      - SENTRY_AUTH_TOKEN
-      - SENTRY_ORG
+        - DISCORD_TOKEN
+        - COMMAND_PREFIX
+        - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
+        - DATABASE_URL
+        - GOOGLE_KEY
+        - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
+        - GOODREADS_KEY
+        - TMDB_KEY
+        - LAST_FM_KEY
+        - YANDEX_TRANSLATE_KEY
+        - WOLFRAM_ALPHA_APP_ID
+        - DISCO_MAX_FILE_SIZE_IN_MIB
+        - SENTRY_DSN
+        - SENTRY_AUTH_TOKEN
+        - SENTRY_ORG
+        - PTVSD
+    ports:
+        - "5678:5678"
     volumes:
-      - .:/code
+        - .:/code
