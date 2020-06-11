@@ -80,7 +80,7 @@ https://github.com/Twixes/somsiad/releases/latest
 
 3. W głównym katalogu skopiuj plik `.template.env` jako `.env`, a następnie wypełnij ten `.env` ustawieniami i kluczami według wzoru.
 
-4. Stwórz dockerową maszynę (w tym podstawowym przykładzie wykorzystamy domyślną o nazwie `default`):  
+4. Stwórz dockerową maszynę (w tym podstawowym przykładzie wykorzystamy domyślną `default`):  
 `$ docker-machine create`  
 
 5. Uruchom bota:  
@@ -179,7 +179,7 @@ https://github.com/Twixes/somsiad/releases/latest
 
 4. In the root directory copy file `.template.env` as `.env` and complete that `.env` with settings according to the template.
 
-5. Create a docker machine (in this example we'll use the default machine (`default`):  
+5. Create a docker machine (in this basic example we'll use the default one `default`):  
 `$ docker-machine create`  
 
 6. Run the bot:  
