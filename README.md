@@ -41,7 +41,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 * Python 3.7 lub 3.8.  
 
-* Docker 19.03.  
+* Docker 19.03.0+ z `docker-machine` oraz `docker-compose`.  
 
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
@@ -134,7 +134,7 @@ The Polish Discord bot. Written in Python.
 
 * Python 3.7 or 3.8.  
 
-* Docker 19.03.  
+* Docker 19.03.0+ with `docker-machine` and `docker-compose`.  
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
