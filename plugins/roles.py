@@ -31,7 +31,8 @@ class Roles(commands.Cog):
             f'{role.mention} – `{str(role.color).upper()}` – 👥 {roles_counter[role]}' for role in roles
         ]
         embed = self.bot.generate_embed(
-            '🔰', f'Na serwerze jest {word_number_form(len(roles), "rola", "role", "ról")}',
+            '🔰', f'Na serwerze {word_number_form(len(roles), "jest", "są", "jest")} '
+            f'{word_number_form(len(roles), "rola", "role", "ról")}',
             text_snippet('\n'.join(role_lines), 2048) if role_lines else None
         )
         await self.bot.send(ctx, embed=embed)
