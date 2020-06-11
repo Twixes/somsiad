@@ -1,7 +1,6 @@
-/somsiad_env
-.vscode
+.vscode/.ropeproject/
 __pycache__
 .env
 .DS_Store
-somsiad.log
-somsiad.cprof
+*.log
+*.cprof
