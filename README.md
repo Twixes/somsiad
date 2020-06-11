@@ -66,6 +66,9 @@ https://translate.yandex.com/developers/keys
 * Klucz API Last.fm:  
 https://www.last.fm/api/account/create  
 
+* ID aplikacji Wolfram Alpha:  
+https://developer.wolframalpha.com/portal/myapps/  
+
 ## Instalacja  
 
 1. Pobierz kopię najnowszego wydania:  
@@ -161,6 +164,9 @@ https://translate.yandex.com/developers/keys
 
 * A Last.fm API key:  
 https://www.last.fm/api/account/create  
+
+* A Wolfram Alpha app ID:  
+https://developer.wolframalpha.com/portal/myapps/  
 
 ## Installation  
 
