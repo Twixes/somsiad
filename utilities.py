@@ -378,18 +378,7 @@ def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant
     return data
 
 
-def setlocale(accepted_locales: Sequence[str] = ('pl_PL.utf8', 'pl_PL.UTF-8')):
+def localize(locale_name: str = 'pl_PL.UTF-8', first_weekday: int = calendar.MONDAY):
     """Set program locale and first day of the week."""
-    for accepted_locale in accepted_locales:
-        try:
-            locale.setlocale(locale.LC_ALL, accepted_locale)
-        except locale.Error:
-            continue
-        else:
-            break
-    else:
-        raise Exception(
-            f'no locale from the list of accepted ones ({", ".join(accepted_locales)}) was found in the system'
-        )
-
-    return calendar.setfirstweekday(calendar.MONDAY)
+    locale.setlocale(locale.LC_ALL, locale_name)
+    calendar.setfirstweekday(first_weekday)

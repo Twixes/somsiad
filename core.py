@@ -30,7 +30,7 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 import discord
 from discord.ext import commands
 from version import __version__, __copyright__
-from utilities import GoogleClient, YouTubeClient, word_number_form, human_amount_of_time, setlocale, utc_to_naive_local
+from utilities import GoogleClient, YouTubeClient, word_number_form, human_amount_of_time, localize, utc_to_naive_local
 from configuration import configuration
 import data
 
@@ -95,7 +95,7 @@ class Somsiad(commands.AutoShardedBot):
 
     async def on_ready(self):
         psutil.cpu_percent()
-        setlocale()
+        localize()
         self.run_datetime = dt.datetime.now()
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
         print('Przygotowywanie danych serwerów...')

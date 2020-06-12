@@ -13,7 +13,7 @@
 
 import datetime as dt
 from discord.ext import commands
-from utilities import word_number_form, days_as_weeks, setlocale
+from utilities import word_number_form, days_as_weeks
 from core import cooldown
 
 

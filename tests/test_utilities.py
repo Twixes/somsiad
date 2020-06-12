@@ -15,12 +15,12 @@ import unittest
 import datetime as dt
 from utilities import (
     first_url, text_snippet, with_preposition_form, word_number_form, human_amount_of_time, human_datetime,
-    interpret_str_as_datetime, setlocale
+    interpret_str_as_datetime, localize
 )
 
 NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
 
-setlocale()
+localize()
 
 class TestTextFormatterFindURL(unittest.TestCase):
     def test_proper_http(self):
