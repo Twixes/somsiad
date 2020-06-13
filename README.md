@@ -39,8 +39,6 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Wymagania  
 
-* Python 3.7 lub 3.8.  
-
 * Docker 19.03.0+ z `docker-machine` oraz `docker-compose`.  
 
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
@@ -137,8 +135,6 @@ The Polish Discord bot. Written in Python.
 * archivization of pinned messages to a specified channel  
 
 ## Prerequisites  
-
-* Python 3.7 or 3.8.  
 
 * Docker 19.03.0+ with `docker-machine` and `docker-compose`.  
 
