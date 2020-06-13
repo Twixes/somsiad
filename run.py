@@ -2,11 +2,13 @@
 
 import os
 
-if os.getenv('PTVSD'):
+env_ptvsd = os.getenv('PTVSD')
+if env_ptvsd:
     import ptvsd
     print('Oczekiwanie na połączenie debuggera VS Code…')
     ptvsd.enable_attach(address=('0.0.0.0', 5678))
-    ptvsd.wait_for_attach()
+    if env_ptvsd.lower() == 'wait':
+        ptvsd.wait_for_attach()
 
 import signal
 from configuration import configuration

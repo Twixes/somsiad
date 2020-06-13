@@ -20,7 +20,7 @@
       "command": "docker-compose up",
       "options": {
         "env": {
-          "PTVSD": "yes"
+          "PTVSD": "wait"
         }
       },
       "group": {
