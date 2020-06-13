@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+echo "UWAGA: Ta metoda uruchamiania bota jest przestarzała!"
+echo "UWAGA: Użyj Dockera!"
+
 if [[ ${1::1} == "!" ]]
 then
     OPTIONS="-m cProfile -s tottime -o somsiad.cprof"
