@@ -89,7 +89,7 @@ Ten pierwszy raz może chwilę potrwać, gdyż wszystko musi zostać zainstalowa
 Jeśli chcesz przełączyć bota na działanie w tle, użyj skrótu klawiszowego `Ctrl + P` + `Ctrl + Q` lub od razu używaj `docker-compose up` z opcją `-d`.
 
 7. Ekstra – przeprowadź release + deployment Sentry:  
-`$ docker exec ${docker ps | grep somsiad_bot | awk '{print $1}'} /bin/sh sentry_release_deploy.sh`  
+`$ docker exec $(docker ps | grep somsiad_bot | awk '{print $1}') /bin/sh sentry_release_deploy.sh`  
 
 ## Licencja  
 
@@ -186,7 +186,7 @@ This first time may take a while as everything must be set up from nothing – l
 If you want to switch the bot to running in the background, use combination `Ctrl + P` + `Ctrl + Q` or just run `docker-compose up` with option `-d`.
 
 7. Extra – perform a Sentry release + deployment:  
-`$ docker exec ${docker ps | grep somsiad_bot | awk '{print $1}'} /bin/sh sentry_release_deploy.sh`  
+`$ docker exec $(docker ps | grep somsiad_bot | awk '{print $1}') /bin/sh sentry_release_deploy.sh`  
 
 ## License  
 
