@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, Optional
+from typing import Union, Optional, Sequence
 from collections import defaultdict, deque
 import enum
 import itertools
@@ -180,8 +180,8 @@ class Report:
                 if self.earliest_relevant_message is None:
                     self.earliest_relevant_message = message_metadata_portion[0]
                 self.latest_relevant_message = message_metadata_portion[-1]
-                for message_metadata in message_metadata_portion:
-                    self._update_running_stats(message_metadata)
+                loop = self.ctx.bot.loop
+                await loop.run_in_executor(None, self._update_running_stats, message_metadata_portion)
             was_user_found = True
             if self.total_message_count:
                 if since_datetime:
@@ -348,20 +348,21 @@ class Report:
         except discord.Forbidden:
             pass
 
-    def _update_running_stats(self, message: MessageMetadata):
+    def _update_running_stats(self, message_metadata_portion: Sequence[MessageMetadata]):
         """Updates running message statistics."""
-        self.total_message_count += 1
-        self.total_word_count += message.word_count
-        self.total_character_count += message.character_count
-        self.messages_over_hour[message.hour] += 1
-        self.messages_over_weekday[message.weekday] += 1
-        self.messages_over_date[message.datetime.strftime('%Y-%m-%d')] += 1
-        self.active_user_stats[message.user_id]['message_count'] += 1
-        self.active_user_stats[message.user_id]['word_count'] += message.word_count
-        self.active_user_stats[message.user_id]['character_count'] += message.character_count
-        self.relevant_channel_stats[message.channel_id]['message_count'] += 1
-        self.relevant_channel_stats[message.channel_id]['word_count'] += message.word_count
-        self.relevant_channel_stats[message.channel_id]['character_count'] += message.character_count
+        for message in message_metadata_portion:
+            self.total_message_count += 1
+            self.total_word_count += message.word_count
+            self.total_character_count += message.character_count
+            self.messages_over_hour[message.hour] += 1
+            self.messages_over_weekday[message.weekday] += 1
+            self.messages_over_date[message.datetime.strftime('%Y-%m-%d')] += 1
+            self.active_user_stats[message.user_id]['message_count'] += 1
+            self.active_user_stats[message.user_id]['word_count'] += message.word_count
+            self.active_user_stats[message.user_id]['character_count'] += message.character_count
+            self.relevant_channel_stats[message.channel_id]['message_count'] += 1
+            self.relevant_channel_stats[message.channel_id]['word_count'] += message.word_count
+            self.relevant_channel_stats[message.channel_id]['character_count'] += message.character_count
 
     async def _send_or_update_progress(self):
         embed = self.ctx.bot.generate_embed(

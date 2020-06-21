@@ -82,7 +82,9 @@ class Vote(commands.Cog):
             positions = ('Za', 'Przeciw') if letters is None else (f'Opcja {letter}' for letter in letters)
             total_count = sum(results.values()) or 1 # guard against zero-division
             for position, emoji in zip(positions, emojis):
-                this_count = results[emoji]
+                this_count = results.get(emoji)
+                if this_count is None:
+                    continue
                 this_percentage = this_count / total_count * 100
                 count_presentation = f'{this_count:n} ({round(this_percentage):n}%)'
                 if emoji in winning_emojis and winning_count > 0:

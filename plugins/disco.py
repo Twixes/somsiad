@@ -116,7 +116,6 @@ class Disco(commands.Cog):
                 else:
                     path = os.path.join(self.cache_dir_path, f'{video_id} - {stream.default_filename}')
                     if not os.path.isfile(path):
-                        functools.partial(stream.download, data={'output_path': self.cache_dir_path, 'filename_prefix': video_id})
                         await self.bot.loop.run_in_executor(None, functools.partial(
                             stream.download, output_path=self.cache_dir_path, filename_prefix=f'{video_id} - '
                         ))
@@ -231,7 +230,7 @@ class Disco(commands.Cog):
                 title=':red_circle: Nie spauzowano utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
                 color=self.bot.COLOR
             )
-        elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
+        elif ctx.author.voice is None or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel):
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
                 color=self.bot.COLOR
@@ -265,7 +264,7 @@ class Disco(commands.Cog):
                 title=':red_circle: Nie wznowiono odtwarzania utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
                 color=self.bot.COLOR
             )
-        elif ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel:
+        elif ctx.author.voice is None or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel):
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
                 color=self.bot.COLOR
@@ -322,8 +321,9 @@ class Disco(commands.Cog):
                 color=self.bot.COLOR
             )
         elif (
-                (ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel) and
-                len(ctx.me.voice.channel.members) > 1
+                (ctx.author.voice is None or
+                    (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel))
+                and len(ctx.me.voice.channel.members) > 1
         ):
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
@@ -351,7 +351,9 @@ class Disco(commands.Cog):
         else:
             if (
                     ctx.voice_client is not None
-                    and (ctx.author.voice is None or ctx.author.voice.channel != ctx.me.voice.channel)
+                    and (ctx.author.voice is None
+                        or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel)
+                    )
             ):
                 embed = discord.Embed(
                     title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',

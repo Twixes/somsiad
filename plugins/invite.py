@@ -57,17 +57,17 @@ class Invite(commands.Cog):
                             and not isinstance(current_channel, discord.CategoryChannel)):
                         channel = current_channel
                         break
-            invite = await channel.create_invite(
-                max_uses=max_uses,
-                unique=unique,
-                reason=str(ctx.author)
-            )
             if channel is None:
                 embed = self.bot.generate_embed(
                     '⚠️', 'Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
                     'na którym ty je masz'
                 )
             else:
+                invite = await channel.create_invite(
+                    max_uses=max_uses,
+                    unique=unique,
+                    reason=str(ctx.author)
+                )
                 if max_uses == 0:
                     max_uses_info = ' o nieskończonej liczbie użyć'
                 elif max_uses == 1:
