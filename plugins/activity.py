@@ -181,7 +181,8 @@ class Report:
                     self.earliest_relevant_message = message_metadata_portion[0]
                 self.latest_relevant_message = message_metadata_portion[-1]
                 loop = self.ctx.bot.loop
-                await loop.run_in_executor(None, self._update_running_stats, message_metadata_portion)
+                for message_metadata_subportion in itertools.zip_longest(*[iter(message_metadata_portion)]*100):
+                    await loop.run_in_executor(None, self._update_running_stats, message_metadata_subportion)
             was_user_found = True
             if self.total_message_count:
                 if since_datetime:
@@ -348,9 +349,11 @@ class Report:
         except discord.Forbidden:
             pass
 
-    def _update_running_stats(self, message_metadata_portion: Sequence[MessageMetadata]):
+    def _update_running_stats(self, messages: Sequence[MessageMetadata]):
         """Updates running message statistics."""
-        for message in message_metadata_portion:
+        for message in messages:
+            if message is None:
+                continue
             self.total_message_count += 1
             self.total_word_count += message.word_count
             self.total_character_count += message.character_count
