@@ -464,10 +464,15 @@ class Essentials(commands.Cog):
         embed.set_footer(text=footer)
         await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['pińg'])
+    @commands.command()
     async def ping(self, ctx):
         """Pong!"""
         await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'))
+
+    @commands.command()
+    async def pińg(self, ctx):
+        """Pońg!"""
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'))
 
     @commands.command(aliases=['nope', 'nie'])
     @cooldown()
