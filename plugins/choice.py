@@ -11,7 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import random
+import hashlib
+import datetime as dt
 from discord.ext import commands
 from core import cooldown
 
@@ -59,6 +60,11 @@ class Choice(commands.Cog):
                 options_words.append(word)
         options = [option.strip() for option in ' '.join(options_words).split(',') if option.strip() != '']
         if len(options) >= 2:
+            question_hash = hashlib.md5()
+            for option in options:
+                question_hash.update(option.lower().encode())
+            question_hash.update(dt.date.today().isoformat().encode())
+            question_hash_int = int.from_bytes(question_hash.digest(), 'big')
             if 'trebuchet' in options:
                 chosen_option = 'trebuchet'
             elif 'trebusz' in options:
@@ -66,9 +72,11 @@ class Choice(commands.Cog):
             elif 'trebuszet' in options:
                 chosen_option = 'trebuszet'
             else:
-                chosen_option = random.choice(options)
-            category = random.choice(self.CATEGORIES_POOL)
-            answer = random.choice(self.ANSWERS[category]).format(f'👉 {chosen_option} 👈')
+                chosen_option = options[question_hash_int % len(options)]
+            category = self.CATEGORIES_POOL[question_hash_int % len(self.CATEGORIES_POOL)]
+            answer = self.ANSWERS[category][question_hash_int % len(self.ANSWERS)].format(
+                f'👉 {chosen_option} 👈'
+            )
             await self.bot.send(ctx, answer)
         else:
             await self.bot.send(
