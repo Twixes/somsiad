@@ -74,11 +74,8 @@ class Eightball(commands.Cog):
         question_hash = hashlib.md5(stripped_question.encode())
         question_hash.update(dt.date.today().isoformat().encode())
         question_hash_int = int.from_bytes(question_hash.digest(), 'big')
-        specific_category = (
-            'enigmatic' if category == 'enigmatic' else
-            self.CATEGORIES_POOL[question_hash_int % len(self.CATEGORIES_POOL)]
-        )
-        answer = self.ANSWERS[specific_category][question_hash_int % len(self.ANSWERS)]
+        category = self.CATEGORIES_POOL[question_hash_int % len(self.CATEGORIES_POOL)]
+        answer = self.ANSWERS[category][question_hash_int % len(self.ANSWERS)]
         return answer
 
     def AsK(self, stripped_question: str) -> str:
