@@ -18,7 +18,7 @@ from core import cooldown
 
 
 class Choice(commands.Cog):
-    CATEGORIES_POOL = ['definitive'] * 49 + ['enigmatic']
+    CATEGORIES_POOL = ['definitive'] * 24 + ['enigmatic'] # 96% one option, 4% unknown
     ANSWERS = {
         'definitive': [
             'Z mojej strony zdecydowane {0}.',
@@ -39,6 +39,8 @@ class Choice(commands.Cog):
             'Żadna z opcji nie wygląda ciekawie.',
             'Wszystkie opcje brzmią kusząco.',
             'Przecież już znasz odpowiedź.',
+            'Powiem ci, że nie wiem.',
+            'Nie mam ochoty zajmować się dziś takimi bzdurnymi tematami. Spróbuj kiedy indziej.',
             'Tak.',
             'Nie.'
         ]

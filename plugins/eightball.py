@@ -19,8 +19,7 @@ from core import cooldown
 
 
 class Eightball(commands.Cog):
-    CATEGORIES_POOL = ['definitive'] * 49 + ['enigmatic'] * 1
-    DEFINITIVE_SUBCATEGORIES_POOL = ['affirmative', 'negative']
+    CATEGORIES_POOL = ['affirmative'] * 12 + ['negative'] * 12 + ['enigmatic'] # 48% yes, 48% no, 4% unknown
     ANSWERS = {
         'affirmative': [
             'Jak najbardziej tak.',
@@ -31,6 +30,8 @@ class Eightball(commands.Cog):
             'Chyba tak.',
             'Wszystko wskazuje na to, że tak.',
             'Mój wywiad donosi: TAK.',
+            'To wielce prawdopodobne.',
+            'Z przeprowadzonych przeze mnie właśnie analiz wynika, że raczej tak.',
             'YES, YES, YES!',
             'Yep.',
             'Ja!',
@@ -44,6 +45,9 @@ class Eightball(commands.Cog):
             'Raczej nie.',
             'Nie wydaje mi się.',
             'Mój wywiad donosi: NIE.',
+            'Nie, nie i jeszcze raz NIE.'
+            'Sprawdziłem wszystkie dostępne mi zasoby wiedzy i wygląda na to, że nie.'
+            'Mocno skłaniam się ku: nie.',
             'Nope.',
             'Nein!',
             'Niet.'
@@ -54,7 +58,12 @@ class Eightball(commands.Cog):
             'Mój wywiad donosi: MOŻE?',
             'Trudno powiedzieć.',
             'To pytanie jest dla mnie zbyt głębokie.',
-            'Przecież już znasz odpowiedź.'
+            'Przecież już znasz odpowiedź.',
+            'Moim zdaniem to nie ma tak, że tak albo że nie nie',
+            'Mnie się o to pytaj.',
+            'Powiem ci, że nie wiem.',
+            'Nie mam ochoty zajmować się dziś takimi bzdurnymi tematami. Spróbuj kiedy indziej.',
+            'Uwierz mi, że tej odpowiedzi nie chcesz znać.'
         ]
     }
 
@@ -65,10 +74,9 @@ class Eightball(commands.Cog):
         question_hash = hashlib.md5(stripped_question.encode())
         question_hash.update(dt.date.today().isoformat().encode())
         question_hash_int = int.from_bytes(question_hash.digest(), 'big')
-        category = self.CATEGORIES_POOL[question_hash_int % len(self.CATEGORIES_POOL)]
         specific_category = (
             'enigmatic' if category == 'enigmatic' else
-            self.DEFINITIVE_SUBCATEGORIES_POOL[question_hash_int % len(self.DEFINITIVE_SUBCATEGORIES_POOL)]
+            self.CATEGORIES_POOL[question_hash_int % len(self.CATEGORIES_POOL)]
         )
         answer = self.ANSWERS[specific_category][question_hash_int % len(self.ANSWERS)]
         return answer
