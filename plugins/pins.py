@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from typing import Dict
 import io
 import discord
 from discord.ext import commands
@@ -22,16 +23,23 @@ channel_being_processed_for_servers = {}
 
 
 class PinArchive(data.Base, data.ServerSpecific, data.ChannelRelated):
-    async def archive(self, bot: commands.Bot, channel: discord.TextChannel) -> int:
+    async def archive(self, bot: commands.Bot, channel: discord.TextChannel) -> Dict[str, int]:
         """Archives the provided message."""
         archive_channel = self.discord_channel(bot)
         messages = await channel.pins()
         if not messages:
             raise ValueError
         channel_being_processed_for_servers[channel.guild.id] = channel
+        archivization_counts = {'sucessful': 0, 'too_large': 0, 'unknown_error': 0}
         for message in reversed(messages):
-            await self._archive_message(bot, archive_channel, message)
-        return len(messages)
+            try:
+                await self._archive_message(bot, archive_channel, message)
+                archivization_counts['sucessful'] += 1
+            except discord.HTTPException:
+                archivization_counts['too_large'] += 1
+            except:
+                archivization_counts['unknown_error'] += 1
+        return archivization_counts
 
     async def _archive_message(self, bot: commands.Bot, archive_channel: discord.TextChannel, message: discord.Message):
         pin_embed = bot.generate_embed(description=message.content, timestamp=message.created_at)
@@ -44,17 +52,18 @@ class PinArchive(data.Base, data.ServerSpecific, data.ChannelRelated):
             await attachment.save(fp)
             file = discord.File(fp, filename)
             files.append(file)
+        send_kwargs = {}
         if len(files) == 1:
             if message.attachments[0].height is not None:
                 pin_embed.set_image(url=f'attachment://{message.attachments[0].filename}')
-            await archive_channel.send(embed=pin_embed, file=files[0])
+            send_kwargs["file"] = files[0]
         elif len(files) > 1:
-            await archive_channel.send(embed=pin_embed, files=files)
+            send_kwargs["files"] = files
         else:
             url_from_content = first_url(message.content)
             if url_from_content is not None:
                 pin_embed.set_image(url=url_from_content)
-            await archive_channel.send(embed=pin_embed)
+        await archive_channel.send(embed=pin_embed, **send_kwargs)
 
 
 class Pins(commands.Cog):
@@ -134,6 +143,7 @@ class Pins(commands.Cog):
         async with ctx.typing():
             with data.session() as session:
                 pin_archive = session.query(PinArchive).get(ctx.guild.id)
+                description = None
                 if pin_archive is None or pin_archive.channel_id is None:
                     emoji, notice = '⚠️', 'Nie ustawiono na serwerze kanału archiwum przypiętych wiadomości'
                 elif pin_archive.discord_channel(self.bot) is None:
@@ -148,17 +158,35 @@ class Pins(commands.Cog):
                     try:
                         try:
                             async with channel_being_processed_for_servers[ctx.guild.id].typing():
-                                archived = await pin_archive.archive(self.bot, ctx.channel)
+                                archivization_counts = await pin_archive.archive(self.bot, ctx.channel)
                         except ValueError:
                             emoji, notice = '🔴', 'Brak przypiętych wiadomości do zarchiwizowania'
                         else:
-                            forms = ('przypiętą wiadomość', 'przypięte wiadomości', 'przypiętych wiadomości')
-                            emoji, notice = '✅', f'Zarchiwizowano {word_number_form(archived, *forms)}'
+                            pinned_forms = ('przypiętą wiadomość', 'przypięte wiadomości', 'przypiętych wiadomości')
+                            emoji = '✅'
+                            notice = (
+                                'Zarchiwizowano '
+                                f'{word_number_form(archivization_counts["successful"], *pinned_forms)}'
+                            )
+                            description_parts = []
+                            forms = ('wiadomość', 'wiadomości')
+                            if archivization_counts['too_large'] > 0:
+                                description_parts.append(
+                                    f'{word_number_form(archivization_counts["too_large"], *forms)} pominięto z '
+                                    'powodu zbyt dużego rozmiaru.'
+                                )
+                            if archivization_counts['unknown_error'] > 0:
+                                description_parts.append(
+                                    f'{word_number_form(archivization_counts["unknown_error"], *forms)} '
+                                    'pominięto z powodu niespodziewanych błędów.'
+                                )
+                            if description_parts:
+                                description = '\n'.join(description_parts)
                     except:
                         raise
                     finally:
                         channel_being_processed_for_servers[ctx.guild.id] = None
-            embed = self.bot.generate_embed(emoji, notice)
+            embed = self.bot.generate_embed(emoji, notice, description)
             await self.bot.send(ctx, embed=embed)
 
     @pins.command(aliases=['wyczyść', 'wyczysc'])
