@@ -114,7 +114,7 @@ The Polish Discord bot. Written in Python.
 * counting down to the end of the school year (in Poland)  
 * website and image search powered by [Google](https://www.google.com)  
 * [YouTube](https://www.youtube.com) video search  
-* [Wikipedia](https://www.wikipedia.org) article search, in Polish and English  
+* [Wikipedia](https://www.wikipedia.org) article search, in any language  
 * [TMDb](https://www.themoviedb.org/) movie and TV show search  
 * [goodreads](https://www.goodreads.com) book search  
 * [TMDb](https://www.themoviedb.org/) movie and TV show search  
