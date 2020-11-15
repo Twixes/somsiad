@@ -113,8 +113,8 @@ class Essentials(Cog):
         """Responds with current version of the bot."""
         if x and 'fccchk' in x.lower():
             emoji = '👺'
-            notice = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
-            footer = '© ???-??? ???'
+            notice = f'??? 6.6.6s'
+            footer = '© 1963 👺'
         else:
             emoji = random.choice(self.bot.EMOJIS)
             notice = f'Somsiad {__version__}'
@@ -125,32 +125,36 @@ class Essentials(Cog):
 
     @commands.command(aliases=['informacje'])
     @cooldown()
-    async def info(self, ctx, *, x = None):
+    async def info(self, ctx, *, x: str = ''):
         """Responds with current version of the bot."""
-        if x and 'fccchk' in x.lower():
+        if 'fccchk' in x.lower():
             emoji = '👺'
-            notice = f'??? {random.randint(1, 9)}.{random.randint(1, 9)}.{random.randint(1, 9)}'
-            footer = '© ???-??? ???'
-            psi = 2**18
-            omega = psi * psi
-            server_count = random.randint(0, psi)
-            user_count = server_count * random.randint(0, psi)
-            runtime = human_amount_of_time(random.randint(0, omega))
-            instance_owner = '???'
+            notice = f'??? 6.6.6'
+            footer = '© 1963 👺'
+            server_count = 193
+            user_count = 7_802_385_004 + int((dt.datetime.now() - dt.datetime(2020, 1, 1)).total_seconds() * 2.5)
+            shard_count = 8
+            runtime = human_amount_of_time(dt.datetime.now() - dt.datetime(1963, 11, 22))
+            instance_owner = '👺'
+            invite_url = 'https:///////////////////////////////'
         else:
             emoji = 'ℹ️'
             notice = f'Somsiad {__version__}'
             footer = __copyright__
             server_count = self.bot.server_count
             user_count = self.bot.user_count
-            runtime = '?' if self.bot.ready_datetime is None else human_amount_of_time(dt.datetime.now() - self.bot.ready_datetime)
+            shard_count = self.bot.shard_count
+            runtime = '???' if self.bot.ready_datetime is None else human_amount_of_time(dt.datetime.now() - self.bot.ready_datetime)
             application_info = await self.bot.application_info()
             instance_owner = application_info.owner.mention
+            invite_url = self.bot.invite_url()
         embed = self.bot.generate_embed(emoji, notice, url=self.bot.WEBSITE_URL)
         embed.add_field(name='Liczba serwerów', value=f'{server_count:n}')
         embed.add_field(name='Liczba użytkowników', value=f'{user_count:n}')
+        embed.add_field(name='Liczba shardów', value=f'{shard_count:n}')
         embed.add_field(name='Czas pracy', value=runtime)
         embed.add_field(name='Właściciel instancji', value=instance_owner)
+        embed.add_field(name='Link zaproszeniowy bota', value=invite_url, inline=False)
         embed.set_footer(text=footer)
         await self.bot.send(ctx, embed=embed)
 
