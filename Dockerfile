@@ -13,7 +13,7 @@ RUN sed -i -e "s/# pl_PL.UTF-8 UTF-8/pl_PL.UTF-8 UTF-8/" /etc/locale.gen && \
     locale-gen
 WORKDIR /code
 COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -U pip setuptools wheel
-RUN pip3 install --no-cache-dir -U -r requirements.txt
+RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
+RUN python3 -m pip install --no-cache-dir -U -r requirements.txt
 COPY . .
 CMD python3 run.py
