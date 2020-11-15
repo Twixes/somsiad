@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union, Sequence, Tuple
+from typing import Optional, Union, Sequence
 import random
 import datetime as dt
 import discord
@@ -42,9 +42,13 @@ class Help:
         "A command model."
         __slots__ = ('_aliases', '_arguments', '_description')
 
-        def __init__(self, aliases: Union[Tuple[str], str], arguments: Union[Tuple[str], str], description: str):
-            self._aliases = aliases if isinstance(aliases, tuple) else (aliases,)
-            self._arguments = arguments if isinstance(arguments, tuple) else (arguments,)
+        _aliases: Sequence[str]
+        _arguments: Sequence[str]
+        _description: str
+
+        def __init__(self, aliases: Union[Sequence[str], str], arguments: Union[Sequence[str], str], description: str):
+            self._aliases = (aliases,) if isinstance(aliases, str) else aliases
+            self._arguments = (arguments,) if isinstance(arguments, str) else arguments
             self._description = description
 
         def __str__(self) -> str:
@@ -211,7 +215,7 @@ class Essentials(Cog):
     @commands.is_owner()
     async def error(self, ctx):
         """Causes an error."""
-        await self.bot.send(ctx, 1 / 0)
+        1 / 0
 
 
 class Prefix(Cog):

@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import DefaultDict, Dict, Optional, Union, Sequence, List, cast
+from typing import DefaultDict, Dict, Optional, Type, Union, Sequence, List, cast
 from collections import defaultdict
 import os
 import sys
@@ -142,7 +142,7 @@ class Somsiad(commands.AutoShardedBot):
     async def on_guild_join(self, server):
         data.Server.register(server)
 
-    def load_and_run(self, cogs: Optional[Sequence[Cog]] = None):
+    def load_and_run(self, cogs: Optional[Sequence[Type[Cog]]] = None):
         print('Ładowanie rozszerzeń...')
         if cogs:
             for cog in cogs:
@@ -218,9 +218,9 @@ class Somsiad(commands.AutoShardedBot):
             await asyncio.sleep(60)
 
     def generate_embed(
-            self, emoji: Optional[str] = None, notice: Optional[str] = None, description: str = discord.Embed.Empty, *,
-            url: str = discord.Embed.Empty, color: Optional[Union[discord.Color, int]] = None,
-            timestamp: dt.datetime = discord.Embed.Empty
+            self, emoji: Optional[str] = None, notice: Optional[str] = None, description: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty, *,
+            url: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty, color: Optional[Union[discord.Color, int]] = None,
+            timestamp: Union[dt.datetime, discord.embeds._EmptyEmbed] = discord.Embed.Empty
     ):
         title_parts = tuple(filter(None, (emoji, notice)))
         color = color or self.COLOR
@@ -238,13 +238,11 @@ class Somsiad(commands.AutoShardedBot):
             files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None, mention: bool = True
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is not None and embeds:
-            raise ValueError('embed and embeds cannot be both passed at the same time')
-        embeds = embeds or []
-        if embed is not None:
-            embeds.append(embed)
+            raise ValueError('embed and embeds cannot be both passed at the same time!')
+        embeds = [embed] if embed is not None else []
         if len(embeds) > 10:
-            raise ValueError('no more than 10 embeds can be sent at the same time')
-        destination = ctx.author if direct else ctx.channel
+            raise ValueError('no more than 10 embeds can be sent at the same time!')
+        destination = cast(discord.abc.Messageable, ctx.author if direct else ctx.channel)
         content_elements = tuple(filter(None, (text, ctx.author.mention if not direct or not mention else None)))
         content = ' '.join(content_elements) if content_elements else None
         if self.diagnostics_on and ctx.author.id == self.owner_id:
@@ -262,6 +260,8 @@ class Somsiad(commands.AutoShardedBot):
             except AttributeError:
                 process_swap = 0.0
                 swap_usage = ' '
+            if content is None:
+                content = ''
             content += (
                 f'```Python\nużycie procesora: ogólnie {psutil.cpu_percent():n}%\n'
                 f'użycie pamięci: {(process_memory.uss - process_swap) / 1_048_576:n} MiB{swap_usage}(ogólnie '

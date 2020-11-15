@@ -64,10 +64,11 @@ def create_all_tables():
 
 
 def insert_or_ignore(
-        model: Base, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], *, session: RawSession = None
+        model, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], *, session: RawSession = None
 ):
-    use_own_session = session is None
-    if use_own_session:
+    use_own_session = False
+    if session is None:
+        use_own_session = True
         session = Session()
     dialect_name = str(session.bind.dialect.name)
     if dialect_name == 'postgresql':
@@ -94,7 +95,7 @@ class Server(Base):
     joined_at = Column(DateTime)
 
     @classmethod
-    def register(cls, server: Sequence[discord.Guild]):
+    def register(cls, server: discord.Guild):
         values = {'id': server.id, 'joined_at': server.me.joined_at}
         insert_or_ignore(cls, values)
 
