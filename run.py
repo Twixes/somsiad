@@ -15,7 +15,7 @@ from configuration import configuration
 import sentry_sdk
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
-from core import somsiad
+from core import Essentials, Prefix, somsiad
 from version import __version__
 
 if __name__ == '__main__':
@@ -26,4 +26,4 @@ if __name__ == '__main__':
             configuration['sentry_dsn'], release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
             integrations=[SqlalchemyIntegration(), AioHttpIntegration()]
         )
-    somsiad.load_and_run()
+    somsiad.load_and_run((Essentials, Prefix))
