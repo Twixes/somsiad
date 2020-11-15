@@ -17,7 +17,7 @@ from sqlalchemy import (
     func, create_engine, Column, Boolean, Integer, SmallInteger, BigInteger, String, Date, DateTime, ForeignKey
 )
 from sqlalchemy.orm import Session as RawSession, sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.ext.declarative import declarative_base, declared_attr, DeclarativeMeta
 from sqlalchemy.dialects import postgresql
 import discord
 from discord.ext import commands
@@ -40,7 +40,7 @@ def session(*, commit: bool = False):
         _session.close()
 
 
-class Base:
+class _Base:
     @declared_attr
     def __tablename__(cls):
         class_name = cls.__name__
@@ -56,7 +56,7 @@ class Base:
         return ''.join(table_name_chars)
 
 
-Base = declarative_base(cls=Base)
+Base: DeclarativeMeta = declarative_base(cls=_Base)
 
 
 def create_all_tables():

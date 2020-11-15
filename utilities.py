@@ -61,7 +61,7 @@ class GoogleClient:
         display_link: str
         root_link: str
         image_link: Optional[str]
-        type: str
+        type: Optional[str]
 
     def __init__(self, developer_key: str, custom_search_engine_id: str, loop: asyncio.AbstractEventLoop):
         self.custom_search_engine_id = custom_search_engine_id
@@ -71,11 +71,11 @@ class GoogleClient:
     async def search(
             self, query: str, *, language: str = 'pl', safe: str = 'active', search_type: str = None
     ) -> Optional[GoogleResult]:
-        query = self.search_client.list(
+        list_query = self.search_client.list(
             q=query, cx=self.custom_search_engine_id, hl=language, num=5 if search_type == 'image' else 1, safe=safe,
             searchType=search_type
         )
-        results = await self.loop.run_in_executor(None, query.execute)
+        results = await self.loop.run_in_executor(None, list_query.execute)
         if results['searchInformation']['totalResults'] != '0':
             if search_type == 'image':
                 for result in results['items']:
@@ -118,8 +118,8 @@ class YouTubeClient:
         self.loop = loop
 
     async def search(self, query: str) -> Optional[YouTubeResult]:
-        query = self.search_client.list(q=query, part='snippet', maxResults=1, type='video')
-        response = await self.loop.run_in_executor(None, query.execute)
+        list_query = self.search_client.list(q=query, part='snippet', maxResults=1, type='video')
+        response = await self.loop.run_in_executor(None, list_query.execute)
         items = response.get('items')
         if not items:
             return None
@@ -164,14 +164,14 @@ def text_snippet(text: str, limit: int) -> str:
     return '…'
 
 
-def with_preposition_form(number: Number) -> str:
+def with_preposition_form(number: Union[int, float]) -> str:
     """Return the gramatically correct form of the "with" preposition in Polish."""
     while number > 1000: number /= 1000
     return 'ze' if 100 <= number < 200 else 'z'
 
 
 def word_number_form(
-        number: Union[Number, str], singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
+        number: Union[int, float, str], singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
         fractional_form: str = None, *, include_number: bool = True, include_with: bool = False
 ) -> str:
     """Return the gramatically correct form of the specifiec word in Polish based on the number."""
@@ -252,11 +252,11 @@ def human_datetime(
     return ', '.join(time_difference_parts)
 
 
-def human_amount_of_time(time: Union[dt.timedelta, Number]) -> str:
+def human_amount_of_time(time: Union[dt.timedelta, int, float]) -> str:
     """Return the provided amoutt of in Polish."""
     if isinstance(time, dt.timedelta):
         total_seconds = int(round(time.total_seconds()))
-    elif isinstance(time, Number):
+    elif isinstance(time, (int, float)):
         total_seconds = int(round(time))
     else:
         raise TypeError('time must be datetime.timedelta or numbers.Number')
@@ -374,8 +374,8 @@ def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant
     data = np.pad(data, roll // 2, pad_mode)
     data = np.cumsum(data)
     data[roll:] = data[roll:] - data[:-roll]
-    data = data[roll - 1:] / roll
-    return data
+    result = data[roll - 1:] / roll
+    return result
 
 
 def localize(locale_name: str = 'pl_PL.UTF-8', first_weekday: int = calendar.MONDAY):
