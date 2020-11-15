@@ -1,27 +1,36 @@
 version: "3.8"
-
+volumes:
+    postgres:
 services:
-  bot:
-    build: .
-    restart: on-failure
-    environment:
-        - DISCORD_TOKEN
-        - COMMAND_PREFIX
-        - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
-        - DATABASE_URL
-        - GOOGLE_KEY
-        - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
-        - GOODREADS_KEY
-        - TMDB_KEY
-        - LAST_FM_KEY
-        - YANDEX_TRANSLATE_KEY
-        - WOLFRAM_ALPHA_APP_ID
-        - DISCO_MAX_FILE_SIZE_IN_MIB
-        - SENTRY_DSN
-        - SENTRY_AUTH_TOKEN
-        - SENTRY_ORG
-        - PTVSD
-    ports:
-        - "5678:5678"
-    volumes:
-        - .:/code
+    postgres:
+        environment:
+            POSTGRES_DB: somsiad
+            POSTGRES_PASSWORD: somsiad
+            POSTGRES_USER: somsiad
+        image: postgres:13
+        volumes:
+            - postgres:/var/lib/postgresql/data
+    bot:
+        build: .
+        restart: on-failure
+        depends_on:
+            - postgres
+        environment:
+            - DISCORD_TOKEN
+            - COMMAND_PREFIX
+            - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
+            - DATABASE_URL
+            - GOOGLE_KEY
+            - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
+            - GOODREADS_KEY
+            - TMDB_KEY
+            - LAST_FM_KEY
+            - YANDEX_TRANSLATE_KEY
+            - WOLFRAM_ALPHA_APP_ID
+            - DISCO_MAX_FILE_SIZE_IN_MIB
+            - SENTRY_DSN
+            - SENTRY_AUTH_TOKEN
+            - SENTRY_ORG
+            - PTVSD
+        ports:
+            - "5678:5678"
