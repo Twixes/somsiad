@@ -73,23 +73,33 @@ https://developer.wolframalpha.com/portal/myapps/
 https://github.com/Twixes/somsiad/releases/latest  
 
 2. Rozpakuj pobrane archiwum i wejdź do nowo utworzonego katalogu:  
-`$ tar -xvf somsiad-<wersja>.tar.gz`  
-`$ cd somsiad-<wersja>`  
+`tar -xvf somsiad-<wersja>.tar.gz`  
+`cd somsiad-<wersja>`  
 
 3. W głównym katalogu skopiuj plik `.template.env` jako `.env`, a następnie wypełnij ten `.env` ustawieniami i kluczami według wzoru.
 
 4. Stwórz dockerową maszynę (w tym podstawowym przykładzie wykorzystamy domyślną `default`):  
-`$ docker-machine create`  
+`docker-machine create`  
 
 5. Uruchom bota:  
-`$ docker-compose up`  
+`docker-compose up`  
 Ten pierwszy raz może chwilę potrwać, gdyż wszystko musi zostać zainstalowane i ustawione od zera – na szczęście następne uruchomienia będą prawie natychmiastowe.
 
 6. Zapraszaj Somsiada na serwery za pomocą linku podanego w konsoli po uruchomieniu.  
 Jeśli chcesz przełączyć bota na działanie w tle, użyj skrótu klawiszowego `Ctrl + P` + `Ctrl + Q` lub od razu używaj `docker-compose up` z opcją `-d`.
 
 7. Ekstra – przeprowadź release + deployment Sentry:  
-`$ docker exec $(docker ps | grep somsiad_bot | awk '{print $1}') /bin/sh sentry_release_deploy.sh`  
+`docker exec $(docker ps | grep somsiad_bot | awk '{print $1}') /bin/sh sentry_release_deploy.sh`  
+
+## Środowisko deweloperskie
+
+By najwygodniej prowadzić prace nad kodem bota, skorzystaj ze skryptu, który przygotuje ci pythonowe wirtualne środowisko z zainstalowanymi zależnościami:
+
+`./dev.sh`
+
+Możesz wejść wtedy do tego środowiska wybierając je spośród wersji Pythona w pasku dolnym VS Code lub przy użyciu komendy basha:
+
+`source venv/bin/activate`
 
 ## Licencja  
 
@@ -170,23 +180,33 @@ https://developer.wolframalpha.com/portal/myapps/
 https://github.com/Twixes/somsiad/releases/latest  
 
 2. Unpack the downloaded archive and enter the newly created directory:  
-`$ tar -xvf somsiad-<version>.tar.gz`  
-`$ cd somsiad-<version>`  
+`tar -xvf somsiad-<version>.tar.gz`  
+`cd somsiad-<version>`  
 
 4. In the root directory copy file `.template.env` as `.env` and complete that `.env` with settings according to the template.
 
 5. Create a docker machine (in this basic example we'll use the default one `default`):  
-`$ docker-machine create`  
+`docker-machine create`  
 
 6. Run the bot:  
-`$ docker-compose up`  
+`docker-compose up`  
 This first time may take a while as everything must be set up from nothing – luckily after that launching will be almost instant.
 
 7. Invite Somsiad to servers with the link provided in the console upon launch.  
 If you want to switch the bot to running in the background, use combination `Ctrl + P` + `Ctrl + Q` or just run `docker-compose up` with option `-d`.
 
 7. Extra – perform a Sentry release + deployment:  
-`$ docker exec $(docker ps | grep somsiad_bot | awk '{print $1}') /bin/sh sentry_release_deploy.sh`  
+`docker exec $(docker ps | grep somsiad_bot | awk '{print $1}') /bin/sh sentry_release_deploy.sh`  
+
+## Development environment
+
+To most comfortably work on the bot's code, use the script that will prepare for you a Python virtual environment with dependencies installed:
+
+`./dev.sh`
+
+You can then enter the environment by choosing it from Python versions in VS Code's bottom bar or with bash command:
+
+`source ./venv/bin/activate`
 
 ## License  
 
