@@ -62,7 +62,7 @@ then
         python$PYTHON_VERSION -m venv $(dirname "$BASH_SOURCE")/$VENV_DIRNAME
         source $(dirname "$BASH_SOURCE")/$VENV_DIRNAME/bin/activate
         echo "Spełnianie zależności..."
-        pip$PYTHON_VERSION install -U pip
+        pip$PYTHON_VERSION install -U pip setuptools wheel
         pip$PYTHON_VERSION install -U -r $(dirname "$BASH_SOURCE")/requirements.txt
         echo "Gotowe."
 elif [ -z "$ARGUMENT" ]
