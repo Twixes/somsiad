@@ -14,6 +14,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 ARGUMENT=$1
+VENV_DIRNAME="venv"
 
 if [ ! -z "$ARGUMENT" ]
 then
@@ -52,9 +53,14 @@ fi
 
 if [ ! -z "$PYTHON_VERSION" ]
 then
-        echo "Tworzenie środowiska wirtualnego..."
-        python$PYTHON_VERSION -m venv $(dirname "$BASH_SOURCE")/venv
-        source $(dirname "$BASH_SOURCE")/venv/bin/activate
+        if [[ -d $VENV_DIRNAME ]]
+        then
+            echo "Usuwanie starego środowiska wirtualnego..."
+            rm -rf $VENV_DIRNAME
+        fi
+        echo "Tworzenie świeżego środowiska wirtualnego..."
+        python$PYTHON_VERSION -m venv $(dirname "$BASH_SOURCE")/$VENV_DIRNAME
+        source $(dirname "$BASH_SOURCE")/$VENV_DIRNAME/bin/activate
         echo "Spełnianie zależności..."
         pip$PYTHON_VERSION install -U pip
         pip$PYTHON_VERSION install -U -r $(dirname "$BASH_SOURCE")/requirements.txt
