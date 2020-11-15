@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright 2018-2020 Twixes
+# Copyright 2020 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -13,18 +13,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-echo "###################################################################"
-echo "UWAGA: Ta metoda uruchamiania bota jest przestarzała! Użyj Dockera!"
-echo "###################################################################"
-
-if [[ ${1::1} == "!" ]]
-then
-    OPTIONS="-m cProfile -s tottime -o somsiad.cprof"
-    OPTIONS_PRESENTATION=" z profilowaniem"
-    ARGUMENT=${1:1}
-else
-    ARGUMENT=$1
-fi
+ARGUMENT=$1
 
 if [ ! -z "$ARGUMENT" ]
 then
@@ -69,8 +58,7 @@ then
         echo "Spełnianie zależności..."
         pip$PYTHON_VERSION install -U pip
         pip$PYTHON_VERSION install -U -r $(dirname "$BASH_SOURCE")/requirements.txt
-        echo "Uruchamianie$OPTIONS_PRESENTATION przy użyciu python$PYTHON_VERSION..."
-        python$PYTHON_VERSION $OPTIONS $(dirname "$BASH_SOURCE")/run.py
+        echo "Gotowe."
 elif [ -z "$ARGUMENT" ]
 then
     if [ -z "$PYTHON_VERSION_PRESENTATION" ]
