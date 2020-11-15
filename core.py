@@ -69,6 +69,7 @@ class Somsiad(commands.AutoShardedBot):
         commands.NotOwner
     )
     PREFIX_SAFE_COMMANDS = ('prefix', 'ping', 'info', 'help')
+
     bot_dir_path = os.path.dirname(os.path.realpath(sys.argv[0]))
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
@@ -76,7 +77,7 @@ class Somsiad(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
             command_prefix=self._get_prefix, help_command=None, description='Zawsze pomocny Somsiad',
-            case_insensitive=True
+            case_insensitive=True, intents=discord.Intents.all()
         )
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
