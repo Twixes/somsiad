@@ -21,11 +21,11 @@ then
     if command -V python$ARGUMENT &>/dev/null
     then
         PYTHON_VERSION_PRESENTATION="$(python$ARGUMENT -V)"
-        if [[ $PYTHON_VERSION_PRESENTATION == "Python 3.7."* ]] || [[ $PYTHON_VERSION_PRESENTATION == "Python 3.8."* ]]
+        if [[ $PYTHON_VERSION_PRESENTATION == "Python 3.8."* ]] || [[ $PYTHON_VERSION_PRESENTATION == "Python 3.9."* ]]
         then
             PYTHON_VERSION="$ARGUMENT"
         else
-            echo "Podana komenda python$ARGUMENT to $PYTHON_VERSION_PRESENTATION, nie obsługiwany 3.7.* lub 3.8.*!"
+            echo "Podana komenda python$ARGUMENT to $PYTHON_VERSION_PRESENTATION, nie obsługiwany 3.8.* lub 3.9.*!"
         fi
     else
         echo "Podana komenda python$ARGUMENT nie działa!"
@@ -34,19 +34,19 @@ else
     if command -V python3 &>/dev/null
     then
         PYTHON_VERSION_PRESENTATION="$(python3 -V)"
-        if [[ $PYTHON_VERSION_PRESENTATION == "Python 3.7."* ]] || [[ $PYTHON_VERSION_PRESENTATION == "Python 3.8."* ]]
+        if [[ $PYTHON_VERSION_PRESENTATION == "Python 3.8."* ]] || [[ $PYTHON_VERSION_PRESENTATION == "Python 3.9."* ]]
         then
             PYTHON_VERSION="3"
         fi
     fi
     if [ -z "$PYTHON_VERSION" ]
     then
-        if command -V python3.8 &>/dev/null
+        if command -V python3.9 &>/dev/null
+        then
+            PYTHON_VERSION="3.9"
+        elif command -V python3.8 &>/dev/null
         then
             PYTHON_VERSION="3.8"
-        elif command -V python3.7 &>/dev/null
-        then
-            PYTHON_VERSION="3.7"
         fi
     fi
 fi
@@ -62,14 +62,14 @@ then
         python$PYTHON_VERSION -m venv $(dirname "$BASH_SOURCE")/$VENV_DIRNAME
         source $(dirname "$BASH_SOURCE")/$VENV_DIRNAME/bin/activate
         echo "Spełnianie zależności..."
-        pip$PYTHON_VERSION install -U pip setuptools wheel
-        pip$PYTHON_VERSION install -U -r $(dirname "$BASH_SOURCE")/requirements.txt
+        python$PYTHON_VERSION -m pip install -U pip setuptools wheel
+        python$PYTHON_VERSION -m pip install -U -r $(dirname "$BASH_SOURCE")/requirements.txt
         echo "Gotowe."
 elif [ -z "$ARGUMENT" ]
 then
     if [ -z "$PYTHON_VERSION_PRESENTATION" ]
     then
-        echo "Zainstalowany jest $PYTHON_VERSION, nie obsługiwany 3.7.* lub 3.8.*!"
+        echo "Zainstalowany jest $PYTHON_VERSION, nie obsługiwany 3.8.* lub 3.9.*!"
     else
         echo "W systemie nie znaleziono Pythona 3!"
     fi
