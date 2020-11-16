@@ -2,8 +2,6 @@ import locale
 import os
 from typing import Any, Optional, Sequence
 
-from dotenv import load_dotenv
-
 
 class Setting:
     __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'optional', 'value')
@@ -76,7 +74,6 @@ class Configuration:
     __slots__ = ('settings',)
 
     def __init__(self, settings: Sequence[Setting]):
-        load_dotenv()
         for setting in settings:
             setting.set_value_with_env()
         self.settings = {setting.name: setting for setting in settings}
@@ -85,7 +82,10 @@ class Configuration:
         try:
             return self.settings[key].value
         except KeyError:
-            return os.getenv(key.upper())
+            try:
+                return os.environ[key.upper()]
+            except KeyError:
+                raise EnvironmentError(f'{key.upper()} is neither recognized nor set as an environment variable')
 
 
 SETTINGS = (
