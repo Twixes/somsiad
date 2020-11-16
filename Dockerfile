@@ -2,8 +2,8 @@ FROM python:3.8.6
 ENV PYTHONUNBUFFERED 1
 ENV TZ Europe/Warsaw
 RUN apt-get update && \
-    apt-get install -y locales tzdata python3-psycopg2 libffi-dev libnacl-dev libopus-dev libjpeg-dev libpq-dev ffmpeg && \
-    apt-get upgrade -y
+    apt-get upgrade -y && \
+    apt-get install -y locales tzdata python3-psycopg2 libffi-dev libnacl-dev libopus-dev libjpeg-dev libpq-dev ffmpeg
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
     dpkg-reconfigure -f noninteractive tzdata
