@@ -18,16 +18,23 @@ from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from configuration import configuration
-from core import Essentials, Prefix, somsiad
+from core import Essentials, Prefix, Somsiad, somsiad
 from version import __version__
 
-if __name__ == '__main__':
-    signal.signal(signal.SIGINT, somsiad.signal_handler)
+
+def run() -> Somsiad:
     if configuration['sentry_dsn']:
         print('Inicjowanie połączenia z Sentry...')
         sentry_sdk.init(
             configuration['sentry_dsn'],
-            release=f'{configuration["sentry_proj"] or "somsiad"}@{__version__}',
+            release=f'{configuration.get("sentry_proj") or "somsiad"}@{__version__}',
             integrations=[SqlalchemyIntegration(), AioHttpIntegration()],
         )
     somsiad.load_and_run((Essentials, Prefix))
+    return somsiad
+
+
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, somsiad.signal_handler)
+    signal.signal(signal.SIGTERM, somsiad.signal_handler)
+    run()

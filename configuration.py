@@ -85,7 +85,13 @@ class Configuration:
             try:
                 return os.environ[key.upper()]
             except KeyError:
-                raise EnvironmentError(f'{key.upper()} is neither recognized nor set as an environment variable')
+                raise KeyError(f'{key.upper()} is neither recognized nor set as an environment variable')
+
+    def get(self, key: str) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            return None
 
 
 SETTINGS = (
