@@ -12,9 +12,11 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+
 from discord.ext import commands
-from utilities import word_number_form, days_as_weeks
+
 from core import cooldown
+from utilities import days_as_weeks, word_number_form
 
 
 class SchoolPeriod:
@@ -24,11 +26,11 @@ class SchoolPeriod:
         self.is_summer_break = False
         end_date_for_year_of_date = self._find_end_date(self.reference_date.year)
         if end_date_for_year_of_date >= self.reference_date:
-            self.start_date = self._find_start_date(self.reference_date.year-1)
+            self.start_date = self._find_start_date(self.reference_date.year - 1)
             self.end_date = end_date_for_year_of_date
         else:
             self.start_date = self._find_start_date(self.reference_date.year)
-            self.end_date = self._find_end_date(self.reference_date.year+1)
+            self.end_date = self._find_end_date(self.reference_date.year + 1)
         self._calculate_basic_metrics()
         if self.days_passed < 0 or self.days_left < 0:
             self.is_summer_break = True
@@ -50,7 +52,7 @@ class SchoolPeriod:
         day = 1
         date = dt.date(year=start_year, month=9, day=day)
         while date.isoweekday() >= 5:
-            day +=1
+            day += 1
             date = dt.date(year=start_year, month=9, day=day)
         return date
 
@@ -96,18 +98,18 @@ class School(commands.Cog):
                 embed = self.bot.generate_embed('⛓', 'Dziś rozpoczęcie roku szkolnego')
             else:
                 embed = self.bot.generate_embed(
-                    '📚', f'Do końca roku szkolnego {left_form} {day_form}',
+                    '📚',
+                    f'Do końca roku szkolnego {left_form} {day_form}',
                     f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
                 )
                 embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
         else:
             embed = self.bot.generate_embed(
-                '🏖', f'Do końca wakacji {left_form} {day_form}',
+                '🏖',
+                f'Do końca wakacji {left_form} {day_form}',
                 f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
             )
-            embed.add_field(
-                name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%'
-            )
+            embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
         embed.add_field(name='Data rozpoczęcia', value=current_school_period.start_date.strftime('%-d %B %Y'))
         embed.add_field(name='Data zakończenia', value=current_school_period.end_date.strftime('%-d %B %Y'))
         await self.bot.send(ctx, embed=embed)
@@ -129,25 +131,22 @@ class School(commands.Cog):
                 embed = self.bot.generate_embed('⛓', 'Dziś rozpoczęcie roku szkolnego')
             else:
                 embed = self.bot.generate_embed(
-                    '🎓', f'Do rozpoczęcia matur {left_form} {day_form}',
+                    '🎓',
+                    f'Do rozpoczęcia matur {left_form} {day_form}',
                     f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
                 )
                 embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
         else:
             embed = self.bot.generate_embed(
-                '🏖', f'Do końca wakacji {left_form} {day_form}',
+                '🏖',
+                f'Do końca wakacji {left_form} {day_form}',
                 f'To {days_left_as_weeks}.' if days_left_as_weeks is not None else None,
             )
-            embed.add_field(
-                name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%'
-            )
+            embed.add_field(name='Postęp', value=f'{round(current_school_period.fraction_passed * 100, 1):n}%')
         embed.add_field(
             name='Data rozpoczęcia roku szkolnego', value=current_school_period.start_date.strftime('%-d %B %Y')
         )
-        embed.add_field(
-            name='Data rozpoczęcia matur',
-            value=current_school_period.end_date.strftime('%-d %B %Y')
-        )
+        embed.add_field(name='Data rozpoczęcia matur', value=current_school_period.end_date.strftime('%-d %B %Y'))
         await self.bot.send(ctx, embed=embed)
 
 

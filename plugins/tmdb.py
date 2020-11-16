@@ -11,36 +11,53 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
 import datetime as dt
+from typing import Optional
+
 import discord
 from discord.ext import commands
-from core import Help, cooldown
+
 from configuration import configuration
-from utilities import word_number_form, calculate_age, human_amount_of_time, text_snippet
+from core import Help, cooldown
+from utilities import calculate_age, human_amount_of_time, text_snippet, word_number_form
 
 
 class TMDb(commands.Cog):
     GROUP = Help.Command(
-        'tmdb', (),
+        'tmdb',
+        (),
         'Komendy związane z informacjami o produkcjach i ludziach ze światów kina i telewizji. '
-        'Użyj <?zapytania> zamiast <?podkomendy>, by otrzymać najlepiej pasujący film/serial/osobę.'
+        'Użyj <?zapytania> zamiast <?podkomendy>, by otrzymać najlepiej pasujący film/serial/osobę.',
     )
     COMMANDS = (
         Help.Command(('film', 'kino'), 'zapytanie', 'Zwraca najlepiej pasujący do <zapytania> film.'),
         Help.Command(
             ('serial', 'seria', 'telewizja', 'tv'), 'zapytanie', 'Zwraca najlepiej pasujący do <zapytania> serial.'
         ),
-        Help.Command('osoba', 'zapytanie', 'Zwraca najlepiej pasującą do <zapytania> osobę.')
+        Help.Command('osoba', 'zapytanie', 'Zwraca najlepiej pasującą do <zapytania> osobę.'),
     )
     HELP = Help(
-        COMMANDS, '🎬', group=GROUP, footer_text='TMDb',
+        COMMANDS,
+        '🎬',
+        group=GROUP,
+        footer_text='TMDb',
         footer_icon_url='https://www.themoviedb.org/assets/2/v4/logos/'
-        '208x226-stacked-green-9484383bd9853615c113f020def5cbe27f6d08a84ff834f41371f223ebad4a3c.png'
+        '208x226-stacked-green-9484383bd9853615c113f020def5cbe27f6d08a84ff834f41371f223ebad4a3c.png',
     )
     PROFESSIONS = {
-        'Acting': '🎭', 'Art': '🎨', 'Camera': '🎥', 'Costume': '👗', 'Creator': '🧠', 'Crew': '🔧', 'Directing': '🎬',
-        'Editing': '✂️', 'Lighting': '💡', 'Production': '📈', 'Sound': '🎙', 'Visual Effects': '🎇', 'Writing': '🖋'
+        'Acting': '🎭',
+        'Art': '🎨',
+        'Camera': '🎥',
+        'Costume': '👗',
+        'Creator': '🧠',
+        'Crew': '🔧',
+        'Directing': '🎬',
+        'Editing': '✂️',
+        'Lighting': '💡',
+        'Production': '📈',
+        'Sound': '🎙',
+        'Visual Effects': '🎇',
+        'Writing': '🖋',
     }
 
     def __init__(self, bot: commands.Bot):
@@ -76,7 +93,7 @@ class TMDb(commands.Cog):
         embed.set_footer(
             text='TMDb',
             icon_url='https://www.themoviedb.org/assets/2/v4/logos/'
-            '208x226-stacked-green-9484383bd9853615c113f020def5cbe27f6d08a84ff834f41371f223ebad4a3c.png'
+            '208x226-stacked-green-9484383bd9853615c113f020def5cbe27f6d08a84ff834f41371f223ebad4a3c.png',
         )
         return embed
 
@@ -99,16 +116,14 @@ class TMDb(commands.Cog):
         known_for_parts = (
             f'[📺 {production["name"]} ({production["first_air_date"][:4]})]'
             f'(https://www.themoviedb.org/tv/{production["id"]})'
-            if production['media_type'] == 'tv' else
-            f'[🎞 {production["title"]} ({production["release_date"][:4]})]'
+            if production['media_type'] == 'tv'
+            else f'[🎞 {production["title"]} ({production["release_date"][:4]})]'
             f'(https://www.themoviedb.org/movie/{production["id"]})'
             for production in result['known_for']
         )
         if result['biography']:
             embed.add_field(name='Biografia', value=result['biography'], inline=False)
-        embed.add_field(
-            name='Znana z' if is_female else 'Znany z', value='\n'.join(known_for_parts), inline=False
-        )
+        embed.add_field(name='Znana z' if is_female else 'Znany z', value='\n'.join(known_for_parts), inline=False)
         if result['profile_path']:
             embed.set_thumbnail(url=f'https://image.tmdb.org/t/p/w342{result["profile_path"]}')
         if result['known_for'] and result['known_for'][0].get('backdrop_path'):
@@ -118,8 +133,10 @@ class TMDb(commands.Cog):
     def generate_movie_embed(self, result: dict) -> discord.Embed:
         release_date = dt.date.fromisoformat(result['release_date']) if result['release_date'] else None
         embed = self.bot.generate_embed(
-            '🎞', f'{result["title"]} ({result["release_date"][:4]})', result.get('tagline'),
-            url=f'https://www.themoviedb.org/movie/{result["id"]}'
+            '🎞',
+            f'{result["title"]} ({result["release_date"][:4]})',
+            result.get('tagline'),
+            url=f'https://www.themoviedb.org/movie/{result["id"]}',
         )
         if result.get('original_title') != result['title']:
             embed.add_field(name='Tytuł oryginalny', value=result['original_title'], inline=False)
@@ -211,9 +228,7 @@ class TMDb(commands.Cog):
             )
         if season_counter > 10:
             following_form = word_number_form(season_counter - 10, 'kolejny', 'kolejne', 'kolejnych')
-            season_parts.append(
-                f'[…i jeszcze {following_form}](https://www.themoviedb.org/tv/{result["id"]}/seasons)'
-            )
+            season_parts.append(f'[…i jeszcze {following_form}](https://www.themoviedb.org/tv/{result["id"]}/seasons)')
         embed.add_field(name='Sezony', value='\n'.join(season_parts), inline=False)
         if result['overview']:
             embed.add_field(name='Opis', value=text_snippet(result['overview'], 500), inline=False)

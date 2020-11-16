@@ -11,11 +11,13 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
+
 from defusedxml import ElementTree
 from discord.ext import commands
-from core import cooldown
+
 from configuration import configuration
+from core import cooldown
 
 
 class Goodreads(commands.Cog):
@@ -31,10 +33,7 @@ class Goodreads(commands.Cog):
 
     async def fetch_books(self, query: str) -> Optional[List[Dict[str, str]]]:
         books = None
-        params = {
-            'q': query,
-            'key': configuration['goodreads_key']
-        }
+        params = {'q': query, 'key': configuration['goodreads_key']}
         async with self.bot.session.get(self.API_SEARCH_URL, params=params) as response:
             if response.status == 200:
                 books = []
@@ -76,9 +75,7 @@ class Goodreads(commands.Cog):
             elif not books:
                 embed = self.bot.generate_embed('🙁', f'Brak wyników dla zapytania "{query}"')
             else:
-                embed = self.bot.generate_embed(
-                    '📕', books[0]['title'], url=self.resource_url('book', books[0]['id'])
-                )
+                embed = self.bot.generate_embed('📕', books[0]['title'], url=self.resource_url('book', books[0]['id']))
                 embed.set_author(name=books[0]['author_name'], url=self.resource_url('author', books[0]['author_id']))
                 embed.add_field(name='Ocena', value=f'{float(books[0]["average_rating"]):n} / 5')
                 embed.add_field(name='Liczba głosów', value=f'{int(books[0]["ratings_count"]):n}')

@@ -11,13 +11,15 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Dict
 import io
+from typing import Dict
+
 import discord
 from discord.ext import commands
+
+import data
 from core import Help, cooldown
 from utilities import first_url, word_number_form
-import data
 
 channel_being_processed_for_servers = {}
 
@@ -72,17 +74,17 @@ class Pins(commands.Cog):
     )
     COMMANDS = (
         Help.Command(
-            ('kanał', 'kanal'), '?kanał',
+            ('kanał', 'kanal'),
+            '?kanał',
             'Jeśli podano <?kanał>, ustawia go jako serwerowy kanał archiwum przypiętych wiadomości. '
-            'W przeciwnym razie pokazuje jaki kanał obecnie jest archiwum przypiętych wiadomości.'
+            'W przeciwnym razie pokazuje jaki kanał obecnie jest archiwum przypiętych wiadomości.',
         ),
         Help.Command(
-            ('archiwizuj', 'zarchiwizuj'), (),
-            'Archiwizuje wiadomości przypięte na kanale na którym użyto komendy przez zapisanie ich na kanale archiwum.'
+            ('archiwizuj', 'zarchiwizuj'),
+            (),
+            'Archiwizuje wiadomości przypięte na kanale na którym użyto komendy przez zapisanie ich na kanale archiwum.',
         ),
-        Help.Command(
-            ('wyczyść', 'wyczysc'), (), 'Odpina wszystkie wiadomości na kanale.'
-        )
+        Help.Command(('wyczyść', 'wyczysc'), (), 'Odpina wszystkie wiadomości na kanale.'),
     )
     HELP = Help(COMMANDS, '📌', group=GROUP)
 
@@ -150,8 +152,9 @@ class Pins(commands.Cog):
                     emoji, notice = '⚠️', 'Ustawiony kanał archiwum przypiętych wiadomości już nie istnieje'
                 elif channel_being_processed_for_servers.get(ctx.guild.id) is not None:
                     emoji, notice = (
-                        '🔴', 'Na serwerze właśnie trwa przetwarzanie kanału '
-                        f'#{channel_being_processed_for_servers[ctx.guild.id]}'
+                        '🔴',
+                        'Na serwerze właśnie trwa przetwarzanie kanału '
+                        f'#{channel_being_processed_for_servers[ctx.guild.id]}',
                     )
                 else:
                     channel_being_processed_for_servers[ctx.guild.id] = pin_archive.discord_channel(self.bot)

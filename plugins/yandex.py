@@ -12,15 +12,18 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Optional
+
 import aiohttp
 import discord
 from discord.ext import commands
-from core import cooldown
+
 from configuration import configuration
+from core import cooldown
 
 
 class Yandex(commands.Cog):
     """Handles Yandex stuff."""
+
     FOOTER_TEXT = 'Yandex'
     FOOTER_ICON_URL = 'https://tech.yandex.com/favicon_en.ico'
     TRANSLATE_API_URL = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
@@ -29,16 +32,14 @@ class Yandex(commands.Cog):
         self.bot = bot
 
     async def fetch_translation(
-            self, text: str, target_language_code: str, source_language_code: str = None
+        self, text: str, target_language_code: str, source_language_code: str = None
     ) -> Optional[str]:
         """Translates text."""
         if source_language_code is None:
             lang = target_language_code
         else:
             lang = f'{source_language_code}-{target_language_code}'
-        params = {
-            'key': configuration['yandex_translate_key'], 'text': text, 'lang': lang, 'options': 1
-        }
+        params = {'key': configuration['yandex_translate_key'], 'text': text, 'lang': lang, 'options': 1}
         try:
             async with self.bot.session.get(self.TRANSLATE_API_URL, params=params) as request:
                 return await request.json()
@@ -62,16 +63,14 @@ class Yandex(commands.Cog):
             embed = self.bot.generate_embed('🌐', 'Przetłumaczono tekst')
             if source_language_code is None:
                 source_language_display = f'{translation["detected"]["lang"].upper()} (wykryto)'
-            embed.add_field(
-                name=f'{source_language_display} → {target_language_display}',
-                value=translation['text'][0]
-            )
+            embed.add_field(name=f'{source_language_display} → {target_language_display}', value=translation['text'][0])
         elif translation['code'] == 422:
             embed = self.bot.generate_embed('🙁', 'Podany tekst jest nieprzetłumaczalny')
         elif translation['code'] == 501 or translation['code'] == 502:
             embed = self.bot.generate_embed(
-                '🙁', f'Podany kierunek tłumaczenia ({source_language_display} → {target_language_display}) '
-                'nie jest obsługiwany'
+                '🙁',
+                f'Podany kierunek tłumaczenia ({source_language_display} → {target_language_display}) '
+                'nie jest obsługiwany',
             )
         else:
             embed = self.bot.generate_embed('⚠️', 'Błąd')

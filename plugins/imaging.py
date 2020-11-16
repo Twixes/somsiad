@@ -11,18 +11,20 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import BinaryIO, Optional, Tuple
 import io
 import time
+from typing import BinaryIO, Optional, Tuple
+
+import discord
+import imagehash
 import PIL.Image
 import PIL.ImageEnhance
-import imagehash
 import psycopg2.errors
-import discord
 from discord.ext import commands
-from core import cooldown
+
 import data
-from utilities import word_number_form, md_link, utc_to_naive_local
+from core import cooldown
+from utilities import md_link, utc_to_naive_local, word_number_form
 
 
 class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -34,7 +36,7 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
     sent_at = data.Column(data.DateTime, nullable=False)
 
     def calculate_similarity_to(self, other) -> float:
-        return (self.HASH_SIZE**2 - bin(int(self.hash, 16) ^ int(other.hash, 16)).count('1')) / self.HASH_SIZE**2
+        return (self.HASH_SIZE ** 2 - bin(int(self.hash, 16) ^ int(other.hash, 16)).count('1')) / self.HASH_SIZE ** 2
 
     async def get_presentation(self, bot: commands.Bot) -> str:
         parts = [self.sent_at.strftime('%-d %B %Y o %-H:%M')]
@@ -72,11 +74,17 @@ class Imaging(commands.Cog):
                         hash_string = self._hash(image_bytes)
                     except:
                         continue
-                    images9000.append(Image9000(
-                        attachment_id=attachment.id, message_id=message.id, user_id=message.author.id,
-                        channel_id=message.channel.id, server_id=message.guild.id, hash=hash_string,
-                        sent_at=utc_to_naive_local(message.created_at)
-                    ))
+                    images9000.append(
+                        Image9000(
+                            attachment_id=attachment.id,
+                            message_id=message.id,
+                            user_id=message.author.id,
+                            channel_id=message.channel.id,
+                            server_id=message.guild.id,
+                            hash=hash_string,
+                            sent_at=utc_to_naive_local(message.created_at),
+                        )
+                    )
         try:
             with data.session(commit=True) as session:
                 session.bulk_save_objects(images9000)
@@ -139,7 +147,7 @@ class Imaging(commands.Cog):
         return attachment, image_bytes
 
     async def find_image(
-            self, channel: commands.Context, *, sent_by: Optional[discord.Member] = None, limit: int = 15
+        self, channel: commands.Context, *, sent_by: Optional[discord.Member] = None, limit: int = 15
     ) -> ExtractedImage:
         attachment, input_image_bytes = None, None
         async with channel.typing():
@@ -210,7 +218,7 @@ class Imaging(commands.Cog):
                     comparison_count = 0
                     sent_by = ctx.guild.get_member(base_image9000.user_id)
                     for other_image9000 in session.query(Image9000).filter(
-                            Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
+                        Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
                     ):
                         comparison_count += 1
                         similarity = base_image9000.calculate_similarity_to(other_image9000)
@@ -234,12 +242,15 @@ class Imaging(commands.Cog):
                                 name=await image9000.get_presentation(self.bot),
                                 value=md_link(
                                     similarity_presentantion, message.jump_url if message is not None else None
-                                ) + info,
-                                inline=False
+                                )
+                                + info,
+                                inline=False,
                             )
                         occurences_form = word_number_form(
                             len(embed.fields),
-                            'wcześniejsze wystąpienie', 'wcześniejsze wystąpienia', 'wcześniejszych wystąpień'
+                            'wcześniejsze wystąpienie',
+                            'wcześniejsze wystąpienia',
+                            'wcześniejszych wystąpień',
                         )
                         embed.title = (
                             f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {sent_by} o '
@@ -247,8 +258,9 @@ class Imaging(commands.Cog):
                         )
                     else:
                         embed = self.bot.generate_embed(
-                            '🤖', f'Nie wykryłem, aby obrazek wysłany przez {sent_by} '
-                            f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze'
+                            '🤖',
+                            f'Nie wykryłem, aby obrazek wysłany przez {sent_by} '
+                            f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze',
                         )
                     comparison_time = time.time() - init_time
                     seen_image_form = word_number_form(

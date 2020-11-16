@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Optional
+
 import discord
 from discord.ext import commands
 
@@ -33,12 +34,15 @@ class BotOwnerTools(commands.Cog):
         if server is not None:
             for channel in server.channels:
                 if (
-                        not isinstance(channel, discord.CategoryChannel)
-                        and server.me.permissions_in(channel).create_instant_invite
+                    not isinstance(channel, discord.CategoryChannel)
+                    and server.me.permissions_in(channel).create_instant_invite
                 ):
-                    try: invite = await channel.create_invite(max_uses=1)
-                    except: continue
-                    else: break
+                    try:
+                        invite = await channel.create_invite(max_uses=1)
+                    except:
+                        continue
+                    else:
+                        break
         else:
             await self.bot.send(ctx, '⚠️ Nie znaleziono podanego serwera')
         if invite is not None:
@@ -55,7 +59,7 @@ class BotOwnerTools(commands.Cog):
     @commands.is_owner()
     async def announce_globally(self, ctx, *, raw_announcement):
         """Makes an announcement on all servers smaller than 10000 members not containing "bot" in their name."""
-        announcement = raw_announcement.replace('\\n','\n').strip(';').split(';')
+        announcement = raw_announcement.replace('\\n', '\n').strip(';').split(';')
         if announcement[0].startswith('!'):
             description = announcement[0].lstrip('!').strip()
             announcement = announcement[1:]
@@ -63,21 +67,24 @@ class BotOwnerTools(commands.Cog):
             description = None
         embed = self.bot.generate_embed('📢', 'Ogłoszenie somsiedzkie', description)
         for n in range(0, len(announcement) - 1, 2):
-            embed.add_field(name=announcement[n].strip(), value=announcement[n+1].strip(), inline=False)
+            embed.add_field(name=announcement[n].strip(), value=announcement[n + 1].strip(), inline=False)
         for server in ctx.bot.guilds:
             if not server.name or 'bot' not in server.name.lower():
                 for channel in server.text_channels:
                     if not channel.is_news():
-                        try: await channel.send(embed=embed)
-                        except: continue
-                        else: break
+                        try:
+                            await channel.send(embed=embed)
+                        except:
+                            continue
+                        else:
+                            break
 
     @announce.command(aliases=['lokalnie'])
     @commands.guild_only()
     @commands.is_owner()
     async def announce_locally(self, ctx, *, raw_announcement):
         """Makes an announcement only on the server where the command was invoked."""
-        announcement = raw_announcement.replace('\\n','\n').strip(';').split(';')
+        announcement = raw_announcement.replace('\\n', '\n').strip(';').split(';')
         if announcement[0].startswith('!'):
             description = announcement[0].lstrip('!').strip()
             announcement = announcement[1:]
@@ -87,7 +94,7 @@ class BotOwnerTools(commands.Cog):
         embed = self.bot.generate_embed('📢', 'Ogłoszenie somsiedzkie', description)
 
         for n in range(0, len(announcement) - 1, 2):
-            embed.add_field(name=announcement[n].strip(), value=announcement[n+1].strip(), inline=False)
+            embed.add_field(name=announcement[n].strip(), value=announcement[n + 1].strip(), inline=False)
         for channel in ctx.guild.text_channels:
             if channel.permissions_for(ctx.me).send_messages:
                 await channel.send(embed=embed)

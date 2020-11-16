@@ -11,16 +11,24 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import unittest
 import datetime as dt
+import unittest
+
 from utilities import (
-    first_url, text_snippet, with_preposition_form, word_number_form, human_amount_of_time, human_datetime,
-    interpret_str_as_datetime, localize
+    first_url,
+    human_amount_of_time,
+    human_datetime,
+    interpret_str_as_datetime,
+    localize,
+    text_snippet,
+    with_preposition_form,
+    word_number_form,
 )
 
 NOW_OVERRIDE = dt.datetime(2013, 12, 24, 12, 0)
 
 localize()
+
 
 class TestTextFormatterFindURL(unittest.TestCase):
     def test_proper_http(self):
@@ -40,9 +48,7 @@ class TestTextFormatterFindURL(unittest.TestCase):
         self.assertEqual(search_result, 'https://www.example.com/')
 
     def test_proper_path(self):
-        search_result = first_url(
-            'This sentence contains an exemplary URL: https://www.example.com/resource/id.'
-        )
+        search_result = first_url('This sentence contains an exemplary URL: https://www.example.com/resource/id.')
         self.assertEqual(search_result, 'https://www.example.com/resource/id')
 
     def test_proper_comma_after(self):
@@ -157,14 +163,14 @@ class TestTextFormatterLimitTextLength(unittest.TestCase):
 
 class TestTextFormatterWithPrepositionVariant(unittest.TestCase):
     def test_positive_numbers_starting_with_1_hundred(self):
-        for number in [base * 1000**power for power in range(3) for base in (100, 199)]:
+        for number in [base * 1000 ** power for power in range(3) for base in (100, 199)]:
             with self.subTest(number=number):
                 returned_with_preposition_variant = with_preposition_form(number)
                 self.assertEqual(returned_with_preposition_variant, 'ze')
 
     def test_numbers_negative_or_not_starting_with_1_hundred(self):
         for number in [0] + [
-            base * 1000**power for power in range(3) for base in (-999, -200, -199, -100, -99, -1, 1, 99, 200, 999)
+            base * 1000 ** power for power in range(3) for base in (-999, -200, -199, -100, -99, -1, 1, 99, 200, 999)
         ]:
             with self.subTest(number=number):
                 returned_with_preposition_variant = with_preposition_form(number)
@@ -181,32 +187,23 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
         self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
     def test_singular_noun_without_number(self):
-        returned_variant_without_number = word_number_form(
-            1, 'klocek', 'klocki', 'klocków', include_number=False
-        )
+        returned_variant_without_number = word_number_form(1, 'klocek', 'klocki', 'klocków', include_number=False)
         expected_variant_without_number = 'klocek'
         self.assertEqual(returned_variant_without_number, expected_variant_without_number)
 
     def test_singular_noun_with_with(self):
-        returned_variant_without_number = word_number_form(
-            1, 'klockiem', 'klockami', include_with=True
-        )
+        returned_variant_without_number = word_number_form(1, 'klockiem', 'klockami', include_with=True)
         expected_variant_without_number = 'z 1 klockiem'
         self.assertEqual(returned_variant_without_number, expected_variant_without_number)
 
     def test_plural_noun_with_with(self):
-        returned_variant_without_number = word_number_form(
-            106, 'klockiem', 'klockami', include_with=True
-        )
+        returned_variant_without_number = word_number_form(106, 'klockiem', 'klockami', include_with=True)
         expected_variant_without_number = 'ze 106 klockami'
         self.assertEqual(returned_variant_without_number, expected_variant_without_number)
 
     def test_plural_noun_2_to_4(self):
         for number in (
-            sign * (base + addition)
-            for base in self._BASES
-            for addition in range(2, 5)
-            for sign in self._SIGNS
+            sign * (base + addition) for base in self._BASES for addition in range(2, 5) for sign in self._SIGNS
         ):
             with self.subTest(number=number):
                 returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
@@ -227,10 +224,7 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
 
     def test_plural_noun_12_to_14(self):
         for number in (
-            sign * (base + addition)
-            for base in self._BASES
-            for addition in list(range(12, 15))
-            for sign in self._SIGNS
+            sign * (base + addition) for base in self._BASES for addition in list(range(12, 15)) for sign in self._SIGNS
         ):
             with self.subTest(number=number):
                 returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków')
@@ -239,15 +233,10 @@ class TestTextFormatterWordNumberVariant(unittest.TestCase):
 
     def test_fractional_noun(self):
         for number in (
-            sign * (base + addition + 0.5)
-            for base in self._BASES
-            for addition in range(100)
-            for sign in self._SIGNS
+            sign * (base + addition + 0.5) for base in self._BASES for addition in range(100) for sign in self._SIGNS
         ):
             with self.subTest(number=number):
-                returned_variant_with_number = word_number_form(
-                    number, 'klocek', 'klocki', 'klocków', 'klocka'
-                )
+                returned_variant_with_number = word_number_form(number, 'klocek', 'klocki', 'klocków', 'klocka')
                 expected_variant_with_number = f'{number:n} klocka'
                 self.assertEqual(returned_variant_with_number, expected_variant_with_number)
 
@@ -294,23 +283,17 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE, naive=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE, naive=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'24 grudnia 2013 o 12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_date(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE, naive=False, date=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE, naive=False, date=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_time(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE, naive=False, time=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE, naive=False, time=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'24 grudnia 2013, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
@@ -366,7 +349,9 @@ class TestTextFormatterHumanReadableTime(unittest.TestCase):
         self.assertEqual(returned_human_time, expected_human_time)
 
     def test_timedelta_with_microseconds(self):
-        returned_human_time = human_amount_of_time(dt.timedelta(days=3, hours=9, minutes=3, seconds=1, microseconds=909303))
+        returned_human_time = human_amount_of_time(
+            dt.timedelta(days=3, hours=9, minutes=3, seconds=1, microseconds=909303)
+        )
         expected_human_time = '3 d 9 h 3 min 2 s'
         self.assertEqual(returned_human_time, expected_human_time)
 

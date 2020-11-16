@@ -11,14 +11,16 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
-import re
 import datetime as dt
+import re
+from typing import Optional
+
 import discord
 from discord.ext import commands
-from core import cooldown
-from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, word_number_form, md_link
+
 import data
+from core import cooldown
+from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to_naive_local, word_number_form
 
 
 class Ballot(data.Base, data.ChannelRelated, data.UserRelated):
@@ -35,9 +37,32 @@ class Ballot(data.Base, data.ChannelRelated, data.UserRelated):
 class Vote(commands.Cog):
     LETTER_REGEX = re.compile(r'\b([A-Z])[\.\?\:](?=\s|$)')
     LETTER_EMOJIS = {
-        'A': '🇦', 'B': '🇧', 'C': '🇨', 'D': '🇩', 'E': '🇪', 'F': '🇫', 'G': '🇬', 'H': '🇭', 'I': '🇮', 'J': '🇯',
-        'K': '🇰', 'L': '🇱', 'M': '🇲', 'N': '🇳', 'O': '🇴', 'P': '🇵', 'Q': '🇶', 'R': '🇷', 'S': '🇸', 'T': '🇹',
-        'U': '🇺', 'V': '🇻', 'W': '🇼', 'X': '🇽', 'Y': '🇾', 'Z': '🇿'
+        'A': '🇦',
+        'B': '🇧',
+        'C': '🇨',
+        'D': '🇩',
+        'E': '🇪',
+        'F': '🇫',
+        'G': '🇬',
+        'H': '🇭',
+        'I': '🇮',
+        'J': '🇯',
+        'K': '🇰',
+        'L': '🇱',
+        'M': '🇲',
+        'N': '🇳',
+        'O': '🇴',
+        'P': '🇵',
+        'Q': '🇶',
+        'R': '🇷',
+        'S': '🇸',
+        'T': '🇹',
+        'U': '🇺',
+        'V': '🇻',
+        'W': '🇼',
+        'X': '🇽',
+        'Y': '🇾',
+        'Z': '🇿',
     }
 
     def __init__(self, bot: commands.Bot):
@@ -45,8 +70,14 @@ class Vote(commands.Cog):
         self.ballots_set_off = set()
 
     async def set_off_ballot(
-            self, urn_message_id: int, channel_id: int, user_id: int, matter: str, letters: Optional[str],
-            commenced_at: dt.datetime, conclude_at: dt.datetime
+        self,
+        urn_message_id: int,
+        channel_id: int,
+        user_id: int,
+        matter: str,
+        letters: Optional[str],
+        commenced_at: dt.datetime,
+        conclude_at: dt.datetime,
     ):
         if urn_message_id in self.ballots_set_off:
             return
@@ -80,7 +111,7 @@ class Vote(commands.Cog):
             urn_embed = self.bot.generate_embed(winning_emoji, matter)
             results_embed = self.bot.generate_embed(winning_emoji, matter, results_description)
             positions = ('Za', 'Przeciw') if letters is None else (f'Opcja {letter}' for letter in letters)
-            total_count = sum(results.values()) or 1 # guard against zero-division
+            total_count = sum(results.values()) or 1  # guard against zero-division
             for position, emoji in zip(positions, emojis):
                 this_count = results.get(emoji)
                 if this_count is None:
@@ -104,16 +135,26 @@ class Vote(commands.Cog):
     async def on_ready(self):
         with data.session() as session:
             for reminder in session.query(Ballot).filter(Ballot.has_been_concluded == False):
-                self.bot.loop.create_task(self.set_off_ballot(
-                    reminder.urn_message_id, reminder.channel_id, reminder.user_id, reminder.matter,
-                    reminder.letters, reminder.commenced_at, reminder.conclude_at
-                ))
+                self.bot.loop.create_task(
+                    self.set_off_ballot(
+                        reminder.urn_message_id,
+                        reminder.channel_id,
+                        reminder.user_id,
+                        reminder.matter,
+                        reminder.letters,
+                        reminder.commenced_at,
+                        reminder.conclude_at,
+                    )
+                )
 
     @commands.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
     @cooldown()
     async def vote(
-            self, ctx, conclude_at: Optional[interpret_str_as_datetime] = None,
-            *, matter: commands.clean_content(fix_channel_mentions=True)
+        self,
+        ctx,
+        conclude_at: Optional[interpret_str_as_datetime] = None,
+        *,
+        matter: commands.clean_content(fix_channel_mentions=True),
     ):
         if len(matter) > Ballot.MAX_MATTER_LENGTH:
             raise commands.BadArgument
@@ -135,9 +176,13 @@ class Vote(commands.Cog):
             for option in options:
                 await urn_message.add_reaction(option)
             details = {
-                'urn_message_id': urn_message.id, 'channel_id': ctx.channel.id, 'matter': matter, 'letters': letters,
-                'user_id': ctx.author.id, 'commenced_at': utc_to_naive_local(ctx.message.created_at),
-                'conclude_at': conclude_at
+                'urn_message_id': urn_message.id,
+                'channel_id': ctx.channel.id,
+                'matter': matter,
+                'letters': letters,
+                'user_id': ctx.author.id,
+                'commenced_at': utc_to_naive_local(ctx.message.created_at),
+                'conclude_at': conclude_at,
             }
             if conclude_at is not None:
                 with data.session(commit=True) as session:

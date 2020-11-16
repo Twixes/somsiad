@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
+
 from core import cooldown
 
 
@@ -51,7 +52,7 @@ class Emoticons(commands.Cog):
 
     @commands.command(aliases=['dej'])
     @cooldown()
-    async def gib(self, ctx, *, thing = None):
+    async def gib(self, ctx, *, thing=None):
         """༼ つ ◕_◕ ༽つ"""
         if thing is None:
             await self.bot.send(ctx, '༼ つ ◕_◕ ༽つ', mention=False)

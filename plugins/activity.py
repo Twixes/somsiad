@@ -11,22 +11,33 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import DefaultDict, Deque, Dict, List, Union, Optional, Sequence, cast
-from collections import defaultdict, deque
-import enum
-import itertools
-import io
-import datetime as dt
 import calendar
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import matplotlib.ticker as ticker
+import datetime as dt
+import enum
+import io
+import itertools
+from collections import defaultdict, deque
+from typing import (
+    DefaultDict,
+    Deque,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Union,
+    cast,
+)
+
 import discord
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from discord.ext import commands
-from core import Help, cooldown
-from configuration import configuration
-from utilities import word_number_form, utc_to_naive_local, human_datetime, md_link, rolling_average
+
 import data
+from configuration import configuration
+from core import Help, cooldown
+from utilities import human_datetime, md_link, rolling_average, utc_to_naive_local, word_number_form
 
 
 class MessageMetadata(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -42,6 +53,7 @@ class MessageMetadata(data.Base, data.MemberRelated, data.ChannelRelated):
 
 class Report:
     """A statistics report. Can generate server, channel or member statistics."""
+
     COOLDOWN = max(float(configuration['command_cooldown_per_user_in_seconds']), 15.0)
     BACKGROUND_COLOR = '#2f3136'
     FOREGROUND_COLOR = '#ffffff'
@@ -91,9 +103,11 @@ class Report:
         DELETED_USER = enum.auto()
 
     def __init__(
-            self, ctx: commands.Context,
-            subject: Union[discord.Guild, discord.TextChannel, discord.Member, discord.User, int], *,
-            last_days: Optional[int] = None
+        self,
+        ctx: commands.Context,
+        subject: Union[discord.Guild, discord.TextChannel, discord.Member, discord.User, int],
+        *,
+        last_days: Optional[int] = None,
     ):
         self.ctx = ctx
         if isinstance(subject, int):
@@ -113,9 +127,7 @@ class Report:
         self.messages_over_weekday = [0 for weekday in range(7)]
         self.messages_over_date = defaultdict(int)
         self.active_user_stats = defaultdict(lambda: {'message_count': 0, 'word_count': 0, 'character_count': 0})
-        self.relevant_channel_stats = defaultdict(
-            lambda: {'message_count': 0, 'word_count': 0, 'character_count': 0}
-        )
+        self.relevant_channel_stats = defaultdict(lambda: {'message_count': 0, 'word_count': 0, 'character_count': 0})
         self.embed = None
         self.activity_chart_file = None
         self.init_datetime = dt.datetime.now()
@@ -169,9 +181,12 @@ class Report:
         await self._fill_in_details()
         with data.session() as session:
             existent_channels = [
-                channel for channel in cast(discord.Guild, self.ctx.guild).text_channels
-                if channel.permissions_for(cast(discord.Member, self.ctx.me)).read_messages and
-                (not isinstance(self.subject, discord.Member) or channel.permissions_for(self.subject).read_messages)
+                channel
+                for channel in cast(discord.Guild, self.ctx.guild).text_channels
+                if channel.permissions_for(cast(discord.Member, self.ctx.me)).read_messages
+                and (
+                    not isinstance(self.subject, discord.Member) or channel.permissions_for(self.subject).read_messages
+                )
             ]
             # process subject type
             if self.type == self.Type.SERVER:
@@ -197,7 +212,7 @@ class Report:
                     await self._update_metadata_cache(channel, session)
                 relevant_message_metadata = session.query(MessageMetadata).filter(
                     MessageMetadata.user_id == self.subject_id,
-                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels])
+                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels]),
                 )
             else:
                 raise Exception(f'invalid analysis type {self.type}!')
@@ -205,7 +220,7 @@ class Report:
             if self.last_days:
                 since_datetime = dt.datetime(
                     self.init_datetime.year, self.init_datetime.month, self.init_datetime.day
-                ) - dt.timedelta(self.last_days-1)
+                ) - dt.timedelta(self.last_days - 1)
                 relevant_message_metadata = relevant_message_metadata.filter(MessageMetadata.datetime >= since_datetime)
             await self._finalize_progress()
             # generate statistics from metadata cache
@@ -218,7 +233,7 @@ class Report:
                     self.earliest_relevant_message = message_metadata_portion[0]
                 self.latest_relevant_message = message_metadata_portion[-1]
                 loop = self.ctx.bot.loop
-                for message_metadata_subportion in itertools.zip_longest(*[iter(message_metadata_portion)]*100):
+                for message_metadata_subportion in itertools.zip_longest(*[iter(message_metadata_portion)] * 100):
                     await loop.run_in_executor(None, self._update_running_stats, message_metadata_subportion)
             was_user_found = True
             if self.total_message_count:
@@ -291,10 +306,7 @@ class Report:
 
         # create a Discord file and embed it
         filename = f'activity-{subject_identification}-{self.init_datetime.strftime("%Y.%m.%dT%H.%M.%S")}.png'
-        self.activity_chart_file = discord.File(
-            fp=chart_bytes,
-            filename=filename
-        )
+        self.activity_chart_file = discord.File(fp=chart_bytes, filename=filename)
         self.embed.set_image(url=f'attachment://{filename}')
 
         return self.activity_chart_file
@@ -341,9 +353,11 @@ class Report:
     async def _update_metadata_cache(self, channel: discord.TextChannel, session: data.RawSession):
         try:
             self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()
-            relevant_message_metadata = session.query(MessageMetadata).filter(
-                MessageMetadata.channel_id == channel.id
-            ).order_by(MessageMetadata.id.desc())
+            relevant_message_metadata = (
+                session.query(MessageMetadata)
+                .filter(MessageMetadata.channel_id == channel.id)
+                .order_by(MessageMetadata.id.desc())
+            )
             last_cached_message_metadata = relevant_message_metadata.first()
             if last_cached_message_metadata is not None:
                 after = discord.utils.snowflake_time(last_cached_message_metadata.id)
@@ -366,10 +380,15 @@ class Report:
                             content_parts.append(embed.author.text)
                     content = ' '.join(filter(None, content_parts))
                     message_metadata = MessageMetadata(
-                        id=message.id, server_id=message.guild.id, channel_id=channel.id, user_id=message.author.id,
-                        word_count=len(content.split()), character_count=len(content),
-                        hour=message_datetime.hour, weekday=message_datetime.weekday(),
-                        datetime=message_datetime
+                        id=message.id,
+                        server_id=message.guild.id,
+                        channel_id=channel.id,
+                        user_id=message.author.id,
+                        word_count=len(content.split()),
+                        character_count=len(content),
+                        hour=message_datetime.hour,
+                        weekday=message_datetime.weekday(),
+                        datetime=message_datetime,
                     )
                     metadata_cache_update.append(message_metadata)
                     self.messages_cached += 1
@@ -406,8 +425,9 @@ class Report:
 
     async def _send_or_update_progress(self):
         embed = self.ctx.bot.generate_embed(
-            '⌛', f'Buforowanie metadanych nowych wiadomości, do tej pory {self.messages_cached:n}…',
-            'Proces ten może trochę zająć z powodu limitów Discorda.'
+            '⌛',
+            f'Buforowanie metadanych nowych wiadomości, do tej pory {self.messages_cached:n}…',
+            'Proces ten może trochę zająć z powodu limitów Discorda.',
         )
         if self.caching_progress_message is None:
             self.caching_progress_message = await self.ctx.bot.send(self.ctx, embed=embed)
@@ -432,9 +452,9 @@ class Report:
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
                     human_datetime(earliest.datetime),
-                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
-                inline=False
+                inline=False,
             )
         self.embed.add_field(name='Właściciel', value=self.subject.owner.mention)
         self.embed.add_field(name='Ról', value=f'{len(self.subject.roles):n}')
@@ -448,9 +468,7 @@ class Report:
 
     def _generate_channel_embed(self):
         """Analyzes the subject as a channel."""
-        self.embed = self.ctx.bot.generate_embed(
-            '📈', f'Przygotowano raport o kanale #{self.subject}', self.description
-        )
+        self.embed = self.ctx.bot.generate_embed('📈', f'Przygotowano raport o kanale #{self.subject}', self.description)
         self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
@@ -458,9 +476,9 @@ class Report:
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
                     human_datetime(earliest.datetime),
-                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
-                inline=False
+                inline=False,
             )
         if self.subject.category is not None:
             self.embed.add_field(name='Kategoria', value=self.subject.category.name)
@@ -480,9 +498,9 @@ class Report:
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
                     human_datetime(earliest.datetime),
-                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
-                inline=False
+                inline=False,
             )
         self.embed.add_field(name='Kanałów tekstowych', value=f'{len(self.subject.text_channels):n}')
         self.embed.add_field(name='Kanałów głosowych', value=f'{len(self.subject.voice_channels):n}')
@@ -526,18 +544,18 @@ class Report:
                 name=f'Wysłał pierwszą wiadomość na serwerze {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
                     human_datetime(earliest.datetime),
-                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}'
+                    f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
-                inline=False
+                inline=False,
             )
             if self.ctx.author != self.subject:
                 self.embed.add_field(
                     name='Wysłał ostatnią wiadomość na serwerze',
                     value=md_link(
                         human_datetime(latest.datetime),
-                        f'https://discordapp.com/channels/{latest.server_id}/{latest.channel_id}/{latest.id}'
+                        f'https://discordapp.com/channels/{latest.server_id}/{latest.channel_id}/{latest.id}',
                     ),
-                    inline=False
+                    inline=False,
                 )
         self._embed_general_message_stats()
         self._embed_top_visible_channel_stats()
@@ -554,21 +572,20 @@ class Report:
             max_daily_message_date = dt.date.fromisoformat(max_daily_message_date_isoformat)
             self.embed.add_field(
                 name='Maksymalnie wiadomości dziennie',
-                value=f'{max_daily_message_count:n} ({max_daily_message_date.strftime("%-d %B %Y")})'
+                value=f'{max_daily_message_count:n} ({max_daily_message_date.strftime("%-d %B %Y")})',
             )
             self.embed.add_field(name='Średnio wiadomości dziennie', value=f'{self.average_daily_message_count:n}')
 
     def _embed_top_visible_channel_stats(self):
         """Adds the list of top active channels to the report embed."""
         visible_channel_ids = [
-            channel_id for channel_id in self.relevant_channel_stats
-            if self.ctx.bot.get_channel(channel_id) and
-            self.ctx.bot.get_channel(channel_id).permissions_for(self.ctx.author).read_messages and
-            self.relevant_channel_stats[channel_id]['message_count']
+            channel_id
+            for channel_id in self.relevant_channel_stats
+            if self.ctx.bot.get_channel(channel_id)
+            and self.ctx.bot.get_channel(channel_id).permissions_for(self.ctx.author).read_messages
+            and self.relevant_channel_stats[channel_id]['message_count']
         ]
-        visible_channel_ids.sort(
-            key=lambda channel_id: tuple(self.relevant_channel_stats[channel_id].values())
-        )
+        visible_channel_ids.sort(key=lambda channel_id: tuple(self.relevant_channel_stats[channel_id].values()))
         visible_channel_ids.reverse()
         top_visible_channel_stats = []
         for i, this_visible_channel_id in enumerate(visible_channel_ids[:5]):
@@ -589,9 +606,7 @@ class Report:
     def _embed_top_active_user_stats(self):
         """Adds the list of top active users to the report embed."""
         active_user_ids = list(self.active_user_stats)
-        active_user_ids.sort(
-            key=lambda active_user: tuple(self.active_user_stats[active_user].values())
-        )
+        active_user_ids.sort(key=lambda active_user: tuple(self.active_user_stats[active_user].values()))
         active_user_ids.reverse()
         top_active_user_stats = []
         for i, this_active_user_id in enumerate(active_user_ids[:5]):
@@ -620,9 +635,7 @@ class Report:
                 f'buforując metadane {new_messages_form}'
             )
         else:
-            footer_text = (
-                f'Wygenerowano w {completion_seconds:n} s buforując metadane {new_messages_form}'
-            )
+            footer_text = f'Wygenerowano w {completion_seconds:n} s buforując metadane {new_messages_form}'
         self.embed.set_footer(text=footer_text)
 
     def _plot_activity_by_hour(self, ax):
@@ -633,7 +646,7 @@ class Report:
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
             width=1,
-            align='edge'
+            align='edge',
         )
 
         # set proper X axis formatting
@@ -661,7 +674,7 @@ class Report:
             self.messages_over_weekday,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
-            width=1
+            width=1,
         )
 
         # set proper X axis formatting
@@ -696,18 +709,12 @@ class Report:
             messages = rolling_average(messages, self.ROLL)
 
         # plot the chart
-        ax.bar(
-            dates,
-            messages,
-            color=self.BACKGROUND_COLOR,
-            facecolor=self.FOREGROUND_COLOR,
-            width=1
-        )
+        ax.bar(dates, messages, color=self.BACKGROUND_COLOR, facecolor=self.FOREGROUND_COLOR, width=1)
 
         # set proper ticker intervals on the X axis accounting for the timeframe
         year_locator = mdates.YearLocator()
         month_locator = mdates.MonthLocator()
-        quarter_locator = mdates.MonthLocator(bymonth=[1,4,7,10])
+        quarter_locator = mdates.MonthLocator(bymonth=[1, 4, 7, 10])
         week_locator = mdates.WeekdayLocator(byweekday=mdates.MO)
         day_locator = mdates.DayLocator()
 
@@ -738,7 +745,7 @@ class Report:
         half_day = dt.timedelta(hours=12)
         ax.set_xlim(
             dt.datetime(timeframe_start_date.year, timeframe_start_date.month, timeframe_start_date.day) - half_day,
-            dt.datetime(timeframe_end_date.year, timeframe_end_date.month, timeframe_end_date.day) + half_day
+            dt.datetime(timeframe_end_date.year, timeframe_end_date.month, timeframe_end_date.day) + half_day,
         )
         for tick in ax.get_xticklabels():
             tick.set_rotation(30)
@@ -753,7 +760,9 @@ class Report:
         ax.set_facecolor(self.BACKGROUND_COLOR)
         ax.set_xlabel(
             'Data (tygodniowa średnia ruchoma)' if is_rolling_average else 'Data',
-            color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold'
+            color=self.FOREGROUND_COLOR,
+            fontsize=11,
+            fontweight='bold',
         )
         ax.set_ylabel('Wysłanych wiadomości', color=self.FOREGROUND_COLOR, fontsize=11, fontweight='bold')
 
@@ -771,19 +780,21 @@ class Report:
                 min(self.last_days, channel_existence_length) for channel_existence_length in channel_existence_lengths
             )
         average_daily_message_counts = [
-            channel_stats['message_count'] / channel_existence_length for channel_stats, channel_existence_length
-            in zip(self.relevant_channel_stats.values(), channel_existence_lengths)
+            channel_stats['message_count'] / channel_existence_length
+            for channel_stats, channel_existence_length in zip(
+                self.relevant_channel_stats.values(), channel_existence_lengths
+            )
         ]
         ax.bar(
             channel_names,
             average_daily_message_counts,
             color=self.BACKGROUND_COLOR,
             facecolor=self.FOREGROUND_COLOR,
-            width=1
+            width=1,
         )
 
         # set proper X axis formatting
-        ax.set_xlim(-0.5, len(channel_names)-0.5)
+        ax.set_xlim(-0.5, len(channel_names) - 0.5)
         ax.set_xticklabels(channel_names, rotation=30, ha='right')
 
         # set proper ticker intervals on the Y axis accounting for the maximum number of messages
@@ -803,24 +814,29 @@ class Report:
 
 class Activity(commands.Cog):
     GROUP = Help.Command(
-        'stat', (), 'Komendy związane ze statystykami serwerowymi. '
-        'Użyj <?użytkownika/kanału/kategorii> zamiast <?podkomendy>, by otrzymać raport statystyczny.'
+        'stat',
+        (),
+        'Komendy związane ze statystykami serwerowymi. '
+        'Użyj <?użytkownika/kanału/kategorii> zamiast <?podkomendy>, by otrzymać raport statystyczny.',
     )
     COMMANDS = (
         Help.Command('serwer', (), 'Wysyła raport o serwerze.'),
         Help.Command(
-            ('kanał', 'kanal'), '?kanał',
-            'Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.'
+            ('kanał', 'kanal'),
+            '?kanał',
+            'Wysyła raport o kanale. Jeśli nie podano kanału, przyjmuje kanał na którym użyto komendy.',
         ),
         Help.Command(
-            'kategoria', '?kategoria',
+            'kategoria',
+            '?kategoria',
             'Wysyła raport o kategorii. Jeśli nie podano kategorii, przyjmuje kategorię do której należy kanał, '
-            'na którym użyto komendy.'
+            'na którym użyto komendy.',
         ),
         Help.Command(
-            ('użytkownik', 'uzytkownik', 'user'), '?użytkownik',
-            'Wysyła raport o użytkowniku. Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.'
-        )
+            ('użytkownik', 'uzytkownik', 'user'),
+            '?użytkownik',
+            'Wysyła raport o użytkowniku. Jeśli nie podano użytkownika, przyjmuje użytkownika, który użył komendy.',
+        ),
     )
     HELP = Help(COMMANDS, '📈', group=GROUP)
 
@@ -828,14 +844,16 @@ class Activity(commands.Cog):
         self.bot = bot
 
     @commands.group(
-        aliases=['staty', 'stats', 'activity', 'aktywność', 'aktywnosc'], invoke_without_command=True,
-        case_insensitive=True
+        aliases=['staty', 'stats', 'activity', 'aktywność', 'aktywnosc'],
+        invoke_without_command=True,
+        case_insensitive=True,
     )
     @cooldown()
     async def stat(
-            self, ctx,
-            subject: Union[discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, int] = None,
-            last_days: int = None
+        self,
+        ctx,
+        subject: Union[discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, int] = None,
+        last_days: int = None,
     ):
         if subject is None:
             await self.bot.send(ctx, embeds=self.HELP.embeds)
@@ -847,9 +865,12 @@ class Activity(commands.Cog):
     @stat.error
     async def stat_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
-            await self.bot.send(ctx, embed=self.bot.generate_embed(
-                '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika, kanału ani kategorii'
-            ))
+            await self.bot.send(
+                ctx,
+                embed=self.bot.generate_embed(
+                    '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika, kanału ani kategorii'
+                ),
+            )
 
     @stat.command(aliases=['server', 'serwer'])
     @cooldown()
@@ -895,9 +916,7 @@ class Activity(commands.Cog):
     @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
     @cooldown()
     @commands.guild_only()
-    async def stat_member(
-            self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None
-    ):
+    async def stat_member(self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None):
         member = member or ctx.author
         async with ctx.typing():
             report = Report(ctx, member, last_days=last_days)

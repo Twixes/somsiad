@@ -11,20 +11,22 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union
-from numbers import Number
-from collections import defaultdict
-from urllib.error import HTTPError
 import asyncio.futures
 import functools
-import os
 import locale
+import os
+from collections import defaultdict
+from numbers import Number
+from typing import Optional, Union
+from urllib.error import HTTPError
+
 import discord
-from discord.ext import commands
 import pytube
+from discord.ext import commands
+
+from configuration import configuration
 from core import Help, cooldown
 from utilities import human_amount_of_time
-from configuration import configuration
 
 
 class Disco(commands.Cog):
@@ -32,14 +34,17 @@ class Disco(commands.Cog):
     COMMANDS = (
         Help.Command(('zagraj', 'graj'), 'zapytanie/link', 'Odtwarza utwór na kanale głosowym.'),
         Help.Command(
-            ('powtórz', 'powtorz', 'replay'), (), 'Odtwarza od początku obecnie lub ostatnio odtwarzany na serwerze utwór.'
+            ('powtórz', 'powtorz', 'replay'),
+            (),
+            'Odtwarza od początku obecnie lub ostatnio odtwarzany na serwerze utwór.',
         ),
         Help.Command(('spauzuj', 'pauzuj', 'pauza'), (), 'Pauzuje obecnie odtwarzany utwór.'),
         Help.Command(('wznów', 'wznow'), (), 'Wznawia odtwarzanie utworu.'),
         Help.Command(('pomiń', 'pomin'), (), 'Pomija obecnie odtwarzany utwór.'),
         Help.Command(
-            ('głośność', 'glosnosc', 'volume', 'vol'), '?nowa głośność w procentach',
-            'Sprawdza głośność odtwarzania lub, jeśli podano <?nową głośność>, ustawia ją.'
+            ('głośność', 'glosnosc', 'volume', 'vol'),
+            '?nowa głośność w procentach',
+            'Sprawdza głośność odtwarzania lub, jeśli podano <?nową głośność>, ustawia ją.',
         ),
         Help.Command(('rozłącz', 'rozlacz', 'stop'), (), 'Rozłącza z kanału głosowego.'),
     )
@@ -116,9 +121,12 @@ class Disco(commands.Cog):
                 else:
                     path = os.path.join(self.cache_dir_path, f'{video_id} - {stream.default_filename}')
                     if not os.path.isfile(path):
-                        await self.bot.loop.run_in_executor(None, functools.partial(
-                            stream.download, output_path=self.cache_dir_path, filename_prefix=f'{video_id} - '
-                        ))
+                        await self.bot.loop.run_in_executor(
+                            None,
+                            functools.partial(
+                                stream.download, output_path=self.cache_dir_path, filename_prefix=f'{video_id} - '
+                            ),
+                        )
                     if channel.guild.voice_client is not None:
                         channel.guild.voice_client.stop()
                     song_audio = discord.PCMVolumeTransformer(
@@ -126,15 +134,18 @@ class Disco(commands.Cog):
                     )
                     self.servers[channel.guild.id]['song_audio'] = song_audio
                     self.servers[channel.guild.id]['song_url'] = video_url
+
                     async def try_edit(embed: discord.Embed):
                         try:
                             await message.edit(embed=embed)
                         except (discord.Forbidden, discord.NotFound):
                             pass
+
                     def after(error):
                         song_audio.cleanup()
                         embed = self.generate_embed(channel, video, 'Zakończono', '⏹')
                         self.bot.loop.create_task(try_edit(embed))
+
                     embed = self.generate_embed(channel, video, 'Odtwarzanie', '▶️')
                     await self.channel_connect(channel)
                     channel.guild.voice_client.play(self.servers[channel.guild.id]['song_audio'], after=after)
@@ -150,7 +161,7 @@ class Disco(commands.Cog):
             self.servers[server.id]['song_audio'].volume = volume_float
 
     def generate_embed(
-            self, channel: discord.VoiceChannel, video: pytube.YouTube, status: str, emoji: str, notice: str = None
+        self, channel: discord.VoiceChannel, video: pytube.YouTube, status: str, emoji: str, notice: str = None
     ) -> discord.Embed:
         embed = self.bot.generate_embed(
             emoji, f'{video.title} – {notice}' if notice else video.title, url=video.watch_url
@@ -164,13 +175,11 @@ class Disco(commands.Cog):
         embed.set_footer(icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT)
         return embed
 
-
     @commands.group(aliases=['d'], invoke_without_command=True)
     @cooldown()
     @commands.guild_only()
     async def disco(self, ctx):
         await self.bot.send(ctx, embeds=self.HELP.embeds)
-
 
     @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])
     @cooldown()
@@ -180,23 +189,18 @@ class Disco(commands.Cog):
         if ctx.author.voice is None:
             embed = discord.Embed(
                 title=':warning: Nie odtworzono utworu, bo nie jesteś połączony z żadnym kanałem głosowym!',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
             await self.bot.send(ctx, embed=embed)
         else:
             async with ctx.typing():
                 await self.channel_play_song(ctx, query)
 
-
     @disco_play.error
     async def disco_play_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            embed = discord.Embed(
-                title=f':warning: Nie podano zapytania ani linku!',
-                color=self.bot.COLOR
-            )
+            embed = discord.Embed(title=f':warning: Nie podano zapytania ani linku!', color=self.bot.COLOR)
             await self.bot.send(ctx, embed=embed)
-
 
     @disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
     @cooldown()
@@ -206,19 +210,17 @@ class Disco(commands.Cog):
         if ctx.author.voice is None:
             embed = discord.Embed(
                 title=':warning: Nie powtórzono utworu, bo nie jesteś połączony z żadnym kanałem głosowym!',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
             await self.bot.send(ctx, embed=embed)
         elif self.servers[ctx.guild.id]['song_url'] is None:
             embed = discord.Embed(
-                title=':red_circle: Nie powtórzono utworu, bo nie ma żadnego do powtórzenia',
-                color=self.bot.COLOR
+                title=':red_circle: Nie powtórzono utworu, bo nie ma żadnego do powtórzenia', color=self.bot.COLOR
             )
             await self.bot.send(ctx, embed=embed)
         else:
             async with ctx.typing():
                 await self.channel_play_song(ctx, self.servers[ctx.guild.id]['song_url'])
-
 
     @disco.command(aliases=['pauza', 'spauzuj', 'pauzuj', 'pause'])
     @cooldown()
@@ -228,31 +230,25 @@ class Disco(commands.Cog):
         if ctx.voice_client is None:
             embed = discord.Embed(
                 title=':red_circle: Nie spauzowano utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         elif ctx.author.voice is None or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel):
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         elif ctx.voice_client.is_paused():
             embed = discord.Embed(
-                title=':red_circle: Nie spauzowano utworu, bo już jest spauzowany',
-                color=self.bot.COLOR
+                title=':red_circle: Nie spauzowano utworu, bo już jest spauzowany', color=self.bot.COLOR
             )
         elif not ctx.voice_client.is_playing():
             embed = discord.Embed(
-                title=':red_circle: Nie spauzowano utworu, bo żaden nie jest odtwarzany',
-                color=self.bot.COLOR
+                title=':red_circle: Nie spauzowano utworu, bo żaden nie jest odtwarzany', color=self.bot.COLOR
             )
         else:
             ctx.voice_client.pause()
-            embed = discord.Embed(
-                title=f':pause_button: Spauzowano utwór',
-                color=self.bot.COLOR
-            )
+            embed = discord.Embed(title=f':pause_button: Spauzowano utwór', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
-
 
     @disco.command(aliases=['wznów', 'wznow', 'odpauzuj', 'unpause', 'resume'])
     @cooldown()
@@ -262,29 +258,25 @@ class Disco(commands.Cog):
         if ctx.voice_client is None:
             embed = discord.Embed(
                 title=':red_circle: Nie wznowiono odtwarzania utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         elif ctx.author.voice is None or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel):
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         elif ctx.voice_client.is_playing():
             embed = discord.Embed(
-                title=':red_circle: Nie wznowiono odtwarzania utworu, bo już jest odtwarzany',
-                color=self.bot.COLOR
+                title=':red_circle: Nie wznowiono odtwarzania utworu, bo już jest odtwarzany', color=self.bot.COLOR
             )
         elif not ctx.voice_client.is_paused():
             embed = discord.Embed(
                 title=':red_circle: Nie wznowiono odtwarzania utworu, bo żaden nie jest spauzowany',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         else:
             ctx.voice_client.resume()
-            embed = discord.Embed(
-                title=f':arrow_forward: Wznowiono odtwarzanie utworu',
-                color=self.bot.COLOR
-            )
+            embed = discord.Embed(title=f':arrow_forward: Wznowiono odtwarzanie utworu', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
     @disco.command(aliases=['pomiń', 'pomin', 'skip'])
@@ -295,19 +287,15 @@ class Disco(commands.Cog):
         if ctx.voice_client is None:
             embed = discord.Embed(
                 title=':red_circle: Nie pominięto utworu, bo bot nie jest połączony z żadnym kanałem głosowym',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         elif not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
             embed = discord.Embed(
-                title=':red_circle: Nie pominięto utworu, bo żaden nie jest odtwarzany',
-                color=self.bot.COLOR
+                title=':red_circle: Nie pominięto utworu, bo żaden nie jest odtwarzany', color=self.bot.COLOR
             )
         else:
             ctx.voice_client.stop()
-            embed = discord.Embed(
-                title=f':fast_forward: Pominięto utwór',
-                color=self.bot.COLOR
-            )
+            embed = discord.Embed(title=f':fast_forward: Pominięto utwór', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
     @disco.command(aliases=['rozłącz', 'rozlacz', 'stop'])
@@ -318,23 +306,18 @@ class Disco(commands.Cog):
         if ctx.voice_client is None:
             embed = discord.Embed(
                 title=':warning: Nie rozłączono z kanałem głosowym, bo bot nie jest połączony z żadnym!',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         elif (
-                (ctx.author.voice is None or
-                    (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel))
-                and len(ctx.me.voice.channel.members) > 1
-        ):
+            ctx.author.voice is None or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel)
+        ) and len(ctx.me.voice.channel.members) > 1:
             embed = discord.Embed(
                 title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         else:
             voice_channel = await self.server_disconnect(ctx.guild)
-            embed = discord.Embed(
-                title=f':stop_button: Rozłączono z kanałem {voice_channel}',
-                color=self.bot.COLOR
-            )
+            embed = discord.Embed(title=f':stop_button: Rozłączono z kanałem {voice_channel}', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
     @disco.command(aliases=['głośność', 'glosnosc', 'poziom', 'volume', 'vol'])
@@ -346,35 +329,28 @@ class Disco(commands.Cog):
             embed = discord.Embed(
                 title=':level_slider: Głośność ustawiona jest na '
                 f'{int(self.servers[ctx.guild.id]["volume"] * 100)}%',
-                color=self.bot.COLOR
+                color=self.bot.COLOR,
             )
         else:
-            if (
-                    ctx.voice_client is not None
-                    and (ctx.author.voice is None
-                        or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel)
-                    )
+            if ctx.voice_client is not None and (
+                ctx.author.voice is None or (ctx.me.voice.channel and ctx.author.voice.channel != ctx.me.voice.channel)
             ):
                 embed = discord.Embed(
                     title=':warning: Odtwarzanie można kontrolować tylko będąc na tym samym kanale co bot!',
-                    color=self.bot.COLOR
+                    color=self.bot.COLOR,
                 )
             else:
                 self.server_change_volume(ctx.guild, volume_percentage)
                 embed = discord.Embed(
-                    title=':level_slider: Ustawiono głośność na '
-                    f'{int(self.servers[ctx.guild.id]["volume"] * 100)}%',
-                    color=self.bot.COLOR
+                    title=':level_slider: Ustawiono głośność na ' f'{int(self.servers[ctx.guild.id]["volume"] * 100)}%',
+                    color=self.bot.COLOR,
                 )
         await self.bot.send(ctx, embed=embed)
 
     @disco_volume.error
     async def disco_volume_error(self, ctx, error):
         if isinstance(error, commands.BadUnionArgument):
-            embed = discord.Embed(
-                title=f':warning: Podana wartość nie jest liczbą całkowitą!',
-                color=self.bot.COLOR
-            )
+            embed = discord.Embed(title=f':warning: Podana wartość nie jest liczbą całkowitą!', color=self.bot.COLOR)
             await self.bot.send(ctx, embed=embed)
 
 

@@ -11,21 +11,24 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union, Sequence
-import random
 import datetime as dt
+import random
+from typing import Optional, Sequence, Union
+
 import discord
 from discord.ext import commands
-from version import __version__, __copyright__
-from utilities import word_number_form, human_amount_of_time
+
+import data
 from configuration import configuration
 from somsiad import Cog, Somsiad
-import data
+from utilities import human_amount_of_time, word_number_form
+from version import __copyright__, __version__
 
 
 def cooldown(
-        rate: int = 1, per: float = configuration['command_cooldown_per_user_in_seconds'],
-        type: commands.BucketType = commands.BucketType.user
+    rate: int = 1,
+    per: float = configuration['command_cooldown_per_user_in_seconds'],
+    type: commands.BucketType = commands.BucketType.user,
 ):
     def decorator(func):
         if isinstance(func, commands.Command):
@@ -33,11 +36,13 @@ def cooldown(
         else:
             func.__commands_cooldown__ = commands.Cooldown(rate, per, type)
         return func
+
     return decorator
 
 
 class Help:
     """A help message generator."""
+
     class Command:
         "A command model."
         __slots__ = ('_aliases', '_arguments', '_description')
@@ -73,9 +78,15 @@ class Help:
     __slots__ = ('group', 'embeds')
 
     def __init__(
-            self, commands: Sequence[Command],
-            emoji: str, title: Optional[str] = None, description: Optional[str] = None, *,
-            group: Optional[Command] = None, footer_text: Optional[str] = None, footer_icon_url: Optional[str] = None
+        self,
+        commands: Sequence[Command],
+        emoji: str,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        *,
+        group: Optional[Command] = None,
+        footer_text: Optional[str] = None,
+        footer_icon_url: Optional[str] = None,
     ):
         self.group = group
         title_parts = [emoji]
@@ -104,7 +115,7 @@ class Help:
             self.embeds[-1].add_field(
                 name=str(command) if self.group is None else f'{self.group.name} {command}',
                 value=command.description,
-                inline=False
+                inline=False,
             )
         if footer_text:
             self.embeds[-1].set_footer(text=footer_text, icon_url=footer_icon_url)
@@ -113,7 +124,7 @@ class Help:
 class Essentials(Cog):
     @commands.command(aliases=['wersja', 'v'])
     @cooldown()
-    async def version(self, ctx, *, x = None):
+    async def version(self, ctx, *, x=None):
         """Responds with current version of the bot."""
         if x and 'fccchk' in x.lower():
             emoji = '👺'
@@ -148,7 +159,11 @@ class Essentials(Cog):
             server_count = self.bot.server_count
             user_count = self.bot.user_count
             shard_count = self.bot.shard_count
-            runtime = '???' if self.bot.ready_datetime is None else human_amount_of_time(dt.datetime.now() - self.bot.ready_datetime)
+            runtime = (
+                '???'
+                if self.bot.ready_datetime is None
+                else human_amount_of_time(dt.datetime.now() - self.bot.ready_datetime)
+            )
             application_info = await self.bot.application_info()
             instance_owner = application_info.owner.mention
             invite_url = self.bot.invite_url()
@@ -225,18 +240,20 @@ class Prefix(Cog):
     COMMANDS = (
         Help.Command(('sprawdź', 'sprawdz'), (), 'Pokazuje obowiązujący prefiks bądź obowiązujące prefiksy.'),
         Help.Command(
-            ('ustaw'), (), 'Ustawia na serwerze podany prefiks bądź podane prefiksy oddzielone " lub ". '
-            'Wymaga uprawnień administratora.'
+            ('ustaw'),
+            (),
+            'Ustawia na serwerze podany prefiks bądź podane prefiksy oddzielone " lub ". '
+            'Wymaga uprawnień administratora.',
         ),
         Help.Command(
             ('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks. Wymaga uprawnień administratora.'
-        )
+        ),
     )
     HELP = Help(COMMANDS, '🔧', group=GROUP)
 
     @commands.group(
         aliases=['prefixes', 'prefixy', 'prefiks', 'prefiksy', 'przedrostek', 'przedrostki'],
-        invoke_without_command=True
+        invoke_without_command=True,
     )
     @cooldown()
     async def prefix(self, ctx):
@@ -261,8 +278,10 @@ class Prefix(Cog):
                 len(extra_prefixes), 'Obowiązuje', 'Obowiązują', 'Obowiązuje', include_number=False
             )
             prefix_form = word_number_form(
-                len(extra_prefixes), 'własny prefiks serwerowy', 'własne prefiksy serwerowe',
-                'własnych prefiksów serwerowych'
+                len(extra_prefixes),
+                'własny prefiks serwerowy',
+                'własne prefiksy serwerowe',
+                'własnych prefiksów serwerowych',
             )
             notice = f'{applies_form} {prefix_form}'
             extra_prefixes_presentation = ' lub '.join((f'`{prefix}`' for prefix in reversed(extra_prefixes)))
@@ -271,11 +290,13 @@ class Prefix(Cog):
             name='Wartość' if len(extra_prefixes) == 1 else 'Wartości', value=extra_prefixes_presentation, inline=False
         )
         embed.add_field(
-            name='Przykłady wywołań', value=(
-            f'`{random.choice(extra_prefixes)}wersja` lub `{random.choice(extra_prefixes)} oof` lub `{ctx.me} urodziny`'
-            if ctx.guild else
-            f'`wersja` lub `{configuration["command_prefix"]} oof` lub `{ctx.me} urodziny`'
-            ), inline=False
+            name='Przykłady wywołań',
+            value=(
+                f'`{random.choice(extra_prefixes)}wersja` lub `{random.choice(extra_prefixes)} oof` lub `{ctx.me} urodziny`'
+                if ctx.guild
+                else f'`wersja` lub `{configuration["command_prefix"]} oof` lub `{ctx.me} urodziny`'
+            ),
+            inline=False,
         )
         await self.bot.send(ctx, embed=embed)
 
@@ -285,9 +306,9 @@ class Prefix(Cog):
     @commands.has_permissions(administrator=True)
     async def set(self, ctx, *, new_prefixes_raw: str):
         """Sets a new command prefix."""
-        new_prefixes = tuple(sorted(
-            filter(None, (prefix.strip() for prefix in new_prefixes_raw.split(' lub '))), key=len, reverse=True
-        ))
+        new_prefixes = tuple(
+            sorted(filter(None, (prefix.strip() for prefix in new_prefixes_raw.split(' lub '))), key=len, reverse=True)
+        )
         if not new_prefixes:
             raise commands.BadArgument('no valid prefixes')
         new_prefixes_processed = '|'.join(new_prefixes)
@@ -308,23 +329,26 @@ class Prefix(Cog):
             )
             embed.add_field(
                 name='Wartości' if len(previous_prefixes) > 1 else 'Wartość',
-                value=' lub '.join((f'`{prefix}`' for prefix in reversed(previous_prefixes))), inline=False
+                value=' lub '.join((f'`{prefix}`' for prefix in reversed(previous_prefixes))),
+                inline=False,
             )
         else:
             embed = self.bot.generate_embed('✅', f'Ustawiono {"prefiks" if len(new_prefixes) == 1 else "prefiksy"}')
             embed.add_field(
                 name='Nowe wartości' if len(new_prefixes) > 1 else 'Nowa wartość',
-                value=' lub '.join((f'`{prefix}`' for prefix in reversed(new_prefixes))), inline=False
+                value=' lub '.join((f'`{prefix}`' for prefix in reversed(new_prefixes))),
+                inline=False,
             )
             embed.add_field(
                 name='Poprzednie wartości' if len(previous_prefixes) > 1 else 'Poprzednia wartość',
-                value=previous_prefixes_presentation, inline=False
+                value=previous_prefixes_presentation,
+                inline=False,
             )
         embed.add_field(
             name='Przykłady wywołań',
             value=f'`{random.choice(new_prefixes)}wersja` lub `{random.choice(new_prefixes)} oof` '
             f'lub `{ctx.me} urodziny`',
-            inline=False
+            inline=False,
         )
         await self.bot.send(ctx, embed=embed)
 
@@ -361,13 +385,14 @@ class Prefix(Cog):
             embed.add_field(name='Nowa wartość', value=f'domyślna `{configuration["command_prefix"]}`')
             embed.add_field(
                 name='Poprzednia wartość' if len(previous_prefixes) == 1 else 'Poprzednie wartości',
-                value=' lub '.join((f'`{prefix}`' for prefix in reversed(previous_prefixes))), inline=False
+                value=' lub '.join((f'`{prefix}`' for prefix in reversed(previous_prefixes))),
+                inline=False,
             )
         embed.add_field(
             name='Przykłady wywołań',
             value=f'`{configuration["command_prefix"]}wersja` lub `{configuration["command_prefix"]} oof` '
             f'lub `{ctx.me} urodziny`',
-            inline=False
+            inline=False,
         )
         await self.bot.send(ctx, embed=embed)
 

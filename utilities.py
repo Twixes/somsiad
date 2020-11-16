@@ -11,14 +11,15 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, Optional, Sequence, Tuple
-from numbers import Number
-from dataclasses import dataclass
 import asyncio
-import locale
 import calendar
-import re
 import datetime as dt
+import locale
+import re
+from dataclasses import dataclass
+from numbers import Number
+from typing import Optional, Sequence, Tuple, Union
+
 import numpy as np
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -43,7 +44,7 @@ DATETIME_FORMATS = (
     DatetimeFormat('%d.%m.%yT%H.%M'),
     DatetimeFormat('%d.%mT%H.%M', True),
     DatetimeFormat('%dT%H.%M', True, True),
-    DatetimeFormat('%H.%M', True, True, True)
+    DatetimeFormat('%H.%M', True, True, True),
 )
 URL_REGEX = re.compile(r'(https?:\/\/\S+\.\S+)')
 URL_REGEX_PROTOCOL_SEPARATE = re.compile(r'(?:(\w+):\/\/)?(\S+\.\S+)')
@@ -69,11 +70,15 @@ class GoogleClient:
         self.loop = loop
 
     async def search(
-            self, query: str, *, language: str = 'pl', safe: str = 'active', search_type: str = None
+        self, query: str, *, language: str = 'pl', safe: str = 'active', search_type: str = None
     ) -> Optional[GoogleResult]:
         list_query = self.search_client.list(
-            q=query, cx=self.custom_search_engine_id, hl=language, num=5 if search_type == 'image' else 1, safe=safe,
-            searchType=search_type
+            q=query,
+            cx=self.custom_search_engine_id,
+            hl=language,
+            num=5 if search_type == 'image' else 1,
+            safe=safe,
+            searchType=search_type,
         )
         results = await self.loop.run_in_executor(None, list_query.execute)
         if results['searchInformation']['totalResults'] != '0':
@@ -82,19 +87,30 @@ class GoogleClient:
                     if not result['link'] or not result['link'].startswith('http'):
                         continue
                     return self.GoogleResult(
-                        result['title'], result['snippet'], result['image']['contextLink'], result['displayLink'],
-                        f'{result["link"].split("://")[0]}://{result["displayLink"]}', result['link'], search_type
+                        result['title'],
+                        result['snippet'],
+                        result['image']['contextLink'],
+                        result['displayLink'],
+                        f'{result["link"].split("://")[0]}://{result["displayLink"]}',
+                        result['link'],
+                        search_type,
                     )
             else:
                 result = results['items'][0]
                 try:
                     image_link = result['pagemap']['cse_image'][0]['src']
-                    if not image_link.startswith('http'): raise ValueError
+                    if not image_link.startswith('http'):
+                        raise ValueError
                 except (KeyError, ValueError):
                     image_link = None
                 return self.GoogleResult(
-                    result['title'], result['snippet'], result['link'], result['displayLink'],
-                    f'{result["link"].split("://")[0]}://{result["displayLink"]}', image_link, search_type
+                    result['title'],
+                    result['snippet'],
+                    result['link'],
+                    result['displayLink'],
+                    f'{result["link"].split("://")[0]}://{result["displayLink"]}',
+                    image_link,
+                    search_type,
                 )
         return None
 
@@ -125,8 +141,10 @@ class YouTubeClient:
             return None
         video_id = items[0]['id']['videoId']
         return self.YouTubeResult(
-            video_id, items[0]['snippet']['title'], f'https://www.youtube.com/watch?v={video_id}',
-            items[0]['snippet']['thumbnails']['medium']['url']
+            video_id,
+            items[0]['snippet']['title'],
+            f'https://www.youtube.com/watch?v={video_id}',
+            items[0]['snippet']['thumbnails']['medium']['url'],
         )
 
 
@@ -137,9 +155,12 @@ def first_url(string: str, *, protocol_separate: bool = False) -> Union[str, Tup
         if search_result is None:
             return None, None
         else:
-            return tuple((
-                part.lower().rstrip('()[{]};:\'",<.>') if part is not None else None for part in search_result.groups()
-            ))
+            return tuple(
+                (
+                    part.lower().rstrip('()[{]};:\'",<.>') if part is not None else None
+                    for part in search_result.groups()
+                )
+            )
     else:
         search_result = URL_REGEX.search(string)
         return search_result.group().rstrip('()[{]};:\'",<.>') if search_result is not None else None
@@ -166,13 +187,20 @@ def text_snippet(text: str, limit: int) -> str:
 
 def with_preposition_form(number: Union[int, float]) -> str:
     """Return the gramatically correct form of the "with" preposition in Polish."""
-    while number > 1000: number /= 1000
+    while number > 1000:
+        number /= 1000
     return 'ze' if 100 <= number < 200 else 'z'
 
 
 def word_number_form(
-        number: Union[int, float, str], singular_form: str, plural_form: str, plural_form_5_to_1: str = None,
-        fractional_form: str = None, *, include_number: bool = True, include_with: bool = False
+    number: Union[int, float, str],
+    singular_form: str,
+    plural_form: str,
+    plural_form_5_to_1: str = None,
+    fractional_form: str = None,
+    *,
+    include_number: bool = True,
+    include_with: bool = False,
 ) -> str:
     """Return the gramatically correct form of the specifiec word in Polish based on the number."""
     if isinstance(number, str):
@@ -211,8 +239,14 @@ def utc_to_naive_local(datetime: dt.datetime) -> dt.datetime:
 
 
 def human_datetime(
-        datetime: Optional[dt.datetime] = None, *, utc: bool = False, date: bool = True, time: bool = True,
-        days_difference: bool = True, name_month: bool = True, now_override: dt.datetime = None
+    datetime: Optional[dt.datetime] = None,
+    *,
+    utc: bool = False,
+    date: bool = True,
+    time: bool = True,
+    days_difference: bool = True,
+    name_month: bool = True,
+    now_override: dt.datetime = None,
 ) -> str:
     """Return the difference between the provided datetime and now in Polish."""
     if datetime is None:
@@ -298,7 +332,7 @@ def days_as_weeks(number_of_days: int, none_if_no_weeks: bool = True) -> Optiona
 
 
 def interpret_str_as_datetime(
-        string: str, roll_over: bool = True, now_override: dt.datetime = None, years_in_future_limit: Optional[int] = 5
+    string: str, roll_over: bool = True, now_override: dt.datetime = None, years_in_future_limit: Optional[int] = 5
 ) -> dt.datetime:
     """Interpret the provided string as a datetime."""
     now = now_override or dt.datetime.now()
@@ -322,7 +356,7 @@ def interpret_str_as_datetime(
                 break
     if any(timedelta_arguments.values()):
         datetime = now + dt.timedelta(**timedelta_arguments)
-        if years_in_future_limit is not None and datetime > now.replace(year=now.year+years_in_future_limit):
+        if years_in_future_limit is not None and datetime > now.replace(year=now.year + years_in_future_limit):
             raise ValueError
     else:
         # string as datetime strategy
@@ -345,11 +379,11 @@ def interpret_str_as_datetime(
                         datetime += dt.timedelta(1)
                     elif datetime_format.imply_month:
                         if now.month == 12:
-                            datetime = datetime.replace(year=now.year+1, month=1)
+                            datetime = datetime.replace(year=now.year + 1, month=1)
                         else:
-                            datetime = datetime.replace(month=now.month+1)
+                            datetime = datetime.replace(month=now.month + 1)
                     elif datetime_format.imply_year:
-                        datetime = datetime.replace(year=now.year+1)
+                        datetime = datetime.replace(year=now.year + 1)
                 break
         else:
             raise ValueError
@@ -374,7 +408,7 @@ def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant
     data = np.pad(data, roll // 2, pad_mode)
     data = np.cumsum(data)
     data[roll:] = data[roll:] - data[:-roll]
-    result = data[roll - 1:] / roll
+    result = data[roll - 1 :] / roll
     return result
 
 

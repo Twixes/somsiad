@@ -11,15 +11,17 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import random
-import hashlib
 import datetime as dt
+import hashlib
+import random
+
 from discord.ext import commands
+
 from core import cooldown
 
 
 class Eightball(commands.Cog):
-    CATEGORIES_POOL = ['affirmative'] * 12 + ['negative'] * 12 + ['enigmatic'] # 48% yes, 48% no, 4% unknown
+    CATEGORIES_POOL = ['affirmative'] * 12 + ['negative'] * 12 + ['enigmatic']  # 48% yes, 48% no, 4% unknown
     ANSWERS = {
         'affirmative': [
             'Jak najbardziej tak.',
@@ -35,8 +37,9 @@ class Eightball(commands.Cog):
             'YES, YES, YES!',
             'Yep.',
             'Ja!',
-            'Dа.'
-        ], 'negative': [
+            'Dа.',
+        ],
+        'negative': [
             'Zdecydowanie nie.',
             'Absolutnie nie.',
             'Nie ma mowy.',
@@ -50,8 +53,9 @@ class Eightball(commands.Cog):
             'Mocno skłaniam się ku: nie.',
             'Nope.',
             'Nein!',
-            'Niet.'
-        ], 'enigmatic': [
+            'Niet.',
+        ],
+        'enigmatic': [
             'Zbyt wcześnie, by powiedzieć.',
             'Kto wie?',
             'Być może.',
@@ -63,8 +67,8 @@ class Eightball(commands.Cog):
             'Mnie się o to pytaj.',
             'Powiem ci, że nie wiem.',
             'Nie mam ochoty zajmować się dziś takimi bzdurnymi tematami. Spróbuj kiedy indziej.',
-            'Uwierz mi, że tej odpowiedzi nie chcesz znać.'
-        ]
+            'Uwierz mi, że tej odpowiedzi nie chcesz znać.',
+        ],
     }
 
     def __init__(self, bot: commands.Bot):

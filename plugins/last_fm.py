@@ -13,10 +13,12 @@
 
 from difflib import SequenceMatcher
 from urllib.error import HTTPError
+
 import aiohttp
 from discord.ext import commands
-from core import cooldown
+
 from configuration import configuration
+from core import cooldown
 
 
 class LastFM(commands.Cog):
@@ -28,9 +30,7 @@ class LastFM(commands.Cog):
         self.bot = bot
 
     async def get_user_info(self, user: str):
-        params = {
-            'api_key': configuration['last_fm_key'], 'format': 'json', 'method': 'user.getInfo', 'user': user
-        }
+        params = {'api_key': configuration['last_fm_key'], 'format': 'json', 'method': 'user.getInfo', 'user': user}
         try:
             # use OpenSearch API first to get accurate page title of the result
             async with self.bot.session.get(self.API_URL, params=params) as request:
@@ -47,8 +47,11 @@ class LastFM(commands.Cog):
 
     async def get_user_recent_tracks(self, user: str, limit: int = 1):
         params = {
-            'api_key': configuration['last_fm_key'], 'format': 'json', 'method': 'user.getRecentTracks', 'user': user,
-            'limit': limit
+            'api_key': configuration['last_fm_key'],
+            'format': 'json',
+            'method': 'user.getRecentTracks',
+            'user': user,
+            'limit': limit,
         }
         try:
             async with self.bot.session.get(self.API_URL, params=params) as request:
@@ -84,14 +87,14 @@ class LastFM(commands.Cog):
                     embed.add_field(
                         name='W wykonaniu',
                         value=f'[{user_recent_tracks[0]["artist"]["#text"]}](https://www.last.fm/music/'
-                        f'{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+").replace("/", "%2F")})'
+                        f'{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+").replace("/", "%2F")})',
                     )
                     if user_recent_tracks[0]["album"]["#text"] != '':
                         embed.add_field(
                             name='Z albumu',
                             value=f'[{user_recent_tracks[0]["album"]["#text"]}](https://www.last.fm/music/'
                             f'{user_recent_tracks[0]["artist"]["#text"].replace(" ", "+").replace("/", "%2F")}/'
-                            f'{user_recent_tracks[0]["album"]["#text"].replace(" ", "+").replace("/", "%2F")})'
+                            f'{user_recent_tracks[0]["album"]["#text"].replace(" ", "+").replace("/", "%2F")})',
                         )
                     # search for the song on YouTube
                     youtube_search_query = f'{user_recent_tracks[0]["name"]} {user_recent_tracks[0]["artist"]["#text"]}'
@@ -102,8 +105,8 @@ class LastFM(commands.Cog):
                     else:
                         # add a link to a YouTube video if a match was found
                         if (
-                                youtube_search_result is not None and
-                                SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
+                            youtube_search_result is not None
+                            and SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
                         ):
                             embed.add_field(name='Posłuchaj na YouTube', value=youtube_search_result.url, inline=False)
                             embed.set_image(url=youtube_search_result.thumbnail_url)
@@ -112,7 +115,7 @@ class LastFM(commands.Cog):
                 embed.set_author(
                     name=user_info['name'],
                     url=f'https://www.last.fm/user/{user_info["name"]}',
-                    icon_url=user_info['image'][0]['#text']
+                    icon_url=user_info['image'][0]['#text'],
                 )
                 embed.set_footer(text=self.FOOTER_TEXT, icon_url=self.FOOTER_ICON_URL)
             await self.bot.send(ctx, embed=embed)

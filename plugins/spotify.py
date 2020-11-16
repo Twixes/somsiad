@@ -13,8 +13,10 @@
 
 from difflib import SequenceMatcher
 from urllib.error import HTTPError
+
 import discord
 from discord.ext import commands
+
 from core import cooldown
 from utilities import human_amount_of_time
 
@@ -42,15 +44,14 @@ class Spotify(commands.Cog):
             embed = self.bot.generate_embed('⏹', f'W tym momencie {address} niczego na Spotify')
         else:
             embed = self.bot.generate_embed(
-                '▶️', spotify_activity.title,
-                url=f'https://open.spotify.com/go?uri=spotify:track:{spotify_activity.track_id}'
+                '▶️',
+                spotify_activity.title,
+                url=f'https://open.spotify.com/go?uri=spotify:track:{spotify_activity.track_id}',
             )
             embed.set_thumbnail(url=spotify_activity.album_cover_url)
             embed.add_field(name='W wykonaniu', value=', '.join(spotify_activity.artists))
             embed.add_field(name='Z albumu', value=spotify_activity.album)
-            embed.add_field(
-                name='Długość', value=human_amount_of_time(spotify_activity.duration.total_seconds())
-            )
+            embed.add_field(name='Długość', value=human_amount_of_time(spotify_activity.duration.total_seconds()))
             # search for the song on YouTube
             youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
             try:
@@ -60,8 +61,8 @@ class Spotify(commands.Cog):
             else:
                 # add a link to a YouTube video if a match was found
                 if (
-                        youtube_search_result is not None and
-                        SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
+                    youtube_search_result is not None
+                    and SequenceMatcher(None, youtube_search_query, youtube_search_result.title).ratio() > 0.25
                 ):
                     embed.add_field(name='Posłuchaj na YouTube', value=youtube_search_result.url, inline=False)
                     embed.set_image(url=youtube_search_result.thumbnail_url)

@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from discord.ext import commands
+
 from core import cooldown
 from utilities import HttpError
 
@@ -23,7 +24,7 @@ class YouTube(commands.Cog):
     @commands.command(aliases=['youtube', 'yt', 'tuba'])
     @cooldown()
     @commands.guild_only()
-    async def youtube_search(self, ctx, *, query = None):
+    async def youtube_search(self, ctx, *, query=None):
         """Returns first matching result from YouTube."""
         if query is None:
             result_url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'

@@ -12,11 +12,13 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+
 import discord
 from discord.ext import commands
-from core import cooldown
-from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
+
 import data
+from core import cooldown
+from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to_naive_local
 
 
 class Reminder(data.Base, data.ChannelRelated, data.UserRelated):
@@ -35,8 +37,13 @@ class Remind(commands.Cog):
         self.reminders_set_off = set()
 
     async def set_off_reminder(
-            self, confirmation_message_id: int, channel_id: int, user_id: int, content: str,
-            requested_at: dt.datetime, execute_at: dt.datetime
+        self,
+        confirmation_message_id: int,
+        channel_id: int,
+        user_id: int,
+        content: str,
+        requested_at: dt.datetime,
+        execute_at: dt.datetime,
     ):
         if confirmation_message_id in self.reminders_set_off:
             return
@@ -69,16 +76,21 @@ class Remind(commands.Cog):
     async def on_ready(self):
         with data.session() as session:
             for reminder in session.query(Reminder).filter(Reminder.has_been_executed == False):
-                self.bot.loop.create_task(self.set_off_reminder(
-                    reminder.confirmation_message_id, reminder.channel_id, reminder.user_id,
-                    reminder.content, reminder.requested_at, reminder.execute_at
-                ))
+                self.bot.loop.create_task(
+                    self.set_off_reminder(
+                        reminder.confirmation_message_id,
+                        reminder.channel_id,
+                        reminder.user_id,
+                        reminder.content,
+                        reminder.requested_at,
+                        reminder.execute_at,
+                    )
+                )
 
     @commands.command(aliases=['przypomnij', 'przypomnienie', 'pomidor'])
     @cooldown()
     async def remind(
-            self, ctx, execute_at: interpret_str_as_datetime, *,
-            content: commands.clean_content(fix_channel_mentions=True)
+        self, ctx, execute_at: interpret_str_as_datetime, *, content: commands.clean_content(fix_channel_mentions=True)
     ):
         if len(content) > Reminder.MAX_CONTENT_LENGTH:
             raise commands.BadArgument
@@ -92,9 +104,12 @@ class Remind(commands.Cog):
             return
         try:
             details = {
-                'confirmation_message_id': confirmation_message.id, 'channel_id': ctx.channel.id, 'content': content,
-                'user_id': ctx.author.id, 'requested_at': utc_to_naive_local(ctx.message.created_at),
-                'execute_at': execute_at
+                'confirmation_message_id': confirmation_message.id,
+                'channel_id': ctx.channel.id,
+                'content': content,
+                'user_id': ctx.author.id,
+                'requested_at': utc_to_naive_local(ctx.message.created_at),
+                'execute_at': execute_at,
             }
             with data.session(commit=True) as session:
                 reminder = Reminder(**details)

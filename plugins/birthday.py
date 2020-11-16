@@ -11,16 +11,18 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Sequence, List
-from collections import namedtuple, defaultdict
-import random
-import itertools
 import datetime as dt
+import itertools
+import random
+from collections import defaultdict, namedtuple
+from typing import List, Optional, Sequence
+
 import discord
 from discord.ext import commands
-from core import Help, cooldown
-from utilities import word_number_form, calculate_age
+
 import data
+from core import Help, cooldown
+from utilities import calculate_age, word_number_form
 
 
 class BirthdayPublicnessLink(data.Base, data.ServerSpecific):
@@ -55,8 +57,8 @@ class BirthdayNotifier(data.Base, data.ServerSpecific, data.ChannelRelated):
         birthdays_today = []
         for born_person in self.server.birthday_public_born_persons:
             if (
-                    born_person.birthday is not None and
-                    (born_person.birthday.day, born_person.birthday.month) == today_tuple
+                born_person.birthday is not None
+                and (born_person.birthday.day, born_person.birthday.month) == today_tuple
             ):
                 birthdays_today.append(self.BirthdayToday(born_person.user_id, born_person.age()))
         birthdays_today.sort(key=lambda birthday_today: birthday_today.age or 0)
@@ -65,57 +67,67 @@ class BirthdayNotifier(data.Base, data.ServerSpecific, data.ChannelRelated):
 
 class Birthday(commands.Cog):
     DATE_WITH_YEAR_FORMATS = (
-        '%d %m %Y', '%Y %m %d', '%d %B %Y', '%d %b %Y', '%d %m %y', '%y %m %d', '%d %B %y', '%d %b %y'
+        '%d %m %Y',
+        '%Y %m %d',
+        '%d %B %Y',
+        '%d %b %Y',
+        '%d %m %y',
+        '%y %m %d',
+        '%d %B %y',
+        '%d %b %y',
     )
     DATE_WITHOUT_YEAR_FORMATS = ('%d %m', '%d %B', '%d %b')
     MONTH_FORMATS = ('%m', '%B', '%b')
     NOTIFICATIONS_TIME = (8, 0)
 
     GROUP = Help.Command(
-        'urodziny', (), 'Komendy związane z datami urodzin. '
-        'Użyj <?użytkownika> zamiast <?podkomendy>, by sprawdzić datę urodzin.'
+        'urodziny',
+        (),
+        'Komendy związane z datami urodzin. ' 'Użyj <?użytkownika> zamiast <?podkomendy>, by sprawdzić datę urodzin.',
     )
     COMMANDS = (
         Help.Command(('zapamiętaj', 'zapamietaj', 'ustaw'), 'data', 'Zapamiętuje twoją datę urodzin.'),
         Help.Command('zapomnij', (), 'Zapomina twoją datę urodzin.'),
         Help.Command(
-            'upublicznij', (), 'Upublicznia twoją datę urodzin na serwerze. '
-            'Dzięki temu mogą też działać serwerowe powiadomienia o urodzinach.'
+            'upublicznij',
+            (),
+            'Upublicznia twoją datę urodzin na serwerze. '
+            'Dzięki temu mogą też działać serwerowe powiadomienia o urodzinach.',
         ),
         Help.Command('utajnij', (), 'Utajnia twoją datę urodzin na serwerze.'),
         Help.Command('gdzie', (), 'Informuje na jakich serwerach twoja data urodzin jest w tym momencie publiczna.'),
         Help.Command(
-            'kiedy', '?użytkownik',
-            'Zwraca datę urodzin <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
+            'kiedy',
+            '?użytkownik',
+            'Zwraca datę urodzin <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.',
         ),
         Help.Command(
             'wiek', '?użytkownik', 'Zwraca wiek <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.'
         ),
         Help.Command(
-            'powiadomienia', '?podkomenda',
+            'powiadomienia',
+            '?podkomenda',
             'Komendy związane z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
-            'Użyj bez <?podkomendy>, by dowiedzieć się więcej. Wymaga uprawnień administratora.'
-        )
+            'Użyj bez <?podkomendy>, by dowiedzieć się więcej. Wymaga uprawnień administratora.',
+        ),
     )
     HELP = Help(COMMANDS, '🎂', group=GROUP)
 
     NOTIFICATIONS_GROUP = Help.Command(
-        'urodziny powiadomienia', (),
+        'urodziny powiadomienia',
+        (),
         'Komendy związane z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
-        'Wymaga uprawnień administratora.'
+        'Wymaga uprawnień administratora.',
     )
     NOTIFICATIONS_COMMANDS = (
+        Help.Command('status', (), 'Informuje czy powiadomienia o urodzinach są włączone i na jaki kanał są wysyłane.'),
         Help.Command(
-            'status', (), 'Informuje czy powiadomienia o urodzinach są włączone i na jaki kanał są wysyłane.'
-        ),
-        Help.Command(
-            ('włącz', 'wlacz'), '?kanał',
+            ('włącz', 'wlacz'),
+            '?kanał',
             'Ustawia <?kanał> jako kanał powiadomień o dzisiejszych urodzinach. '
-            'Jeśli nie podano <?kanału>, przyjmuje te na którym użyto komendy.'
+            'Jeśli nie podano <?kanału>, przyjmuje te na którym użyto komendy.',
         ),
-        Help.Command(
-            ('wyłącz', 'wylacz'), (), 'Wyłącza powiadomienia o dzisiejszych urodzinach.'
-        )
+        Help.Command(('wyłącz', 'wylacz'), (), 'Wyłącza powiadomienia o dzisiejszych urodzinach.'),
     )
 
     NOTIFICATIONS_HELP = Help(NOTIFICATIONS_COMMANDS, '🎂', group=NOTIFICATIONS_GROUP)
@@ -160,8 +172,8 @@ class Birthday(commands.Cog):
                 return
             key = f'{channel.guild.id}-{dt.date.today()}'
             if (
-                    channel.guild.get_member(birthday_today.user_id) is None or
-                    birthday_today.user_id in self.already_notified[key]
+                channel.guild.get_member(birthday_today.user_id) is None
+                or birthday_today.user_id in self.already_notified[key]
             ):
                 continue
             self.already_notified[key].add(birthday_today.user_id)
@@ -183,9 +195,7 @@ class Birthday(commands.Cog):
         initiated = False
         while True:
             now = dt.datetime.now()
-            next_iteration = dt.datetime(
-                now.year, now.month, now.day, *self.NOTIFICATIONS_TIME
-            ).astimezone()
+            next_iteration = dt.datetime(now.year, now.month, now.day, *self.NOTIFICATIONS_TIME).astimezone()
             if initiated or (now.hour, now.minute) >= self.NOTIFICATIONS_TIME:
                 next_iteration += dt.timedelta(1)
             await discord.utils.sleep_until(next_iteration)
@@ -276,9 +286,14 @@ class Birthday(commands.Cog):
                 this_server = session.query(data.Server).get(ctx.guild.id)
                 born_person.birthday_public_servers.append(this_server)
             date_presentation = date.strftime('%-d %B' if date.year == BornPerson.EDGE_YEAR else '%-d %B %Y')
-            birthday_public_servers_presentation = ' '.join(filter(None, self._get_birthday_public_servers_presentation(
-                born_person, on_server_id=ctx.guild.id if ctx.guild else None
-            )))
+            birthday_public_servers_presentation = ' '.join(
+                filter(
+                    None,
+                    self._get_birthday_public_servers_presentation(
+                        born_person, on_server_id=ctx.guild.id if ctx.guild else None
+                    ),
+                )
+            )
             embed = self.bot.generate_embed(
                 '✅', f'Zapamiętano twoją datę urodzin jako {date_presentation}', birthday_public_servers_presentation
             )
@@ -331,17 +346,17 @@ class Birthday(commands.Cog):
                     'ℹ️', 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać'
                 )
             elif this_server in born_person.birthday_public_servers:
-                birthday_public_servers_presentation = ' '.join(filter(
-                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
-                ))
+                birthday_public_servers_presentation = ' '.join(
+                    filter(None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id))
+                )
                 embed = self.bot.generate_embed(
                     'ℹ️', 'Twoja data urodzin już jest publiczna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.append(this_server)
-                birthday_public_servers_presentation = ' '.join(filter(
-                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
-                ))
+                birthday_public_servers_presentation = ' '.join(
+                    filter(None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id))
+                )
                 embed = self.bot.generate_embed(
                     '📖', 'Upubliczniono twoją datę urodzin na tym serwerze', birthday_public_servers_presentation
                 )
@@ -355,21 +370,19 @@ class Birthday(commands.Cog):
             born_person = session.query(BornPerson).get(ctx.author.id)
             this_server = session.query(data.Server).get(ctx.guild.id)
             if born_person is None or born_person.birthday is None:
-                embed = self.bot.generate_embed(
-                    'ℹ️', 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego utajniać'
-                )
+                embed = self.bot.generate_embed('ℹ️', 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego utajniać')
             elif this_server not in born_person.birthday_public_servers:
-                birthday_public_servers_presentation = ' '.join(filter(
-                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
-                ))
+                birthday_public_servers_presentation = ' '.join(
+                    filter(None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id))
+                )
                 embed = self.bot.generate_embed(
                     'ℹ️', 'Twoja data urodzin już jest tajna na tym serwerze', birthday_public_servers_presentation
                 )
             else:
                 born_person.birthday_public_servers.remove(this_server)
-                birthday_public_servers_presentation = ' '.join(filter(
-                    None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id)
-                ))
+                birthday_public_servers_presentation = ' '.join(
+                    filter(None, self._get_birthday_public_servers_presentation(born_person, on_server_id=ctx.guild.id))
+                )
                 embed = self.bot.generate_embed(
                     '🕵️‍♂️', 'Utajniono twoją datę urodzin na tym serwerze', birthday_public_servers_presentation
                 )
@@ -380,13 +393,18 @@ class Birthday(commands.Cog):
     async def birthday_where(self, ctx):
         with data.session() as session:
             born_person = session.query(BornPerson).get(ctx.author.id)
-            birthday_public_servers_presentation, extra = self._get_birthday_public_servers_presentation(
-                born_person, on_server_id=ctx.guild.id if ctx.guild else None, period=False
-            ) if born_person is not None else 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać', None
+            birthday_public_servers_presentation, extra = (
+                self._get_birthday_public_servers_presentation(
+                    born_person, on_server_id=ctx.guild.id if ctx.guild else None, period=False
+                )
+                if born_person is not None
+                else 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać',
+                None,
+            )
         embed = discord.Embed(
             title=f':information_source: {birthday_public_servers_presentation}',
             description=extra,
-            color=self.bot.COLOR
+            color=self.bot.COLOR,
         )
         await self.bot.send(ctx, embed=embed)
 
@@ -401,18 +419,14 @@ class Birthday(commands.Cog):
                     address = 'Nie ustawiłeś'
                 else:
                     address = f'{member} nie ustawił'
-                embed = discord.Embed(
-                    title=f':question: {address} swojej daty urodzin',
-                    color=self.bot.COLOR
-                )
+                embed = discord.Embed(title=f':question: {address} swojej daty urodzin', color=self.bot.COLOR)
             elif not born_person.is_birthday_public(session, ctx.guild):
                 if member == ctx.author:
                     address = 'Nie upubliczniłeś'
                 else:
                     address = f'{member} nie upublicznił'
                 embed = discord.Embed(
-                    title=f':question: {address} na tym serwerze swojej daty urodzin',
-                    color=self.bot.COLOR
+                    title=f':question: {address} na tym serwerze swojej daty urodzin', color=self.bot.COLOR
                 )
             else:
                 emoji = 'birthday' if born_person.is_birthday_today() else 'calendar_spiral'
@@ -420,18 +434,14 @@ class Birthday(commands.Cog):
                 date_presentation = born_person.birthday.strftime(
                     '%-d %B' if born_person.birthday.year == BornPerson.EDGE_YEAR else '%-d %B %Y'
                 )
-                embed = discord.Embed(
-                    title=f':{emoji}: {address} się {date_presentation}',
-                    color=self.bot.COLOR
-                )
+                embed = discord.Embed(title=f':{emoji}: {address} się {date_presentation}', color=self.bot.COLOR)
         return await self.bot.send(ctx, embed=embed)
 
     @birthday_when.error
     async def birthday_when_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             embed = discord.Embed(
-                title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-                color=self.bot.COLOR
+                title=':warning: Nie znaleziono na serwerze pasującego użytkownika!', color=self.bot.COLOR
             )
             await self.bot.send(ctx, embed=embed)
 
@@ -452,31 +462,23 @@ class Birthday(commands.Cog):
                     address = 'Nie ustawiłeś'
                 else:
                     address = f'{member} nie ustawił'
-                embed = discord.Embed(
-                    title=f':question: {address} swojej daty urodzin',
-                    color=self.bot.COLOR
-                )
+                embed = discord.Embed(title=f':question: {address} swojej daty urodzin', color=self.bot.COLOR)
             elif not born_person.is_birthday_public(session, ctx.guild):
                 if member == ctx.author:
                     address = 'Nie upubliczniłeś'
                 else:
                     address = f'{member} nie upublicznił'
                 embed = discord.Embed(
-                    title=f':question: {address} na tym serwerze swojej daty urodzin',
-                    color=self.bot.COLOR
+                    title=f':question: {address} na tym serwerze swojej daty urodzin', color=self.bot.COLOR
                 )
             elif age is None:
                 address = 'Nie ustawiłeś' if member == ctx.author else f'{member} nie ustawił'
-                embed = discord.Embed(
-                    title=f':question: {address} swojego roku urodzenia',
-                    color=self.bot.COLOR
-                )
+                embed = discord.Embed(title=f':question: {address} swojego roku urodzenia', color=self.bot.COLOR)
             else:
                 emoji = 'birthday' if born_person.is_birthday_today() else 'calendar_spiral'
                 address = 'Masz' if member == ctx.author else f'{member} ma'
                 embed = discord.Embed(
-                    title=f':{emoji}: {address} {word_number_form(age, "rok", "lata", "lat")}',
-                    color=self.bot.COLOR
+                    title=f':{emoji}: {address} {word_number_form(age, "rok", "lata", "lat")}', color=self.bot.COLOR
                 )
         return await self.bot.send(ctx, embed=embed)
 
@@ -484,8 +486,7 @@ class Birthday(commands.Cog):
     async def birthday_age_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             embed = discord.Embed(
-                title=':warning: Nie znaleziono na serwerze pasującego użytkownika!',
-                color=self.bot.COLOR
+                title=':warning: Nie znaleziono na serwerze pasującego użytkownika!', color=self.bot.COLOR
             )
             await self.bot.send(ctx, embed=embed)
 
@@ -545,10 +546,7 @@ class Birthday(commands.Cog):
             else:
                 birthday_notifier = BirthdayNotifier(server_id=ctx.guild.id)
                 session.add(birthday_notifier)
-        embed = discord.Embed(
-            title=title,
-            color=self.bot.COLOR
-        )
+        embed = discord.Embed(title=title, color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
 

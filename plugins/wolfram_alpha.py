@@ -12,20 +12,19 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Optional
+
 import aiohttp
 from discord.ext import commands
-from core import cooldown
+
 from configuration import configuration
+from core import cooldown
 
 
 class WolframAlpha(commands.Cog):
     FOOTER_TEXT = 'Wolfram Alpha'
     FOOTER_ICON_URL = 'https://cdn.iconscout.com/icon/free/png-512/wolfram-alpha-2-569293.png'
     API_URL = 'https://api.wolframalpha.com/v2/query'
-    API_PARAMS = {
-        'appid': configuration['wolfram_alpha_app_id'],
-        'output': 'json'
-    }
+    API_PARAMS = {'appid': configuration['wolfram_alpha_app_id'], 'output': 'json'}
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -60,7 +59,8 @@ class WolframAlpha(commands.Cog):
                 embed = self.bot.generate_embed('🧠', 'Zinterpretowano zapytanie')
                 for pod in pods[:15]:
                     subpods_data = [
-                        f'```Mathematica\n{subpod["plaintext"]}```' for subpod in pod['subpods']
+                        f'```Mathematica\n{subpod["plaintext"]}```'
+                        for subpod in pod['subpods']
                         if subpod.get('plaintext')
                     ]
                     subpods_presentation = ''.join(subpods_data)

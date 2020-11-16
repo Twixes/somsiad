@@ -11,9 +11,11 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import List, Optional
 import datetime as dt
+from typing import List, Optional
+
 from discord.ext import commands
+
 from core import Help, cooldown
 
 
@@ -21,15 +23,17 @@ class TradeSundays(commands.Cog):
     GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Komendy związane z niedzielami handlowymi.')
     COMMANDS = (
         Help.Command(
-            ('najbliższa', 'najblizsza'), (),
-            'Zwraca informacje na temat najbliższej niedzieli oraz najbliższej niedzieli handlowej.'
+            ('najbliższa', 'najblizsza'),
+            (),
+            'Zwraca informacje na temat najbliższej niedzieli oraz najbliższej niedzieli handlowej.',
         ),
         Help.Command(
-            ('terminarz', 'lista', 'spis'), ('?rok', '?miesiąc'),
+            ('terminarz', 'lista', 'spis'),
+            ('?rok', '?miesiąc'),
             'Zwraca terminarz niedziel handlowych w <?roku>, lub, jeśli go nie podano, w bieżącym roku, '
             'z podziałem na miesiące. Jeśli wraz z <?rokiem> podano <?miesiąc>, '
-            'uwzględnione zostaną tylko niedziele handlowe w <?miesiącu>.'
-        )
+            'uwzględnione zostaną tylko niedziele handlowe w <?miesiącu>.',
+        ),
     )
     HELP = Help(COMMANDS, '🛒', group=GROUP)
     ONE_WEEK = dt.timedelta(7)
@@ -60,21 +64,22 @@ class TradeSundays(commands.Cog):
         if year < 1990:
             raise ValueError('year must be 1990 or later')
         possible_sunday_holiday_dates = [
-            dt.date(year, holiday[0], holiday[1]) for holiday in (
-                (1, 1), # Nowy Rok
-                (3, 1), # Święto Państwowe
-                (3, 3), # Święto Narodowe Trzeciego Maja
-                (8, 15), # Wniebowzięcie Najświętszej Maryi Panny,
-                (11, 1), # Wszystkich Świętych
-                (11, 11), # Narodowe Święto Niepodległości
-                (12, 25), # pierwszy dzień Bożego Narodzenia
-                (12, 26) # drugi dzień Bożego Narodzenia
+            dt.date(year, holiday[0], holiday[1])
+            for holiday in (
+                (1, 1),  # Nowy Rok
+                (3, 1),  # Święto Państwowe
+                (3, 3),  # Święto Narodowe Trzeciego Maja
+                (8, 15),  # Wniebowzięcie Najświętszej Maryi Panny,
+                (11, 1),  # Wszystkich Świętych
+                (11, 11),  # Narodowe Święto Niepodległości
+                (12, 25),  # pierwszy dzień Bożego Narodzenia
+                (12, 26),  # drugi dzień Bożego Narodzenia
             )
         ]
         if year >= 2011:
-            possible_sunday_holiday_dates.append(dt.date(year, 1, 6)) # Święto Trzech Króli
-        easter_date = self.determine_easter_date(year) # pierwszy dzień Wielkiej Nocy
-        pentecost_date = easter_date + dt.timedelta(49) # dzień Bożego Ciała
+            possible_sunday_holiday_dates.append(dt.date(year, 1, 6))  # Święto Trzech Króli
+        easter_date = self.determine_easter_date(year)  # pierwszy dzień Wielkiej Nocy
+        pentecost_date = easter_date + dt.timedelta(49)  # dzień Bożego Ciała
         possible_sunday_holiday_dates.append(easter_date)
         possible_sunday_holiday_dates.append(pentecost_date)
         return possible_sunday_holiday_dates
@@ -85,7 +90,7 @@ class TradeSundays(commands.Cog):
             self.determine_nearest_sunday_before_date_exclusive(self.determine_easter_date(year))
         )
         special_trade_sunday_dates.append(self.determine_nearest_sunday_before_date_exclusive(dt.date(year, 12, 25)))
-        special_trade_sunday_dates.append(special_trade_sunday_dates[1]-self.ONE_WEEK)
+        special_trade_sunday_dates.append(special_trade_sunday_dates[1] - self.ONE_WEEK)
         return special_trade_sunday_dates
 
     def determine_nearest_sunday_before_date_exclusive(self, date: dt.date = None) -> dt.date:
@@ -98,10 +103,10 @@ class TradeSundays(commands.Cog):
         if date is not None and not isinstance(date, dt.date):
             raise TypeError('date must be None or a datetime.date')
         date = date or dt.date.today()
-        return date + dt.timedelta(7-date.isoweekday())
+        return date + dt.timedelta(7 - date.isoweekday())
 
     def _determine_trade_sunday_dates_before_2018(
-            self, possible_sunday_holiday_dates: List[dt.date], year: int, month: int
+        self, possible_sunday_holiday_dates: List[dt.date], year: int, month: int
     ) -> List[dt.date]:
         trade_sundays = []
         if month:
@@ -119,7 +124,7 @@ class TradeSundays(commands.Cog):
         return trade_sundays
 
     def _determine_trade_sunday_dates_2018(
-            self, exceptions: List[dt.date], possible_sunday_holiday_dates: List[dt.date], year: int, month: int
+        self, exceptions: List[dt.date], possible_sunday_holiday_dates: List[dt.date], year: int, month: int
     ) -> List[dt.date]:
         trade_sundays = []
         if month:
@@ -155,9 +160,7 @@ class TradeSundays(commands.Cog):
                     trade_sundays.append(last_sunday_of_month)
         return trade_sundays
 
-    def _determine_trade_sunday_dates_2019(
-            self, exceptions: List[dt.date], year: int, month: int
-    ) -> List[dt.date]:
+    def _determine_trade_sunday_dates_2019(self, exceptions: List[dt.date], year: int, month: int) -> List[dt.date]:
         trade_sundays = []
         if month:
             last_sunday_of_month = self.determine_nearest_sunday_before_date_exclusive(
@@ -175,7 +178,7 @@ class TradeSundays(commands.Cog):
         return trade_sundays
 
     def _determine_trade_sunday_dates_after_2019(
-            self, exceptions: List[dt.date], year: int, month: int
+        self, exceptions: List[dt.date], year: int, month: int
     ) -> List[dt.date]:
         trade_sundays = []
         if month:
@@ -217,9 +220,7 @@ class TradeSundays(commands.Cog):
             elif year == 2019:
                 trade_sundays = self._determine_trade_sunday_dates_2019(exceptions, year, month)
             else:
-                trade_sundays = self._determine_trade_sunday_dates_after_2019(
-                    exceptions, year, month
-                )
+                trade_sundays = self._determine_trade_sunday_dates_after_2019(exceptions, year, month)
             if month:
                 for special_trade_sunday_date in special_trade_sunday_dates:
                     if special_trade_sunday_date.month == month:
@@ -245,7 +246,11 @@ class TradeSundays(commands.Cog):
                 year += 1
                 month = 1
 
-    @commands.group(aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'], invoke_without_command=True, case_insensitive=True)
+    @commands.group(
+        aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'],
+        invoke_without_command=True,
+        case_insensitive=True,
+    )
     @cooldown()
     async def trade_sundays(self, ctx):
         await self.bot.send(ctx, embeds=self.HELP.embeds)
@@ -276,8 +281,18 @@ class TradeSundays(commands.Cog):
     @cooldown()
     async def trade_sundays_list(self, ctx, year: Optional[int], month: Optional[int]):
         month_names = [
-            'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik',
-            'Listopad', 'Grudzień'
+            'Styczeń',
+            'Luty',
+            'Marzec',
+            'Kwiecień',
+            'Maj',
+            'Czerwiec',
+            'Lipiec',
+            'Sierpień',
+            'Wrzesień',
+            'Październik',
+            'Listopad',
+            'Grudzień',
         ]
         year = year or dt.date.today().year
         if not 1990 <= year <= 9999:
@@ -287,7 +302,7 @@ class TradeSundays(commands.Cog):
         trade_sunday_dates = self.determine_trade_sunday_dates(year, month)
         trade_sunday_dates_by_month = [[] for _ in range(12)]
         for trade_sunday_date in trade_sunday_dates:
-            trade_sunday_dates_by_month[trade_sunday_date.month-1].append(str(trade_sunday_date.day))
+            trade_sunday_dates_by_month[trade_sunday_date.month - 1].append(str(trade_sunday_date.day))
         embed = self.bot.generate_embed('🗓', f'Niedziele handlowe w {year}')
         for i, i_month in enumerate(trade_sunday_dates_by_month):
             if i_month:

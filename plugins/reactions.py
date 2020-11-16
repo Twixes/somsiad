@@ -11,36 +11,91 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union, Tuple
-import re
 import itertools
 import random
+import re
+from typing import Optional, Tuple, Union
+
 import discord
 from discord.ext import commands
+
 from core import cooldown
 
 
 class React(commands.Cog):
     """Handles reacting to messages."""
+
     DIACRITIC_CONVERSIONS = {
-        'ą': ('aw', 'a'), 'ć': ('ci', 'c'), 'ę': ('ew', 'e'), 'ń': ('ni', 'n'), 'ł': ('el', 'l'), 'ó': ('oo', 'o'),
-        'ś': ('si', 's'), 'ż': ('zg', 'z'), 'ź': ('zi', 'z')
+        'ą': ('aw', 'a'),
+        'ć': ('ci', 'c'),
+        'ę': ('ew', 'e'),
+        'ń': ('ni', 'n'),
+        'ł': ('el', 'l'),
+        'ó': ('oo', 'o'),
+        'ś': ('si', 's'),
+        'ż': ('zg', 'z'),
+        'ź': ('zi', 'z'),
     }
     EMOJIS = [
         {
-            '0': '0️⃣', '1': '1⃣', '2': '2⃣', '3': '3⃣', '4': '4️⃣', '5': '5️⃣', '6': '6️⃣', '7': '7️⃣', '8': '8️⃣',
-            '9': '9️⃣', 'a': '🇦🅰', 'b': '🇧🅱', 'c': '🇨©️', 'd': '🇩', 'e': '🇪', 'f': '🇫', 'g': '🇬', 'h': '🇭',
-            'i': '🇮ℹ️', 'j': '🇯', 'k': '🇰', 'l': '🇱', 'm': '🇲Ⓜ️', 'n': '🇳🆕', 'o': '🇴🅾⭕️', 'p': '🇵🅿️',
-            'q': '🇶', 'r': '🇷®️', 's': '🇸', 't': '🇹', 'u': '🇺', 'v': '🇻', 'w': '🇼', 'x': '🇽❌', 'y': '🇾',
-            'z': '🇿💤', '?': '❓', '!': '❗', '^': '⬆', '>': '▶', '<': '◀'
-        }, {
-            '!!': '‼️', '!?': '⁉️', 'ng': '🆖', 'ok': '🆗', 'up': '🆙', 'wc': '🚾', 'ab': '🆎', 'cl': '🆑', 'vs': '🆚',
-            'id': '🆔', '10': '🔟', 'tm': '™️',
-        }, {
-            'sos': '🆘', '100': '💯', 'zzz': '💤', 'atm': '🏧', 'abc': '🔤', 'up!': '🆙', 'new': '🆕'
-        }, {
-            'abcd': '🔠🔡', 'cool': '🆒', 'free': '🆓', '1234': '🔢'
-        }
+            '0': '0️⃣',
+            '1': '1⃣',
+            '2': '2⃣',
+            '3': '3⃣',
+            '4': '4️⃣',
+            '5': '5️⃣',
+            '6': '6️⃣',
+            '7': '7️⃣',
+            '8': '8️⃣',
+            '9': '9️⃣',
+            'a': '🇦🅰',
+            'b': '🇧🅱',
+            'c': '🇨©️',
+            'd': '🇩',
+            'e': '🇪',
+            'f': '🇫',
+            'g': '🇬',
+            'h': '🇭',
+            'i': '🇮ℹ️',
+            'j': '🇯',
+            'k': '🇰',
+            'l': '🇱',
+            'm': '🇲Ⓜ️',
+            'n': '🇳🆕',
+            'o': '🇴🅾⭕️',
+            'p': '🇵🅿️',
+            'q': '🇶',
+            'r': '🇷®️',
+            's': '🇸',
+            't': '🇹',
+            'u': '🇺',
+            'v': '🇻',
+            'w': '🇼',
+            'x': '🇽❌',
+            'y': '🇾',
+            'z': '🇿💤',
+            '?': '❓',
+            '!': '❗',
+            '^': '⬆',
+            '>': '▶',
+            '<': '◀',
+        },
+        {
+            '!!': '‼️',
+            '!?': '⁉️',
+            'ng': '🆖',
+            'ok': '🆗',
+            'up': '🆙',
+            'wc': '🚾',
+            'ab': '🆎',
+            'cl': '🆑',
+            'vs': '🆚',
+            'id': '🆔',
+            '10': '🔟',
+            'tm': '™️',
+        },
+        {'sos': '🆘', '100': '💯', 'zzz': '💤', 'atm': '🏧', 'abc': '🔤', 'up!': '🆙', 'new': '🆕'},
+        {'abcd': '🔠🔡', 'cool': '🆒', 'free': '🆓', '1234': '🔢'},
     ]
     CUSTOM_EMOJI_REGEX = re.compile(r'<:\S+?:(\d+)>')
 
@@ -48,7 +103,7 @@ class React(commands.Cog):
         self.bot = bot
 
     def _convert_string(
-            self, string: str, message: discord.Message, server: discord.Guild
+        self, string: str, message: discord.Message, server: discord.Guild
     ) -> Tuple[Union[str, discord.Emoji]]:
         """Converts message content string to emojis."""
         emojis = list(' '.join(filter(None, string.lower().split())))
@@ -56,10 +111,10 @@ class React(commands.Cog):
         for match in reversed(tuple(self.CUSTOM_EMOJI_REGEX.finditer(string))):
             emoji = self.bot.get_emoji(int(match.groups()[0]))
             if emoji is not None and emoji not in used_emojis:
-                emojis = emojis[:match.start()] + [emoji] + emojis[match.end():]
+                emojis = emojis[: match.start()] + [emoji] + emojis[match.end() :]
                 used_emojis.add(emoji)
             else:
-                emojis = emojis[:match.start()] + emojis[match.end():]
+                emojis = emojis[: match.start()] + emojis[match.end() :]
         diacritic_replacements = {}
         for i, character in enumerate(emojis):
             if len(used_emojis) >= 20:
@@ -69,14 +124,16 @@ class React(commands.Cog):
             if character == ' ':
                 while True:
                     random_emoji = random.choice(self.bot.EMOJIS)
-                    if random_emoji not in used_emojis: break
+                    if random_emoji not in used_emojis:
+                        break
                 emojis[i] = random_emoji
                 used_emojis.add(random_emoji)
                 continue
             if character in self.DIACRITIC_CONVERSIONS:
                 if diacritic_replacements.get(character) is None:
                     valid_emoji_names = (
-                        self.DIACRITIC_CONVERSIONS[character][0][-2:], self.DIACRITIC_CONVERSIONS[character][0]
+                        self.DIACRITIC_CONVERSIONS[character][0][-2:],
+                        self.DIACRITIC_CONVERSIONS[character][0],
                     )
                     for emoji in server.emojis:
                         if emoji.name.lower() in valid_emoji_names:
@@ -90,7 +147,7 @@ class React(commands.Cog):
                 group = emojis[i]
                 try:
                     for extra_i in range(1, extra_length):
-                        group += emojis[i+extra_i]
+                        group += emojis[i + extra_i]
                 except (IndexError, TypeError):
                     continue
                 else:
@@ -98,11 +155,12 @@ class React(commands.Cog):
                         if emoji and emoji not in used_emojis:
                             emojis[i] = emoji
                             for extra_i in range(1, extra_length):
-                                emojis[i+extra_i] = None
+                                emojis[i + extra_i] = None
                             used_emojis.add(emoji)
                             was_emoji_found = True
                             break
-                    if was_emoji_found: break
+                    if was_emoji_found:
+                        break
         unique_emojis = tuple(itertools.islice(filter(None, emojis), 20))
         return unique_emojis
 
@@ -125,7 +183,8 @@ class React(commands.Cog):
     ):
         """Converts the provided string to emojis and reacts with them."""
         message = await self._find_message(ctx, member)
-        if message is None: return
+        if message is None:
+            return
         emojis = self._convert_string(characters, message, ctx.guild) if convert else characters
         for emoji in emojis:
             try:
@@ -137,7 +196,10 @@ class React(commands.Cog):
     @cooldown()
     @commands.guild_only()
     async def react(
-        self, ctx, member: Optional[discord.Member] = None, *,
+        self,
+        ctx,
+        member: Optional[discord.Member] = None,
+        *,
         characters: commands.clean_content(fix_channel_mentions=True) = ''
     ):
         """Reacts with the provided characters."""

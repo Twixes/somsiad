@@ -13,17 +13,18 @@
 
 import aiohttp
 from discord.ext import commands
-from utilities import first_url, md_link
+
 from core import cooldown
+from utilities import first_url, md_link
 
 
 class IsItUp(commands.Cog):
     HTTP_CODE_WIKIPEDIA_URLS = {
-        1:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_informacyjne',
-        2:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_powodzenia',
-        3:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_przekierowania',
-        4:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_aplikacji_klienta',
-        5:'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_serwera_HTTP'
+        1: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_informacyjne',
+        2: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_powodzenia',
+        3: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_przekierowania',
+        4: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_aplikacji_klienta',
+        5: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_serwera_HTTP',
     }
 
     def __init__(self, bot: commands.Bot):
@@ -60,7 +61,7 @@ class IsItUp(commands.Cog):
                 else:
                     status_presentation = 'brak odpowiedzi'
                 embed = self.bot.generate_embed(emoji, notice, url=url)
-                embed.add_field(name='Status',value=status_presentation)
+                embed.add_field(name='Status', value=status_presentation)
             else:
                 embed = self.bot.generate_embed('⚠️', 'Podany adres jest niepoprawny')
             await self.bot.send(ctx, embed=embed)

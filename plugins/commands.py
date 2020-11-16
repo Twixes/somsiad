@@ -12,9 +12,11 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+
 from discord.ext import commands
-from utilities import utc_to_naive_local, text_snippet
+
 import data
+from utilities import text_snippet, utc_to_naive_local
 
 
 class Invocation(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -37,11 +39,14 @@ class Commands(commands.Cog):
     async def on_command(self, ctx: commands.Context):
         with data.session(commit=True) as session:
             invocation = Invocation(
-                message_id=ctx.message.id, server_id=ctx.guild.id if ctx.guild is not None else None,
-                channel_id=ctx.channel.id, user_id=ctx.author.id, prefix=ctx.prefix,
+                message_id=ctx.message.id,
+                server_id=ctx.guild.id if ctx.guild is not None else None,
+                channel_id=ctx.channel.id,
+                user_id=ctx.author.id,
+                prefix=ctx.prefix,
                 full_command=ctx.command.qualified_name,
                 root_command=str(ctx.command.root_parent or ctx.command.qualified_name),
-                created_at=utc_to_naive_local(ctx.message.created_at)
+                created_at=utc_to_naive_local(ctx.message.created_at),
             )
             session.add(invocation)
 

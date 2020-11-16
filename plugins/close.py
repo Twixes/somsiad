@@ -11,12 +11,14 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional, Union
-from numbers import Number
 import asyncio
-import locale
 import datetime as dt
+import locale
+from numbers import Number
+from typing import Optional, Union
+
 from discord.ext import commands
+
 from core import cooldown
 from utilities import human_amount_of_time, interpret_str_as_datetime
 
@@ -49,8 +51,10 @@ class Closing:
 
     async def timeout_handler(self):
         embed = self.ctx.bot.generate_embed(
-            '💣', f'Kanał zostanie zamknięty za {human_amount_of_time(self.countdown_seconds)}',
-            'Napisz STOP by zatrzymać odliczanie.', timestamp=self.closing_datetime
+            '💣',
+            f'Kanał zostanie zamknięty za {human_amount_of_time(self.countdown_seconds)}',
+            'Napisz STOP by zatrzymać odliczanie.',
+            timestamp=self.closing_datetime,
         )
         await self.ctx.send(self.ctx.author.mention, embed=embed)
 
@@ -69,9 +73,10 @@ class Closing:
             self.countdown_active = False
             closing_defusal_timedelta = self.closing_datetime - dt.datetime.now()
             embed = self.ctx.bot.generate_embed(
-                '✋', 'Odliczanie zostało zatrzymane '
+                '✋',
+                'Odliczanie zostało zatrzymane '
                 f'{human_amount_of_time(closing_defusal_timedelta.total_seconds())} przed zamknięciem kanału',
-                timestamp=self.closing_datetime
+                timestamp=self.closing_datetime,
             )
             if stop_message.author.mention == self.ctx.author.mention:
                 mentions = stop_message.author.mention
@@ -81,15 +86,17 @@ class Closing:
 
     async def countdown_handler(self):
         next_lower_step_index = self._find_next_lower_step_index()
-        await asyncio.sleep(self.countdown_seconds-self.STEPS[next_lower_step_index])
-        for step_index in reversed(range(1, next_lower_step_index+1)):
+        await asyncio.sleep(self.countdown_seconds - self.STEPS[next_lower_step_index])
+        for step_index in reversed(range(1, next_lower_step_index + 1)):
             if self.countdown_active:
                 embed = self.ctx.bot.generate_embed(
-                    '💣', f'Kanał zostanie zamknięty za {human_amount_of_time(self.STEPS[step_index])}',
-                    'Napisz STOP by zatrzymać odliczanie.', timestamp=self.closing_datetime
+                    '💣',
+                    f'Kanał zostanie zamknięty za {human_amount_of_time(self.STEPS[step_index])}',
+                    'Napisz STOP by zatrzymać odliczanie.',
+                    timestamp=self.closing_datetime,
                 )
                 await self.ctx.send(embed=embed)
-                await asyncio.sleep(self.STEPS[step_index]-self.STEPS[step_index-1])
+                await asyncio.sleep(self.STEPS[step_index] - self.STEPS[step_index - 1])
             else:
                 break
 
@@ -110,7 +117,7 @@ class Close(commands.Cog):
     @commands.has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
     async def close(
-            self, ctx, countdown_seconds: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = 3600
+        self, ctx, countdown_seconds: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = 3600
     ):
         """Counts down to channel removal."""
         try:
@@ -125,9 +132,7 @@ class Close(commands.Cog):
                 embed = self.bot.generate_embed('⚠️', notice)
                 await self.bot.send(ctx, embed=embed)
         else:
-            await asyncio.gather(
-                closing.timeout_handler(), closing.countdown_handler()
-            )
+            await asyncio.gather(closing.timeout_handler(), closing.countdown_handler())
 
 
 def setup(bot: commands.Bot):

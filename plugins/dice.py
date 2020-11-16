@@ -12,7 +12,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import random
+
 from discord.ext import commands
+
 from core import cooldown
 
 
@@ -85,8 +87,9 @@ class Dice(commands.Cog):
     async def roll_dice_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             embed = self.bot.generate_embed(
-                '⚠️', f'Podano nieprawidłowy argument',
-                'Ta komenda przyjmuje argumenty w formacie <?liczba kości> <?liczba ścianek kości>.'
+                '⚠️',
+                f'Podano nieprawidłowy argument',
+                'Ta komenda przyjmuje argumenty w formacie <?liczba kości> <?liczba ścianek kości>.',
             )
             await self.bot.send(ctx, embed=embed)
 

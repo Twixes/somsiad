@@ -13,9 +13,10 @@
 
 import discord
 from discord.ext import commands
+
+import data
 from core import cooldown
 from utilities import word_number_form
-import data
 
 
 class Oofer(data.Base, data.MemberSpecific):
@@ -79,10 +80,12 @@ class Oof(commands.Cog):
         async with ctx.typing():
             with data.session() as session:
                 total_oofs = session.query(data.func.sum(Oofer.oofs).filter(Oofer.server_id == ctx.guild.id)).scalar()
-                top_results = session.query(
-                    Oofer,
-                    data.func.dense_rank().over(order_by = Oofer.oofs.desc()).label('rank')
-                ).filter(Oofer.server_id == ctx.guild.id).limit(25).all()
+                top_results = (
+                    session.query(Oofer, data.func.dense_rank().over(order_by=Oofer.oofs.desc()).label('rank'))
+                    .filter(Oofer.server_id == ctx.guild.id)
+                    .limit(25)
+                    .all()
+                )
             ranking = []
             for result in top_results:
                 if result.rank > 10:

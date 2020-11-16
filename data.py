@@ -11,16 +11,29 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Any, Optional, Union, Sequence, Dict
 from contextlib import contextmanager
-from sqlalchemy import (
-    func, create_engine, Column, Boolean, Integer, SmallInteger, BigInteger, String, Date, DateTime, ForeignKey
-)
-from sqlalchemy.orm import Session as RawSession, sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
-from sqlalchemy.dialects import postgresql
+from typing import Any, Dict, Optional, Sequence, Union
+
 import discord
 from discord.ext import commands
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    SmallInteger,
+    String,
+    create_engine,
+    func,
+)
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.orm import Session as RawSession
+from sqlalchemy.orm import relationship, sessionmaker
+
 from configuration import configuration
 
 engine = create_engine(configuration['database_url'], pool_pre_ping=True)
@@ -32,7 +45,8 @@ def session(*, commit: bool = False):
     _session = Session()
     try:
         yield _session
-        if commit: _session.commit()
+        if commit:
+            _session.commit()
     except:
         _session.rollback()
         raise
@@ -48,7 +62,8 @@ class _Base:
         table_name_chars = []
         for i, char in enumerate(class_name):
             if class_name_case[i]:
-                if i > 0: table_name_chars.append('_')
+                if i > 0:
+                    table_name_chars.append('_')
                 table_name_chars.append(char.lower())
             else:
                 table_name_chars.append(char)
@@ -63,9 +78,7 @@ def create_all_tables():
     Base.metadata.create_all(engine)
 
 
-def insert_or_ignore(
-        model, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], *, session: RawSession = None
-):
+def insert_or_ignore(model, values: Union[Sequence[Dict[str, Any]], Dict[str, Any]], *, session: RawSession = None):
     use_own_session = False
     if session is None:
         use_own_session = True
@@ -78,9 +91,7 @@ def insert_or_ignore(
     elif dialect_name == 'sqlite':
         inserter = model.__table__.insert().prefix_with('OR IGNORE').values(values)
     else:
-        raise Exception(
-            f'database dialect {dialect_name} is not supported, only postgresql, mysql and sqlite'
-        )
+        raise Exception(f'database dialect {dialect_name} is not supported, only postgresql, mysql and sqlite')
     session.execute(inserter)
     session.commit()
     if use_own_session:
@@ -101,20 +112,20 @@ class Server(Base):
 
     @classmethod
     def register_all(cls, servers: Sequence[discord.Guild]):
-        values = [{
-            'id': server.id, 'joined_at': server.me.joined_at if server.me is not None else None
-        } for server in servers]
+        values = [
+            {'id': server.id, 'joined_at': server.me.joined_at if server.me is not None else None} for server in servers
+        ]
         insert_or_ignore(cls, values)
 
 
 class ServerRelated:
     @declared_attr
     def server_id(cls):
-        return Column (BigInteger, ForeignKey (Server.id), index=True)
+        return Column(BigInteger, ForeignKey(Server.id), index=True)
 
     @declared_attr
     def server(self):
-        return relationship (Server)
+        return relationship(Server)
 
     def discord_server(self, bot: commands.Bot) -> Optional[discord.Guild]:
         return bot.get_guild(self.server_id) if self.server_id is not None else None
@@ -123,29 +134,29 @@ class ServerRelated:
 class ServerSpecific(ServerRelated):
     @declared_attr
     def server_id(cls):
-        return Column (BigInteger, ForeignKey (Server.id), primary_key=True)
+        return Column(BigInteger, ForeignKey(Server.id), primary_key=True)
 
 
 class ChannelRelated:
-    channel_id = Column (BigInteger, index=True)
+    channel_id = Column(BigInteger, index=True)
 
     def discord_channel(self, bot: commands.Bot) -> Optional[discord.TextChannel]:
         return bot.get_channel(self.channel_id) if self.channel_id is not None else None
 
 
 class ChannelSpecific(ChannelRelated):
-    channel_id = Column (BigInteger, primary_key=True)
+    channel_id = Column(BigInteger, primary_key=True)
 
 
 class UserRelated:
-    user_id = Column (BigInteger, index=True)
+    user_id = Column(BigInteger, index=True)
 
     def discord_user(self, bot: commands.Bot) -> Optional[discord.Guild]:
         return bot.get_user(self.user_id) if self.user_id is not None else None
 
 
 class UserSpecific(UserRelated):
-    user_id = Column (BigInteger, primary_key=True)
+    user_id = Column(BigInteger, primary_key=True)
 
 
 class MemberRelated(ServerRelated, UserRelated):

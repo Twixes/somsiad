@@ -11,14 +11,16 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import hashlib
 import datetime as dt
+import hashlib
+
 from discord.ext import commands
+
 from core import cooldown
 
 
 class Choice(commands.Cog):
-    CATEGORIES_POOL = ['definitive'] * 24 + ['enigmatic'] # 96% one option, 4% unknown
+    CATEGORIES_POOL = ['definitive'] * 24 + ['enigmatic']  # 96% one option, 4% unknown
     ANSWERS = {
         'definitive': [
             'Z mojej strony zdecydowane {0}.',
@@ -34,16 +36,17 @@ class Choice(commands.Cog):
             'Nie ma nad czym się tutaj zastanawiać: {0}.',
             'Dla mnie sprawa jest prosta: {0}.',
             'W razie wątpliwości zawsze wybieraj {0}.',
-            'Na twoim miejscu spróbowałbym {0}.'
-        ], 'enigmatic': [
+            'Na twoim miejscu spróbowałbym {0}.',
+        ],
+        'enigmatic': [
             'Żadna z opcji nie wygląda ciekawie.',
             'Wszystkie opcje brzmią kusząco.',
             'Przecież już znasz odpowiedź.',
             'Powiem ci, że nie wiem.',
             'Nie mam ochoty zajmować się dziś takimi bzdurnymi tematami. Spróbuj kiedy indziej.',
             'Tak.',
-            'Nie.'
-        ]
+            'Nie.',
+        ],
     }
 
     def __init__(self, bot: commands.Bot):
@@ -51,7 +54,7 @@ class Choice(commands.Cog):
 
     @commands.command(aliases=['choose', 'wybierz'])
     @cooldown()
-    async def random_choice(self, ctx, *, raw_options = ''):
+    async def random_choice(self, ctx, *, raw_options=''):
         """Randomly chooses one of provided options."""
         raw_options = raw_options.replace(';', ',').replace('|', ',')
         options_words = []
@@ -76,14 +79,13 @@ class Choice(commands.Cog):
             else:
                 chosen_option = options[question_hash_int % len(options)]
             category = self.CATEGORIES_POOL[question_hash_int % len(self.CATEGORIES_POOL)]
-            answer = self.ANSWERS[category][question_hash_int % len(self.ANSWERS)].format(
-                f'👉 {chosen_option} 👈'
-            )
+            answer = self.ANSWERS[category][question_hash_int % len(self.ANSWERS)].format(f'👉 {chosen_option} 👈')
             await self.bot.send(ctx, answer)
         else:
             await self.bot.send(
-                ctx, 'Chętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych przecinkami, średnikami, '
-                '"lub", "albo" lub "czy" opcji!'
+                ctx,
+                'Chętnie pomógłbym z wyborem, ale musisz podać mi kilka oddzielonych przecinkami, średnikami, '
+                '"lub", "albo" lub "czy" opcji!',
             )
 
 

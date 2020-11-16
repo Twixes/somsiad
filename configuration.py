@@ -1,6 +1,7 @@
-from typing import Any, Optional, Sequence
 import locale
 import os
+from typing import Any, Optional, Sequence
+
 from dotenv import load_dotenv
 
 
@@ -8,8 +9,14 @@ class Setting:
     __slots__ = ('name', 'description', 'unit', 'value_type', 'default_value', 'optional', 'value')
 
     def __init__(
-            self, name: str, *, description: str, unit: Optional[Sequence[str]] = None,
-            value_type: Optional[type] = None, default_value: Any = None, optional: Optional[bool] = None
+        self,
+        name: str,
+        *,
+        description: str,
+        unit: Optional[Sequence[str]] = None,
+        value_type: Optional[type] = None,
+        default_value: Any = None,
+        optional: Optional[bool] = None,
     ):
         self.name = name
         self.description = description
@@ -85,8 +92,10 @@ SETTINGS = (
     Setting('discord_token', description='Token bota'),
     Setting('command_prefix', description='Domyślny prefiks komend', default_value='!'),
     Setting(
-        'command_cooldown_per_user_in_seconds', description='Cooldown wywołania komendy przez użytkownika',
-        unit='s', default_value=1.0
+        'command_cooldown_per_user_in_seconds',
+        description='Cooldown wywołania komendy przez użytkownika',
+        unit='s',
+        default_value=1.0,
     ),
     Setting('database_url', description='URL bazy danych'),
     Setting('sentry_dsn', description='DSN Sentry', optional=True),
@@ -96,10 +105,13 @@ SETTINGS = (
     Setting('goodreads_key', description='Klucz API Goodreads'),
     Setting('tmdb_key', description='Klucz API TMDb'),
     Setting('last_fm_key', description='Klucz API Last.fm'),
-    Setting('yandex_translate_key', description='Klucz API Yandex Translate',),
+    Setting(
+        'yandex_translate_key',
+        description='Klucz API Yandex Translate',
+    ),
     Setting(
         'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', default_value=16
-    )
+    ),
 )
 
 configuration = Configuration(SETTINGS)

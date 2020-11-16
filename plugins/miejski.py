@@ -13,9 +13,11 @@
 
 import datetime as dt
 import urllib.parse
-from discord.ext import commands
-from core import cooldown
+
 from bs4 import BeautifulSoup
+from discord.ext import commands
+
+from core import cooldown
 
 
 class Miejski(commands.Cog):
@@ -29,12 +31,17 @@ class Miejski(commands.Cog):
     @cooldown()
     async def miejski(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
-        query_url_safe = urllib.parse.quote_plus(query.replace(' ', '+',))
+        query_url_safe = urllib.parse.quote_plus(
+            query.replace(
+                ' ',
+                '+',
+            )
+        )
         url = f'https://www.miejski.pl/slowo-{query_url_safe}'
         async with self.bot.session.get(url) as request:
             if request.status == 200:
                 soup = BeautifulSoup(await request.text(), features='html.parser')
-                result = soup.article # get top definition
+                result = soup.article  # get top definition
                 timestamp = dt.datetime.strptime(
                     result.find(class_='published-date').string.replace('Data dodania: ', ''), '%Y-%m-%d'
                 )

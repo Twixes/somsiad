@@ -14,12 +14,14 @@
 import aiohttp
 import discord
 from discord.ext import commands
+
 from core import cooldown
 from utilities import text_snippet
 
 
 class Wikipedia(commands.Cog):
     """Handles Wikipedia search."""
+
     FOOTER_TEXT = 'Wikipedia'
     FOOTER_ICON_URL = (
         'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Wikipedia%27s_W.svg/60px-Wikipedia%27s_W.svg.png'
@@ -27,6 +29,7 @@ class Wikipedia(commands.Cog):
 
     class SearchResult:
         """Wikipedia search results."""
+
         __slots__ = 'language', 'status', 'title', 'url', 'articles'
 
         def __init__(self, language):
@@ -49,9 +52,7 @@ class Wikipedia(commands.Cog):
 
     async def search(self, language: str, title: str):
         """Returns the closest matching article or articles from Wikipedia."""
-        params = {
-            'action': 'opensearch', 'search': title, 'limit': 25, 'format': 'json'
-        }
+        params = {'action': 'opensearch', 'search': title, 'limit': 25, 'format': 'json'}
         search_result = self.SearchResult(language)
         try:
             # use OpenSearch API first to get accurate page title of the result
@@ -63,7 +64,7 @@ class Wikipedia(commands.Cog):
                         # use the title retrieved from the OpenSearch response as a search term in the REST request
                         query = title_data[1][0]
                         async with self.bot.session.get(
-                                self.link(language, f'api/rest_v1/page/summary/{query}')
+                            self.link(language, f'api/rest_v1/page/summary/{query}')
                         ) as article_request:
                             search_result.status = article_request.status
                             if article_request.status == 200:
@@ -73,22 +74,26 @@ class Wikipedia(commands.Cog):
                                 if article_data['type'] == 'disambiguation':
                                     # use results from OpenSearch to create a list of links from disambiguation page
                                     for i, option in enumerate(title_data[1][1:]):
-                                        search_result.articles.append({
-                                            'title': option,
-                                            'summary': None,
-                                            'url': title_data[3][i+1].replace('(', '%28').replace(')', '%29'),
-                                            'thumbnail_url': None
-                                        })
+                                        search_result.articles.append(
+                                            {
+                                                'title': option,
+                                                'summary': None,
+                                                'url': title_data[3][i + 1].replace('(', '%28').replace(')', '%29'),
+                                                'thumbnail_url': None,
+                                            }
+                                        )
                                 elif article_data['type'] == 'standard':
                                     thumbnail_url = (
                                         article_data['thumbnail']['source'] if 'thumbnail' in article_data else None
                                     )
-                                    search_result.articles.append({
-                                        'title': article_data['title'],
-                                        'summary': text_snippet(article_data['extract'], 500),
-                                        'url': article_data['content_urls']['desktop']['page'],
-                                        'thumbnail_url': thumbnail_url
-                                    })
+                                    search_result.articles.append(
+                                        {
+                                            'title': article_data['title'],
+                                            'summary': text_snippet(article_data['extract'], 500),
+                                            'url': article_data['content_urls']['desktop']['page'],
+                                            'thumbnail_url': thumbnail_url,
+                                        }
+                                    )
         except aiohttp.client_exceptions.ClientConnectorError:
             pass
         return search_result
@@ -107,17 +112,22 @@ class Wikipedia(commands.Cog):
                 disambiguation_length = 0
                 for article in search_result.articles:
                     bullet = f'• [{article["title"]}]({article["url"]})'
-                    if disambiguation_length + len(bullet) > 2048: break
+                    if disambiguation_length + len(bullet) > 2048:
+                        break
                     disambiguation.append(bullet)
                     disambiguation_length += len(bullet)
                 embed = self.bot.generate_embed(
-                    '❓', f'Hasło "{search_result.title}" może odnosić się do:', '\n'.join(disambiguation),
-                    url=search_result.url
+                    '❓',
+                    f'Hasło "{search_result.title}" może odnosić się do:',
+                    '\n'.join(disambiguation),
+                    url=search_result.url,
                 )
             elif number_of_articles == 1:
                 embed = self.bot.generate_embed(
-                    None, search_result.articles[0]['title'], search_result.articles[0]['summary'],
-                    url=search_result.articles[0]['url']
+                    None,
+                    search_result.articles[0]['title'],
+                    search_result.articles[0]['summary'],
+                    url=search_result.articles[0]['url'],
                 )
                 if search_result.articles[0]['thumbnail_url'] is not None:
                     embed.set_thumbnail(url=search_result.articles[0]['thumbnail_url'])
@@ -127,13 +137,13 @@ class Wikipedia(commands.Cog):
             embed = self.bot.generate_embed('⚠️', 'Nie udało się połączyć z Wikipedią')
         embed.set_footer(
             text=self.FOOTER_TEXT if search_result.status is None else f'{self.FOOTER_TEXT} {language.upper()}',
-            icon_url=self.FOOTER_ICON_URL
+            icon_url=self.FOOTER_ICON_URL,
         )
         return embed
 
     @commands.command(aliases=['wiki', 'w'])
     @cooldown()
-    async def wikipedia(self, ctx, language, *, title = 'Wikipedia'):
+    async def wikipedia(self, ctx, language, *, title='Wikipedia'):
         """The Wikipedia search command."""
         embed = await self.embed_search_result(language, title)
         await self.bot.send(ctx, embed=embed)

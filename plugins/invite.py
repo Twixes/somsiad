@@ -13,6 +13,7 @@
 
 import discord
 from discord.ext import commands
+
 from core import cooldown
 
 
@@ -23,7 +24,7 @@ class Invite(commands.Cog):
     @commands.command(aliases=['zaproś', 'zapros'])
     @cooldown()
     @commands.guild_only()
-    async def invite(self, ctx, *, argument = ''):
+    async def invite(self, ctx, *, argument=''):
         is_user_permitted_to_invite = False
         for channel in ctx.guild.channels:
             if channel.permissions_for(ctx.author).create_instant_invite:
@@ -31,8 +32,10 @@ class Invite(commands.Cog):
                 break
         if 'somsiad' in argument or ctx.me in ctx.message.mentions:
             embed = self.bot.generate_embed(
-                '🏠', 'Zapraszam do Somsiad Labs – mojego domu', 'http://discord.gg/xRCpDs7',
-                url='http://discord.gg/xRCpDs7'
+                '🏠',
+                'Zapraszam do Somsiad Labs – mojego domu',
+                'http://discord.gg/xRCpDs7',
+                url='http://discord.gg/xRCpDs7',
             )
         elif is_user_permitted_to_invite:
             max_uses = 0
@@ -52,22 +55,21 @@ class Invite(commands.Cog):
                 channel = ctx.channel
             else:
                 for current_channel in ctx.guild.channels:
-                    if (current_channel.permissions_for(ctx.me).create_instant_invite
-                            and current_channel.permissions_for(ctx.author).create_instant_invite
-                            and not isinstance(current_channel, discord.CategoryChannel)):
+                    if (
+                        current_channel.permissions_for(ctx.me).create_instant_invite
+                        and current_channel.permissions_for(ctx.author).create_instant_invite
+                        and not isinstance(current_channel, discord.CategoryChannel)
+                    ):
                         channel = current_channel
                         break
             if channel is None:
                 embed = self.bot.generate_embed(
-                    '⚠️', 'Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
-                    'na którym ty je masz'
+                    '⚠️',
+                    'Nie utworzono zaproszenia, bo bot nie ma do tego uprawnień na żadnym kanale, '
+                    'na którym ty je masz',
                 )
             else:
-                invite = await channel.create_invite(
-                    max_uses=max_uses,
-                    unique=unique,
-                    reason=str(ctx.author)
-                )
+                invite = await channel.create_invite(max_uses=max_uses, unique=unique, reason=str(ctx.author))
                 if max_uses == 0:
                     max_uses_info = ' o nieskończonej liczbie użyć'
                 elif max_uses == 1:
@@ -75,9 +77,12 @@ class Invite(commands.Cog):
                 else:
                     max_uses_info = f' o {max_uses} użyciach'
                 embed = self.bot.generate_embed(
-                    '✅', f'Utworzono{max_uses_info if max_uses == 1 else ""} zaproszenie na kanał '
+                    '✅',
+                    f'Utworzono{max_uses_info if max_uses == 1 else ""} zaproszenie na kanał '
                     f'{"#" if isinstance(channel, discord.TextChannel) else ""}{channel}'
-                    f'{max_uses_info if max_uses != 1 else ""}', invite.url, url=invite.url
+                    f'{max_uses_info if max_uses != 1 else ""}',
+                    invite.url,
+                    url=invite.url,
                 )
         else:
             embed = self.bot.generate_embed(

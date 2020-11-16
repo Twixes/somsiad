@@ -11,14 +11,16 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, List
 import datetime as dt
+from typing import List, Union
+
 import discord
-from discord.ext import commands
 import psycopg2.errors
-from core import cooldown
-from utilities import word_number_form, text_snippet
+from discord.ext import commands
+
 import data
+from core import cooldown
+from utilities import text_snippet, word_number_form
 
 
 class Event(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -46,10 +48,7 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
             type_presentation = 'Dołączenie'
         elif self.type == 'left':
             type_presentation = 'Opuszczenie'
-        parts = [
-            type_presentation,
-            self.occurred_at.strftime('%-d %B %Y o %-H:%M')
-        ]
+        parts = [type_presentation, self.occurred_at.strftime('%-d %B %Y o %-H:%M')]
         if self.channel_id is not None:
             discord_channel = self.discord_channel(bot)
             parts.append(f'na #{discord_channel}' if discord_channel is not None else 'na usuniętym kanale')
@@ -58,8 +57,9 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
             if discord_executing_user is None:
                 discord_executing_user = await bot.fetch_user(self.executing_user_id)
             parts.append(
-                f'przez {discord_executing_user}' if discord_executing_user is not None else
-                'przez usuniętego użytkownika'
+                f'przez {discord_executing_user}'
+                if discord_executing_user is not None
+                else 'przez usuniętego użytkownika'
             )
         return ' '.join(parts)
 
@@ -79,8 +79,12 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
         if 'join' in input_string or 'dołącz' in input_string or 'dolacz' in input_string:
             types.append('joined')
         if (
-                'leave' in input_string or 'left' in input_string or 'odejście' in input_string or
-                'odejscie' in input_string or 'odszed' in input_string or 'odesz' in input_string
+            'leave' in input_string
+            or 'left' in input_string
+            or 'odejście' in input_string
+            or 'odejscie' in input_string
+            or 'odszed' in input_string
+            or 'odesz' in input_string
         ):
             types.append('left')
         if not types:
@@ -143,13 +147,19 @@ class Moderation(commands.Cog):
                 ctx, embed=self.bot.generate_embed('⚠️', f'Powód musi zawierać się w 1000 znaków lub mniej.')
             )
         with data.session(commit=True) as session:
-            warning_count_query = session.query(Event).filter(
-                Event.server_id == ctx.guild.id, Event.user_id == subject_user.id, Event.type == 'warned'
-            ).statement.with_only_columns([data.func.count()])
+            warning_count_query = (
+                session.query(Event)
+                .filter(Event.server_id == ctx.guild.id, Event.user_id == subject_user.id, Event.type == 'warned')
+                .statement.with_only_columns([data.func.count()])
+            )
             warning_count = session.execute(warning_count_query).scalar() + 1
             event = Event(
-                type='warned', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
-                executing_user_id=ctx.author.id, details=reason
+                type='warned',
+                server_id=ctx.guild.id,
+                channel_id=ctx.channel.id,
+                user_id=subject_user.id,
+                executing_user_id=ctx.author.id,
+                details=reason,
             )
             session.add(event)
         return await self.bot.send(
@@ -189,8 +199,12 @@ class Moderation(commands.Cog):
         else:
             with data.session(commit=True) as session:
                 event = Event(
-                    type='kicked', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
-                    executing_user_id=ctx.author.id, details=reason
+                    type='kicked',
+                    server_id=ctx.guild.id,
+                    channel_id=ctx.channel.id,
+                    user_id=subject_user.id,
+                    executing_user_id=ctx.author.id,
+                    details=reason,
                 )
                 session.add(event)
             return await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Wyrzucono {subject_user}'))
@@ -228,8 +242,12 @@ class Moderation(commands.Cog):
         else:
             with data.session(commit=True) as session:
                 event = Event(
-                    type='banned', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
-                    executing_user_id=ctx.author.id, details=reason
+                    type='banned',
+                    server_id=ctx.guild.id,
+                    channel_id=ctx.channel.id,
+                    user_id=subject_user.id,
+                    executing_user_id=ctx.author.id,
+                    details=reason,
                 )
                 session.add(event)
             return await self.bot.send(ctx, embed=self.bot.generate_embed('✅', f'Zbanowano {subject_user}'))
@@ -254,16 +272,22 @@ class Moderation(commands.Cog):
     async def pardon(self, ctx, subject_user: discord.Member):
         """Clears specified member's warnings."""
         with data.session(commit=True) as session:
-            warning_deleted_count = session.query(Event).filter(
-                Event.server_id == ctx.guild.id, Event.user_id == subject_user.id, Event.type == 'warned'
-            ).delete()
+            warning_deleted_count = (
+                session.query(Event)
+                .filter(Event.server_id == ctx.guild.id, Event.user_id == subject_user.id, Event.type == 'warned')
+                .delete()
+            )
             if warning_deleted_count:
                 warning_form = word_number_form(warning_deleted_count, 'ostrzeżenie', 'ostrzeżenia', 'ostrzeżeń')
                 emoji = '✅'
                 notice = f'Usunięto {warning_form} {subject_user}'
                 event = Event(
-                    type='pardoned', server_id=ctx.guild.id, channel_id=ctx.channel.id, user_id=subject_user.id,
-                    executing_user_id=ctx.author.id, details=warning_form
+                    type='pardoned',
+                    server_id=ctx.guild.id,
+                    channel_id=ctx.channel.id,
+                    user_id=subject_user.id,
+                    executing_user_id=ctx.author.id,
+                    details=warning_form,
                 )
                 session.add(event)
             else:
@@ -284,9 +308,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['kartoteka'])
     @cooldown()
     @commands.guild_only()
-    async def file(
-            self, ctx, member: Union[discord.Member, int] = None, *, event_types: Event.comprehend_types = None
-    ):
+    async def file(self, ctx, member: Union[discord.Member, int] = None, *, event_types: Event.comprehend_types = None):
         """Responds with a list of the user's files events on the server."""
         if isinstance(member, int):
             search_by_non_member_id = True
@@ -302,9 +324,7 @@ class Moderation(commands.Cog):
         with data.session() as session:
             events = session.query(Event)
             if event_types is None:
-                events = events.filter(
-                    Event.server_id == ctx.guild.id, Event.user_id == member_id
-                )
+                events = events.filter(Event.server_id == ctx.guild.id, Event.user_id == member_id)
             else:
                 events = events.filter(
                     Event.server_id == ctx.guild.id, Event.user_id == member_id, Event.type.in_(event_types)
@@ -323,14 +343,15 @@ class Moderation(commands.Cog):
                 event_types_description = ' podanych typów'
             event_number_form = word_number_form(len(events), 'zdarzenie', 'zdarzenia', 'zdarzeń')
             embed = self.bot.generate_embed(
-                '📂', f'{address} zawiera {event_number_form}{event_types_description}',
-                'Pokazuję 25 najnowszych.' if len(events) > 25 else ''
+                '📂',
+                f'{address} zawiera {event_number_form}{event_types_description}',
+                'Pokazuję 25 najnowszych.' if len(events) > 25 else '',
             )
             for event in events[-25:]:
                 embed.add_field(
                     name=await event.get_presentation(self.bot),
                     value=text_snippet(event.details, Event.MAX_DETAILS_LENGTH) if event.details is not None else '—',
-                    inline=False
+                    inline=False,
                 )
         else:
             if search_by_non_member_id:
@@ -358,10 +379,8 @@ class Moderation(commands.Cog):
     async def purge(self, ctx, number_of_messages_to_delete: int = 1):
         """Removes last number_of_messages_to_delete messages from the channel."""
         number_of_messages_to_delete = min(number_of_messages_to_delete, 100)
-        await ctx.channel.purge(limit=number_of_messages_to_delete+1)
-        last_adjective_variant = word_number_form(
-            number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich'
-        )
+        await ctx.channel.purge(limit=number_of_messages_to_delete + 1)
+        last_adjective_variant = word_number_form(number_of_messages_to_delete, 'ostatnią', 'ostatnie', 'ostatnich')
         messages_noun_variant = word_number_form(
             number_of_messages_to_delete, 'wiadomość', 'wiadomości', include_number=False
         )

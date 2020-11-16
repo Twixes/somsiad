@@ -12,11 +12,13 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+
 import discord
 from discord.ext import commands
-from core import cooldown
-from utilities import utc_to_naive_local, human_datetime, interpret_str_as_datetime, md_link
+
 import data
+from core import cooldown
+from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to_naive_local
 
 
 class Burning(data.Base, data.ChannelRelated, data.UserRelated):
@@ -33,8 +35,13 @@ class Burn(commands.Cog):
         self.burnings_set_off = set()
 
     async def set_off_burning(
-            self, confirmation_message_id: int, target_message_id: int, channel_id: int, user_id: int,
-            requested_at: dt.datetime, execute_at: dt.datetime
+        self,
+        confirmation_message_id: int,
+        target_message_id: int,
+        channel_id: int,
+        user_id: int,
+        requested_at: dt.datetime,
+        execute_at: dt.datetime,
     ):
         if confirmation_message_id in self.burnings_set_off:
             return
@@ -73,28 +80,38 @@ class Burn(commands.Cog):
     async def on_ready(self):
         with data.session() as session:
             for reminder in session.query(Burning).filter(Burning.has_been_executed == False):
-                self.bot.loop.create_task(self.set_off_burning(
-                    reminder.confirmation_message_id, reminder.target_message_id, reminder.channel_id, reminder.user_id,
-                    reminder.requested_at, reminder.execute_at
-                ))
+                self.bot.loop.create_task(
+                    self.set_off_burning(
+                        reminder.confirmation_message_id,
+                        reminder.target_message_id,
+                        reminder.channel_id,
+                        reminder.user_id,
+                        reminder.requested_at,
+                        reminder.execute_at,
+                    )
+                )
 
     @commands.command(aliases=['spal'])
     @cooldown()
     @commands.bot_has_permissions(manage_messages=True)
     async def burn(self, ctx, execute_at: interpret_str_as_datetime):
         """Removes the message after a specified mount time."""
-        confirmation_description = md_link(
-            f'**Zostanie ona usunięta {human_datetime(execute_at)}.**', ctx.message.jump_url
-        ) + '\n*Spalenie zostanie anulowane jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
+        confirmation_description = (
+            md_link(f'**Zostanie ona usunięta {human_datetime(execute_at)}.**', ctx.message.jump_url)
+            + '\n*Spalenie zostanie anulowane jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
+        )
         confirmation_embed = self.bot.generate_embed('🔥', f'Spalę twoją wiadomość', confirmation_description)
         confirmation_message = await self.bot.send(ctx, embed=confirmation_embed)
         if confirmation_message is None:
             return
         try:
             details = {
-                'confirmation_message_id': confirmation_message.id, 'target_message_id': ctx.message.id,
-                'channel_id': ctx.channel.id, 'user_id': ctx.author.id,
-                'requested_at': utc_to_naive_local(ctx.message.created_at), 'execute_at': execute_at
+                'confirmation_message_id': confirmation_message.id,
+                'target_message_id': ctx.message.id,
+                'channel_id': ctx.channel.id,
+                'user_id': ctx.author.id,
+                'requested_at': utc_to_naive_local(ctx.message.created_at),
+                'execute_at': execute_at,
             }
             with data.session(commit=True) as session:
                 reminder = Burning(**details)

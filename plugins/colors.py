@@ -11,35 +11,39 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union
-from collections import Counter
+import colorsys
 import itertools
 import random
-import colorsys
+from collections import Counter
+from typing import Union
+
 import discord
 from discord.ext import commands
+
 from core import Help, cooldown
 from utilities import word_number_form
 
 
 class Colors(commands.Cog):
     GROUP = Help.Command(
-        ('kolory', 'kolor', 'kolorki', 'kolorek'), (),
+        ('kolory', 'kolor', 'kolorki', 'kolorek'),
+        (),
         'Komendy związane z kolorami nicków samodzielnie wybieranymi przez użytkowników. '
-        'Odbywa się to z użyciem ról o nazwach zaczynających się emoji "🎨".'
+        'Odbywa się to z użyciem ról o nazwach zaczynających się emoji "🎨".',
     )
     COMMANDS = (
         Help.Command(('role', 'lista'), (), 'Zwraca listę dostępnych kolorów–ról.'),
         Help.Command('ustaw', 'kolor–rola', 'Ustawia ci wybrany <kolor–rolę>.'),
         Help.Command(
-            'pokaż', '?użytkownik/kolor–rola/reprezentacja szesnastkowa',
+            'pokaż',
+            '?użytkownik/kolor–rola/reprezentacja szesnastkowa',
             'Pokazuje kolor–rolę <użytkownika>, <kolor–rolę> lub kolor wyrażony podaną <reprezentacją szesnastkową>. '
-            'Jeśli nie podano <?użytkownika/koloru–roli/reprezentacji szesnastkowej>, pokazuje twój kolor–rolę.'
+            'Jeśli nie podano <?użytkownika/koloru–roli/reprezentacji szesnastkowej>, pokazuje twój kolor–rolę.',
         ),
-        Help.Command(('wyczyść', 'wyczysc'), (), 'Wyczyszcza twój kolor.')
+        Help.Command(('wyczyść', 'wyczysc'), (), 'Wyczyszcza twój kolor.'),
     )
     HELP = Help(COMMANDS, '🎨', group=GROUP)
-    GRAY = 0xcdd7de
+    GRAY = 0xCDD7DE
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot

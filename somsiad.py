@@ -11,25 +11,36 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import DefaultDict, Dict, Optional, Type, Union, Sequence, List, cast
-from collections import defaultdict
-import os
-import sys
-from multidict import CIMultiDict
-import psutil
-import traceback
 import asyncio
-import platform
-import itertools
 import datetime as dt
+import itertools
+import os
+import platform
+import sys
+import traceback
+from collections import defaultdict
+from typing import (
+    DefaultDict,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+    cast,
+)
+
 import aiohttp
-import sentry_sdk
 import discord
+import psutil
+import sentry_sdk
 from discord.ext import commands
-from version import __version__, __copyright__
-from utilities import GoogleClient, YouTubeClient, word_number_form, localize, utc_to_naive_local
-from configuration import configuration
+from multidict import CIMultiDict
+
 import data
+from configuration import configuration
+from utilities import GoogleClient, YouTubeClient, localize, utc_to_naive_local, word_number_form
+from version import __copyright__, __version__
 
 
 class Cog(commands.Cog):
@@ -38,16 +49,98 @@ class Cog(commands.Cog):
 
 
 class Somsiad(commands.AutoShardedBot):
-    COLOR = 0x7289da
+    COLOR = 0x7289DA
     USER_AGENT = f'SomsiadBot/{__version__}'
     HEADERS = CIMultiDict([('User-Agent', USER_AGENT)])
     WEBSITE_URL = 'https://somsiad.net'
     EMOJIS = [
-        '🐜', '🅱️', '🔥', '🐸', '🤔', '💥', '👌', '💩', '🐇', '🐰', '🦅', '🙃', '😎', '😩', '👹', '🤖', '✌️', '💭',
-        '🙌', '👋', '💪', '👀', '👷', '🕵️', '💃', '🎩', '🤠', '🐕', '🐈', '🐹', '🐨', '🐽', '🐙', '🐧', '🐔', '🐎',
-        '🦄', '🐝', '🐢', '🐬', '🐋', '🐐', '🌵', '🌻', '🌞', '☄️', '⚡', '🦆', '🦉', '🦊', '🍎', '🍉', '🍇', '🍑',
-        '🍍', '🍆', '🍞', '🧀', '🍟', '🎂', '🍬', '🍭', '🍪', '🥑', '🥔', '🎨', '🎷', '🎺', '👾', '🎯', '🥁', '🚀',
-        '🛰️', '⚓', '🏖️', '✨', '🌈', '💡', '💈', '🔭', '🎈', '🎉', '💯', '💝', '☢️', '🆘', '♨️'
+        '🐜',
+        '🅱️',
+        '🔥',
+        '🐸',
+        '🤔',
+        '💥',
+        '👌',
+        '💩',
+        '🐇',
+        '🐰',
+        '🦅',
+        '🙃',
+        '😎',
+        '😩',
+        '👹',
+        '🤖',
+        '✌️',
+        '💭',
+        '🙌',
+        '👋',
+        '💪',
+        '👀',
+        '👷',
+        '🕵️',
+        '💃',
+        '🎩',
+        '🤠',
+        '🐕',
+        '🐈',
+        '🐹',
+        '🐨',
+        '🐽',
+        '🐙',
+        '🐧',
+        '🐔',
+        '🐎',
+        '🦄',
+        '🐝',
+        '🐢',
+        '🐬',
+        '🐋',
+        '🐐',
+        '🌵',
+        '🌻',
+        '🌞',
+        '☄️',
+        '⚡',
+        '🦆',
+        '🦉',
+        '🦊',
+        '🍎',
+        '🍉',
+        '🍇',
+        '🍑',
+        '🍍',
+        '🍆',
+        '🍞',
+        '🧀',
+        '🍟',
+        '🎂',
+        '🍬',
+        '🍭',
+        '🍪',
+        '🥑',
+        '🥔',
+        '🎨',
+        '🎷',
+        '🎺',
+        '👾',
+        '🎯',
+        '🥁',
+        '🚀',
+        '🛰️',
+        '⚓',
+        '🏖️',
+        '✨',
+        '🌈',
+        '💡',
+        '💈',
+        '🔭',
+        '🎈',
+        '🎉',
+        '💯',
+        '💝',
+        '☢️',
+        '🆘',
+        '♨️',
     ]
     IGNORED_ERRORS = (
         commands.CommandNotFound,
@@ -55,7 +148,7 @@ class Somsiad(commands.AutoShardedBot):
         commands.BadArgument,
         commands.BadUnionArgument,
         commands.CommandOnCooldown,
-        commands.NotOwner
+        commands.NotOwner,
     )
     PREFIX_SAFE_COMMANDS = ('prefix', 'ping', 'info', 'help')
 
@@ -74,8 +167,11 @@ class Somsiad(commands.AutoShardedBot):
 
     def __init__(self):
         super().__init__(
-            command_prefix=self._get_prefix, help_command=None, description='Zawsze pomocny Somsiad',
-            case_insensitive=True, intents=discord.Intents.all()
+            command_prefix=self._get_prefix,
+            help_command=None,
+            description='Zawsze pomocny Somsiad',
+            case_insensitive=True,
+            intents=discord.Intents.all(),
         )
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
@@ -150,12 +246,17 @@ class Somsiad(commands.AutoShardedBot):
         for path in os.scandir('plugins'):
             if path.is_file() and path.name.endswith('.py'):
                 self.load_extension(f'plugins.{path.name[:-3]}')
-        self.prefix_safe_aliases = tuple((
-            variant
-            for command in self.PREFIX_SAFE_COMMANDS
-            for alias in [self.get_command(command).name] + self.get_command(command).aliases
-            for variant in (configuration['command_prefix'] + ' ' + command, configuration['command_prefix'] + alias)
-        ))
+        self.prefix_safe_aliases = tuple(
+            (
+                variant
+                for command in self.PREFIX_SAFE_COMMANDS
+                for alias in [self.get_command(command).name] + self.get_command(command).aliases
+                for variant in (
+                    configuration['command_prefix'] + ' ' + command,
+                    configuration['command_prefix'] + alias,
+                )
+            )
+        )
         data.create_all_tables()
         print('Łączenie z Discordem...')
         self.run(configuration['discord_token'], reconnect=True)
@@ -180,10 +281,14 @@ class Somsiad(commands.AutoShardedBot):
 
     @property
     def user_count(self) -> int:
-        return len({
-            member.id for server in self.guilds for member in server.members
-            if not server.name or 'bot' not in server.name.lower()
-        })
+        return len(
+            {
+                member.id
+                for server in self.guilds
+                for member in server.members
+                if not server.name or 'bot' not in server.name.lower()
+            }
+        )
 
     def print_info(self) -> str:
         """Return a block of bot information."""
@@ -199,7 +304,7 @@ class Somsiad(commands.AutoShardedBot):
             '',
             f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
             '',
-            __copyright__
+            __copyright__,
         ]
         info = '\n'.join(info_lines)
         print(info)
@@ -218,24 +323,39 @@ class Somsiad(commands.AutoShardedBot):
             await asyncio.sleep(60)
 
     def generate_embed(
-            self, emoji: Optional[str] = None, notice: Optional[str] = None, description: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty, *,
-            url: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty, color: Optional[Union[discord.Color, int]] = None,
-            timestamp: Union[dt.datetime, discord.embeds._EmptyEmbed] = discord.Embed.Empty
+        self,
+        emoji: Optional[str] = None,
+        notice: Optional[str] = None,
+        description: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
+        *,
+        url: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
+        color: Optional[Union[discord.Color, int]] = None,
+        timestamp: Union[dt.datetime, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
     ):
         title_parts = tuple(filter(None, (emoji, notice)))
         color = color or self.COLOR
         color_value = color.value if isinstance(color, discord.Color) else color
-        color = color if color_value != 0xffffff else 0xfefefe # Discord treats pure white as no color at all
+        color = color if color_value != 0xFFFFFF else 0xFEFEFE  # Discord treats pure white as no color at all
         return discord.Embed(
-            title=' '.join(title_parts) if title_parts else None, url=url, timestamp=timestamp,
-            color=color or self.COLOR, description=description
+            title=' '.join(title_parts) if title_parts else None,
+            url=url,
+            timestamp=timestamp,
+            color=color or self.COLOR,
+            description=description,
         )
 
     async def send(
-            self, ctx: commands.Context, text: Optional[str] = None,
-            *, direct: bool = False, embed: Optional[discord.Embed] = None,
-            embeds: Optional[Sequence[discord.Embed]] = None, file: Optional[discord.File] = None,
-            files: Optional[List[discord.File]] = None, delete_after: Optional[float] = None, mention: bool = True
+        self,
+        ctx: commands.Context,
+        text: Optional[str] = None,
+        *,
+        direct: bool = False,
+        embed: Optional[discord.Embed] = None,
+        embeds: Optional[Sequence[discord.Embed]] = None,
+        file: Optional[discord.File] = None,
+        files: Optional[List[discord.File]] = None,
+        delete_after: Optional[float] = None,
+        mention: bool = True,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is not None and embeds:
             raise ValueError('embed and embeds cannot be both passed at the same time!')
@@ -278,9 +398,11 @@ class Somsiad(commands.AutoShardedBot):
                 pass
         messages = []
         try:
-            messages = [await destination.send(
-                content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
-            )]
+            messages = [
+                await destination.send(
+                    content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
+                )
+            ]
             for extra_embed in embeds[1:]:
                 messages.append(await destination.send(embed=extra_embed, delete_after=delete_after))
         except (discord.Forbidden, discord.NotFound):
@@ -290,8 +412,9 @@ class Somsiad(commands.AutoShardedBot):
                 except (discord.Forbidden, discord.NotFound):
                     pass
                 error_embed = self.generate_embed(
-                    '⚠️', f'Nie mogę wysłać odpowiedzi na komendę {ctx.invoked_with}',
-                    f'Brak mi uprawnień na kanale #{ctx.channel} serwera {ctx.guild}.'
+                    '⚠️',
+                    f'Nie mogę wysłać odpowiedzi na komendę {ctx.invoked_with}',
+                    f'Brak mi uprawnień na kanale #{ctx.channel} serwera {ctx.guild}.',
                 )
                 await self.send(ctx, direct=True, embed=error_embed)
             return None
@@ -306,18 +429,24 @@ class Somsiad(commands.AutoShardedBot):
                 scope.set_tag('event_method', event_method)
                 if ctx is not None:
                     scope.user = {
-                        'id': ctx.author.id, 'username': str(ctx.author),
+                        'id': ctx.author.id,
+                        'username': str(ctx.author),
                         'activities': (
                             ', '.join(filter(None, (activity.name for activity in ctx.author.activities)))
-                            if ctx.guild is not None else None
-                        )
+                            if ctx.guild is not None
+                            else None
+                        ),
                     }
                     scope.set_tag('full_command', ctx.command.qualified_name)
                     scope.set_tag('root_command', str(ctx.command.root_parent or ctx.command.qualified_name))
-                    scope.set_context('message', {
-                        'prefix': ctx.prefix, 'content': ctx.message.content,
-                        'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments))
-                    })
+                    scope.set_context(
+                        'message',
+                        {
+                            'prefix': ctx.prefix,
+                            'content': ctx.message.content,
+                            'attachments': ', '.join((attachment.url for attachment in ctx.message.attachments)),
+                        },
+                    )
                     scope.set_context('channel', {'id': ctx.channel.id, 'name': str(ctx.channel)})
                     if ctx.guild is not None:
                         scope.set_context('server', {'id': ctx.guild.id, 'name': str(ctx.guild)})
@@ -334,8 +463,8 @@ class Somsiad(commands.AutoShardedBot):
             prefixes.append(configuration['command_prefix'])
             prefixes.append('')
         if (
-                message.content.lower().startswith(self.prefix_safe_aliases) and
-                configuration['command_prefix'] not in prefixes
+            message.content.lower().startswith(self.prefix_safe_aliases)
+            and configuration['command_prefix'] not in prefixes
         ):
             prefixes.append(configuration['command_prefix'] + ' ')
             prefixes.append(configuration['command_prefix'])

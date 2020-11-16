@@ -13,7 +13,9 @@
 
 import datetime as dt
 import urllib.parse
+
 from discord.ext import commands
+
 from core import cooldown
 from utilities import text_snippet
 
@@ -53,10 +55,12 @@ class UrbanDictionary(commands.Cog):
             if request.status == 200:
                 response = await request.json()
                 if response['list']:
-                    result = response['list'][0] # get top definition
+                    result = response['list'][0]  # get top definition
                     embed = self.bot.generate_embed(
-                        None, result['word'], url=result['permalink'],
-                        timestamp=dt.datetime.fromisoformat(result['written_on'][:-1])
+                        None,
+                        result['word'],
+                        url=result['permalink'],
+                        timestamp=dt.datetime.fromisoformat(result['written_on'][:-1]),
                     )
                     definition = self.expand_links(text_snippet(result['definition'], 500))
                     embed.add_field(name='Definicja', value=definition, inline=False)
