@@ -1,15 +1,27 @@
 version: "3.8"
 volumes:
-    postgres:
+    postgres-data:
+    clickhouse-data:
 services:
     postgres:
         environment:
-            POSTGRES_DB: somsiad
-            POSTGRES_PASSWORD: somsiad
-            POSTGRES_USER: somsiad
+            - POSTGRES_USER
+            - POSTGRES_PASSWORD
+            - POSTGRES_DB
         image: postgres:13
+        ports:
+            - '5432:5432'
         volumes:
-            - postgres:/var/lib/postgresql/data
+            - postgres-data:/var/lib/postgresql/data
+    clickhouse:
+        image: yandex/clickhouse-server
+        ports:
+            - '8123:8123'
+            - '9000:9000'
+            - '9440:9440'
+            - '9009:9009'
+        volumes:
+            - clickhouse-data:/var/lib/clickhouse/data
     bot:
         build: .
         restart: on-failure
@@ -19,7 +31,9 @@ services:
             - DISCORD_TOKEN
             - COMMAND_PREFIX
             - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
-            - DATABASE_URL
+            - POSTGRES_USER
+            - POSTGRES_PASSWORD
+            - POSTGRES_DB
             - GOOGLE_KEY
             - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
             - GOODREADS_KEY
