@@ -179,7 +179,7 @@ class Disco(commands.Cog):
     @cooldown()
     @commands.guild_only()
     async def disco(self, ctx):
-        await self.bot.send(ctx, embeds=self.HELP.embeds)
+        await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])
     @cooldown()

@@ -263,7 +263,7 @@ class Help(commands.Cog):
     @commands.command(aliases=['help', 'pomocy', 'pomoc'])
     @cooldown()
     async def help_message(self, ctx):
-        await self.bot.send(ctx, direct=True, embeds=self.HELP.embeds)
+        await self.bot.send(ctx, direct=True, embed=self.HELP.embeds)
 
 
 def setup(bot: commands.Bot):

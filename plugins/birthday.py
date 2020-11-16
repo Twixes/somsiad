@@ -250,7 +250,7 @@ class Birthday(commands.Cog):
     @cooldown()
     async def birthday(self, ctx, *, member: discord.Member = None):
         if member is None:
-            await self.bot.send(ctx, embeds=self.HELP.embeds)
+            await self.bot.send(ctx, embed=self.HELP.embeds)
         else:
             await ctx.invoke(self.birthday_when, member=member)
 
@@ -495,7 +495,7 @@ class Birthday(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def birthday_notifications(self, ctx):
-        await self.bot.send(ctx, embeds=self.NOTIFICATIONS_HELP.embeds)
+        await self.bot.send(ctx, embed=self.NOTIFICATIONS_HELP.embeds)
 
     @birthday_notifications.command(aliases=['status'])
     @cooldown()

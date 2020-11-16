@@ -54,7 +54,7 @@ class Colors(commands.Cog):
     @cooldown()
     @commands.guild_only()
     async def colors(self, ctx):
-        await self.bot.send(ctx, embeds=self.HELP.embeds)
+        await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @colors.command(aliases=['role', 'lista'])
     @cooldown()

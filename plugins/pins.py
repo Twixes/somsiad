@@ -95,7 +95,7 @@ class Pins(commands.Cog):
     @cooldown()
     async def pins(self, ctx):
         """A group of pin-related commands."""
-        await self.bot.send(ctx, embeds=self.HELP.embeds)
+        await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @pins.command(aliases=['kanał', 'kanal'])
     @cooldown()

@@ -180,12 +180,12 @@ class Essentials(Cog):
     @commands.command()
     async def ping(self, ctx, users: commands.Greedy[discord.User]):
         """Pong!"""
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'), mention=users or True)
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'), mention=users or None)
 
     @commands.command()
     async def pińg(self, ctx, users: commands.Greedy[discord.User]):
         """Pońg!"""
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'), mention=users or True)
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'), mention=users or None)
 
     @commands.command(aliases=['nope', 'nie'])
     @cooldown()
@@ -258,7 +258,7 @@ class Prefix(Cog):
     @cooldown()
     async def prefix(self, ctx):
         """Command prefix commands."""
-        await self.bot.send(ctx, embeds=self.HELP.embeds)
+        await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @prefix.command(aliases=['sprawdź', 'sprawdz'])
     @cooldown()

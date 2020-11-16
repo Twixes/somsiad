@@ -249,7 +249,7 @@ class TMDb(commands.Cog):
     @tmdb.error
     async def tmdb_error(self, ctx, error):
         if isinstance(error, commands.MissingRequiredArgument):
-            await self.bot.send(ctx, embeds=self.HELP.embeds)
+            await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @tmdb.command(aliases=['film', 'kino'])
     @cooldown()

@@ -856,7 +856,7 @@ class Activity(commands.Cog):
         last_days: int = None,
     ):
         if subject is None:
-            await self.bot.send(ctx, embeds=self.HELP.embeds)
+            await self.bot.send(ctx, embed=self.HELP.embeds)
         else:
             async with ctx.typing():
                 report = Report(ctx, subject, last_days=last_days)

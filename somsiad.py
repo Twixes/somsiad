@@ -351,26 +351,29 @@ class Somsiad(commands.AutoShardedBot):
         *,
         direct: bool = False,
         embed: Optional[discord.Embed] = None,
-        embeds: Optional[Sequence[discord.Embed]] = None,
         file: Optional[discord.File] = None,
         files: Optional[List[discord.File]] = None,
         delete_after: Optional[float] = None,
-        mention: Union[bool, Sequence[discord.User]] = True,
+        mention: Optional[Union[bool, Sequence[discord.User]]] = None,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
-        if embed is not None and embeds:
-            raise ValueError('embed and embeds cannot be both passed at the same time!')
-        embeds = [embed] if embed is not None else []
-        if len(embeds) > 10:
-            raise ValueError('no more than 10 embeds can be sent at the same time!')
+        if not embed:
+            embeds = []
+        elif isinstance(embed, discord.Embed):
+            embeds = [embed]
+        else:
+            if len(embed) > 10:
+                raise ValueError('no more than 10 embeds can be sent at the same time!')
+            embeds = embed
         destination = cast(discord.abc.Messageable, ctx.author if direct else ctx.channel)
+        direct = direct or isinstance(destination, discord.abc.PrivateChannel)
         content_elements: List[str] = []
         if text:
             content_elements.append(text)
-        if mention and not isinstance(mention, bool):
+        if mention is not None and not isinstance(mention, bool):
             content_elements.extend((user.mention for user in mention))
-        elif not direct or not mention:
+        elif mention or not direct:
             content_elements.append(ctx.author.mention)
-        content = ' '.join(content_elements) if content_elements else None
+        content = ' '.join(content_elements)
         if self.diagnostics_on and ctx.author.id == self.owner_id:
             processing_timedelta = dt.datetime.utcnow() - ctx.message.created_at
             now_also = ', '.join(

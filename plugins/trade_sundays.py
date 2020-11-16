@@ -253,7 +253,7 @@ class TradeSundays(commands.Cog):
     )
     @cooldown()
     async def trade_sundays(self, ctx):
-        await self.bot.send(ctx, embeds=self.HELP.embeds)
+        await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
     @cooldown()
