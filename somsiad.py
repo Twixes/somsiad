@@ -355,7 +355,7 @@ class Somsiad(commands.AutoShardedBot):
         file: Optional[discord.File] = None,
         files: Optional[List[discord.File]] = None,
         delete_after: Optional[float] = None,
-        mention: bool = True,
+        mention: Union[bool, Sequence[discord.User]] = True,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is not None and embeds:
             raise ValueError('embed and embeds cannot be both passed at the same time!')
@@ -363,7 +363,13 @@ class Somsiad(commands.AutoShardedBot):
         if len(embeds) > 10:
             raise ValueError('no more than 10 embeds can be sent at the same time!')
         destination = cast(discord.abc.Messageable, ctx.author if direct else ctx.channel)
-        content_elements = tuple(filter(None, (text, ctx.author.mention if not direct or not mention else None)))
+        content_elements: List[str] = []
+        if text:
+            content_elements.append(text)
+        if mention and not isinstance(mention, bool):
+            content_elements.extend((user.mention for user in mention))
+        elif not direct or not mention:
+            content_elements.append(ctx.author.mention)
         content = ' '.join(content_elements) if content_elements else None
         if self.diagnostics_on and ctx.author.id == self.owner_id:
             processing_timedelta = dt.datetime.utcnow() - ctx.message.created_at

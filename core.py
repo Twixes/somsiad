@@ -178,14 +178,14 @@ class Essentials(Cog):
         await self.bot.send(ctx, embed=embed)
 
     @commands.command()
-    async def ping(self, ctx):
+    async def ping(self, ctx, users: commands.Greedy[discord.User]):
         """Pong!"""
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'))
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'), mention=users or True)
 
     @commands.command()
-    async def pińg(self, ctx):
+    async def pińg(self, ctx, users: commands.Greedy[discord.User]):
         """Pońg!"""
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'))
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'), mention=users or True)
 
     @commands.command(aliases=['nope', 'nie'])
     @cooldown()
