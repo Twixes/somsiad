@@ -25,10 +25,10 @@ then
         then
             PYTHON_VERSION="$ARGUMENT"
         else
-            echo "Podana komenda python$ARGUMENT to $PYTHON_VERSION_PRESENTATION, nie obsługiwany 3.8.* lub 3.9.*!"
+            echo -n "Podana komenda python$ARGUMENT to $PYTHON_VERSION_PRESENTATION, nie obsługiwany 3.8.* lub 3.9.*!"
         fi
     else
-        echo "Podana komenda python$ARGUMENT nie działa!"
+        echo -n "Podana komenda python$ARGUMENT nie działa!"
     fi
 else
     if command -V python3 &>/dev/null
@@ -55,25 +55,27 @@ if [ ! -z "$PYTHON_VERSION" ]
 then
         if [[ -d $VENV_DIR ]]
         then
-            echo "Usuwanie starego środowiska wirtualnego..."
+            echo -n "Usuwanie starego środowiska wirtualnego...\n"
             rm -rf $VENV_DIR
         fi
-        echo "Tworzenie świeżego środowiska wirtualnego..."
+        echo -n "Tworzenie świeżego środowiska wirtualnego...\n"
         python$PYTHON_VERSION -m venv $VENV_DIR
         source $VENV_DIR/bin/activate
-        echo "Aktualizowanie paczek podstawowych..."
+        echo -n "Aktualizowanie paczek podstawowych...\n"
         python$PYTHON_VERSION -m pip install -U pip setuptools wheel
-        echo "Instalowanie zależności produkcyjnych..."
+        echo -n "Instalowanie zależności produkcyjnych...\n"
         python$PYTHON_VERSION -m pip install -U -r $(dirname "$BASH_SOURCE")/requirements.txt
-        echo "Instalowanie zależności deweloperskich..."
+        echo -n "Instalowanie zależności deweloperskich...\n"
         python$PYTHON_VERSION -m pip install -U -r $(dirname "$BASH_SOURCE")/requirements-dev.txt
-        echo "Gotowe."
+        echo -n "Instalowanie pre-commit hooków...\n"
+        pre-commit install
+        echo -n "Gotowe.\n"
 elif [ -z "$ARGUMENT" ]
 then
     if [ -z "$PYTHON_VERSION_PRESENTATION" ]
     then
-        echo "Zainstalowany jest $PYTHON_VERSION, nie obsługiwany 3.8.* lub 3.9.*!"
+        echo -n "Zainstalowany jest $PYTHON_VERSION, nie obsługiwany 3.8.* lub 3.9.*!\n"
     else
-        echo "W systemie nie znaleziono Pythona 3!"
+        echo -n "W systemie nie znaleziono Pythona 3!\n"
     fi
 fi

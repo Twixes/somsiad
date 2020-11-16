@@ -1,6 +1,8 @@
 pip-tools
+pre-commit
 mypy
 black
+isort==5.6.4
 flake8
 bandit
 discord.py-stubs==1.5.1.2

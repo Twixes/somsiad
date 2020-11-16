@@ -95,7 +95,7 @@ Jeśli chcesz przełączyć bota na działanie w tle, użyj skrótu klawiszowego
 
 By najwygodniej prowadzić prace nad kodem bota, skorzystaj ze skryptu, który przygotuje ci pythonowe wirtualne środowisko z zainstalowanymi zależnościami:
 
-`./dev.sh`
+`./develop.sh`
 
 Możesz wejść wtedy do tego środowiska wybierając je spośród wersji Pythona w pasku dolnym VS Code lub przy użyciu komendy basha:
 
@@ -202,7 +202,7 @@ If you want to switch the bot to running in the background, use combination `Ctr
 
 To most comfortably work on the bot's code, use the script that will prepare for you a Python virtual environment with dependencies installed:
 
-`./dev.sh`
+`./develop.sh`
 
 You can then enter the environment by choosing it from Python versions in VS Code's bottom bar or with bash command:
 
