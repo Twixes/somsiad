@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Union, Optional, Sequence
+from typing import DefaultDict, Deque, Dict, List, Union, Optional, Sequence, cast
 from collections import defaultdict, deque
 import enum
 import itertools
@@ -48,7 +48,37 @@ class Report:
     ROLL = 7
     STEP = 100_000
 
-    queues = defaultdict(deque)
+    queues: DefaultDict[int, Deque["Report"]] = defaultdict(deque)
+
+    ctx: commands.Context
+    user_by_id: bool
+    subject: Optional[Union[discord.Guild, discord.TextChannel, discord.Member, discord.User]]
+    subject_id: int
+    seconds_in_queue: float
+    messages_cached: int
+    total_message_count: int
+    total_word_count: int
+    total_character_count: int
+    messages_over_hour: List[int]
+    messages_over_weekday: List[int]
+    messages_over_date: DefaultDict[str, int]
+    active_user_stats: DefaultDict[int, Dict[str, int]]
+    relevant_channel_stats: DefaultDict[int, Dict[str, int]]
+    embed: Optional[discord.Embed]
+    activity_chart_file: Optional[discord.File]
+    init_datetime: dt.datetime
+    out_of_queue_datetime: Optional[dt.datetime]
+    initiated_queue_processing: bool
+    earliest_relevant_message: Optional[MessageMetadata]
+    latest_relevant_message: Optional[MessageMetadata]
+    subject_relevancy_length: Optional[int]
+    average_daily_message_count: Optional[int]
+    caching_progress_message: Optional[discord.Message]
+    last_days: Optional[int]
+    days_presentation: Optional[str]
+    description: Optional[str]
+    timeframe_start_date: Optional[dt.date]
+    timeframe_end_date: dt.date
 
     plt.style.use('dark_background')
 
@@ -66,9 +96,14 @@ class Report:
             last_days: Optional[int] = None
     ):
         self.ctx = ctx
-        self.user_by_id = isinstance(subject, int)
-        self.subject = subject if not self.user_by_id else None
-        self.subject_id = subject.id if not self.user_by_id else subject
+        if isinstance(subject, int):
+            self.user_by_id = True
+            self.subject = None
+            self.subject_id = subject
+        else:
+            self.user_by_id = False
+            self.subject = subject
+            self.subject_id = subject.id
         self.seconds_in_queue = 0
         self.messages_cached = 0
         self.total_message_count = 0
@@ -134,8 +169,8 @@ class Report:
         await self._fill_in_details()
         with data.session() as session:
             existent_channels = [
-                channel for channel in self.ctx.guild.text_channels
-                if channel.permissions_for(self.ctx.me).read_messages and
+                channel for channel in cast(discord.Guild, self.ctx.guild).text_channels
+                if channel.permissions_for(cast(discord.Member, self.ctx.me)).read_messages and
                 (not isinstance(self.subject, discord.Member) or channel.permissions_for(self.subject).read_messages)
             ]
             # process subject type
@@ -164,6 +199,8 @@ class Report:
                     MessageMetadata.user_id == self.subject_id,
                     MessageMetadata.channel_id.in_([channel.id for channel in existent_channels])
                 )
+            else:
+                raise Exception(f'invalid analysis type {self.type}!')
             since_datetime = None
             if self.last_days:
                 since_datetime = dt.datetime(
