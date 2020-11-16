@@ -15,13 +15,11 @@ from discord.ext import commands
 from googleapiclient.errors import HttpError
 
 from core import cooldown
+from somsiad import Cog, Somsiad
 from utilities import HttpError
 
 
-class Google(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class Google(Cog):
     @commands.command(aliases=['g', 'gugiel'])
     @cooldown()
     @commands.guild_only()
@@ -75,5 +73,5 @@ class Google(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Google(bot))

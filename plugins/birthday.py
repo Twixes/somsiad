@@ -181,8 +181,22 @@ class Birthday(commands.Cog):
                 notice = f'{wish} z okazji {birthday_today.age}. urodzin!'
             else:
                 notice = f'{wish} z okazji urodzin!'
-            embed = self.bot.generate_embed('🎂', notice)
-            await channel.send(f'<@{birthday_today.user_id}>', embed=embed)
+            try:
+                await channel.send(f'<@{birthday_today.user_id}>', embed=self.bot.generate_embed('🎂', notice))
+            except discord.Forbidden:
+                try:
+                    user = self.bot.get_user(birthday_today.user_id)
+                    if user is not None:
+                        await self.bot.get_user(birthday_today.user_id).send(
+                            f'<@{birthday_today.user_id}>',
+                            embed=self.bot.generate_embed(
+                                '🎂',
+                                notice,
+                                f'Miałem wysłać tę wiadomość na kanale #{channel} serwera {channel.guild}, ale nie mam tam do tego uprawnień. Jeśli chcesz, możesz powiadomić o tej sprawie administratora tamtego serwera.',
+                            ),
+                        )
+                except discord.Forbidden:
+                    pass
 
     async def send_all_birthday_today_notifications(self):
         with data.session(commit=True) as session:

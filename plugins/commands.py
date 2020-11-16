@@ -13,13 +13,14 @@
 
 import datetime as dt
 
+import psycopg2
 from discord.ext import commands
 
 import data
 from utilities import text_snippet, utc_to_naive_local
 
 
-class Invocation(data.Base, data.MemberRelated, data.ChannelRelated):
+class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
     MAX_ERROR_LENGTH = 300
 
     message_id = data.Column(data.BigInteger, primary_key=True)
@@ -48,7 +49,10 @@ class Commands(commands.Cog):
                 root_command=str(ctx.command.root_parent or ctx.command.qualified_name),
                 created_at=utc_to_naive_local(ctx.message.created_at),
             )
-            session.add(invocation)
+            try:
+                session.add(invocation)
+            except psycopg2.Error:
+                pass
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):

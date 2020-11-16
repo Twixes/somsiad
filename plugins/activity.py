@@ -40,7 +40,7 @@ from core import Help, cooldown
 from utilities import human_datetime, md_link, rolling_average, utc_to_naive_local, word_number_form
 
 
-class MessageMetadata(data.Base, data.MemberRelated, data.ChannelRelated):
+class MessageMetadata(data.MemberRelated, data.ChannelRelated, data.Base):
     __tablename__ = 'message_metadata_cache'
 
     id = data.Column(data.BigInteger, primary_key=True)
@@ -64,7 +64,7 @@ class Report:
 
     ctx: commands.Context
     user_by_id: bool
-    subject: Optional[Union[discord.Guild, discord.TextChannel, discord.Member, discord.User]]
+    subject: Optional[Union[discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User]]
     subject_id: int
     seconds_in_queue: float
     messages_cached: int
@@ -84,7 +84,7 @@ class Report:
     earliest_relevant_message: Optional[MessageMetadata]
     latest_relevant_message: Optional[MessageMetadata]
     subject_relevancy_length: Optional[int]
-    average_daily_message_count: Optional[int]
+    average_daily_message_count: Optional[float]
     caching_progress_message: Optional[discord.Message]
     last_days: Optional[int]
     days_presentation: Optional[str]
@@ -105,7 +105,7 @@ class Report:
     def __init__(
         self,
         ctx: commands.Context,
-        subject: Union[discord.Guild, discord.TextChannel, discord.Member, discord.User, int],
+        subject: Union[discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, int],
         *,
         last_days: Optional[int] = None,
     ):
@@ -200,7 +200,7 @@ class Report:
                 relevant_message_metadata = session.query(MessageMetadata).filter(
                     MessageMetadata.channel_id == self.subject_id
                 )
-            if self.type == self.Type.CATEGORY:
+            elif self.type == self.Type.CATEGORY:
                 existent_channels = [channel for channel in self.subject.channels if channel in existent_channels]
                 for channel in existent_channels:
                     await self._update_metadata_cache(channel, session)
@@ -255,11 +255,11 @@ class Report:
             self._embed_analysis_metastats()
         else:
             self.embed = self.ctx.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
-        return self.embed
+        return cast(discord.Embed, self.embed)
 
-    def render_activity_chart(self) -> discord.File:
+    def render_activity_chart(self, *, set_embed_image: bool = True) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
-        show_by_weekday_and_date = self.subject_relevancy_length > 1
+        show_by_weekday_and_date = self.subject_relevancy_length is not None and self.subject_relevancy_length > 1
         show_by_channels = True
         title = 'Aktywność'
         if self.type == self.Type.CHANNEL:
@@ -307,7 +307,12 @@ class Report:
         # create a Discord file and embed it
         filename = f'activity-{subject_identification}-{self.init_datetime.strftime("%Y.%m.%dT%H.%M.%S")}.png'
         self.activity_chart_file = discord.File(fp=chart_bytes, filename=filename)
-        self.embed.set_image(url=f'attachment://{filename}')
+        if set_embed_image:
+            if self.embed is None:
+                raise Exception(
+                    'There is no report embed to save the chart to! First generate an embed with method analyze_subject() or pass set_embed_image=False to this method.'
+                )
+            self.embed.set_image(url=f'attachment://{filename}')
 
         return self.activity_chart_file
 
@@ -352,7 +357,7 @@ class Report:
 
     async def _update_metadata_cache(self, channel: discord.TextChannel, session: data.RawSession):
         try:
-            self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()
+            self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()  # type: ignore
             relevant_message_metadata = (
                 session.query(MessageMetadata)
                 .filter(MessageMetadata.channel_id == channel.id)
@@ -364,41 +369,51 @@ class Report:
             else:
                 after = None
             metadata_cache_update = []
-            async for message in channel.history(limit=None, after=after):
-                if message.type == discord.MessageType.default:
-                    message_datetime = utc_to_naive_local(message.created_at)
-                    content_parts = [message.clean_content]
-                    for embed in message.embeds:
-                        content_parts.append(embed.title)
-                        content_parts.append(embed.description)
-                        for field in embed.fields:
-                            content_parts.append(field.name)
-                            content_parts.append(field.value)
-                        if embed.footer:
-                            content_parts.append(embed.footer.text)
-                        if embed.author:
-                            content_parts.append(embed.author.text)
-                    content = ' '.join(filter(None, content_parts))
-                    message_metadata = MessageMetadata(
-                        id=message.id,
-                        server_id=message.guild.id,
-                        channel_id=channel.id,
-                        user_id=message.author.id,
-                        word_count=len(content.split()),
-                        character_count=len(content),
-                        hour=message_datetime.hour,
-                        weekday=message_datetime.weekday(),
-                        datetime=message_datetime,
-                    )
-                    metadata_cache_update.append(message_metadata)
-                    self.messages_cached += 1
-                    if self.messages_cached % 10_000 == 0:
-                        await self._send_or_update_progress()
-                    if len(metadata_cache_update) % self.STEP == 0:
-                        metadata_cache_update.reverse()
-                        session.bulk_save_objects(metadata_cache_update)
-                        session.commit()
-                        metadata_cache_update = []
+            rolling_after: Optional[dt.datetime] = None  # in case of async iterator error
+            while True:
+                try:
+                    async for message in channel.history(limit=None, after=after):
+                        if message.type != discord.MessageType.default:
+                            continue
+                        message_datetime = utc_to_naive_local(message.created_at)
+                        content_parts: List[Union[str, discord.embeds._EmptyEmbed]] = [message.clean_content]
+                        for embed in message.embeds:
+                            content_parts.append(embed.title)
+                            content_parts.append(embed.description)
+                            for field in embed.fields:
+                                content_parts.append(field.name)
+                                content_parts.append(field.value)
+                            if embed.footer:
+                                content_parts.append(embed.footer.text)
+                            if embed.author:
+                                content_parts.append(embed.author.name)
+                        content = ' '.join(cast(List[str], filter(None, content_parts)))
+                        message_metadata = MessageMetadata(
+                            id=message.id,
+                            server_id=message.guild.id if message.guild is not None else None,
+                            channel_id=channel.id,
+                            user_id=message.author.id,
+                            word_count=len(content.split()),
+                            character_count=len(content),
+                            hour=message_datetime.hour,
+                            weekday=message_datetime.weekday(),
+                            datetime=message_datetime,
+                        )
+                        metadata_cache_update.append(message_metadata)
+                        rolling_after = message.created_at
+                        self.messages_cached += 1
+                        if self.messages_cached % 10_000 == 0:
+                            await self._send_or_update_progress()
+                        if len(metadata_cache_update) % self.STEP == 0:
+                            metadata_cache_update.reverse()
+                            session.bulk_save_objects(metadata_cache_update)
+                            session.commit()
+                            metadata_cache_update = []
+                except discord.HTTPException:
+                    if rolling_after is not None:
+                        after = rolling_after
+                else:
+                    break
             metadata_cache_update.reverse()
             session.bulk_save_objects(metadata_cache_update)
             session.commit()
@@ -702,7 +717,7 @@ class Report:
         month_difference = 12 * year_difference + timeframe_end_date.month - timeframe_start_date.month
 
         # convert date strings provided to datetime objects
-        dates = [timeframe_start_date + dt.timedelta(n) for n in range(self.subject_relevancy_length)]
+        dates = [timeframe_start_date + dt.timedelta(n) for n in range(self.subject_relevancy_length or 0)]
         messages = [self.messages_over_date[date.isoformat()] for date in dates]
         is_rolling_average = day_difference > 21
         if is_rolling_average:
@@ -770,7 +785,7 @@ class Report:
 
     def _plot_activity_by_channel(self, ax):
         # plot the chart
-        channels = [self.ctx.bot.get_channel(channel) for channel in self.relevant_channel_stats]
+        channels = tuple(filter(None, map(self.ctx.bot.get_channel, self.relevant_channel_stats)))
         channel_names = [f'#{channel}' for channel in channels]
         channel_existence_lengths = (
             (self.timeframe_end_date - utc_to_naive_local(channel.created_at).date()).days + 1 for channel in channels
@@ -900,10 +915,12 @@ class Activity(commands.Cog):
     @cooldown()
     @commands.guild_only()
     async def stat_category(self, ctx, category: discord.CategoryChannel = None, last_days: int = None):
-        if category is None and ctx.channel.category_id is None:
-            raise commands.BadArgument
+        if category is None:
+            if ctx.channel.category_id is None:
+                raise commands.BadArgument
+            category = cast(discord.CategoryChannel, self.bot.get_channel(ctx.channel.category_id))
         async with ctx.typing():
-            report = Report(ctx, category or self.bot.get_channel(ctx.channel.category_id), last_days=last_days)
+            report = Report(ctx, category, last_days=last_days)
             await report.enqueue()
 
     @stat_category.error

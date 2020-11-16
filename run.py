@@ -35,6 +35,6 @@ def run() -> Somsiad:
 
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, somsiad.signal_handler)
     signal.signal(signal.SIGTERM, somsiad.signal_handler)
+    signal.signal(signal.SIGINT, somsiad.signal_handler)
     run()

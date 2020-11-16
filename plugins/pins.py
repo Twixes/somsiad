@@ -12,63 +12,68 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import io
-from typing import Dict
+from typing import Dict, List, cast
 
 import discord
 from discord.ext import commands
 
 import data
 from core import Help, cooldown
+from somsiad import Cog, Somsiad
 from utilities import first_url, word_number_form
 
 channel_being_processed_for_servers = {}
 
 
-class PinArchive(data.Base, data.ServerSpecific, data.ChannelRelated):
+class PinArchive(data.ServerSpecific, data.ChannelRelated, data.Base):
+    class ChannelNotFound(Exception):
+        pass
+
     async def archive(self, bot: commands.Bot, channel: discord.TextChannel) -> Dict[str, int]:
         """Archives the provided message."""
         archive_channel = self.discord_channel(bot)
+        if archive_channel is None:
+            raise self.ChannelNotFound()
         messages = await channel.pins()
         if not messages:
             raise ValueError
         channel_being_processed_for_servers[channel.guild.id] = channel
-        archivization_counts = {'sucessful': 0, 'too_large': 0, 'unknown_error': 0}
+        archivization_counts = {'successful': 0, 'too_large': 0, 'unknown_error': 0}
         for message in reversed(messages):
             try:
                 await self._archive_message(bot, archive_channel, message)
-                archivization_counts['sucessful'] += 1
+                archivization_counts['successful'] += 1
             except discord.HTTPException:
                 archivization_counts['too_large'] += 1
             except:
                 archivization_counts['unknown_error'] += 1
         return archivization_counts
 
-    async def _archive_message(self, bot: commands.Bot, archive_channel: discord.TextChannel, message: discord.Message):
+    async def _archive_message(self, bot: Somsiad, archive_channel: discord.TextChannel, message: discord.Message):
         pin_embed = bot.generate_embed(description=message.content, timestamp=message.created_at)
         pin_embed.set_author(name=message.author.display_name, url=message.jump_url, icon_url=message.author.avatar_url)
         pin_embed.set_footer(text=f'#{message.channel}')
-        files = []
+        files: List[discord.File] = []
         for attachment in message.attachments:
             filename = attachment.filename
             fp = io.BytesIO()
             await attachment.save(fp)
             file = discord.File(fp, filename)
             files.append(file)
-        send_kwargs = {}
         if len(files) == 1:
             if message.attachments[0].height is not None:
                 pin_embed.set_image(url=f'attachment://{message.attachments[0].filename}')
-            send_kwargs["file"] = files[0]
+            await archive_channel.send(embed=pin_embed, file=files[0])
         elif len(files) > 1:
-            send_kwargs["files"] = files
+            await archive_channel.send(embed=pin_embed, files=files)
         else:
-            url_from_content = first_url(message.content)
+            url_from_content = cast(str, first_url(message.content))
             if url_from_content is not None:
                 pin_embed.set_image(url=url_from_content)
-        await archive_channel.send(embed=pin_embed, **send_kwargs)
+            await archive_channel.send(embed=pin_embed)
 
 
-class Pins(commands.Cog):
+class Pins(Cog):
     GROUP = Help.Command(
         ('przypięte', 'przypinki', 'piny'), (), 'Komendy związane z archiwizacją przypiętych wiadomości.'
     )
@@ -87,9 +92,6 @@ class Pins(commands.Cog):
         Help.Command(('wyczyść', 'wyczysc'), (), 'Odpina wszystkie wiadomości na kanale.'),
     )
     HELP = Help(COMMANDS, '📌', group=GROUP)
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     @commands.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
@@ -164,6 +166,8 @@ class Pins(commands.Cog):
                                 archivization_counts = await pin_archive.archive(self.bot, ctx.channel)
                         except ValueError:
                             emoji, notice = '🔴', 'Brak przypiętych wiadomości do zarchiwizowania'
+                        except PinArchive.ChannelNotFound:
+                            emoji, notice = '⚠️', 'Musisz ustawić nowy kanał archiwum przypiętych wiadomości'
                         else:
                             pinned_forms = ('przypiętą wiadomość', 'przypięte wiadomości', 'przypiętych wiadomości')
                             emoji = '✅'
@@ -220,5 +224,5 @@ class Pins(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Pins(bot))

@@ -57,7 +57,7 @@ class GoogleClient:
     @dataclass
     class GoogleResult:
         title: str
-        snippet: str
+        snippet: Optional[str]
         source_link: str
         display_link: str
         root_link: str
@@ -88,7 +88,7 @@ class GoogleClient:
                         continue
                     return self.GoogleResult(
                         result['title'],
-                        result['snippet'],
+                        result.get('snippet'),
                         result['image']['contextLink'],
                         result['displayLink'],
                         f'{result["link"].split("://")[0]}://{result["displayLink"]}',
@@ -105,7 +105,7 @@ class GoogleClient:
                     image_link = None
                 return self.GoogleResult(
                     result['title'],
-                    result['snippet'],
+                    result.get('snippet'),
                     result['link'],
                     result['displayLink'],
                     f'{result["link"].split("://")[0]}://{result["displayLink"]}',

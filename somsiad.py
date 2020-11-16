@@ -25,6 +25,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Tuple,
     Type,
     Union,
     cast,
@@ -156,7 +157,7 @@ class Somsiad(commands.AutoShardedBot):
     storage_dir_path = os.path.join(os.path.expanduser('~'), '.local', 'share', 'somsiad')
     cache_dir_path = os.path.join(os.path.expanduser('~'), '.cache', 'somsiad')
 
-    prefix_safe_aliases: Sequence[str]
+    prefix_safe_aliases: Tuple[str]
     prefixes: Dict[int, Sequence[str]]
     diagnostics_on: bool
     commands_being_processed: DefaultDict[str, int]
@@ -164,6 +165,7 @@ class Somsiad(commands.AutoShardedBot):
     session: Optional[aiohttp.ClientSession]
     google_client: GoogleClient
     youtube_client: YouTubeClient
+    system_channel: Optional[discord.TextChannel]
 
     def __init__(self):
         super().__init__(
@@ -202,7 +204,9 @@ class Somsiad(commands.AutoShardedBot):
                     discord_server = self.get_guild(server.id)
                     if discord_server is not None and discord_server.me is not None:
                         server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
+        self.system_channel = cast(Optional[discord.TextChannel], await self.fetch_channel(517422572615499777))  # magic
         self.loop.create_task(self.cycle_presence())
+        await self.system_notify('✅', 'Włączyłem się')
         self.print_info()
 
     async def on_error(self, event_method, *args, **kwargs):
@@ -261,19 +265,35 @@ class Somsiad(commands.AutoShardedBot):
         print('Łączenie z Discordem...')
         self.run(configuration['discord_token'], reconnect=True)
 
+    async def system_notify(
+        self,
+        emoji: Optional[str] = None,
+        notice: Optional[str] = None,
+        description: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
+    ) -> bool:
+        if self.system_channel is not None:
+            await self.system_channel.send(
+                content='<@171599592708767744>',
+                embed=self.generate_embed(emoji, notice, description, timestamp=dt.datetime.utcnow()),
+            )
+            return True
+        else:
+            return False
+
     async def close(self):
         print('\nZatrzymywanie działania programu...')
+        await self.system_notify('🛑', 'Wyłączam się…')
         if self.session is not None:
             await self.session.close()
         await super().close()
         sys.exit(0)
 
-    def signal_handler(self, _, __):
+    def signal_handler(self, *args, **kwargs):
         asyncio.run(self.close())
 
     def invite_url(self) -> str:
         """Return the invitation URL of the bot."""
-        return discord.utils.oauth_url(self.user.id, discord.Permissions(305392727))
+        return discord.utils.oauth_url(str(self.user.id), discord.Permissions(305392727))
 
     @property
     def server_count(self) -> int:
@@ -296,7 +316,7 @@ class Somsiad(commands.AutoShardedBot):
             f'\nPołączono jako {self.user} (ID {self.user.id}). '
             f'{word_number_form(self.user_count, "użytkownik", "użytkownicy", "użytkowników")} '
             f'na {word_number_form(self.server_count, "serwerze", "serwerach")} '
-            f'z {word_number_form(self.shard_count, "sharda", "shardów")}.',
+            f'z {word_number_form(self.shard_count or 1, "sharda", "shardów")}.',
             '',
             self.invite_url(),
             '',
@@ -326,7 +346,7 @@ class Somsiad(commands.AutoShardedBot):
         self,
         emoji: Optional[str] = None,
         notice: Optional[str] = None,
-        description: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
+        description: Optional[Union[str, discord.embeds._EmptyEmbed]] = discord.Embed.Empty,
         *,
         url: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
         color: Optional[Union[discord.Color, int]] = None,
@@ -337,11 +357,11 @@ class Somsiad(commands.AutoShardedBot):
         color_value = color.value if isinstance(color, discord.Color) else color
         color = color if color_value != 0xFFFFFF else 0xFEFEFE  # Discord treats pure white as no color at all
         return discord.Embed(
-            title=' '.join(title_parts) if title_parts else None,
+            title=' '.join(title_parts) if title_parts else discord.Embed.Empty,
             url=url,
             timestamp=timestamp,
             color=color or self.COLOR,
-            description=description,
+            description=description or discord.Embed.Empty,
         )
 
     async def send(
@@ -350,13 +370,13 @@ class Somsiad(commands.AutoShardedBot):
         text: Optional[str] = None,
         *,
         direct: bool = False,
-        embed: Optional[discord.Embed] = None,
+        embed: Optional[Union[discord.Embed, Sequence[discord.Embed]]] = None,
         file: Optional[discord.File] = None,
         files: Optional[List[discord.File]] = None,
         delete_after: Optional[float] = None,
         mention: Optional[Union[bool, Sequence[discord.User]]] = None,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
-        if not embed:
+        if embed is None:
             embeds = []
         elif isinstance(embed, discord.Embed):
             embeds = [embed]

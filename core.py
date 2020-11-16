@@ -158,9 +158,9 @@ class Essentials(Cog):
             footer = __copyright__
             server_count = self.bot.server_count
             user_count = self.bot.user_count
-            shard_count = self.bot.shard_count
+            shard_count = self.bot.shard_count or 1
             runtime = (
-                '???'
+                'nieznany'
                 if self.bot.ready_datetime is None
                 else human_amount_of_time(dt.datetime.now() - self.bot.ready_datetime)
             )
