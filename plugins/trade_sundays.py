@@ -85,12 +85,13 @@ class TradeSundays(commands.Cog):
         return possible_sunday_holiday_dates
 
     def determine_special_trade_sunday_dates(self, year: int) -> List[dt.date]:
-        special_trade_sunday_dates = []
-        special_trade_sunday_dates.append(
-            self.determine_nearest_sunday_before_date_exclusive(self.determine_easter_date(year))
-        )
-        special_trade_sunday_dates.append(self.determine_nearest_sunday_before_date_exclusive(dt.date(year, 12, 25)))
-        special_trade_sunday_dates.append(special_trade_sunday_dates[1] - self.ONE_WEEK)
+        special_trade_sunday_dates = [
+            self.determine_nearest_sunday_before_date_exclusive(self.determine_easter_date(year)),  # week before Easter
+            self.determine_nearest_sunday_before_date_exclusive(dt.date(year, 12, 25)),  # 1st Sunday before Christmas
+        ]
+        special_trade_sunday_dates.append(special_trade_sunday_dates[1] - self.ONE_WEEK)  # 2nd Sunday before Christmas
+        if year == 2020:
+            special_trade_sunday_dates.append(dt.date(2020, 12, 6))  # 2020-exclusive, 3rd Sunday before Christmas
         return special_trade_sunday_dates
 
     def determine_nearest_sunday_before_date_exclusive(self, date: dt.date = None) -> dt.date:
