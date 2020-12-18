@@ -139,11 +139,13 @@ class Report:
         self.average_daily_message_count = None
         self.caching_progress_message = None
         self.last_days = last_days
-        if self.last_days:
-            if self.last_days == 1:
+        if last_days:
+            if last_days < 1:
+                raise ValueError('last_days must be a 1 or larger')
+            elif last_days == 1:
                 self.days_presentation = 'z dzisiaj'
             else:
-                self.days_presentation = f'z ostatnich {self.last_days} dni (licząc dzisiejszy)'
+                self.days_presentation = f'z ostatnich {last_days} dni (licząc dzisiejszy)'
             self.description = f'Wzięto pod uwagę aktywność {self.days_presentation}.'
         else:
             self.days_presentation = None
