@@ -5,9 +5,9 @@ volumes:
 services:
     postgres:
         environment:
-            - POSTGRES_USER
-            - POSTGRES_PASSWORD
-            - POSTGRES_DB
+            POSTGRES_DB: somsiad
+            POSTGRES_PASSWORD: somsiad
+            POSTGRES_USER: somsiad
         image: postgres:13
         ports:
             - '5439:5432'
@@ -34,9 +34,6 @@ services:
             - DISCORD_TOKEN
             - COMMAND_PREFIX
             - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
-            - POSTGRES_USER
-            - POSTGRES_PASSWORD
-            - POSTGRES_DB
             - GOOGLE_KEY
             - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
             - GOODREADS_KEY
@@ -49,5 +46,6 @@ services:
             - SENTRY_AUTH_TOKEN
             - SENTRY_ORG
             - PTVSD
+            - DATABASE_URL=postgres://somsiad:somsiad@postgres/somsiad
         ports:
             - "5678:5678"
