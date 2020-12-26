@@ -13,9 +13,11 @@ cachetools==4.1.1         # via google-auth
 certifi==2020.11.8        # via requests, sentry-sdk
 cffi==1.14.3              # via pynacl
 chardet==3.0.4            # via aiohttp, requests
+click==7.1.2              # via flask
 cycler==0.10.0            # via matplotlib
 defusedxml==0.6.0         # via -r requirements.in
 discord.py[voice]==1.5.1  # via -r requirements.in
+flask==1.1.2              # via -r requirements.in
 google-api-core==1.23.0   # via google-api-python-client
 google-api-python-client==1.12.5  # via -r requirements.in
 google-auth-httplib2==0.0.4  # via google-api-python-client
@@ -24,7 +26,10 @@ googleapis-common-protos==1.52.0  # via google-api-core
 httplib2==0.18.1          # via google-api-python-client, google-auth-httplib2
 idna==2.10                # via requests, yarl
 imagehash==4.1.0          # via -r requirements.in
+itsdangerous==1.1.0       # via flask
+jinja2==2.11.2            # via flask
 kiwisolver==1.3.1         # via matplotlib
+markupsafe==1.1.1         # via jinja2
 matplotlib==3.3.3         # via -r requirements.in
 multidict==4.7.6          # via aiohttp, yarl
 numpy==1.19.4             # via -r requirements.in, imagehash, matplotlib, pywavelets, scipy
@@ -52,6 +57,7 @@ sqlalchemy==1.3.20        # via -r requirements.in
 typing-extensions==3.7.4.3  # via pytube
 uritemplate==3.0.1        # via google-api-python-client
 urllib3==1.26.2           # via requests, sentry-sdk
+werkzeug==1.0.1           # via flask
 yarl==1.5.1               # via aiohttp
 
 # The following packages are considered to be unsafe in a requirements file:
