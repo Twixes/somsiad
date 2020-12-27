@@ -14,23 +14,16 @@ if env_ptvsd:
 import signal
 
 import sentry_sdk
-from flask import Flask, render_template
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from configuration import configuration
-from core import Essentials, Prefix, Somsiad, somsiad
+from core import Essentials, Prefix, somsiad
 from version import __version__
 
-flask_app = Flask(__name__)
-
-
-@flask_app.route('/')
-def index():
-    return render_template('index.html')
-
-
-def run() -> Somsiad:
+if __name__ == '__main__':
+    signal.signal(signal.SIGTERM, somsiad.signal_handler)
+    signal.signal(signal.SIGINT, somsiad.signal_handler)
     if configuration['sentry_dsn']:
         print('Inicjowanie połączenia z Sentry...')
         sentry_sdk.init(
@@ -38,12 +31,4 @@ def run() -> Somsiad:
             release=f'{configuration.get("sentry_proj") or "somsiad"}@{__version__}',
             integrations=[SqlalchemyIntegration(), AioHttpIntegration()],
         )
-    flask_app.run(host="0.0.0.0", port=80)
     somsiad.load_and_run((Essentials, Prefix))
-    return somsiad
-
-
-if __name__ == '__main__':
-    signal.signal(signal.SIGTERM, somsiad.signal_handler)
-    signal.signal(signal.SIGINT, somsiad.signal_handler)
-    run()
