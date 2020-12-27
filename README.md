@@ -1,4 +1,6 @@
-***[polski](#somsiad--po-polsku), [English](#somsiad--in-english)***
+##### *[polski](#somsiad--po-polsku), [English](#somsiad--in-english)*
+
+### *Dołącz do społeczności! http://discord.gg/xRCpDs7*
 
 ---
 
