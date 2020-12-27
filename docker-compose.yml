@@ -48,4 +48,5 @@ services:
             - PTVSD
             - DATABASE_URL=postgres://somsiad:somsiad@postgres/somsiad
         ports:
+            - "80:80"
             - "5678:5678"

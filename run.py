@@ -14,7 +14,7 @@ if env_ptvsd:
 import signal
 
 import sentry_sdk
-from flask import Flask
+from flask import Flask, render_template
 from sentry_sdk.integrations.aiohttp import AioHttpIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
@@ -26,8 +26,8 @@ flask_app = Flask(__name__)
 
 
 @flask_app.route('/')
-def hello_world():
-    return 'Cześć!'
+def index():
+    return render_template('index.html')
 
 
 def run() -> Somsiad:
@@ -38,8 +38,8 @@ def run() -> Somsiad:
             release=f'{configuration.get("sentry_proj") or "somsiad"}@{__version__}',
             integrations=[SqlalchemyIntegration(), AioHttpIntegration()],
         )
+    flask_app.run(host="0.0.0.0", port=80)
     somsiad.load_and_run((Essentials, Prefix))
-    flask_app.run(host='0.0.0.0', port=80)
     return somsiad
 
 

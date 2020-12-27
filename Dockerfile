@@ -16,4 +16,5 @@ COPY requirements.txt ./
 RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel
 RUN python3 -m pip install --no-cache-dir -U -r requirements.txt
 COPY . .
+EXPOSE 80
 CMD ["python3", "run.py"]
