@@ -35,6 +35,7 @@ import aiohttp
 import discord
 import psutil
 import sentry_sdk
+from aiochclient.client import ChClient
 from discord.ext import commands
 from multidict import CIMultiDict
 
@@ -163,6 +164,7 @@ class Somsiad(commands.AutoShardedBot):
     commands_being_processed: DefaultDict[str, int]
     ready_datetime: Optional[dt.datetime]
     session: Optional[aiohttp.ClientSession]
+    ch_client: Optional[ChClient]
     google_client: GoogleClient
     youtube_client: YouTubeClient
     system_channel: Optional[discord.TextChannel]
@@ -185,6 +187,7 @@ class Somsiad(commands.AutoShardedBot):
         self.commands_being_processed = defaultdict(int)
         self.ready_datetime = None
         self.session = None
+        self.ch_client = None
         self.google_client = GoogleClient(
             configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
         )
@@ -195,6 +198,14 @@ class Somsiad(commands.AutoShardedBot):
         localize()
         self.ready_datetime = dt.datetime.now()
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
+        self.ch_client = ChClient(
+            self.session,
+            url=configuration["clickhouse_address"],
+            user=configuration["clickhouse_user"],
+            password=configuration["clickhouse_password"],
+            database="somsiad",
+        )
+        assert await self.ch_client.is_alive()
         print('Przygotowywanie danych serwerów...')
         data.Server.register_all(self.guilds)
         with data.session(commit=True) as session:
