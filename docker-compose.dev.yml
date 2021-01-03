@@ -1,7 +1,4 @@
 version: "3.8"
-volumes:
-    postgres-data:
-    clickhouse-data:
 services:
     postgres:
         environment:
@@ -11,8 +8,6 @@ services:
         image: postgres:13
         ports:
             - '5439:5432'
-        volumes:
-            - postgres-data:/var/lib/postgresql/data
     clickhouse:
         build:
             context: .
@@ -26,8 +21,6 @@ services:
             - '9000:9000'
             - '9440:9440'
             - '9009:9009'
-        volumes:
-            - clickhouse-data:/var/lib/clickhouse/data
     bot:
         build: .
         restart: on-failure
