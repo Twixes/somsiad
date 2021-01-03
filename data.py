@@ -37,8 +37,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from configuration import configuration
 
 engine = create_engine(
-    configuration.get("database_url")
-    or f'postgresql://{configuration["postgres_user"]}:{configuration["postgres_password"]}@postgres/{configuration["postgres_db"]}',
+    configuration["database_url"],
     pool_pre_ping=True,
 )
 Session = sessionmaker(bind=engine)

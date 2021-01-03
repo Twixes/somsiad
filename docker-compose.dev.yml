@@ -1,0 +1,63 @@
+version: "3.8"
+volumes:
+    postgres-data:
+    clickhouse-data:
+services:
+    postgres:
+        environment:
+            POSTGRES_DB: somsiad
+            POSTGRES_PASSWORD: somsiad
+            POSTGRES_USER: somsiad
+        image: postgres:13
+        ports:
+            - '5439:5432'
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+    clickhouse:
+        build:
+            context: .
+            dockerfile: clickhouse.Dockerfile
+        environment:
+            CLICKHOUSE_DB: somsiad
+            CLICKHOUSE_USER: somsiad
+            CLICKHOUSE_PASSWORD: somsiad
+        ports:
+            - '8123:8123'
+            - '9000:9000'
+            - '9440:9440'
+            - '9009:9009'
+        volumes:
+            - clickhouse-data:/var/lib/clickhouse/data
+    bot:
+        build: .
+        restart: on-failure
+        stop_grace_period: 20s
+        depends_on:
+            - postgres
+            - clickhouse
+        links:
+            - postgres:postgres
+            - clickhouse:clickhouse
+        environment:
+            - DISCORD_TOKEN
+            - COMMAND_PREFIX
+            - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
+            - GOOGLE_KEY
+            - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
+            - GOODREADS_KEY
+            - TMDB_KEY
+            - LAST_FM_KEY
+            - YANDEX_TRANSLATE_KEY
+            - WOLFRAM_ALPHA_APP_ID
+            - DISCO_MAX_FILE_SIZE_IN_MIB
+            - SENTRY_DSN
+            - SENTRY_AUTH_TOKEN
+            - SENTRY_ORG
+            - PTVSD
+            - DATABASE_URL=postgres://somsiad:somsiad@postgres/somsiad
+            - CLICKHOUSE_URL=http://clickhouse:8123
+            - CLICKHOUSE_USER=somsiad
+            - CLICKHOUSE_PASSWORD=somsiad
+        ports:
+            - "80:80"
+            - "5678:5678"
