@@ -887,7 +887,6 @@ class Activity(commands.Cog):
         aliases=['staty', 'stats', 'activity', 'aktywność', 'aktywnosc'],
         invoke_without_command=True,
         case_insensitive=True,
-        enabled=False,
     )
     @cooldown()
     async def stat(
@@ -913,7 +912,7 @@ class Activity(commands.Cog):
                 ),
             )
 
-    @stat.command(aliases=['server', 'serwer'], enabled=False)
+    @stat.command(aliases=['server', 'serwer'])
     @cooldown()
     @commands.guild_only()
     async def stat_server(self, ctx, last_days: int = None):
@@ -921,7 +920,7 @@ class Activity(commands.Cog):
             report = Report(ctx, ctx.guild, last_days=last_days)
             await report.enqueue()
 
-    @stat.command(aliases=['channel', 'kanał', 'kanal'], enabled=False)
+    @stat.command(aliases=['channel', 'kanał', 'kanal'])
     @cooldown()
     @commands.guild_only()
     async def stat_channel(self, ctx, channel: discord.TextChannel = None, last_days: int = None):
@@ -937,7 +936,7 @@ class Activity(commands.Cog):
                 ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
             )
 
-    @stat.command(aliases=['category', 'kategoria'], enabled=False)
+    @stat.command(aliases=['category', 'kategoria'])
     @cooldown()
     @commands.guild_only()
     async def stat_category(self, ctx, category: discord.CategoryChannel = None, last_days: int = None):
@@ -956,7 +955,7 @@ class Activity(commands.Cog):
                 ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującej kategorii')
             )
 
-    @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'], enabled=False)
+    @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
     @cooldown()
     @commands.guild_only()
     async def stat_member(self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None):
