@@ -37,6 +37,7 @@ from discord.ext import commands
 import data
 from configuration import configuration
 from core import Help, cooldown
+from somsiad import Somsiad
 from utilities import human_datetime, md_link, rolling_average, utc_to_naive_local, word_number_form
 
 
@@ -857,8 +858,30 @@ class Activity(commands.Cog):
     )
     HELP = Help(COMMANDS, '📈', group=GROUP)
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        await self.bot.ch_client.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS somsiad.message_metadata_cache (
+                id UInt64,
+                server_id UInt64,
+                channel_id UInt64,
+                user_id UInt64,
+                word_count UInt16,
+                character_count UInt16,
+                created_at DateTime64(3)
+                hour UInt8 MATERIALIZED toHour(datetime),
+                weekday UInt8 MATERIALIZED toDayOfWeek(datetime) - 1,
+                INDEX server_channel (server_id, channel_id) TYPE set(200) GRANULARITY 4,
+                INDEX server_member (server_id, user_id) TYPE set(200) GRANULARITY 4,
+            ) ENGINE = MergeTree()
+            ORDER BY (id,)
+            PARTITION BY server_id
+        '''
+        )
 
     @commands.group(
         aliases=['staty', 'stats', 'activity', 'aktywność', 'aktywnosc'],
@@ -950,5 +973,5 @@ class Activity(commands.Cog):
             )
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Activity(bot))

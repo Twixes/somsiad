@@ -38,6 +38,7 @@ import sentry_sdk
 from aiochclient.client import ChClient
 from discord.ext import commands
 from multidict import CIMultiDict
+from sqlalchemy.engine.url import make_url
 
 import data
 from configuration import configuration
@@ -200,7 +201,7 @@ class Somsiad(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
         self.ch_client = ChClient(
             self.session,
-            url=configuration["clickhouse_address"],
+            url=configuration["clickhouse_url"],
             user=configuration["clickhouse_user"],
             password=configuration["clickhouse_password"],
             database="somsiad",

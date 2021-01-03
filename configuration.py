@@ -104,7 +104,7 @@ SETTINGS = (
         default_value=1.0,
     ),
     Setting('database_url', description='URL Postgresa'),
-    Setting('clickhouse_address', description='Adres ClickHouse'),
+    Setting('clickhouse_url', description='URL ClickHouse'),
     Setting('clickhouse_user', description='Nazwa użytkownika ClickHouse'),
     Setting('clickhouse_password', description='Hasło użytkownika ClickHouse'),
     Setting('sentry_dsn', description='DSN Sentry', optional=True),
