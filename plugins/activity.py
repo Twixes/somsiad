@@ -865,21 +865,21 @@ class Activity(commands.Cog):
     async def on_ready(self):
         await self.bot.ch_client.execute(
             '''
-            CREATE TABLE IF NOT EXISTS somsiad.message_metadata_cache (
+            CREATE TABLE IF NOT EXISTS message_metadata_cache (
                 id UInt64,
                 server_id UInt64,
                 channel_id UInt64,
                 user_id UInt64,
                 word_count UInt16,
                 character_count UInt16,
-                created_at DateTime64(3)
-                hour UInt8 MATERIALIZED toHour(datetime),
-                weekday UInt8 MATERIALIZED toDayOfWeek(datetime) - 1,
+                created_at DateTime64(3),
+                hour UInt8 MATERIALIZED toHour(created_at),
+                weekday UInt8 MATERIALIZED toDayOfWeek(created_at) - 1,
                 INDEX server_channel (server_id, channel_id) TYPE set(200) GRANULARITY 4,
-                INDEX server_member (server_id, user_id) TYPE set(200) GRANULARITY 4,
+                INDEX server_member (server_id, user_id) TYPE set(200) GRANULARITY 4
             ) ENGINE = MergeTree()
             ORDER BY (id,)
-            PARTITION BY server_id
+            PARTITION BY (server_id,)
         '''
         )
 
