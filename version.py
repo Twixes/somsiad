@@ -13,8 +13,10 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from datetime import date
+
 __version__ = '2.4.4'
-__copyright__ = '© 2018-2020 ondondil, Twixes et al.'
+__copyright__ = f'© 2018–{date.today().year} ondondil, Twixes et al.'
 
 if __name__ == '__main__':
     print(__version__, end='')
