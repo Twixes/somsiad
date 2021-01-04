@@ -21,7 +21,7 @@ from core import cooldown
 
 
 class Eightball(commands.Cog):
-    CATEGORIES_POOL = ['affirmative'] * 12 + ['negative'] * 12 + ['enigmatic']  # 48% yes, 48% no, 4% unknown
+    CATEGORIES_POOL = ['affirmative'] * 7 + ['negative'] * 7 + ['enigmatic'] * 1
     ANSWERS = {
         'affirmative': [
             'Jak najbardziej tak.',
@@ -63,11 +63,11 @@ class Eightball(commands.Cog):
             'Trudno powiedzieć.',
             'To pytanie jest dla mnie zbyt głębokie.',
             'Przecież już znasz odpowiedź.',
-            'Moim zdaniem to nie ma tak, że tak albo że nie nie',
+            'Moim zdaniem to nie ma tak, że tak albo że nie.',
             'Mnie się o to pytaj.',
             'Powiem ci, że nie wiem.',
             'Nie mam ochoty zajmować się dziś takimi bzdurnymi tematami. Spróbuj kiedy indziej.',
-            'Uwierz mi, że tej odpowiedzi nie chcesz znać.',
+            'Uwierz mi, tej odpowiedzi nie chcesz znać.',
         ],
     }
 
