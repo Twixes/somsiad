@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Attach to docker",
+      "name": "Attach to Docker",
       "type": "python",
       "request": "attach",
       "port": 5678,
