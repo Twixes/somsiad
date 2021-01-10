@@ -5,7 +5,7 @@
     {
       "label": "Run with docker-compose up",
       "type": "shell",
-      "command": "docker-compose up",
+      "command": "docker-compose -f docker-compose.dev.yml up --build",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -17,7 +17,7 @@
     {
       "label": "Debug with docker-compose up",
       "type": "shell",
-      "command": "docker-compose up",
+      "command": "docker-compose -f docker-compose.dev.yml up --build",
       "options": {
         "env": {
           "PTVSD": "wait"
