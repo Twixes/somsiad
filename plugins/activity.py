@@ -62,6 +62,7 @@ class MessageMetadata:
 class MaterializedMessageMetadata(MessageMetadata):
     hour: int
     weekday: int
+    date: str
 
 
 class MetadataCache:
@@ -83,6 +84,7 @@ class MetadataCache:
                 created_at DateTime64(3) Codec(DoubleDelta, LZ4),
                 hour UInt8 MATERIALIZED toHour(created_at),
                 weekday UInt8 MATERIALIZED toDayOfWeek(created_at) - 1,
+                date FixedString(10) MATERIALIZED formatDateTime(created_at, '%F'),
                 INDEX server_channel (server_id, channel_id) TYPE set(200) GRANULARITY 3,
                 INDEX server_member (server_id, user_id) TYPE set(200) GRANULARITY 3
             ) ENGINE = ReplacingMergeTree
@@ -177,7 +179,7 @@ class MetadataCache:
         where_part = self._build_where(constraints, params)
         rows = await self.bot.ch_client.fetch(
             f'''
-            SELECT COUNT(*) AS message_count, formatDateTime(created_at, '%F') AS date
+            SELECT COUNT(*) AS message_count, date
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY date
