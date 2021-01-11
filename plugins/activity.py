@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import asyncio
 import calendar
 import dataclasses
 import datetime as dt
@@ -225,14 +226,14 @@ class MetadataCache:
         rows = await self.bot.ch_client.fetch(
             f'''
             SELECT
-                COUNT(*) AS total_message_count,
-                SUM(word_count) AS total_word_count,
-                SUM(character_count) AS total_character_count,
+                COUNT(*) AS message_count,
+                SUM(word_count) AS word_count,
+                SUM(character_count) AS character_count,
                 user_id
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY user_id
-            ORDER BY total_message_count DESC
+            ORDER BY message_count DESC
         ''',
             params=params,
         )
@@ -253,14 +254,14 @@ class MetadataCache:
         rows = await self.bot.ch_client.fetch(
             f'''
             SELECT
-                COUNT(*) AS total_message_count,
-                SUM(word_count) AS total_word_count,
-                SUM(character_count) AS total_character_count,
+                COUNT(*) AS message_count,
+                SUM(word_count) AS word_count,
+                SUM(character_count) AS character_count,
                 channel_id
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY channel_id
-            ORDER BY total_message_count DESC
+            ORDER BY message_count DESC
         ''',
             params=params,
         )
@@ -270,17 +271,17 @@ class MetadataCache:
     def _build_constraints_and_params(
         *,
         server_id: int,
-        channel_id: Optional[int] = None,
-        user_id: Optional[int] = None,
+        channel_id: Optional[Union[int, Sequence[int]]] = None,
+        user_id: Optional[Union[int, Sequence[int]]] = None,
         after: Optional[dt.datetime] = None,
     ) -> Tuple[Dict[str, str], Dict[str, Any]]:
         constraints: Dict[str, str] = {"server_id": "="}
         params: Dict[str, Any] = {"server_id": server_id}
         if channel_id is not None:
-            constraints["channel_id"] = "="
+            constraints["channel_id"] = "=" if isinstance(channel_id, int) else "IN"
             params["channel_id"] = channel_id
         if user_id is not None:
-            constraints["user_id"] = "="
+            constraints["user_id"] = "=" if isinstance(user_id, int) else "IN"
             params["user_id"] = user_id
         if after is not None:
             constraints["created_at"] = ">"
@@ -459,19 +460,36 @@ class Report:
                 self.init_datetime.year, self.init_datetime.month, self.init_datetime.day
             ) - dt.timedelta(self.last_days - 1)
         await self._finalize_progress()
-        # generate statistics from metadata cache
-        # TODO
-        self.earliest_relevant_message = await self.metadata_cache.fetch_edge_message(**constraints, latest=False)
-        self.latest_relevant_message = await self.metadata_cache.fetch_edge_message(**constraints, latest=True)
-        self.total_message_count, self.total_word_count, self.total_character_count = (
-            await self.metadata_cache.fetch_total_counts(**constraints)
-        ).values()
-        for row in await self.metadata_cache.fetch_activity_by_date(**constraints):
+        (
+            self.earliest_relevant_message,
+            self.latest_relevant_message,
+            total_counts,
+            activity_by_date,
+            activity_by_weekday,
+            activity_by_hour,
+            users_ranking,
+            channels_ranking,
+        ) = await asyncio.gather(
+            self.metadata_cache.fetch_edge_message(**constraints, latest=False),
+            self.metadata_cache.fetch_edge_message(**constraints, latest=True),
+            self.metadata_cache.fetch_total_counts(**constraints),
+            self.metadata_cache.fetch_activity_by_date(**constraints),
+            self.metadata_cache.fetch_activity_by_weekday(**constraints),
+            self.metadata_cache.fetch_activity_by_hour(**constraints),
+            self.metadata_cache.fetch_users_ranking(**constraints),
+            self.metadata_cache.fetch_channels_ranking(**constraints),
+        )
+        self.total_message_count, self.total_word_count, self.total_character_count = total_counts.values()
+        for row in activity_by_date:
             self.messages_over_date[row["date"]] = row["message_count"]
-        for row in await self.metadata_cache.fetch_activity_by_weekday(**constraints):
+        for row in activity_by_weekday:
             self.messages_over_weekday[row["weekday"]] = row["message_count"]
-        for row in await self.metadata_cache.fetch_activity_by_hour(**constraints):
+        for row in activity_by_hour:
             self.messages_over_hour[row["hour"]] = row["message_count"]
+        for row in users_ranking:
+            self.active_user_stats[row["user_id"]] = row
+        for row in channels_ranking:
+            self.relevant_channel_stats[row["channel_id"]] = row
         was_user_found = True
         if self.total_message_count > 0:
             if constraints.get("after") is not None:
