@@ -35,6 +35,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from aiochclient.records import Record
+from discord.channel import CategoryChannel, TextChannel
 from discord.ext import commands
 
 import data
@@ -95,11 +96,11 @@ class MetadataCache:
 
     async def fetch_edge_message(
         self, *, server_id: int, channel_id: Optional[int] = None, user_id: Optional[int] = None, latest: bool
-    ) -> MessageMetadata:
+    ) -> Optional[MessageMetadata]:
         constraints, params = self._build_constraints_and_params(
             server_id=server_id, channel_id=channel_id, user_id=user_id
         )
-        order_part = 'id ' + "DESC" if latest else "ASC"
+        order_part = f'id {"DESC" if latest else "ASC"}'
         where_part = self._build_where(constraints, params)
         row = await self.bot.ch_client.fetchrow(
             f'''
@@ -110,7 +111,7 @@ class MetadataCache:
         ''',
             params=params,
         )
-        return MessageMetadata(**row)
+        return None if row is None else MessageMetadata(**row)
 
     async def fetch_activity_by_hour(
         self,
@@ -126,10 +127,11 @@ class MetadataCache:
         where_part = self._build_where(constraints, params)
         rows = await self.bot.ch_client.fetch(
             f'''
-            SELECT COUNT(*) AS count, hour
+            SELECT COUNT(*) AS message_count, hour
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY hour
+            ORDER BY hour
         ''',
             params=params,
         )
@@ -149,10 +151,11 @@ class MetadataCache:
         where_part = self._build_where(constraints, params)
         rows = await self.bot.ch_client.fetch(
             f'''
-            SELECT COUNT(*) AS count, weekday
+            SELECT COUNT(*) AS message_count, weekday
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY weekday
+            ORDER BY weekday
         ''',
             params=params,
         )
@@ -172,10 +175,11 @@ class MetadataCache:
         where_part = self._build_where(constraints, params)
         rows = await self.bot.ch_client.fetch(
             f'''
-            SELECT COUNT(*), formatDateTime(created_at, '%F') AS date
+            SELECT COUNT(*) AS message_count, formatDateTime(created_at, '%F') AS date
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY date
+            ORDER BY date
         ''',
             params=params,
         )
@@ -220,7 +224,11 @@ class MetadataCache:
         where_part = self._build_where(constraints, params)
         rows = await self.bot.ch_client.fetch(
             f'''
-            SELECT COUNT(*) AS total_message_count, user_id
+            SELECT
+                COUNT(*) AS total_message_count,
+                SUM(word_count) AS total_word_count,
+                SUM(character_count) AS total_character_count,
+                user_id
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY user_id
@@ -244,7 +252,11 @@ class MetadataCache:
         where_part = self._build_where(constraints, params)
         rows = await self.bot.ch_client.fetch(
             f'''
-            SELECT COUNT(*) AS total_message_count, channel_id
+            SELECT
+                COUNT(*) AS total_message_count,
+                SUM(word_count) AS total_word_count,
+                SUM(character_count) AS total_character_count,
+                channel_id
             FROM message_metadata_cache
             WHERE {where_part}
             GROUP BY channel_id
@@ -419,29 +431,29 @@ class Report:
             channel
             for channel in cast(discord.Guild, self.ctx.guild).text_channels
             if channel.permissions_for(cast(discord.Member, self.ctx.me)).read_messages
-            and (not isinstance(self.subject, discord.Member) or channel.permissions_for(self.subject).read_messages)
         ]
         constraints: Dict[str, Any] = {"server_id": self.ctx.guild.id}
         # process subject type
         if self.type == self.Type.SERVER:
-            for channel in existent_channels:
-                await self._update_metadata_cache(channel)
             constraints["channel_id"] = [channel.id for channel in existent_channels]
         elif self.type == self.Type.CHANNEL:
-            await self._update_metadata_cache(self.subject)
+            self.subject = cast(discord.TextChannel, self.subject)
+            existent_channels = [self.subject]
             constraints["channel_id"] = self.subject_id
         elif self.type == self.Type.CATEGORY:
-            existent_channels = [channel for channel in self.subject.channels if channel in existent_channels]
-            for channel in existent_channels:
-                await self._update_metadata_cache(channel)
+            existent_channels = [
+                cast(discord.TextChannel, channel)
+                for channel in cast(discord.CategoryChannel, self.subject).channels
+                if channel in existent_channels
+            ]
             constraints["channel_id"] = [channel.id for channel in existent_channels]
         elif self.type in (self.Type.MEMBER, self.Type.USER, self.Type.DELETED_USER):
-            for channel in existent_channels:
-                await self._update_metadata_cache(channel)
             constraints["channel_id"] = [channel.id for channel in existent_channels]
             constraints["user_id"] = self.subject_id
         else:
             raise Exception(f'invalid analysis type {self.type}!')
+        for channel in existent_channels:
+            await self._update_metadata_cache(channel)
         if self.last_days:
             constraints["after"] = dt.datetime(
                 self.init_datetime.year, self.init_datetime.month, self.init_datetime.day
@@ -451,10 +463,19 @@ class Report:
         # TODO
         self.earliest_relevant_message = await self.metadata_cache.fetch_edge_message(**constraints, latest=False)
         self.latest_relevant_message = await self.metadata_cache.fetch_edge_message(**constraints, latest=True)
+        self.total_message_count, self.total_word_count, self.total_character_count = (
+            await self.metadata_cache.fetch_total_counts(**constraints)
+        ).values()
+        for row in await self.metadata_cache.fetch_activity_by_date(**constraints):
+            self.messages_over_date[row["date"]] = row["message_count"]
+        for row in await self.metadata_cache.fetch_activity_by_weekday(**constraints):
+            self.messages_over_weekday[row["weekday"]] = row["message_count"]
+        for row in await self.metadata_cache.fetch_activity_by_hour(**constraints):
+            self.messages_over_hour[row["hour"]] = row["message_count"]
         was_user_found = True
-        if self.total_message_count:
-            if since_datetime:
-                self.timeframe_start_date = since_datetime.date()
+        if self.total_message_count > 0:
+            if constraints.get("after") is not None:
+                self.timeframe_start_date = cast(dt.datetime, constraints["after"]).date()
             else:
                 if self.timeframe_start_date is not None:
                     self.timeframe_start_date = min(
@@ -582,11 +603,12 @@ class Report:
         try:
             self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()  # type: ignore
             metadata_cache_update = []
-            after: dt.datetime = (
-                await self.metadata_cache.fetch_edge_message(
-                    server_id=channel.guild.id, channel_id=channel.id, latest=True
-                )
-            ).created_at
+            latest_cached_message = await self.metadata_cache.fetch_edge_message(
+                server_id=channel.guild.id, channel_id=channel.id, latest=True
+            )
+            after: Optional[dt.datetime] = (
+                latest_cached_message.created_at if latest_cached_message is not None else None
+            )
             while True:
                 try:
                     async for message in channel.history(limit=None, after=after):
