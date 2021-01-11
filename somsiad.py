@@ -447,17 +447,34 @@ class Somsiad(commands.AutoShardedBot):
             for extra_embed in embeds[1:]:
                 messages.append(await destination.send(embed=extra_embed, delete_after=delete_after))
         except (discord.Forbidden, discord.NotFound):
-            if not direct and ctx.guild is not None and 'bot' not in ctx.guild.name.lower():
+            if ctx.guild is None or 'bot' in ctx.guild.name.lower():
+                return None
+            try:
+                await ctx.message.add_reaction('⚠️')
+            except (discord.Forbidden, discord.NotFound):
+                pass
+            if direct:
                 try:
-                    await ctx.message.add_reaction('⚠️')
+                    await self.send(
+                        ctx,
+                        embed=self.generate_embed(
+                            '⚠️',
+                            f'Nie mogę wysłać odpowiedzi na komendę {ctx.invoked_with}',
+                            'Twoje ustawienia nie pozwalają mi wysłać ci wiadomość prywatną.',
+                        ),
+                    )
                 except (discord.Forbidden, discord.NotFound):
                     pass
-                error_embed = self.generate_embed(
-                    '⚠️',
-                    f'Nie mogę wysłać odpowiedzi na komendę {ctx.invoked_with}',
-                    f'Brak mi uprawnień na kanale #{ctx.channel} serwera {ctx.guild}.',
+            else:
+                await self.send(
+                    ctx,
+                    direct=True,
+                    embed=self.generate_embed(
+                        '⚠️',
+                        f'Nie mogę wysłać odpowiedzi na komendę {ctx.invoked_with}',
+                        f'Brak mi uprawnień na kanale #{ctx.channel} serwera {ctx.guild}.',
+                    ),
                 )
-                await self.send(ctx, direct=True, embed=error_embed)
             return None
         else:
             return messages[0] if len(messages) == 1 else messages
