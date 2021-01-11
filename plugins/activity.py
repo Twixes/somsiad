@@ -16,6 +16,7 @@ import calendar
 import dataclasses
 import datetime as dt
 import enum
+import functools
 import io
 from collections import defaultdict, deque
 from typing import (
@@ -412,7 +413,7 @@ class Report:
             if self.queues[server_id]:
                 self.bot.loop.create_task(self.process_next_in_queue(server_id))
         if report.total_message_count:
-            await self.bot.loop.run_in_executor(None, report.render_activity_chart)
+            await report.render_activity_chart()
         await report.send()
 
     async def enqueue(self):
@@ -511,7 +512,7 @@ class Report:
             self.embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
         return cast(discord.Embed, self.embed)
 
-    def render_activity_chart(self, *, set_embed_image: bool = True) -> discord.File:
+    async def render_activity_chart(self, *, set_embed_image: bool = True) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
         show_by_weekday_and_date = self.subject_relevancy_length is not None and self.subject_relevancy_length > 1
         show_by_channels = True
@@ -554,7 +555,13 @@ class Report:
 
         # save as bytes
         chart_bytes = io.BytesIO()
-        fig.savefig(chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
+        await self.bot.loop.run_in_executor(
+            None,
+            functools.partial(
+                fig.savefig, chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR
+            ),
+        )
+
         plt.close(fig)
         chart_bytes.seek(0)
 
@@ -850,7 +857,7 @@ class Report:
         active_user_ids.sort(key=lambda active_user: tuple(self.active_user_stats[active_user].values()))
         active_user_ids.reverse()
         top_active_user_stats = []
-        for i, this_active_user_id in enumerate(active_user_ids[:5]):
+        for i, this_active_user_id in enumerate(active_user_ids[:10]):
             this_active_user_stats = self.active_user_stats[this_active_user_id]
             top_active_user_stats.append(
                 f'{i+1}. <@{this_active_user_id}> – '
