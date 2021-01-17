@@ -44,5 +44,3 @@ services:
             - CLICKHOUSE_URL=http://clickhouse:8123
             - CLICKHOUSE_USER=somsiad
             - CLICKHOUSE_PASSWORD=somsiad
-        ports:
-            - "80:80"
