@@ -11,19 +11,23 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import asyncio
 import calendar
+import dataclasses
 import datetime as dt
 import enum
+import functools
 import io
-import itertools
 from collections import defaultdict, deque
 from typing import (
+    Any,
     DefaultDict,
     Deque,
     Dict,
     List,
     Optional,
     Sequence,
+    Tuple,
     Union,
     cast,
 )
@@ -32,6 +36,8 @@ import discord
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from aiochclient.records import Record
+from discord.channel import CategoryChannel, TextChannel
 from discord.ext import commands
 
 import data
@@ -41,29 +47,269 @@ from somsiad import Somsiad
 from utilities import human_datetime, md_link, rolling_average, utc_to_naive_local, word_number_form
 
 
-class MessageMetadata(data.MemberRelated, data.ChannelRelated, data.Base):
-    __tablename__ = 'message_metadata_cache'
+@dataclasses.dataclass
+class MessageMetadata:
+    id: int
+    server_id: int
+    channel_id: int
+    user_id: int
+    word_count: int
+    character_count: int
+    created_at: dt.datetime
 
-    id = data.Column(data.BigInteger, primary_key=True)
-    word_count = data.Column(data.Integer, nullable=False)
-    character_count = data.Column(data.Integer, nullable=False)
-    hour = data.Column(data.SmallInteger, nullable=False)
-    weekday = data.Column(data.SmallInteger, nullable=False)
-    datetime = data.Column(data.DateTime, nullable=False)
+
+@dataclasses.dataclass
+class MaterializedMessageMetadata(MessageMetadata):
+    hour: int
+    weekday: int
+    date: str
+
+
+class MetadataCache:
+    bot: Somsiad
+
+    def __init__(self, bot: Somsiad):
+        self.bot = bot
+
+    async def prepare(self):
+        await self.bot.ch_client.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS message_metadata_cache (
+                id UInt64 Codec(DoubleDelta, LZ4),
+                server_id UInt64 Codec(T64, LZ4),
+                channel_id UInt64 Codec(T64, LZ4),
+                user_id UInt64 Codec(T64, LZ4),
+                word_count UInt16 Codec(T64, LZ4),
+                character_count UInt16 Codec(T64, LZ4),
+                created_at DateTime64(3) Codec(DoubleDelta, LZ4),
+                hour UInt8 MATERIALIZED toHour(created_at),
+                weekday UInt8 MATERIALIZED toDayOfWeek(created_at) - 1,
+                date FixedString(10) MATERIALIZED formatDateTime(created_at, '%F'),
+                INDEX server_channel (server_id, channel_id) TYPE set(200) GRANULARITY 3,
+                INDEX server_member (server_id, user_id) TYPE set(200) GRANULARITY 3
+            ) ENGINE = ReplacingMergeTree
+            ORDER BY (id,)
+            PARTITION BY (server_id,)
+        '''
+        )
+
+    async def insert(self, metadata_batch: Sequence[MessageMetadata]):
+        await self.bot.ch_client.execute(
+            "INSERT INTO message_metadata_cache VALUES", *map(dataclasses.astuple, metadata_batch)
+        )
+
+    async def fetch_edge_message(
+        self, *, server_id: int, channel_id: Optional[int] = None, user_id: Optional[int] = None, latest: bool
+    ) -> Optional[MessageMetadata]:
+        constraints, params = self._build_constraints_and_params(
+            server_id=server_id, channel_id=channel_id, user_id=user_id
+        )
+        order_part = f'id {"DESC" if latest else "ASC"}'
+        where_part = self._build_where(constraints, params)
+        row = await self.bot.ch_client.fetchrow(
+            f'''
+            SELECT * FROM message_metadata_cache
+            WHERE {where_part}
+            ORDER BY {order_part}
+            LIMIT 1
+        ''',
+            params=params,
+        )
+        return None if row is None else MessageMetadata(**row)
+
+    async def fetch_activity_by_hour(
+        self,
+        *,
+        server_id: int,
+        channel_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        after: Optional[dt.datetime] = None,
+    ) -> List[Record]:
+        constraints, params = self._build_constraints_and_params(
+            server_id=server_id, channel_id=channel_id, user_id=user_id, after=after
+        )
+        where_part = self._build_where(constraints, params)
+        rows = await self.bot.ch_client.fetch(
+            f'''
+            SELECT COUNT(*) AS message_count, hour
+            FROM message_metadata_cache
+            WHERE {where_part}
+            GROUP BY hour
+            ORDER BY hour
+        ''',
+            params=params,
+        )
+        return rows
+
+    async def fetch_activity_by_weekday(
+        self,
+        *,
+        server_id: int,
+        channel_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        after: Optional[dt.datetime] = None,
+    ) -> List[Record]:
+        constraints, params = self._build_constraints_and_params(
+            server_id=server_id, channel_id=channel_id, user_id=user_id, after=after
+        )
+        where_part = self._build_where(constraints, params)
+        rows = await self.bot.ch_client.fetch(
+            f'''
+            SELECT COUNT(*) AS message_count, weekday
+            FROM message_metadata_cache
+            WHERE {where_part}
+            GROUP BY weekday
+            ORDER BY weekday
+        ''',
+            params=params,
+        )
+        return rows
+
+    async def fetch_activity_by_date(
+        self,
+        *,
+        server_id: int,
+        channel_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        after: Optional[dt.datetime] = None,
+    ) -> List[Record]:
+        constraints, params = self._build_constraints_and_params(
+            server_id=server_id, channel_id=channel_id, user_id=user_id, after=after
+        )
+        where_part = self._build_where(constraints, params)
+        rows = await self.bot.ch_client.fetch(
+            f'''
+            SELECT COUNT(*) AS message_count, date
+            FROM message_metadata_cache
+            WHERE {where_part}
+            GROUP BY date
+            ORDER BY date
+        ''',
+            params=params,
+        )
+        return rows
+
+    async def fetch_total_counts(
+        self,
+        *,
+        server_id: int,
+        channel_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        after: Optional[dt.datetime] = None,
+    ) -> Record:
+        constraints, params = self._build_constraints_and_params(
+            server_id=server_id, channel_id=channel_id, user_id=user_id, after=after
+        )
+        where_part = self._build_where(constraints, params)
+        row = await self.bot.ch_client.fetchrow(
+            f'''
+            SELECT
+                COUNT(*) AS total_message_count,
+                SUM(word_count) AS total_word_count,
+                SUM(character_count) AS total_character_count
+            FROM message_metadata_cache
+            WHERE {where_part}
+        ''',
+            params=params,
+        )
+        return row
+
+    async def fetch_users_ranking(
+        self,
+        *,
+        server_id: int,
+        channel_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        after: Optional[dt.datetime] = None,
+    ) -> List[Record]:
+        constraints, params = self._build_constraints_and_params(
+            server_id=server_id, channel_id=channel_id, user_id=user_id, after=after
+        )
+        where_part = self._build_where(constraints, params)
+        rows = await self.bot.ch_client.fetch(
+            f'''
+            SELECT
+                COUNT(*) AS message_count,
+                SUM(word_count) AS word_count,
+                SUM(character_count) AS character_count,
+                user_id
+            FROM message_metadata_cache
+            WHERE {where_part}
+            GROUP BY user_id
+            ORDER BY message_count DESC
+        ''',
+            params=params,
+        )
+        return rows
+
+    async def fetch_channels_ranking(
+        self,
+        *,
+        server_id: int,
+        channel_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        after: Optional[dt.datetime] = None,
+    ) -> List[Record]:
+        constraints, params = self._build_constraints_and_params(
+            server_id=server_id, channel_id=channel_id, user_id=user_id, after=after
+        )
+        where_part = self._build_where(constraints, params)
+        rows = await self.bot.ch_client.fetch(
+            f'''
+            SELECT
+                COUNT(*) AS message_count,
+                SUM(word_count) AS word_count,
+                SUM(character_count) AS character_count,
+                channel_id
+            FROM message_metadata_cache
+            WHERE {where_part}
+            GROUP BY channel_id
+            ORDER BY message_count DESC
+        ''',
+            params=params,
+        )
+        return rows
+
+    @staticmethod
+    def _build_constraints_and_params(
+        *,
+        server_id: int,
+        channel_id: Optional[Union[int, Sequence[int]]] = None,
+        user_id: Optional[Union[int, Sequence[int]]] = None,
+        after: Optional[dt.datetime] = None,
+    ) -> Tuple[Dict[str, str], Dict[str, Any]]:
+        constraints: Dict[str, str] = {"server_id": "="}
+        params: Dict[str, Any] = {"server_id": server_id}
+        if channel_id is not None:
+            constraints["channel_id"] = "=" if isinstance(channel_id, int) else "IN"
+            params["channel_id"] = channel_id
+        if user_id is not None:
+            constraints["user_id"] = "=" if isinstance(user_id, int) else "IN"
+            params["user_id"] = user_id
+        if after is not None:
+            constraints["created_at"] = ">"
+            params["created_at"] = after
+        return constraints, params
+
+    @staticmethod
+    def _build_where(constraints: Dict[str, str], params: Dict[str, Any]) -> str:
+        return ' AND '.join((f'{column} {operator} {{{column}}}' for column, operator in constraints.items()))
 
 
 class Report:
-    """A statistics report. Can generate server, channel or member statistics."""
+    """A statistics report. Can generate server, channel, category or member statistics."""
 
     COOLDOWN = max(float(configuration['command_cooldown_per_user_in_seconds']), 15.0)
     BACKGROUND_COLOR = '#2f3136'
     FOREGROUND_COLOR = '#ffffff'
     ROLL = 7
-    STEP = 100_000
+    CACHE_INSERT_BATCH_SIZE = 1000
 
     queues: DefaultDict[int, Deque["Report"]] = defaultdict(deque)
 
+    metadata_cache: MetadataCache
     ctx: commands.Context
+    bot: Somsiad
     user_by_id: bool
     subject: Optional[Union[discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User]]
     subject_id: int
@@ -108,9 +354,12 @@ class Report:
         ctx: commands.Context,
         subject: Union[discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, int],
         *,
+        metadata_cache: MetadataCache,
         last_days: Optional[int] = None,
     ):
+        self.metadata_cache = metadata_cache
         self.ctx = ctx
+        self.bot = cast(Somsiad, ctx.bot)
         if isinstance(subject, int):
             self.user_by_id = True
             self.subject = None
@@ -164,9 +413,9 @@ class Report:
         finally:
             self.queues[server_id].popleft()
             if self.queues[server_id]:
-                self.ctx.bot.loop.create_task(self.process_next_in_queue(server_id))
+                self.bot.loop.create_task(self.process_next_in_queue(server_id))
         if report.total_message_count:
-            await self.ctx.bot.loop.run_in_executor(None, report.render_activity_chart)
+            await report.render_activity_chart()
         await report.send()
 
     async def enqueue(self):
@@ -177,90 +426,95 @@ class Report:
             await self.process_next_in_queue(self.ctx.guild.id)
 
     async def send(self):
-        await self.ctx.bot.send(self.ctx, embed=self.embed, file=self.activity_chart_file)
+        await self.bot.send(self.ctx, embed=self.embed, file=self.activity_chart_file)
 
     async def analyze_subject(self) -> discord.Embed:
         """Selects the right type of analysis depending on the subject."""
         await self._fill_in_details()
-        with data.session() as session:
+        existent_channels = [
+            channel
+            for channel in cast(discord.Guild, self.ctx.guild).text_channels
+            if channel.permissions_for(cast(discord.Member, self.ctx.me)).read_messages
+        ]
+        constraints: Dict[str, Any] = {"server_id": self.ctx.guild.id}
+        # process subject type
+        if self.type == self.Type.SERVER:
+            constraints["channel_id"] = [channel.id for channel in existent_channels]
+        elif self.type == self.Type.CHANNEL:
+            self.subject = cast(discord.TextChannel, self.subject)
+            existent_channels = [self.subject]
+            constraints["channel_id"] = self.subject_id
+        elif self.type == self.Type.CATEGORY:
             existent_channels = [
-                channel
-                for channel in cast(discord.Guild, self.ctx.guild).text_channels
-                if channel.permissions_for(cast(discord.Member, self.ctx.me)).read_messages
-                and (
-                    not isinstance(self.subject, discord.Member) or channel.permissions_for(self.subject).read_messages
-                )
+                cast(discord.TextChannel, channel)
+                for channel in cast(discord.CategoryChannel, self.subject).channels
+                if channel in existent_channels
             ]
-            # process subject type
-            if self.type == self.Type.SERVER:
-                for channel in existent_channels:
-                    await self._update_metadata_cache(channel, session)
-                relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels])
-                )
-            elif self.type == self.Type.CHANNEL:
-                await self._update_metadata_cache(self.subject, session)
-                relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.channel_id == self.subject_id
-                )
-            elif self.type == self.Type.CATEGORY:
-                existent_channels = [channel for channel in self.subject.channels if channel in existent_channels]
-                for channel in existent_channels:
-                    await self._update_metadata_cache(channel, session)
-                relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels])
-                )
-            elif self.type in (self.Type.MEMBER, self.Type.USER, self.Type.DELETED_USER):
-                for channel in existent_channels:
-                    await self._update_metadata_cache(channel, session)
-                relevant_message_metadata = session.query(MessageMetadata).filter(
-                    MessageMetadata.user_id == self.subject_id,
-                    MessageMetadata.channel_id.in_([channel.id for channel in existent_channels]),
-                )
+            constraints["channel_id"] = [channel.id for channel in existent_channels]
+        elif self.type in (self.Type.MEMBER, self.Type.USER, self.Type.DELETED_USER):
+            constraints["channel_id"] = [channel.id for channel in existent_channels]
+            constraints["user_id"] = self.subject_id
+        else:
+            raise Exception(f'invalid analysis type {self.type}!')
+        for channel in existent_channels:
+            await self._update_metadata_cache(channel)
+        if self.last_days:
+            constraints["after"] = dt.datetime(
+                self.init_datetime.year, self.init_datetime.month, self.init_datetime.day
+            ) - dt.timedelta(self.last_days - 1)
+        await self._finalize_progress()
+        (
+            self.earliest_relevant_message,
+            self.latest_relevant_message,
+            total_counts,
+            activity_by_date,
+            activity_by_weekday,
+            activity_by_hour,
+            users_ranking,
+            channels_ranking,
+        ) = await asyncio.gather(
+            self.metadata_cache.fetch_edge_message(**constraints, latest=False),
+            self.metadata_cache.fetch_edge_message(**constraints, latest=True),
+            self.metadata_cache.fetch_total_counts(**constraints),
+            self.metadata_cache.fetch_activity_by_date(**constraints),
+            self.metadata_cache.fetch_activity_by_weekday(**constraints),
+            self.metadata_cache.fetch_activity_by_hour(**constraints),
+            self.metadata_cache.fetch_users_ranking(**constraints),
+            self.metadata_cache.fetch_channels_ranking(**constraints),
+        )
+        self.total_message_count, self.total_word_count, self.total_character_count = total_counts.values()
+        for row in activity_by_date:
+            self.messages_over_date[row["date"]] = row["message_count"]
+        for row in activity_by_weekday:
+            self.messages_over_weekday[row["weekday"]] = row["message_count"]
+        for row in activity_by_hour:
+            self.messages_over_hour[row["hour"]] = row["message_count"]
+        for row in users_ranking:
+            self.active_user_stats[row["user_id"]] = row
+        for row in channels_ranking:
+            self.relevant_channel_stats[row["channel_id"]] = row
+        was_user_found = True
+        if self.total_message_count > 0:
+            if constraints.get("after") is not None:
+                self.timeframe_start_date = cast(dt.datetime, constraints["after"]).date()
             else:
-                raise Exception(f'invalid analysis type {self.type}!')
-            since_datetime = None
-            if self.last_days:
-                since_datetime = dt.datetime(
-                    self.init_datetime.year, self.init_datetime.month, self.init_datetime.day
-                ) - dt.timedelta(self.last_days - 1)
-                relevant_message_metadata = relevant_message_metadata.filter(MessageMetadata.datetime >= since_datetime)
-            await self._finalize_progress()
-            # generate statistics from metadata cache
-            relevant_message_metadata = relevant_message_metadata.order_by(MessageMetadata.id.asc())
-            for offset in itertools.count(step=self.STEP):
-                message_metadata_portion = relevant_message_metadata.offset(offset).limit(self.STEP).all()
-                if not message_metadata_portion:
-                    break
-                if self.earliest_relevant_message is None:
-                    self.earliest_relevant_message = message_metadata_portion[0]
-                self.latest_relevant_message = message_metadata_portion[-1]
-                loop = self.ctx.bot.loop
-                for message_metadata_subportion in itertools.zip_longest(*[iter(message_metadata_portion)] * 100):
-                    await loop.run_in_executor(None, self._update_running_stats, message_metadata_subportion)
-            was_user_found = True
-            if self.total_message_count:
-                if since_datetime:
-                    self.timeframe_start_date = since_datetime.date()
+                if self.timeframe_start_date is not None:
+                    self.timeframe_start_date = min(
+                        self.timeframe_start_date, self.earliest_relevant_message.created_at.date()
+                    )
                 else:
-                    if self.timeframe_start_date is not None:
-                        self.timeframe_start_date = min(
-                            self.timeframe_start_date, self.earliest_relevant_message.datetime.date()
-                        )
-                    else:
-                        self.timeframe_start_date = self.earliest_relevant_message.datetime.date()
-                self.subject_relevancy_length = (self.init_datetime.date() - self.timeframe_start_date).days + 1
-                self.average_daily_message_count = round(self.total_message_count / self.subject_relevancy_length, 1)
-            elif self.type == self.Type.DELETED_USER:
-                was_user_found = False
+                    self.timeframe_start_date = self.earliest_relevant_message.created_at.date()
+            self.subject_relevancy_length = (self.init_datetime.date() - self.timeframe_start_date).days + 1
+            self.average_daily_message_count = round(self.total_message_count / self.subject_relevancy_length, 1)
+        elif self.type == self.Type.DELETED_USER:
+            was_user_found = False
         if was_user_found:
             self._generate_relevant_embed()
-            self._embed_analysis_metastats()
         else:
-            self.embed = self.ctx.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
+            self.embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
         return cast(discord.Embed, self.embed)
 
-    def render_activity_chart(self, *, set_embed_image: bool = True) -> discord.File:
+    async def render_activity_chart(self, *, set_embed_image: bool = True) -> discord.File:
         """Renders a graph presenting activity of or in the subject over time."""
         show_by_weekday_and_date = self.subject_relevancy_length is not None and self.subject_relevancy_length > 1
         show_by_channels = True
@@ -303,7 +557,13 @@ class Report:
 
         # save as bytes
         chart_bytes = io.BytesIO()
-        fig.savefig(chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR)
+        await self.bot.loop.run_in_executor(
+            None,
+            functools.partial(
+                fig.savefig, chart_bytes, facecolor=self.BACKGROUND_COLOR, edgecolor=self.FOREGROUND_COLOR
+            ),
+        )
+
         plt.close(fig)
         chart_bytes.seek(0)
 
@@ -319,60 +579,63 @@ class Report:
 
         return self.activity_chart_file
 
+    def _generate_relevant_embed(self, *args, **kwargs):
+        if self.type == self.Type.DELETED_USER:
+            self._generate_deleted_user_embed(*args, **kwargs)
+        elif self.type == self.Type.USER:
+            self._generate_user_embed(*args, **kwargs)
+        elif self.type == self.Type.SERVER:
+            self._generate_server_embed(*args, **kwargs)
+        elif self.type == self.Type.CHANNEL:
+            self._generate_channel_embed(*args, **kwargs)
+        elif self.type == self.Type.CATEGORY:
+            self._generate_category_embed(*args, **kwargs)
+        elif self.type == self.Type.MEMBER:
+            self._generate_member_embed(*args, **kwargs)
+        self._embed_analysis_metastats()
+
     async def _fill_in_details(self):
         timeframe_start_date_utc = None
         if self.user_by_id:
             try:
-                self.subject = await self.ctx.bot.fetch_user(self.subject_id)
+                self.subject = await self.bot.fetch_user(self.subject_id)
             except discord.NotFound:
                 self.type = self.Type.DELETED_USER
-                self._generate_relevant_embed = self._generate_deleted_user_embed
             else:
                 self.type = self.Type.USER
-                self._generate_relevant_embed = self._generate_user_embed
         elif isinstance(self.subject, discord.Guild):
             self.type = self.Type.SERVER
-            self._generate_relevant_embed = self._generate_server_embed
             timeframe_start_date_utc = self.subject.created_at
         elif isinstance(self.subject, discord.TextChannel):
             self.type = self.Type.CHANNEL
             # raise an exception if the requesting user doesn't have access to the channel
-            if not self.subject.permissions_for(self.ctx.author).read_messages:
+            if not self.subject.permissions_for(cast(discord.Member, self.ctx.author)).read_messages:
                 raise commands.BadArgument
-            self._generate_relevant_embed = self._generate_channel_embed
             timeframe_start_date_utc = self.subject.created_at
         elif isinstance(self.subject, discord.CategoryChannel):
             self.type = self.Type.CATEGORY
             # raise an exception if the requesting user doesn't have access to the channel
-            if not self.subject.permissions_for(self.ctx.author).read_messages:
+            if not self.subject.permissions_for(cast(discord.Member, self.ctx.author)).read_messages:
                 raise commands.BadArgument
-            self._generate_relevant_embed = self._generate_category_embed
             timeframe_start_date_utc = self.subject.created_at
         elif isinstance(self.subject, discord.Member):
             self.type = self.Type.MEMBER
-            self._generate_relevant_embed = self._generate_member_embed
             timeframe_start_date_utc = self.subject.joined_at
         elif isinstance(self.subject, discord.User):
             self.type = self.Type.USER
-            self._generate_relevant_embed = self._generate_user_embed
         if timeframe_start_date_utc is not None:
             self.timeframe_start_date = utc_to_naive_local(timeframe_start_date_utc).date()
 
-    async def _update_metadata_cache(self, channel: discord.TextChannel, session: data.RawSession):
+    async def _update_metadata_cache(self, channel: discord.TextChannel):
         try:
             self.relevant_channel_stats[channel.id] = self.relevant_channel_stats.default_factory()  # type: ignore
-            relevant_message_metadata = (
-                session.query(MessageMetadata)
-                .filter(MessageMetadata.channel_id == channel.id)
-                .order_by(MessageMetadata.id.desc())
-            )
-            last_cached_message_metadata = relevant_message_metadata.first()
-            if last_cached_message_metadata is not None:
-                after = discord.utils.snowflake_time(last_cached_message_metadata.id)
-            else:
-                after = None
             metadata_cache_update = []
-            rolling_after: Optional[dt.datetime] = None  # in case of async iterator error
+            latest_cached_message = await self.metadata_cache.fetch_edge_message(
+                server_id=channel.guild.id, channel_id=channel.id, latest=True
+            )
+            after: Optional[dt.datetime] = (
+                latest_cached_message.created_at if latest_cached_message is not None else None
+            )
             while True:
                 try:
                     async for message in channel.history(limit=None, after=after):
@@ -393,62 +656,37 @@ class Report:
                         content = ' '.join(cast(List[str], filter(None, content_parts)))
                         message_metadata = MessageMetadata(
                             id=message.id,
-                            server_id=message.guild.id if message.guild is not None else None,
+                            server_id=message.guild.id,
                             channel_id=channel.id,
                             user_id=message.author.id,
-                            word_count=len(content.split()),
+                            word_count=len(tuple(filter(None, content.split()))),
                             character_count=len(content),
-                            hour=message_datetime.hour,
-                            weekday=message_datetime.weekday(),
-                            datetime=message_datetime,
+                            created_at=message_datetime,
                         )
                         metadata_cache_update.append(message_metadata)
-                        rolling_after = message.created_at
+                        after = message_metadata.created_at
                         self.messages_cached += 1
                         if self.messages_cached % 10_000 == 0:
                             await self._send_or_update_progress()
-                        if len(metadata_cache_update) % self.STEP == 0:
-                            metadata_cache_update.reverse()
-                            session.bulk_save_objects(metadata_cache_update)
-                            session.commit()
+                        if len(metadata_cache_update) >= self.CACHE_INSERT_BATCH_SIZE:
+                            await self.metadata_cache.insert(metadata_cache_update)
                             metadata_cache_update = []
                 except discord.HTTPException:
-                    if rolling_after is not None:
-                        after = rolling_after
+                    continue
                 else:
                     break
-            metadata_cache_update.reverse()
-            session.bulk_save_objects(metadata_cache_update)
-            session.commit()
+            await self.metadata_cache.insert(metadata_cache_update)
         except discord.Forbidden:
             pass
 
-    def _update_running_stats(self, messages: Sequence[MessageMetadata]):
-        """Updates running message statistics."""
-        for message in messages:
-            if message is None:
-                continue
-            self.total_message_count += 1
-            self.total_word_count += message.word_count
-            self.total_character_count += message.character_count
-            self.messages_over_hour[message.hour] += 1
-            self.messages_over_weekday[message.weekday] += 1
-            self.messages_over_date[message.datetime.strftime('%Y-%m-%d')] += 1
-            self.active_user_stats[message.user_id]['message_count'] += 1
-            self.active_user_stats[message.user_id]['word_count'] += message.word_count
-            self.active_user_stats[message.user_id]['character_count'] += message.character_count
-            self.relevant_channel_stats[message.channel_id]['message_count'] += 1
-            self.relevant_channel_stats[message.channel_id]['word_count'] += message.word_count
-            self.relevant_channel_stats[message.channel_id]['character_count'] += message.character_count
-
     async def _send_or_update_progress(self):
-        embed = self.ctx.bot.generate_embed(
+        embed = self.bot.generate_embed(
             '⌛',
             f'Buforowanie metadanych nowych wiadomości, do tej pory {self.messages_cached:n}…',
             'Proces ten może trochę zająć z powodu limitów Discorda.',
         )
         if self.caching_progress_message is None:
-            self.caching_progress_message = await self.ctx.bot.send(self.ctx, embed=embed)
+            self.caching_progress_message = await self.bot.send(self.ctx, embed=embed)
         else:
             await self.caching_progress_message.edit(embed=embed)
 
@@ -457,19 +695,19 @@ class Report:
             new_messages_form = word_number_form(
                 self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
             )
-            caching_progress_embed = self.ctx.bot.generate_embed('✅', f'Zbuforowano {new_messages_form}')
+            caching_progress_embed = self.bot.generate_embed('✅', f'Zbuforowano {new_messages_form}')
             await self.caching_progress_message.edit(embed=caching_progress_embed)
 
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
-        self.embed = self.ctx.bot.generate_embed('📈', 'Przygotowano raport o serwerze', self.description)
+        self.embed = self.bot.generate_embed('📈', 'Przygotowano raport o serwerze', self.description)
         self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_datetime(earliest.datetime),
+                    human_datetime(earliest.created_at),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
                 inline=False,
@@ -486,14 +724,14 @@ class Report:
 
     def _generate_channel_embed(self):
         """Analyzes the subject as a channel."""
-        self.embed = self.ctx.bot.generate_embed('📈', f'Przygotowano raport o kanale #{self.subject}', self.description)
+        self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o kanale #{self.subject}', self.description)
         self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_datetime(earliest.datetime),
+                    human_datetime(earliest.created_at),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
                 inline=False,
@@ -506,16 +744,14 @@ class Report:
 
     def _generate_category_embed(self):
         """Analyzes the subject as a category."""
-        self.embed = self.ctx.bot.generate_embed(
-            '📈', f'Przygotowano raport o kategorii {self.subject}', self.description
-        )
+        self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o kategorii {self.subject}', self.description)
         self.embed.add_field(name='Utworzono', value=human_datetime(self.subject.created_at, utc=True), inline=False)
         if self.total_message_count:
             earliest = self.earliest_relevant_message
             self.embed.add_field(
                 name=f'Wysłano pierwszą wiadomość {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_datetime(earliest.datetime),
+                    human_datetime(earliest.created_at),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
                 inline=False,
@@ -528,9 +764,7 @@ class Report:
 
     def _generate_member_embed(self):
         """Analyzes the subject as a member."""
-        self.embed = self.ctx.bot.generate_embed(
-            '📈', f'Przygotowano raport o użytkowniku {self.subject}', self.description
-        )
+        self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}', self.description)
         self.embed.add_field(
             name='Utworzył konto', value=human_datetime(self.subject.created_at, utc=True), inline=False
         )
@@ -541,7 +775,7 @@ class Report:
 
     def _generate_user_embed(self):
         """Analyzes the subject as a user."""
-        self.embed = self.ctx.bot.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}')
+        self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o użytkowniku {self.subject}')
         self.embed.add_field(
             name='Utworzył konto', value=human_datetime(self.subject.created_at, utc=True), inline=False
         )
@@ -549,9 +783,7 @@ class Report:
 
     def _generate_deleted_user_embed(self):
         """Analyzes the subject as a user."""
-        self.embed = self.ctx.bot.generate_embed(
-            '📈', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}'
-        )
+        self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}')
         self._embed_personal_stats()
 
     def _embed_personal_stats(self):
@@ -561,7 +793,7 @@ class Report:
             self.embed.add_field(
                 name=f'Wysłał pierwszą wiadomość na serwerze {"w przedziale czasowym" if self.last_days else ""}',
                 value=md_link(
-                    human_datetime(earliest.datetime),
+                    human_datetime(earliest.created_at),
                     f'https://discordapp.com/channels/{earliest.server_id}/{earliest.channel_id}/{earliest.id}',
                 ),
                 inline=False,
@@ -570,7 +802,7 @@ class Report:
                 self.embed.add_field(
                     name='Wysłał ostatnią wiadomość na serwerze',
                     value=md_link(
-                        human_datetime(latest.datetime),
+                        human_datetime(latest.created_at),
                         f'https://discordapp.com/channels/{latest.server_id}/{latest.channel_id}/{latest.id}',
                     ),
                     inline=False,
@@ -599,8 +831,8 @@ class Report:
         visible_channel_ids = [
             channel_id
             for channel_id in self.relevant_channel_stats
-            if self.ctx.bot.get_channel(channel_id)
-            and self.ctx.bot.get_channel(channel_id).permissions_for(self.ctx.author).read_messages
+            if self.bot.get_channel(channel_id)
+            and self.bot.get_channel(channel_id).permissions_for(self.ctx.author).read_messages
             and self.relevant_channel_stats[channel_id]['message_count']
         ]
         visible_channel_ids.sort(key=lambda channel_id: tuple(self.relevant_channel_stats[channel_id].values()))
@@ -627,7 +859,7 @@ class Report:
         active_user_ids.sort(key=lambda active_user: tuple(self.active_user_stats[active_user].values()))
         active_user_ids.reverse()
         top_active_user_stats = []
-        for i, this_active_user_id in enumerate(active_user_ids[:5]):
+        for i, this_active_user_id in enumerate(active_user_ids[:10]):
             this_active_user_stats = self.active_user_stats[this_active_user_id]
             top_active_user_stats.append(
                 f'{i+1}. <@{this_active_user_id}> – '
@@ -788,7 +1020,7 @@ class Report:
 
     def _plot_activity_by_channel(self, ax):
         # plot the chart
-        channels = tuple(filter(None, map(self.ctx.bot.get_channel, self.relevant_channel_stats)))
+        channels = tuple(filter(None, map(self.bot.get_channel, self.relevant_channel_stats)))
         channel_names = [f'#{channel}' for channel in channels]
         channel_existence_lengths = (
             (self.timeframe_end_date - utc_to_naive_local(channel.created_at).date()).days + 1 for channel in channels
@@ -860,28 +1092,11 @@ class Activity(commands.Cog):
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
+        self.metadata_cache = MetadataCache(bot)
 
     @commands.Cog.listener()
     async def on_ready(self):
-        await self.bot.ch_client.execute(
-            '''
-            CREATE TABLE IF NOT EXISTS message_metadata_cache (
-                id UInt64,
-                server_id UInt64,
-                channel_id UInt64,
-                user_id UInt64,
-                word_count UInt16,
-                character_count UInt16,
-                created_at DateTime64(3),
-                hour UInt8 MATERIALIZED toHour(created_at),
-                weekday UInt8 MATERIALIZED toDayOfWeek(created_at) - 1,
-                INDEX server_channel (server_id, channel_id) TYPE set(200) GRANULARITY 4,
-                INDEX server_member (server_id, user_id) TYPE set(200) GRANULARITY 4
-            ) ENGINE = MergeTree()
-            ORDER BY (id,)
-            PARTITION BY (server_id,)
-        '''
-        )
+        await self.metadata_cache.prepare()
 
     @commands.group(
         aliases=['staty', 'stats', 'activity', 'aktywność', 'aktywnosc'],
@@ -899,7 +1114,7 @@ class Activity(commands.Cog):
             await self.bot.send(ctx, embed=self.HELP.embeds)
         else:
             async with ctx.typing():
-                report = Report(ctx, subject, last_days=last_days)
+                report = Report(ctx, subject, metadata_cache=self.metadata_cache, last_days=last_days)
                 await report.enqueue()
 
     @stat.error
@@ -917,7 +1132,7 @@ class Activity(commands.Cog):
     @commands.guild_only()
     async def stat_server(self, ctx, last_days: int = None):
         async with ctx.typing():
-            report = Report(ctx, ctx.guild, last_days=last_days)
+            report = Report(ctx, ctx.guild, metadata_cache=self.metadata_cache, last_days=last_days)
             await report.enqueue()
 
     @stat.command(aliases=['channel', 'kanał', 'kanal'])
@@ -926,7 +1141,7 @@ class Activity(commands.Cog):
     async def stat_channel(self, ctx, channel: discord.TextChannel = None, last_days: int = None):
         channel = channel or ctx.channel
         async with ctx.typing():
-            report = Report(ctx, channel, last_days=last_days)
+            report = Report(ctx, channel, metadata_cache=self.metadata_cache, last_days=last_days)
             await report.enqueue()
 
     @stat_channel.error
@@ -945,7 +1160,7 @@ class Activity(commands.Cog):
                 raise commands.BadArgument
             category = cast(discord.CategoryChannel, self.bot.get_channel(ctx.channel.category_id))
         async with ctx.typing():
-            report = Report(ctx, category, last_days=last_days)
+            report = Report(ctx, category, metadata_cache=self.metadata_cache, last_days=last_days)
             await report.enqueue()
 
     @stat_category.error
@@ -961,7 +1176,7 @@ class Activity(commands.Cog):
     async def stat_member(self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None):
         member = member or ctx.author
         async with ctx.typing():
-            report = Report(ctx, member, last_days=last_days)
+            report = Report(ctx, member, metadata_cache=self.metadata_cache, last_days=last_days)
             await report.enqueue()
 
     @stat_member.error

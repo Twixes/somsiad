@@ -1,9 +1,30 @@
 version: "3.8"
+volumes:
+    clickhouse-data:
 services:
+    clickhouse:
+        build:
+            context: .
+            dockerfile: clickhouse.Dockerfile
+        environment:
+            CLICKHOUSE_DB: somsiad
+            CLICKHOUSE_USER: somsiad
+            CLICKHOUSE_PASSWORD: somsiad
+        ports:
+            - '8123:8123'
+            - '9000:9000'
+            - '9440:9440'
+            - '9009:9009'
+        volumes:
+            - clickhouse-data:/var/lib/clickhouse/data
     bot:
         build: .
         restart: on-failure
         stop_grace_period: 20s
+        depends_on:
+            - clickhouse
+        links:
+            - clickhouse:clickhouse
         environment:
             - DISCORD_TOKEN
             - COMMAND_PREFIX
@@ -19,8 +40,7 @@ services:
             - SENTRY_DSN
             - SENTRY_AUTH_TOKEN
             - SENTRY_ORG
-            - PTVSD
             - DATABASE_URL
-        ports:
-            - "80:80"
-            - "5678:5678"
+            - CLICKHOUSE_URL=http://clickhouse:8123
+            - CLICKHOUSE_USER=somsiad
+            - CLICKHOUSE_PASSWORD=somsiad
