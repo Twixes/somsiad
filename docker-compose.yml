@@ -54,7 +54,6 @@ services:
             - REDIS_URL=redis://redis:6379/
         labels:
             - traefik.http.routers.web.rule=Host(`somsiad.net`)
-            - traefik.http.routers.web.rule=Host(`0.0.0.0`)
             - traefik.http.routers.web.tls=true
             - traefik.http.routers.web.tls.certresolver=le
             - traefik.http.services.web.loadbalancer.server.port=5000
