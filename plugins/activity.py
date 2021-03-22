@@ -815,6 +815,9 @@ class Report:
         """Analyzes the subject as a member."""
         self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o roli {self.subject}', self.description)
         self.embed.add_field(name='Członków', value=f'{len(cast(discord.Role, self.subject).members):n}')
+        self._embed_general_message_stats()
+        self._embed_top_visible_channel_stats()
+        self._embed_top_active_user_stats()
         self.embed.color = cast(discord.Role, self.subject).color
 
     def _embed_personal_stats(self):
