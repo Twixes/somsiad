@@ -54,3 +54,26 @@ services:
             - REDIS_URL=redis://redis:6379/
         ports:
             - '5000:5000'
+        command:
+            - --port=5000
+        labels:
+            - "traefik.http.routers.web.rule=Host(`somsiad.net`)"
+            - "traefik.http.routers.web.tls=true"
+            - "traefik.http.routers.web.tls.certresolver=le"
+    router:
+        image: "traefik:v2.4"
+        command:
+            - --entrypoints.web.address=:80
+            - --entrypoints.websecure.address=:443
+            - --entrypoints.web.http.redirections.entryPoint.to=websecure
+            - --entrypoints.web.http.redirections.entryPoint.scheme=https
+            - --entrypoints.web.http.redirections.entrypoint.permanent=true
+            - --certificatesresolvers.le.acme.email=dev@twixes.com
+            - --certificatesresolvers.le.acme.storage=/acme.json
+            - --certificatesresolvers.le.acme.tlschallenge=true
+            - --providers.docker=true
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock:ro"
