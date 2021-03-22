@@ -41,7 +41,7 @@ Polski bot discordowy. Napisany w Pythonie.
 
 ## Wymagania  
 
-* Docker 19.03.0+ z `docker-machine` oraz `docker-compose`.  
+* `docker` oraz `docker-compose`.  
 
 * Discordowy token bota. By go uzyskać utwórz aplikację w Portalu Deweloperskim Discorda i dodaj do niej bota:  
 https://discordapp.com/developers/applications/me  
@@ -71,6 +71,8 @@ https://developer.wolframalpha.com/portal/myapps/
 
 ## Instalacja  
 
+#### Poniższe instrukcje zostały opracowane z myślą o Debianie lub Ubuntu. Kroki na innych dystrybucjach Linuksa albo macOSie lub Windowsie będą lekko się różniły.
+
 1. Pobierz kopię najnowszego wydania:  
 https://github.com/Twixes/somsiad/releases/latest  
 
@@ -80,17 +82,14 @@ https://github.com/Twixes/somsiad/releases/latest
 
 3. W głównym katalogu skopiuj plik `.template.env` jako `.env`, a następnie wypełnij ten `.env` ustawieniami i kluczami według wzoru.
 
-4. Stwórz dockerową maszynę (w tym podstawowym przykładzie wykorzystamy domyślną `default`):  
-`docker-machine create`  
-
-5. Uruchom bota:  
+4. Uruchom bota:  
 `docker-compose up`  
 Ten pierwszy raz może chwilę potrwać, gdyż wszystko musi zostać zainstalowane i ustawione od zera – na szczęście następne uruchomienia będą prawie natychmiastowe.
 
-6. Zapraszaj Somsiada na serwery za pomocą linku podanego w konsoli po uruchomieniu.  
+5. Zapraszaj Somsiada na serwery za pomocą linku podanego w konsoli po uruchomieniu.  
 Jeśli chcesz przełączyć bota na działanie w tle, użyj skrótu klawiszowego `Ctrl + P` + `Ctrl + Q` lub od razu używaj `docker-compose up` z opcją `-d`.
 
-7. Ekstra – przeprowadź release + deployment Sentry:  
+6. Ekstra – przeprowadź release + deployment Sentry:  
 `docker exec $(docker ps | grep somsiad_bot | awk '{print $1}') /bin/sh sentry_release_deploy.sh`  
 
 ## Środowisko deweloperskie
@@ -148,7 +147,7 @@ The Polish Discord bot. Written in Python.
 
 ## Prerequisites  
 
-* Docker 19.03.0+ with `docker-machine` and `docker-compose`.  
+* `docker` and `docker-compose`.  
 
 * A Discord bot token. In order to obtain it create an app in the Discord Developer Portal and add a bot to it:  
 https://discordapp.com/developers/applications/me  
@@ -176,7 +175,9 @@ https://www.last.fm/api/account/create
 * A Wolfram Alpha app ID:  
 https://developer.wolframalpha.com/portal/myapps/  
 
-## Installation  
+## Installation
+
+#### Below instructions have been compiled with Debian or Ubuntu in mind. Steps on other Linux distributions or macOS or Windows will differ slightly.
 
 1. Grab a copy of the latest release:  
 https://github.com/Twixes/somsiad/releases/latest  
