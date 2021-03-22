@@ -430,6 +430,11 @@ class Report:
         server_queue.append(self)
         if self.initiated_queue_processing:
             await self.process_next_in_queue(self.ctx.guild.id)
+        else:
+            embed = self.bot.generate_embed(
+                '⏳', 'Zakolejkowano raport…', f'{len(server_queue)}. w serwerowej kolejce analizy.'
+            )
+            await self.bot.send(self.ctx, embed=embed)
 
     async def send(self):
         await self.bot.send(self.ctx, embed=self.embed, file=self.activity_chart_file)
