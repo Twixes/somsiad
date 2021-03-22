@@ -99,10 +99,16 @@ class MetadataCache:
         )
 
     async def fetch_edge_message(
-        self, *, server_id: int, channel_id: Optional[int] = None, user_id: Optional[int] = None, latest: bool
+        self,
+        *,
+        server_id: int,
+        channel_id: Optional[int] = None,
+        user_id: Optional[int] = None,
+        after: Optional[dt.datetime] = None,
+        latest: bool,
     ) -> Optional[MessageMetadata]:
         constraints, params = self._build_constraints_and_params(
-            server_id=server_id, channel_id=channel_id, user_id=user_id
+            server_id=server_id, channel_id=channel_id, user_id=user_id, after=after
         )
         order_part = f'id {"DESC" if latest else "ASC"}'
         where_part = self._build_where(constraints, params)
