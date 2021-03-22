@@ -1159,7 +1159,7 @@ class Activity(commands.Cog):
             await self.bot.send(
                 ctx,
                 embed=self.bot.generate_embed(
-                    '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika, kanału ani kategorii'
+                    '⚠️', 'Nie znaleziono na serwerze pasującego użytkownika, kanału, kategorii ani roli'
                 ),
             )
 
