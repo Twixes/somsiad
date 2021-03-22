@@ -15,6 +15,7 @@ import asyncio
 import calendar
 import datetime as dt
 import locale
+import os
 import re
 from dataclasses import dataclass
 from numbers import Number
@@ -412,7 +413,7 @@ def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant
     return result
 
 
-def localize(locale_name: str = 'pl_PL.UTF-8', first_weekday: int = calendar.MONDAY):
+def localize():
     """Set program locale and first day of the week."""
-    locale.setlocale(locale.LC_ALL, locale_name)
-    calendar.setfirstweekday(first_weekday)
+    locale.setlocale(locale.LC_ALL, os.getenv('LC_ALL'))
+    calendar.setfirstweekday(calendar.MONDAY)

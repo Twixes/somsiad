@@ -16,9 +16,10 @@ import random
 from typing import Optional, Sequence, Union
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import data
+from cache import redis_connection
 from configuration import configuration
 from somsiad import Cog, Somsiad
 from utilities import human_amount_of_time, word_number_form
@@ -122,6 +123,20 @@ class Help:
 
 
 class Essentials(Cog):
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.heartbeat.start()
+
+    def cog_unload(self):
+        self.heartbeat.cancel()
+
+    @tasks.loop(seconds=30)
+    async def heartbeat(self):
+        redis_connection.set('somsiad/heartbeat', dt.datetime.now().isoformat(), ex=90)
+        redis_connection.set('somsiad/server_count', self.bot.server_count)
+        redis_connection.set('somsiad/user_count', self.bot.user_count)
+        redis_connection.set('somsiad/version', __version__)
+
     @commands.command(aliases=['wersja', 'v'])
     @cooldown()
     async def version(self, ctx, *, x=None):

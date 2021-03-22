@@ -10,21 +10,20 @@ services:
             CLICKHOUSE_DB: somsiad
             CLICKHOUSE_USER: somsiad
             CLICKHOUSE_PASSWORD: somsiad
-        ports:
-            - '8123:8123'
-            - '9000:9000'
-            - '9440:9440'
-            - '9009:9009'
         volumes:
             - clickhouse-data:/var/lib/clickhouse/data
+    redis:
+        image: redis:alpine
     bot:
         build: .
         restart: on-failure
         stop_grace_period: 20s
         depends_on:
             - clickhouse
+            - redis
         links:
             - clickhouse:clickhouse
+            - redis:redis
         environment:
             - DISCORD_TOKEN
             - COMMAND_PREFIX
@@ -44,3 +43,14 @@ services:
             - CLICKHOUSE_URL=http://clickhouse:8123
             - CLICKHOUSE_USER=somsiad
             - CLICKHOUSE_PASSWORD=somsiad
+            - REDIS_URL=redis://redis:6379/
+    web:
+        build: web
+        depends_on:
+            - redis
+        links:
+            - redis:redis
+        environment:
+            - REDIS_URL=redis://redis:6379/
+        ports:
+            - '5000:5000'

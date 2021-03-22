@@ -21,6 +21,10 @@ services:
             - '9000:9000'
             - '9440:9440'
             - '9009:9009'
+    redis:
+        image: redis:alpine
+        ports:
+            - '6379:6379'
     bot:
         build: .
         restart: on-failure
@@ -28,9 +32,11 @@ services:
         depends_on:
             - postgres
             - clickhouse
+            - redis
         links:
             - postgres:postgres
             - clickhouse:clickhouse
+            - redis:redis
         environment:
             - DISCORD_TOKEN
             - COMMAND_PREFIX
@@ -51,6 +57,16 @@ services:
             - CLICKHOUSE_URL=http://clickhouse:8123
             - CLICKHOUSE_USER=somsiad
             - CLICKHOUSE_PASSWORD=somsiad
+            - REDIS_URL=redis://redis:6379/
         ports:
-            - "80:80"
             - "5678:5678"
+    web:
+        build: web
+        depends_on:
+            - redis
+        links:
+            - redis:redis
+        environment:
+            - REDIS_URL=redis://redis:6379/
+        ports:
+            - '5000:5000'

@@ -10,6 +10,7 @@ body {
   justify-content: center;
   margin: 0;
   text-rendering: optimizeLegibility;
+  font: 600 1rem "Open Sans", sans-serif;
 }
 
 button {
@@ -27,6 +28,11 @@ button {
      -moz-user-select: none;
       -ms-user-select: none;
           user-select: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .logo {
@@ -60,6 +66,13 @@ button {
   font: 300 0.6875em "Zilla Slab", serif;
   text-align: center;
   line-height: 0.9;
+}
+
+.status {
+  width: 100%;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
 }
 
 .actions {
