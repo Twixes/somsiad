@@ -2,20 +2,25 @@
 
 {% block main %}
 <div class="logo">
-  <div class="logo__logotype"><span class="logo__name">Somsiad</span><div class="logo__bot-tag">BOT</div></div>
+  <div class="logo__logotype">
+    <span class="logo__name">Somsiad</span><div class="logo__bot-tag">
+      <img src="{{ url_for('static', filename='check.svg') }}">
+      <div>BOT</div>
+    </div>
+  </div>
   <div class="logo__slogan">Zawsze pomocny</div>
 </div>
 <div class="status">
-  <div class="status__entry">
+  <div>
     {{ '🟢 Online' if heartbeat else '🔴 Offline' }}
   </div>
-  <div class="status__entry">
+  <div>
     🌍 {{ server_count_display }} serwerów
   </div>
-  <div class="status__entry">
+  <div>
     👤 {{ user_count_display }} użytkowników
   </div>
-  <div class="status__entry">
+  <div>
     {{ emoji }} {{ version }}
   </div>
 </div>
