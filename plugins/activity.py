@@ -317,7 +317,9 @@ class Report:
     ctx: commands.Context
     bot: Somsiad
     user_by_id: bool
-    subject: Optional[Union[discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User]]
+    subject: Optional[
+        Union[discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, discord.Role]
+    ]
     subject_id: int
     seconds_in_queue: float
     messages_cached: int
@@ -354,11 +356,14 @@ class Report:
         MEMBER = enum.auto()
         USER = enum.auto()
         DELETED_USER = enum.auto()
+        ROLE = enum.auto()
 
     def __init__(
         self,
         ctx: commands.Context,
-        subject: Union[discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, int],
+        subject: Union[
+            discord.Guild, discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, discord.Role, int
+        ],
         *,
         metadata_cache: MetadataCache,
         last_days: Optional[int] = None,
@@ -465,6 +470,8 @@ class Report:
         elif self.type in (self.Type.MEMBER, self.Type.USER, self.Type.DELETED_USER):
             constraints["channel_id"] = [channel.id for channel in existent_channels]
             constraints["user_id"] = self.subject_id
+        elif self.type == self.Type.ROLE:
+            constraints["user_id"] = [member.id for member in cast(discord.Role, self.subject).members]
         else:
             raise Exception(f'invalid analysis type {self.type}!')
         for channel in existent_channels:
@@ -538,6 +545,9 @@ class Report:
             if self.type == self.Type.SERVER:
                 title += f' na serwerze {self.subject}'
                 subject_identification = f'server-{self.subject_id}'
+            if self.type == self.Type.ROLE:
+                title += f' użytkowników z rolą {self.subject} na serwerze {self.subject.guild}'
+                subject_identification = f'server-{cast(discord.Role, self.subject).guild.id}-role-{self.subject_id}'
             elif self.type == self.Type.CATEGORY:
                 title += f' w kategorii {self.subject}'
                 subject_identification = f'server-{self.ctx.guild.id}-category-{self.subject_id}'
@@ -603,6 +613,8 @@ class Report:
             self._generate_category_embed(*args, **kwargs)
         elif self.type == self.Type.MEMBER:
             self._generate_member_embed(*args, **kwargs)
+        elif self.type == self.Type.ROLE:
+            self._generate_role_embed(*args, **kwargs)
         self._embed_analysis_metastats()
 
     async def _fill_in_details(self):
@@ -634,6 +646,8 @@ class Report:
             timeframe_start_date_utc = self.subject.joined_at
         elif isinstance(self.subject, discord.User):
             self.type = self.Type.USER
+        elif isinstance(self.subject, discord.Role):
+            self.type = self.Type.ROLE
         if timeframe_start_date_utc is not None:
             self.timeframe_start_date = utc_to_naive_local(timeframe_start_date_utc).date()
 
@@ -796,6 +810,12 @@ class Report:
         """Analyzes the subject as a user."""
         self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o usuniętym użytkowniku ID {self.subject_id}')
         self._embed_personal_stats()
+
+    def _generate_role_embed(self):
+        """Analyzes the subject as a member."""
+        self.embed = self.bot.generate_embed('📈', f'Przygotowano raport o roli {self.subject}', self.description)
+        self.embed.add_field(name='Członków', value=f'{len(cast(discord.Role, self.subject).members):n}')
+        self.embed.color = cast(discord.Role, self.subject).color
 
     def _embed_personal_stats(self):
         if self.total_message_count:
@@ -1118,7 +1138,9 @@ class Activity(commands.Cog):
     async def stat(
         self,
         ctx,
-        subject: Union[discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, int] = None,
+        subject: Union[
+            discord.TextChannel, discord.CategoryChannel, discord.Member, discord.User, discord.Role, int
+        ] = None,
         last_days: int = None,
     ):
         if subject is None:
@@ -1196,6 +1218,19 @@ class Activity(commands.Cog):
             await self.bot.send(
                 ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             )
+
+    @stat.command(aliases=['role', 'rola', 'ranga', 'grupa'])
+    @cooldown()
+    @commands.guild_only()
+    async def stat_role(self, ctx, role: discord.Role, last_days: int = None):
+        async with ctx.typing():
+            report = Report(ctx, role, metadata_cache=self.metadata_cache, last_days=last_days)
+            await report.enqueue()
+
+    @stat_role.error
+    async def stat_role_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującej roli'))
 
 
 def setup(bot: Somsiad):
