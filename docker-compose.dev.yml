@@ -71,9 +71,12 @@ services:
         ports:
             - '5000:5000'
         labels:
-            - "traefik.http.routers.web.rule=Host(`localhost`)"
+            - traefik.http.routers.web.rule=Host(`localhost`)
+            - traefik.http.services.web.loadbalancer.server.port=5000
     router:
         image: "traefik:v2.4"
+        depends_on:
+            - web
         command:
             - --entrypoints.web.address=:80
             - --entrypoints.websecure.address=:443

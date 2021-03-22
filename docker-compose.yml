@@ -52,16 +52,16 @@ services:
             - redis:redis
         environment:
             - REDIS_URL=redis://redis:6379/
-        ports:
-            - '5000:5000'
-        command:
-            - --port=5000
         labels:
-            - "traefik.http.routers.web.rule=Host(`somsiad.net`)"
-            - "traefik.http.routers.web.tls=true"
-            - "traefik.http.routers.web.tls.certresolver=le"
+            - traefik.http.routers.web.rule=Host(`somsiad.net`)
+            - traefik.http.routers.web.rule=Host(`0.0.0.0`)
+            - traefik.http.routers.web.tls=true
+            - traefik.http.routers.web.tls.certresolver=le
+            - traefik.http.services.web.loadbalancer.server.port=5000
     router:
         image: "traefik:v2.4"
+        depends_on:
+            - web
         command:
             - --entrypoints.web.address=:80
             - --entrypoints.websecure.address=:443
