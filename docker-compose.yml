@@ -53,6 +53,7 @@ services:
         environment:
             - REDIS_URL=redis://redis:6379/
         labels:
+            - traefik.enable=true
             - traefik.http.routers.web.rule=Host(`somsiad.net`)
             - traefik.http.routers.whoami.entrypoints=websecure
             - traefik.http.routers.web.tls=true
