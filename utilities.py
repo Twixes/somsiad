@@ -406,10 +406,10 @@ def md_link(text: str, url: Optional[str]) -> str:
 
 
 def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant') -> np.ndarray:
-    data = np.pad(data, roll // 2, pad_mode)
-    data = np.cumsum(data)
-    data[roll:] = data[roll:] - data[:-roll]
-    result = data[roll - 1 :] / roll
+    data_np = np.pad(data, roll // 2, pad_mode)
+    data_np = np.cumsum(data_np)
+    data_np[roll:] = data_np[roll:] - data_np[:-roll]
+    result = data_np[roll - 1 :] / roll
     return result
 
 

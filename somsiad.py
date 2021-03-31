@@ -20,6 +20,9 @@ import sys
 import traceback
 from collections import defaultdict
 from typing import (
+    Any,
+    Callable,
+    Coroutine,
     DefaultDict,
     Dict,
     List,
@@ -38,7 +41,6 @@ import sentry_sdk
 from aiochclient.client import ChClient
 from discord.ext import commands
 from multidict import CIMultiDict
-from sqlalchemy.engine.url import make_url
 
 import data
 from configuration import configuration
@@ -266,7 +268,7 @@ class Somsiad(commands.AutoShardedBot):
             (
                 variant
                 for command in self.PREFIX_SAFE_COMMANDS
-                for alias in [self.get_command(command).name] + self.get_command(command).aliases
+                for alias in [self.get_command(command).name, *self.get_command(command).aliases]
                 for variant in (
                     configuration['command_prefix'] + ' ' + command,
                     configuration['command_prefix'] + alias,
@@ -389,13 +391,13 @@ class Somsiad(commands.AutoShardedBot):
         mention: Optional[Union[bool, Sequence[discord.User]]] = None,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is None:
-            embeds = []
+            embeds: List[discord.Embed] = []
         elif isinstance(embed, discord.Embed):
             embeds = [embed]
         else:
             if len(embed) > 10:
                 raise ValueError('no more than 10 embeds can be sent at the same time!')
-            embeds = embed
+            embeds = list(embed)
         destination = cast(discord.abc.Messageable, ctx.author if direct else ctx.channel)
         direct = direct or isinstance(destination, discord.abc.PrivateChannel)
         content_elements: List[str] = []
@@ -490,8 +492,8 @@ class Somsiad(commands.AutoShardedBot):
                         'id': ctx.author.id,
                         'username': str(ctx.author),
                         'activities': (
-                            ', '.join(filter(None, (activity.name for activity in ctx.author.activities)))
-                            if ctx.guild is not None
+                            ', '.join((str(activity) for activity in ctx.author.activities if activity))
+                            if isinstance(ctx.author, discord.Member)
                             else None
                         ),
                     }

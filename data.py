@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from contextlib import contextmanager
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union, cast
 
 import discord
 from discord.ext import commands
@@ -144,7 +144,7 @@ class ChannelRelated:
     channel_id = Column(BigInteger, index=True)
 
     def discord_channel(self, bot: commands.Bot) -> Optional[discord.TextChannel]:
-        return bot.get_channel(self.channel_id) if self.channel_id is not None else None
+        return cast(discord.TextChannel, bot.get_channel(self.channel_id)) if self.channel_id is not None else None
 
 
 class ChannelSpecific(ChannelRelated):
@@ -154,7 +154,7 @@ class ChannelSpecific(ChannelRelated):
 class UserRelated:
     user_id = Column(BigInteger, index=True)
 
-    def discord_user(self, bot: commands.Bot) -> Optional[discord.Guild]:
+    def discord_user(self, bot: commands.Bot) -> Optional[discord.User]:
         return bot.get_user(self.user_id) if self.user_id is not None else None
 
 

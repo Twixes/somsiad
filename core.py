@@ -119,7 +119,7 @@ class Help:
                 inline=False,
             )
         if footer_text:
-            self.embeds[-1].set_footer(text=footer_text, icon_url=footer_icon_url)
+            self.embeds[-1].set_footer(text=footer_text, icon_url=footer_icon_url)  # type: ignore
 
 
 class Essentials(Cog):
