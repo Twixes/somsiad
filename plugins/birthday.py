@@ -98,7 +98,12 @@ class Birthday(commands.Cog):
         Help.Command('utajnij', (), 'Utajnia twoją datę urodzin na serwerze.'),
         Help.Command('gdzie', (), 'Informuje na jakich serwerach twoja data urodzin jest w tym momencie publiczna.'),
         Help.Command(
-            'kiedy',
+            ('lista', 'serwer', 'wszyscy', 'wszystkie', 'kalendarz'),
+            (),
+            'Pokazuje listę użytkowników wraz z datami urodzin.',
+        ),
+        Help.Command(
+            ('kiedy', 'sprawdz', 'sprawdź', 'pokaz', 'pokaż'),
             '?użytkownik',
             'Zwraca datę urodzin <?użytkownika>. Jeśli nie podano <?użytkownika>, przyjmuje ciebie.',
         ),
@@ -413,8 +418,7 @@ class Birthday(commands.Cog):
                     born_person, on_server_id=ctx.guild.id if ctx.guild else None, period=False
                 )
                 if born_person is not None
-                else 'Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać',
-                None,
+                else ('Nie ustawiłeś swojej daty urodzin, więc nie ma czego upubliczniać', None)
             )
         embed = discord.Embed(
             title=f':information_source: {birthday_public_servers_presentation}',
@@ -423,7 +427,33 @@ class Birthday(commands.Cog):
         )
         await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['kiedy'])
+    @birthday.command(aliases=['lista', 'serwer', 'wszyscy', 'wszystkie', 'kalendarz'])
+    @cooldown()
+    async def birthday_list(self, ctx):
+        with data.session() as session:
+            born_persons: List[BornPerson] = (
+                session.query(BornPerson).join(BornPerson.birthday_public_servers).filter_by(id=ctx.guild.id).all()
+            )
+            if not born_persons:
+                embed = discord.Embed(
+                    title=f':question: Żaden użytkownik nie upublicznił na tym serwerze daty urodzin',
+                    color=self.bot.COLOR,
+                )
+            else:
+                embed = discord.Embed(
+                    title=f'🗓 {word_number_form(len(born_persons), "użytkownik upublicznił", "użytkownicy upublicznili", "użytkowników upubliczniło")} na tym serwerze swoją datę urodzin',
+                    color=self.bot.COLOR,
+                )
+                born_persons.sort(key=lambda person: person.birthday.strftime('%m-%d-%Y'))
+                for born_person in born_persons:
+                    user = born_person.discord_user(bot=ctx.bot)
+                    date_presentation = born_person.birthday.strftime(
+                        '%-d %B' if born_person.birthday.year == BornPerson.EDGE_YEAR else '%-d %B %Y'
+                    )
+                    embed.add_field(name=str(user), value=date_presentation, inline=True)
+        return await self.bot.send(ctx, embed=embed)
+
+    @birthday.command(aliases=['kiedy', 'sprawdź', 'sprawdz', 'pokaż', 'pokaz'])
     @cooldown()
     async def birthday_when(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
@@ -434,14 +464,20 @@ class Birthday(commands.Cog):
                     address = 'Nie ustawiłeś'
                 else:
                     address = f'{member} nie ustawił'
-                embed = discord.Embed(title=f':question: {address} swojej daty urodzin', color=self.bot.COLOR)
+                embed = discord.Embed(
+                    title=f':question: {address} swojej daty urodzin',
+                    description='Ustawienia można dokonać komendą `urodziny ustaw`.',
+                    color=self.bot.COLOR,
+                )
             elif not born_person.is_birthday_public(session, ctx.guild):
                 if member == ctx.author:
                     address = 'Nie upubliczniłeś'
                 else:
                     address = f'{member} nie upublicznił'
                 embed = discord.Embed(
-                    title=f':question: {address} na tym serwerze swojej daty urodzin', color=self.bot.COLOR
+                    title=f':question: {address} na tym serwerze swojej daty urodzin',
+                    description='Upublicznienia można dokonać komendą `urodziny upublicznij`.',
+                    color=self.bot.COLOR,
                 )
             else:
                 emoji = 'birthday' if born_person.is_birthday_today() else 'calendar_spiral'
@@ -477,18 +513,28 @@ class Birthday(commands.Cog):
                     address = 'Nie ustawiłeś'
                 else:
                     address = f'{member} nie ustawił'
-                embed = discord.Embed(title=f':question: {address} swojej daty urodzin', color=self.bot.COLOR)
+                embed = discord.Embed(
+                    title=f':question: {address} swojej daty urodzin',
+                    description='Ustawienia można dokonać komendą `urodziny ustaw`.',
+                    color=self.bot.COLOR,
+                )
             elif not born_person.is_birthday_public(session, ctx.guild):
                 if member == ctx.author:
                     address = 'Nie upubliczniłeś'
                 else:
                     address = f'{member} nie upublicznił'
                 embed = discord.Embed(
-                    title=f':question: {address} na tym serwerze swojej daty urodzin', color=self.bot.COLOR
+                    title=f':question: {address} na tym serwerze swojej daty urodzin',
+                    description='Upublicznienia można dokonać komendą `urodziny upublicznij`.',
+                    color=self.bot.COLOR,
                 )
             elif age is None:
                 address = 'Nie ustawiłeś' if member == ctx.author else f'{member} nie ustawił'
-                embed = discord.Embed(title=f':question: {address} swojego roku urodzenia', color=self.bot.COLOR)
+                embed = discord.Embed(
+                    title=f':question: {address} swojego roku urodzenia',
+                    description='Ustawienia można dokonać komendą `urodziny ustaw`.',
+                    color=self.bot.COLOR,
+                )
             else:
                 emoji = 'birthday' if born_person.is_birthday_today() else 'calendar_spiral'
                 address = 'Masz' if member == ctx.author else f'{member} ma'
