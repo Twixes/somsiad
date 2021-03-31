@@ -18,6 +18,7 @@ from discord.ext import commands
 
 import data
 from core import cooldown
+from somsiad import Somsiad
 from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to_naive_local
 
 
@@ -30,7 +31,7 @@ class Burning(data.Base, data.ChannelRelated, data.UserRelated):
 
 
 class Burn(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
         self.burnings_set_off = set()
 
@@ -134,5 +135,5 @@ class Burn(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Burn(bot))
