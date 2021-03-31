@@ -5,5 +5,5 @@ black
 isort
 flake8
 bandit
-discord.py-stubs==1.5.1.2
-sqlalchemy-stubs==0.3
+discord.py-stubs==1.6.3
+sqlalchemy-stubs==0.4
