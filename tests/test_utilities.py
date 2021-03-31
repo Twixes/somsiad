@@ -263,72 +263,62 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
         for n in range(3, 8):
             with self.subTest(n=n):
                 returned_time_difference = human_datetime(
-                    NOW_OVERRIDE - dt.timedelta(n), naive=False, now_override=NOW_OVERRIDE
+                    NOW_OVERRIDE - dt.timedelta(n), utc=False, now_override=NOW_OVERRIDE
                 )
                 expected_time_difference = f'{24 - n} grudnia 2013 o 12:00, {n:n} dni temu'
                 self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_day_before_yesterday(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE - dt.timedelta(2), naive=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE - dt.timedelta(2), utc=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'22 grudnia 2013 o 12:00, przedwczoraj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_yesterday(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE - dt.timedelta(1), naive=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE - dt.timedelta(1), utc=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'23 grudnia 2013 o 12:00, wczoraj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today(self):
-        returned_time_difference = human_datetime(NOW_OVERRIDE, naive=False, now_override=NOW_OVERRIDE)
+        returned_time_difference = human_datetime(NOW_OVERRIDE, utc=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'24 grudnia 2013 o 12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_date(self):
-        returned_time_difference = human_datetime(NOW_OVERRIDE, naive=False, date=False, now_override=NOW_OVERRIDE)
+        returned_time_difference = human_datetime(NOW_OVERRIDE, utc=False, date=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_time(self):
-        returned_time_difference = human_datetime(NOW_OVERRIDE, naive=False, time=False, now_override=NOW_OVERRIDE)
+        returned_time_difference = human_datetime(NOW_OVERRIDE, utc=False, time=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'24 grudnia 2013, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_name_month(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE, naive=False, name_month=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE, utc=False, name_month=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'24.12.2013 o 12:00, dzisiaj'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_today_no_days_difference(self):
         returned_time_difference = human_datetime(
-            NOW_OVERRIDE, naive=False, days_difference=False, now_override=NOW_OVERRIDE
+            NOW_OVERRIDE, utc=False, days_difference=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'24 grudnia 2013 o 12:00'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_tomorrow(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE + dt.timedelta(1), naive=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE + dt.timedelta(1), utc=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'25 grudnia 2013 o 12:00, jutro'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_tomorrow_less_than_24_hours_later(self):
         returned_time_difference = human_datetime(
-            NOW_OVERRIDE + dt.timedelta(hours=16), naive=False, now_override=NOW_OVERRIDE
+            NOW_OVERRIDE + dt.timedelta(hours=16), utc=False, now_override=NOW_OVERRIDE
         )
         expected_time_difference = f'25 grudnia 2013 o 4:00, jutro'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
     def test_singular_day_after_tomorrow(self):
-        returned_time_difference = human_datetime(
-            NOW_OVERRIDE + dt.timedelta(2), naive=False, now_override=NOW_OVERRIDE
-        )
+        returned_time_difference = human_datetime(NOW_OVERRIDE + dt.timedelta(2), utc=False, now_override=NOW_OVERRIDE)
         expected_time_difference = f'26 grudnia 2013 o 12:00, pojutrze'
         self.assertEqual(returned_time_difference, expected_time_difference)
 
@@ -336,7 +326,7 @@ class TestTextFormatterTimeDifference(unittest.TestCase):
         for n in range(3, 8):
             with self.subTest(n=n):
                 returned_time_difference = human_datetime(
-                    NOW_OVERRIDE + dt.timedelta(n), naive=False, now_override=NOW_OVERRIDE
+                    NOW_OVERRIDE + dt.timedelta(n), utc=False, now_override=NOW_OVERRIDE
                 )
                 expected_time_difference = f'{24 + n} grudnia 2013 o 12:00, za {n:n} dni'
                 self.assertEqual(returned_time_difference, expected_time_difference)
