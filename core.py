@@ -147,9 +147,9 @@ class Essentials(Cog):
     def cog_unload(self):
         self.heartbeat.cancel()
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=5)
     async def heartbeat(self):
-        redis_connection.set('somsiad/heartbeat', dt.datetime.now().isoformat(), ex=90)
+        redis_connection.set('somsiad/heartbeat', dt.datetime.now().isoformat(), ex=15)
         redis_connection.set('somsiad/server_count', self.bot.server_count)
         redis_connection.set('somsiad/user_count', self.bot.user_count)
         redis_connection.set('somsiad/version', __version__)
