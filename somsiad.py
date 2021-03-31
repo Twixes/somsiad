@@ -389,6 +389,7 @@ class Somsiad(commands.AutoShardedBot):
         files: Optional[List[discord.File]] = None,
         delete_after: Optional[float] = None,
         mention: Optional[Union[bool, Sequence[discord.User]]] = None,
+        reply: bool = True,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is None:
             embeds: List[discord.Embed] = []
@@ -400,49 +401,31 @@ class Somsiad(commands.AutoShardedBot):
             embeds = list(embed)
         destination = cast(discord.abc.Messageable, ctx.author if direct else ctx.channel)
         direct = direct or isinstance(destination, discord.abc.PrivateChannel)
+        mention = not reply and not direct and mention
         content_elements: List[str] = []
         if text:
             content_elements.append(text)
         if mention is not None and not isinstance(mention, bool):
             content_elements.extend((user.mention for user in mention))
-        elif mention or not direct:
+        elif mention:
             content_elements.append(ctx.author.mention)
         content = ' '.join(content_elements)
         if self.diagnostics_on and ctx.author.id == self.owner_id:
-            processing_timedelta = dt.datetime.utcnow() - ctx.message.created_at
-            now_also = ', '.join(
-                (f'{command} ({number})' for command, number in self.commands_being_processed.items() if number > 0)
-            )
-            process = psutil.Process()
-            virtual_memory = psutil.virtual_memory()
-            swap_memory = psutil.swap_memory()
-            process_memory = process.memory_full_info()
-            try:
-                process_swap = process_memory.swap
-                swap_usage = f' + {process_swap / 1_048_576:n} MiB '
-            except AttributeError:
-                process_swap = 0.0
-                swap_usage = ' '
             if content is None:
                 content = ''
-            content += (
-                f'```Python\nużycie procesora: ogólnie {psutil.cpu_percent():n}%\n'
-                f'użycie pamięci: {(process_memory.uss - process_swap) / 1_048_576:n} MiB{swap_usage}(ogólnie '
-                f'{(virtual_memory.total - virtual_memory.available) / 1_048_576:n} MiB + '
-                f'{swap_memory.used / 1_048_576:n} MiB) / {virtual_memory.total / 1_048_576:n} MiB + '
-                f'{swap_memory.total / 1_048_576:n} MiB\nopóźnienie połączenia (przy uruchomieniu): '
-                f'{round(self.latency, 2):n} s\nczas od wywołania komendy: '
-                f'{round(processing_timedelta.total_seconds(), 2):n} s\nkomendy w tym momencie: {now_also or "brak"}```'
-            )
+            content += self.format_diagnostics(ctx)
         if direct and not isinstance(ctx.channel, discord.abc.PrivateChannel):
             try:
                 await ctx.message.add_reaction('📫')
             except (discord.Forbidden, discord.NotFound):
                 pass
         messages = []
+        initial_send_function = cast(
+            Callable[..., Coroutine[Any, Any, discord.Message]], ctx.message.reply if reply else destination.send
+        )
         try:
             messages = [
-                await destination.send(
+                await initial_send_function(
                     content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after
                 )
             ]
@@ -480,6 +463,31 @@ class Somsiad(commands.AutoShardedBot):
             return None
         else:
             return messages[0] if len(messages) == 1 else messages
+
+    def format_diagnostics(self, ctx: commands.Context) -> str:
+        processing_timedelta = dt.datetime.utcnow() - ctx.message.created_at
+        now_also = ', '.join(
+            (f'{command} ({number})' for command, number in self.commands_being_processed.items() if number > 0)
+        )
+        process = psutil.Process()
+        virtual_memory = psutil.virtual_memory()
+        swap_memory = psutil.swap_memory()
+        process_memory = process.memory_full_info()
+        try:
+            process_swap = process_memory.swap
+            swap_usage = f' + {process_swap / 1_048_576:n} MiB '
+        except AttributeError:
+            process_swap = 0.0
+            swap_usage = ' '
+        return (
+            f'```Python\nużycie procesora: ogólnie {psutil.cpu_percent():n}%\n'
+            f'użycie pamięci: {(process_memory.uss - process_swap) / 1_048_576:n} MiB{swap_usage}(ogólnie '
+            f'{(virtual_memory.total - virtual_memory.available) / 1_048_576:n} MiB + '
+            f'{swap_memory.used / 1_048_576:n} MiB) / {virtual_memory.total / 1_048_576:n} MiB + '
+            f'{swap_memory.total / 1_048_576:n} MiB\nopóźnienie połączenia (przy uruchomieniu): '
+            f'{round(self.latency, 2):n} s\nczas od wywołania komendy: '
+            f'{round(processing_timedelta.total_seconds(), 2):n} s\nkomendy w tym momencie: {now_also or "brak"}```'
+        )
 
     def register_error(self, event_method: str, error: Exception, ctx: Optional[commands.Context] = None):
         if configuration['sentry_dsn'] is None:
