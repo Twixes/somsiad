@@ -1,7 +1,7 @@
 ##### *[polski](#somsiad--po-polsku), [English](#somsiad--in-english)*
 
 ### *Dołącz do społeczności! https://discord.gg/c8DhX28wZx*
-### *Sprawdź status: http://somsiad.net*
+### *Sprawdź status: https://somsiad.net*
 
 ---
 
