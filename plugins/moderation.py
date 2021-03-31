@@ -19,7 +19,8 @@ import psycopg2.errors
 from discord.ext import commands
 
 import data
-from core import cooldown
+from core import cooldown, has_permissions
+from somsiad import Somsiad
 from utilities import text_snippet, word_number_form
 
 
@@ -93,7 +94,7 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
 
 
 class Moderation(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -139,7 +140,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['ostrzeż', 'ostrzez'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(kick_members=True)
+    @has_permissions(kick_members=True)
     async def warn(self, ctx, subject_user: discord.Member, *, reason):
         """Warns the specified member."""
         if reason and len(reason) > Event.MAX_DETAILS_LENGTH:
@@ -182,7 +183,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['wyrzuć', 'wyrzuc'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(kick_members=True)
+    @has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, subject_user: discord.Member, *, reason):
         """Kicks the specified member."""
@@ -225,7 +226,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['zbanuj'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(ban_members=True)
+    @has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, subject_user: discord.Member, *, reason):
         """Bans the specified member."""
@@ -268,7 +269,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['przebacz'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(kick_members=True)
+    @has_permissions(kick_members=True)
     async def pardon(self, ctx, subject_user: discord.Member):
         """Clears specified member's warnings."""
         with data.session(commit=True) as session:
@@ -374,7 +375,7 @@ class Moderation(commands.Cog):
     @commands.command(aliases=['wyczyść', 'wyczysc'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
+    @has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
     async def purge(self, ctx, number_of_messages_to_delete: int = 1):
         """Removes last number_of_messages_to_delete messages from the channel."""
@@ -394,5 +395,5 @@ class Moderation(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Moderation(bot))

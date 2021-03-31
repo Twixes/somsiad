@@ -41,6 +41,23 @@ def cooldown(
     return decorator
 
 
+def has_permissions(**perms):
+    invalid = set(perms) - set(discord.Permissions.VALID_FLAGS)
+    if invalid:
+        raise TypeError('Invalid permission(s): %s' % (', '.join(invalid)))
+
+    async def predicate(ctx):
+        permissions = ctx.channel.permissions_for(ctx.author)
+        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        if missing:
+            if not await ctx.bot.is_owner(ctx.author):
+                raise commands.MissingPermissions(missing)  # type: ignore
+
+        return True
+
+    return commands.check(predicate)
+
+
 class Help:
     """A help message generator."""
 
@@ -318,7 +335,7 @@ class Prefix(Cog):
     @prefix.command(aliases=['ustaw'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(administrator=True)
+    @has_permissions(administrator=True)
     async def set(self, ctx, *, new_prefixes_raw: str):
         """Sets a new command prefix."""
         new_prefixes = tuple(
@@ -384,7 +401,7 @@ class Prefix(Cog):
     @prefix.command(aliases=['przywróć', 'przywroc'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(administrator=True)
+    @has_permissions(administrator=True)
     async def restore(self, ctx):
         """Reverts to the default command prefix."""
         self.bot.prefixes[ctx.guild.id] = ()

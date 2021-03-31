@@ -21,7 +21,8 @@ import discord
 from discord.ext import commands
 
 import data
-from core import Help, cooldown
+from core import Help, cooldown, has_permissions
+from somsiad import Somsiad
 from utilities import calculate_age, word_number_form
 
 
@@ -137,7 +138,7 @@ class Birthday(commands.Cog):
         'którzy obchodzą tego dnia urodziny i upublicznili tu ich datę.'
     )
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
         self.already_notified = defaultdict(set)
 
@@ -507,7 +508,7 @@ class Birthday(commands.Cog):
     @birthday.group(aliases=['powiadomienia'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(administrator=True)
+    @has_permissions(administrator=True)
     async def birthday_notifications(self, ctx):
         await self.bot.send(ctx, embed=self.NOTIFICATIONS_HELP.embeds)
 
@@ -564,5 +565,5 @@ class Birthday(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Birthday(bot))

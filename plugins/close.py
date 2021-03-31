@@ -19,7 +19,8 @@ from typing import Optional, Union
 
 from discord.ext import commands
 
-from core import cooldown
+from core import cooldown, has_permissions
+from somsiad import Somsiad
 from utilities import human_amount_of_time, interpret_str_as_datetime
 
 
@@ -108,13 +109,13 @@ class Closing:
 
 
 class Close(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
 
     @commands.command(aliases=['zamknij'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(manage_channels=True)
+    @has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
     async def close(
         self, ctx, countdown_seconds: Optional[Union[float, locale.atof, interpret_str_as_datetime]] = 3600
@@ -135,5 +136,5 @@ class Close(commands.Cog):
             await asyncio.gather(closing.timeout_handler(), closing.countdown_handler())
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Close(bot))

@@ -18,7 +18,7 @@ import discord
 from discord.ext import commands
 
 import data
-from core import Help, cooldown
+from core import Help, cooldown, has_permissions
 from somsiad import Cog, Somsiad
 from utilities import first_url, word_number_form
 
@@ -102,7 +102,7 @@ class Pins(Cog):
     @pins.command(aliases=['kanał', 'kanal'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(manage_channels=True)
+    @has_permissions(manage_channels=True)
     async def pins_channel(self, ctx, channel: discord.TextChannel = None):
         """Sets the pin archive channel of the server."""
         session = data.Session()
@@ -141,7 +141,7 @@ class Pins(Cog):
     @pins.command(aliases=['archiwizuj', 'zarchiwizuj'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
+    @has_permissions(manage_messages=True)
     async def pins_archive(self, ctx):
         """Archives pins in the channel where the command was invoked."""
         async with ctx.typing():
@@ -199,7 +199,7 @@ class Pins(Cog):
     @pins.command(aliases=['wyczyść', 'wyczysc'])
     @cooldown()
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
+    @has_permissions(manage_messages=True)
     async def pins_clear(self, ctx):
         """Unpins all pins in the channel."""
         async with ctx.typing():
