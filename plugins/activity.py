@@ -37,7 +37,6 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from aiochclient.records import Record
-from discord.channel import CategoryChannel, TextChannel
 from discord.ext import commands
 
 import data
