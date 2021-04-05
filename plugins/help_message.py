@@ -16,6 +16,7 @@ from discord.ext import commands
 from configuration import configuration
 from core import Help as _Help
 from core import cooldown
+from somsiad import Somsiad
 
 
 class Help(commands.Cog):
@@ -255,7 +256,7 @@ class Help(commands.Cog):
         'oznacza to, że jest to argument opcjonalny.'
     )
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
         description = self.DESCRIPTION + f'\nBy dowiedzieć się o mnie więcej, wejdź na {self.bot.WEBSITE_URL}.'
         self.HELP = _Help(self.COMMANDS, '👋', 'Dobry!', description)
@@ -266,5 +267,5 @@ class Help(commands.Cog):
         await self.bot.send(ctx, direct=True, embed=self.HELP.embeds)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Help(bot))

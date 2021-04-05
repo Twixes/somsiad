@@ -401,7 +401,10 @@ class Somsiad(commands.AutoShardedBot):
             embeds = list(embed)
         destination = cast(discord.abc.Messageable, ctx.author if direct else ctx.channel)
         direct = direct or isinstance(destination, discord.abc.PrivateChannel)
-        mention = not reply and not direct and mention
+        if direct:
+            reply = False
+        if direct or reply:
+            mention = False
         content_elements: List[str] = []
         if text:
             content_elements.append(text)
