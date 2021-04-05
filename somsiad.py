@@ -350,7 +350,7 @@ class Somsiad(commands.AutoShardedBot):
         for command in itertools.cycle(prefix_safe_command_names):
             try:
                 await self.change_presence(
-                    activity=discord.Game(name=f'Kiedyś to było | {configuration["command_prefix"]}{command}')
+                    activity=discord.Game(name=f'Somsiad.net | {configuration["command_prefix"]}{command}')
                 )
             except:
                 pass
