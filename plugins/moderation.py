@@ -22,7 +22,7 @@ from discord.ext import commands
 import data
 from core import cooldown, has_permissions
 from somsiad import Somsiad
-from utilities import interpret_str_as_datetime, text_snippet, word_number_form
+from utilities import human_datetime, interpret_str_as_datetime, text_snippet, word_number_form
 
 
 class Event(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -405,9 +405,10 @@ class Moderation(commands.Cog):
         channel = cast(discord.TextChannel, ctx.channel)
         old_name = channel.name
         if timeout:
-            embed = self.bot.generate_embed('✅', f'Zmienię nazwę kanału z #{old_name} na #{new_name}')
+            embed = self.bot.generate_embed('✅', f'Zmienię nazwę kanału z #{old_name} na #{new_name} {human_datetime(timeout)}')
             message = await self.bot.send(ctx, embed=embed)
-            asyncio.sleep((timeout - dt.datetime.now()).total_seconds())
+            await asyncio.sleep((timeout - dt.datetime.now()).total_seconds())
+            await channel.edit(name=new_name)
             embed = self.bot.generate_embed('✅', f'Zmieniono nazwę kanału z #{old_name} na #{new_name}')
             await message.edit(embed=embed)
         else:
