@@ -11,8 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import asyncio
 import datetime as dt
-from typing import List, Union, cast
+from typing import List, Optional, Union, cast
 
 import discord
 import psycopg2.errors
@@ -21,7 +22,7 @@ from discord.ext import commands
 import data
 from core import cooldown, has_permissions
 from somsiad import Somsiad
-from utilities import text_snippet, word_number_form
+from utilities import interpret_str_as_datetime, text_snippet, word_number_form
 
 
 class Event(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -399,13 +400,20 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def rename(self, ctx: commands.Context, new_name):
+    async def rename(self, ctx: commands.Context, new_name, timeout: interpret_str_as_datetime = None):
         """Removes last number_of_messages_to_delete messages from the channel."""
         channel = cast(discord.TextChannel, ctx.channel)
         old_name = channel.name
-        await channel.edit(name=new_name)
-        embed = self.bot.generate_embed('✅', f'Zmieniono nazwę kanału z #{old_name} na #{new_name}')
-        await self.bot.send(ctx, embed=embed)
+        if timeout:
+            embed = self.bot.generate_embed('✅', f'Zmienię nazwę kanału z #{old_name} na #{new_name}')
+            message = await self.bot.send(ctx, embed=embed)
+            asyncio.sleep((timeout - dt.datetime.now()).total_seconds())
+            embed = self.bot.generate_embed('✅', f'Zmieniono nazwę kanału z #{old_name} na #{new_name}')
+            await message.edit(embed=embed)
+        else:
+            await channel.edit(name=new_name)
+            embed = self.bot.generate_embed('✅', f'Zmieniono nazwę kanału z #{old_name} na #{new_name}')
+            await self.bot.send(ctx, embed=embed)
 
 
 def setup(bot: Somsiad):
