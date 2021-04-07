@@ -395,27 +395,6 @@ class Moderation(commands.Cog):
             embed = self.bot.generate_embed('⚠️', 'Podana wartość nie jest prawidłową liczbą wiadomości do usunięcia')
             await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['przenazwuj'])
-    @cooldown()
-    @commands.guild_only()
-    @has_permissions(manage_channels=True)
-    @commands.bot_has_permissions(manage_channels=True)
-    async def rename(self, ctx: commands.Context, new_name, timeout: interpret_str_as_datetime = None):
-        """Removes last number_of_messages_to_delete messages from the channel."""
-        channel = cast(discord.TextChannel, ctx.channel)
-        old_name = channel.name
-        if timeout:
-            embed = self.bot.generate_embed('✅', f'Zmienię nazwę kanału z #{old_name} na #{new_name} {human_datetime(timeout)}')
-            message = await self.bot.send(ctx, embed=embed)
-            await asyncio.sleep((timeout - dt.datetime.now()).total_seconds())
-            await channel.edit(name=new_name)
-            embed = self.bot.generate_embed('✅', f'Zmieniono nazwę kanału z #{old_name} na #{new_name}')
-            await message.edit(embed=embed)
-        else:
-            await channel.edit(name=new_name)
-            embed = self.bot.generate_embed('✅', f'Zmieniono nazwę kanału z #{old_name} na #{new_name}')
-            await self.bot.send(ctx, embed=embed)
-
 
 def setup(bot: Somsiad):
     bot.add_cog(Moderation(bot))
