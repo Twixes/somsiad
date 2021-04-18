@@ -237,7 +237,7 @@ class Imaging(commands.Cog):
                                     info = ' (wiadomość usunięta)'
                             else:
                                 info = ' (kanał usunięty)'
-                            similarity_presentantion = f'{int(round(similarity*100))}% pewności'
+                            similarity_presentantion = f'{int(round(similarity*100))}% podobieństwa'
                             embed.add_field(
                                 name=await image9000.get_presentation(self.bot),
                                 value=md_link(
