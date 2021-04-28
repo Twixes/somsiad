@@ -17,6 +17,7 @@ import locale
 import os
 from collections import defaultdict
 from numbers import Number
+from somsiad import Somsiad
 from typing import Optional, Union
 from urllib.error import HTTPError
 
@@ -50,7 +51,7 @@ class Disco(commands.Cog):
     )
     HELP = Help(COMMANDS, '🔈', group=GROUP)
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.cache_dir_path = os.path.join(bot.cache_dir_path, 'disco')
         self.bot = bot
         self.servers = defaultdict(lambda: {'volume': 1.0, 'song_url': None, 'song_audio': None})
@@ -92,7 +93,7 @@ class Disco(commands.Cog):
         except pytube.exceptions.RegexMatchError:
             try:
                 search_result = await self.bot.youtube_client.search(query)
-            except HTTPError:
+            except (AttributeError, HTTPError):
                 video_url = None
             else:
                 video_url = search_result.url if search_result is not None else None
@@ -354,5 +355,6 @@ class Disco(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Disco(bot))
+def setup(bot: Somsiad):
+    if bot.youtube_client is not None:
+        bot.add_cog(Disco(bot))

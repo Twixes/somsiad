@@ -295,4 +295,5 @@ class TMDb(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(TMDb(bot))
+    if configuration.get('tmdb_key') is not None:
+        bot.add_cog(TMDb(bot))

@@ -47,12 +47,13 @@ class Setting:
             value_obtained = os.environ[self.name.upper()]
         except KeyError:
             if self.optional:
-                value_obtained = self.default_value
+                self.value = self.default_value
             else:
                 raise Exception(
                     f'mandatory setting {self.name.upper()} could not be loaded from os.environ nor from .env'
                 )
-        self.value = self._convert_value_to_type(value_obtained)
+        else:
+            self.value = self._convert_value_to_type(value_obtained)
 
     def _convert_value_to_type(self, value: Any) -> Any:
         if value is None:
@@ -109,15 +110,15 @@ SETTINGS = (
     Setting('clickhouse_user', description='Nazwa użytkownika ClickHouse'),
     Setting('clickhouse_password', description='Hasło użytkownika ClickHouse'),
     Setting('sentry_dsn', description='DSN Sentry', optional=True),
-    Setting('google_key', description='Klucz API Google'),
-    Setting('google_custom_search_engine_id', description='Identyfikator CSE Google'),
-    Setting('wolfram_alpha_app_id', description='Identyfikator aplikacji Wolfram Alpha'),
-    Setting('goodreads_key', description='Klucz API Goodreads'),
-    Setting('tmdb_key', description='Klucz API TMDb'),
-    Setting('last_fm_key', description='Klucz API Last.fm'),
+    Setting('google_key', description='Klucz API Google', optional=True),
+    Setting('google_custom_search_engine_id', description='Identyfikator CSE Google', optional=True),
+    Setting('wolfram_alpha_app_id', description='Identyfikator aplikacji Wolfram Alpha', optional=True),
+    Setting('goodreads_key', description='Klucz API Goodreads', optional=True),
+    Setting('tmdb_key', description='Klucz API TMDb', optional=True),
+    Setting('last_fm_key', description='Klucz API Last.fm', optional=True),
     Setting(
         'yandex_translate_key',
-        description='Klucz API Yandex Translate',
+        description='Klucz API Yandex Translate', optional=True,
     ),
     Setting(
         'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', default_value=16

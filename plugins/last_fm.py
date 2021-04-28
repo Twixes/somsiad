@@ -12,8 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from difflib import SequenceMatcher
-from urllib.error import HTTPError
-
+from sentry_sdk import capture_exception
 import aiohttp
 from discord.ext import commands
 
@@ -100,8 +99,8 @@ class LastFM(commands.Cog):
                     youtube_search_query = f'{user_recent_tracks[0]["name"]} {user_recent_tracks[0]["artist"]["#text"]}'
                     try:
                         youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
-                    except HTTPError:
-                        pass
+                    except:
+                        capture_exception()
                     else:
                         # add a link to a YouTube video if a match was found
                         if (
@@ -134,4 +133,5 @@ class LastFM(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(LastFM(bot))
+    if configuration.get('last_fm_key') is not None:
+        bot.add_cog(LastFM(bot))

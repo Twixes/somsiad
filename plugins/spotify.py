@@ -12,8 +12,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from difflib import SequenceMatcher
-from urllib.error import HTTPError
-
+from somsiad import Somsiad
+from typing import cast
+from sentry_sdk import capture_exception
 import discord
 from discord.ext import commands
 
@@ -28,7 +29,7 @@ class Spotify(commands.Cog):
         'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
     )
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
 
     @commands.command()
@@ -36,9 +37,9 @@ class Spotify(commands.Cog):
     @commands.guild_only()
     async def spotify(self, ctx, member: discord.Member = None):
         member = member or ctx.author
-        spotify_activity = discord.utils.find(
-            lambda activity: isinstance(activity, discord.activity.Spotify), member.activities
-        )
+        spotify_activity = cast(discord.Spotify, discord.utils.find(
+            lambda activity: isinstance(activity, discord.Spotify), member.activities
+        ))
         if spotify_activity is None:
             address = 'nie słuchasz' if member == ctx.author else f'{member.display_name} nie słucha'
             embed = self.bot.generate_embed('⏹', f'W tym momencie {address} niczego na Spotify')
@@ -56,8 +57,8 @@ class Spotify(commands.Cog):
             youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
             try:
                 youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
-            except HTTPError:
-                pass
+            except:
+                capture_exception()
             else:
                 # add a link to a YouTube video if a match was found
                 if (
@@ -70,5 +71,5 @@ class Spotify(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Spotify(bot))

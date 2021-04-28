@@ -102,4 +102,5 @@ class Yandex(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Yandex(bot))
+    if configuration.get('yandex_translate_key') is not None:
+        bot.add_cog(Yandex(bot))

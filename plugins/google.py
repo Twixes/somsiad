@@ -74,4 +74,5 @@ class Google(Cog):
 
 
 def setup(bot: Somsiad):
-    bot.add_cog(Google(bot))
+    if bot.google_client is not None:
+        bot.add_cog(Google(bot))

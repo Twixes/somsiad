@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import Somsiad
 from discord.ext import commands
 
 from core import cooldown
@@ -18,7 +19,7 @@ from utilities import HttpError
 
 
 class YouTube(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
 
     @commands.command(aliases=['youtube', 'yt', 'tuba'])
@@ -49,5 +50,6 @@ class YouTube(commands.Cog):
             return await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(YouTube(bot))
+def setup(bot: Somsiad):
+    if bot.youtube_client is not None:
+        bot.add_cog(YouTube(bot))

@@ -91,4 +91,5 @@ class WolframAlpha(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(WolframAlpha(bot))
+    if configuration.get('wolfram_alpha_app_id') is not None:
+        bot.add_cog(WolframAlpha(bot))

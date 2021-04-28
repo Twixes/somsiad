@@ -100,4 +100,5 @@ class Goodreads(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Goodreads(bot))
+    if configuration.get('goodreads_key') is not None:
+        bot.add_cog(Goodreads(bot))

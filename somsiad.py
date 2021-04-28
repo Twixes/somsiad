@@ -168,8 +168,8 @@ class Somsiad(commands.AutoShardedBot):
     ready_datetime: Optional[dt.datetime]
     session: Optional[aiohttp.ClientSession]
     ch_client: Optional[ChClient]
-    google_client: GoogleClient
-    youtube_client: YouTubeClient
+    google_client: Optional[GoogleClient]
+    youtube_client: Optional[YouTubeClient]
     system_channel: Optional[discord.TextChannel]
 
     def __init__(self):
@@ -193,8 +193,8 @@ class Somsiad(commands.AutoShardedBot):
         self.ch_client = None
         self.google_client = GoogleClient(
             configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
-        )
-        self.youtube_client = YouTubeClient(configuration['google_key'], self.loop)
+        ) if configuration.get('google_key') is not None and configuration.get('google_custom_search_engine_id') is not None else None
+        self.youtube_client = YouTubeClient(configuration['google_key'], self.loop) if configuration.get('google_key') is not None else None
 
     async def on_ready(self):
         psutil.cpu_percent()
@@ -294,13 +294,13 @@ class Somsiad(commands.AutoShardedBot):
         else:
             return False
 
-    async def close(self):
+    async def close(self, code: int = 0):
         print('\nZatrzymywanie działania programu...')
-        await self.system_notify('🛑', 'Wyłączam się…')
+        await self.system_notify(*(('🛑', 'Wyłączam się…') if not code else ('🔁', 'Restartuję się…')))
         if self.session is not None:
             await self.session.close()
         await super().close()
-        sys.exit(0)
+        sys.exit(code)
 
     def signal_handler(self, *args, **kwargs):
         asyncio.run(self.close())
