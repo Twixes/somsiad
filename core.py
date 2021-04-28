@@ -258,6 +258,16 @@ class Essentials(Cog):
             return await self.bot.send(ctx, embed=embed)
         raise error
 
+    @commands.command(aliases=['restartuj', 'zrestartuj'])
+    @commands.is_owner()
+    async def restart(self, ctx):
+        """Shuts down the bot."""
+        embed = self.bot.generate_embed('🔁', 'Restartuję się…')
+        await self.bot.send(ctx, embed=embed)
+        await self.bot.close(1)
+
+    restart.error(shutdown_error)
+
     @commands.command(aliases=['błąd', 'blad', 'błont', 'blont'])
     @commands.is_owner()
     async def error(self, ctx):
