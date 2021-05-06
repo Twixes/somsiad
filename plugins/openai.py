@@ -116,7 +116,7 @@ class OpenAI(commands.Cog):
             user_index = result.find(f'{user}:')
             if user_index >= 0:
                 result = result[:user_index]
-            result = result.split('\n')[0].strip(string.whitespace + '-–')
+            result = result.split('\n')[0].strip(string.whitespace + '-–;.')
         self.convos[channel_id] = [*convo_lines, f'Somsiad: {result}\n',]
         return result
 
