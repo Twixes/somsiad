@@ -152,7 +152,7 @@ typing-extensions==3.10.0.0
     # via aiohttp
 uritemplate==3.0.1
     # via google-api-python-client
-urllib3==1.26.3
+urllib3==1.26.4
     # via
     #   requests
     #   sentry-sdk
