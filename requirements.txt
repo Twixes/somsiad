@@ -125,7 +125,7 @@ redis==3.5.3
     # via -r requirements.in
 requests==2.25.0
     # via google-api-core
-rsa==4.6
+rsa==4.7
     # via google-auth
 scipy==1.5.4
     # via imagehash
