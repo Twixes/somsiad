@@ -43,7 +43,7 @@ class Chat(data.ServerRelated, data.ChannelSpecific, data.Base):
 
 class OpenAI(commands.Cog):
     bot: Somsiad
-    convos: Dict[int, str]
+    convos: Dict[int, List[str]]
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
@@ -85,34 +85,41 @@ class OpenAI(commands.Cog):
 
     async def fetch_completed_answer(self, *, prompt: str, user: str, channel_id: int, lang: str) -> str:
         if self.convos.get(channel_id):
-            convo = self.convos[channel_id]
+            convo = self.convos[channel_id][-6:]
         elif lang == 'en':
-            convo = f"It's {human_datetime(dt.datetime.now(), days_difference=False)}. You are bot Somsiad made by Twixes. You're chatting with person {user}:"
+            convo = [f"It's {human_datetime(dt.datetime.now(), days_difference=False, time=False)}. You are bot Somsiad. You were made by Twixes. You're chatting on Discord with person {user}:", '']
         else:
-            convo = f'Jest {human_datetime(dt.datetime.now(), days_difference=False)}. Jesteś bot o imieniu Somsiad stworzonym przez Twixesa. Rozmawiasz z osobą {user}:'
-        convo += f'\n\n{user}: {prompt}\n'
+            convo = [f'Jest {human_datetime(dt.datetime.now(), days_difference=False, time=False)}. Jesteś bot Somsiad. Stworzył cię Twixes. Rozmawiasz z osobą {user}:', '']
+        convo_lines = [*convo, f'{user}: {prompt}\n',]
 
         result = ''
         while not result or result == prompt:
             completion = await self.fetch_completion(
-                convo, max_tokens=80, temperature=0.9, top_p=0.9, frequency_penalty=0.5, presence_penalty=0.5
+                '\n'.join(convo_lines), max_tokens=120, temperature=0.9, top_p=0.9, frequency_penalty=0.9, presence_penalty=0.5
             )
             result: str = completion.choices[0]["text"]
             result = result.strip()
-            colon_index = result.find(': ')
-            if colon_index >= 0:
-                result = result[colon_index + 1 :]
+            print('>>>>', result)
+            somsiad_index = result.find('Somsiad:')
+            if somsiad_index >= 0:
+                result = result[somsiad_index + len('Somsiad:') + 1:]
+            else:
+                colon_index = result.find(': ')
+                if colon_index >= 0:
+                    result = result[colon_index:]
+            user_index = result.find(f'{user}:')
+            if user_index >= 0:
+                result = result[:user_index]
             result = result.split('\n')[0].strip(string.whitespace + '-–')
-
-        self.convos[channel_id] = f'{convo}\nSomsiad: {result}'
-
+        self.convos[channel_id] = [*convo_lines, f'Somsiad: {result}\n',]
+        print(self.convos[channel_id])
         return result
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if cast(discord.User, message.author).bot:
             return
-        message_text = message.clean_content
+        message_text = cast(str, message.clean_content)
         if not message_text:
             return
         with data.session() as session:
