@@ -122,7 +122,6 @@ SETTINGS = (
         optional=True,
     ),
     Setting('twitter_bearer_token', description='Token aplikacji Twittera', optional=True),
-    Setting('openai_api_key', description='Klucz API OpenAI', optional=True),
     Setting(
         'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', default_value=16
     ),
