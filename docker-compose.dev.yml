@@ -60,6 +60,7 @@ services:
             - CLICKHOUSE_USER=somsiad
             - CLICKHOUSE_PASSWORD=somsiad
             - REDIS_URL=redis://redis:6379/
+            - GPT_AUTHORIZED_SERVERS=294182757209473024,479458694354960385,682561082719731742
         ports:
             - "5678:5678"
     web:

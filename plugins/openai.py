@@ -10,9 +10,8 @@
 
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
-
+import os
 import datetime as dt
-import random
 import string
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, cast
@@ -40,6 +39,14 @@ class Completion:
 class Chat(data.ServerRelated, data.ChannelSpecific, data.Base):
     lang = data.Column(data.String, nullable=False)
 
+
+def check_gpt_authorization(ctx: commands.Context):
+    gpt_authorized_servers = os.getenv('GPT_AUTHORIZED_SERVERS')
+    if not gpt_authorized_servers or ctx.guild.id not in map(int, gpt_authorized_servers.split(',')):
+        raise commands.NotOwner()  # type: ignore
+    return True
+
+is_gpt_authorized = commands.check(check_gpt_authorization)
 
 class OpenAI(commands.Cog):
     bot: Somsiad
@@ -99,7 +106,6 @@ class OpenAI(commands.Cog):
             )
             result: str = completion.choices[0]["text"]
             result = result.strip()
-            print('>>>>', result)
             somsiad_index = result.find('Somsiad:')
             if somsiad_index >= 0:
                 result = result[somsiad_index + len('Somsiad:') + 1:]
@@ -112,12 +118,16 @@ class OpenAI(commands.Cog):
                 result = result[:user_index]
             result = result.split('\n')[0].strip(string.whitespace + '-–')
         self.convos[channel_id] = [*convo_lines, f'Somsiad: {result}\n',]
-        print(self.convos[channel_id])
         return result
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if cast(discord.User, message.author).bot:
+            return
+        ctx = await self.bot.get_context(message)
+        try:
+            check_gpt_authorization(ctx)
+        except:
             return
         message_text = cast(str, message.clean_content)
         if not message_text:
@@ -126,7 +136,6 @@ class OpenAI(commands.Cog):
             chat: Optional[Chat] = session.query(Chat).get(message.channel.id)
         if chat is None:
             return
-        ctx = await self.bot.get_context(message)
         if ctx.valid:
             return
         with cast(discord.TextChannel, message.channel).typing():
@@ -137,6 +146,7 @@ class OpenAI(commands.Cog):
 
     @commands.group(aliases=['rozmowa', 'rozmawiaj'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @is_gpt_authorized
     @commands.guild_only()
     async def chat(self, ctx, *, message_text: commands.clean_content(fix_channel_mentions=True) = ''):
         if not message_text:
@@ -152,6 +162,7 @@ class OpenAI(commands.Cog):
 
     @chat.command(aliases=['start', 'rozpocznij', 'zacznij'])
     @cooldown()
+    @is_gpt_authorized
     @commands.guild_only()
     @has_permissions(manage_channels=True)
     async def chat_start(self, ctx: commands.Context, lang: str = 'pl'):
@@ -165,6 +176,7 @@ class OpenAI(commands.Cog):
 
     @chat.command(aliases=['stop', 'end', 'zakończ', 'zakoncz', 'skończ', 'skoncz', 'przerwij'])
     @cooldown()
+    @is_gpt_authorized
     @commands.guild_only()
     @has_permissions(manage_channels=True)
     async def chat_stop(self, ctx: commands.Context):
@@ -173,14 +185,15 @@ class OpenAI(commands.Cog):
                 session.query(Chat).filter_by(channel_id=ctx.channel.id).delete()
         except sqlalchemy.exc.IntegrityError:
             pass
-        self.convos[ctx.channel.id] = ''
+        self.convos[ctx.channel.id] = []
         await cast(discord.Message, ctx.message).add_reaction('✅')
 
     @chat.command(aliases=['reset', 'zresetuj'])
     @cooldown()
+    @is_gpt_authorized
     @commands.guild_only()
     async def chat_reset(self, ctx: commands.Context):
-        self.convos[ctx.channel.id] = ''
+        self.convos[ctx.channel.id] = []
         await cast(discord.Message, ctx.message).add_reaction('✅')
 
 
