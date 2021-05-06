@@ -11,19 +11,21 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import sqlalchemy
-from core import cooldown, has_permissions
-import string
 import datetime as dt
+import random
+import string
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, cast
-import random
-from utilities import human_datetime
+
 import discord
+import sqlalchemy
 from discord.ext import commands
+
 import data
 from configuration import configuration
+from core import cooldown, has_permissions
 from somsiad import Somsiad
+from utilities import human_datetime
 
 
 @dataclass
@@ -38,6 +40,7 @@ class Completion:
 class Chat(data.ServerRelated, data.ChannelSpecific, data.Base):
     lang = data.Column(data.String, nullable=False)
 
+
 class OpenAI(commands.Cog):
     bot: Somsiad
     convos: Dict[int, str]
@@ -46,8 +49,20 @@ class OpenAI(commands.Cog):
         self.bot = bot
         self.convos = {}
 
-
-    async def fetch_completion(self, prompt: str, *, engine_id: str = "davinci", max_tokens: Optional[int] = None, temperature: Optional[float] = None, top_p: Optional[float] = None, n: Optional[int] = None, stop: Optional[str] = None, presence_penalty: Optional[float] = None, frequency_penalty: Optional[float] = None, best_of: Optional[int] = None) -> Optional[Completion]:
+    async def fetch_completion(
+        self,
+        prompt: str,
+        *,
+        engine_id: str = "davinci",
+        max_tokens: Optional[int] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        n: Optional[int] = None,
+        stop: Optional[str] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        best_of: Optional[int] = None,
+    ) -> Optional[Completion]:
         url = f"https://api.openai.com/v1/engines/{engine_id}/completions"
         headers = {"Authorization": f"Bearer {configuration['openai_api_key']}"}
         data = {
@@ -79,12 +94,14 @@ class OpenAI(commands.Cog):
 
         result = ''
         while not result or result == prompt:
-            completion = await self.fetch_completion(convo, max_tokens=80, temperature=0.9, top_p=0.9, frequency_penalty=0.5, presence_penalty=0.5)
+            completion = await self.fetch_completion(
+                convo, max_tokens=80, temperature=0.9, top_p=0.9, frequency_penalty=0.5, presence_penalty=0.5
+            )
             result: str = completion.choices[0]["text"]
             result = result.strip()
             colon_index = result.find(': ')
             if colon_index >= 0:
-                result = result[colon_index+1:]
+                result = result[colon_index + 1 :]
             result = result.split('\n')[0].strip(string.whitespace + '-–')
 
         self.convos[channel_id] = f'{convo}\nSomsiad: {result}'
@@ -95,24 +112,35 @@ class OpenAI(commands.Cog):
     async def on_message(self, message: discord.Message):
         if cast(discord.User, message.author).bot:
             return
+        message_text = message.clean_content
+        if not message_text:
+            return
         with data.session() as session:
             chat: Optional[Chat] = session.query(Chat).get(message.channel.id)
         if chat is None:
-            return
-        message_text = cast(str, message.clean_content)
-        if not message_text:
             return
         ctx = await self.bot.get_context(message)
         if ctx.valid:
             return
         with cast(discord.TextChannel, message.channel).typing():
-            completed_answer = await self.fetch_completed_answer(prompt=message_text, user=message.author.display_name, channel_id=message.channel.id, lang=chat.lang)
+            completed_answer = await self.fetch_completed_answer(
+                prompt=message_text, user=message.author.display_name, channel_id=message.channel.id, lang=chat.lang
+            )
         await self.bot.send(ctx, completed_answer)
 
     @commands.group(aliases=['rozmowa', 'rozmawiaj'], invoke_without_command=True, case_insensitive=True)
     @has_permissions(manage_channels=True)
-    async def chat(self, ctx):
-        pass
+    async def chat(self, ctx, *, message_text: commands.clean_content(fix_channel_mentions=True) = ''):
+        if not message_text:
+            return
+        with data.session() as session:
+            chat: Optional[Chat] = session.query(Chat).get(ctx.channel.id)
+        lang = chat.lang if chat is not None else 'pl'
+        with ctx.typing():
+            completed_answer = await self.fetch_completed_answer(
+                prompt=message_text, user=ctx.author.display_name, channel_id=ctx.channel.id, lang=lang
+            )
+        await self.bot.send(ctx, completed_answer)
 
     @chat.command(aliases=['start', 'rozpocznij', 'zacznij'])
     @cooldown()
