@@ -78,7 +78,7 @@ class OpenAI(commands.Cog):
 
         result = ''
         while not result or result == prompt:
-            completion = await self.fetch_completion(convo, max_tokens=100, temperature=0.8, top_p=0.9, frequency_penalty=0.5, best_of=2)
+            completion = await self.fetch_completion(convo, max_tokens=100, temperature=0.8, top_p=0.9, frequency_penalty=0.5, presence_penalty=0.3, best_of=2)
             result: str = completion.choices[0]["text"]
             result = result.strip()
             colon_index = result.find(': ')
@@ -126,7 +126,7 @@ class OpenAI(commands.Cog):
             pass
         await cast(discord.Message, ctx.message).add_reaction('✅')
 
-    @chat.command(aliases=['stop', 'zakończ', 'zakoncz', 'skończ', 'skoncz', 'przerwij'])
+    @chat.command(aliases=['stop', 'end', 'zakończ', 'zakoncz', 'skończ', 'skoncz', 'przerwij'])
     @cooldown()
     @commands.guild_only()
     @has_permissions(manage_channels=True)
