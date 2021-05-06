@@ -130,7 +130,7 @@ class OpenAI(commands.Cog):
         except:
             return
         message_text = cast(str, message.clean_content)
-        if not message_text:
+        if not message_text or message_text.startswith('//'):
             return
         with data.session() as session:
             chat: Optional[Chat] = session.query(Chat).get(message.channel.id)
@@ -149,7 +149,7 @@ class OpenAI(commands.Cog):
     @is_gpt_authorized
     @commands.guild_only()
     async def chat(self, ctx, *, message_text: commands.clean_content(fix_channel_mentions=True) = ''):
-        if not message_text:
+        if not message_text or message_text.startswith('//'):
             return
         with data.session() as session:
             chat: Optional[Chat] = session.query(Chat).get(ctx.channel.id)
