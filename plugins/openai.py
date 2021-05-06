@@ -129,7 +129,8 @@ class OpenAI(commands.Cog):
         await self.bot.send(ctx, completed_answer)
 
     @commands.group(aliases=['rozmowa', 'rozmawiaj'], invoke_without_command=True, case_insensitive=True)
-    @has_permissions(manage_channels=True)
+    @cooldown()
+    @commands.guild_only()
     async def chat(self, ctx, *, message_text: commands.clean_content(fix_channel_mentions=True) = ''):
         if not message_text:
             return
@@ -171,7 +172,6 @@ class OpenAI(commands.Cog):
     @chat.command(aliases=['reset', 'zresetuj'])
     @cooldown()
     @commands.guild_only()
-    @has_permissions(manage_channels=True)
     async def chat_reset(self, ctx: commands.Context):
         self.convos[ctx.channel.id] = ''
         await cast(discord.Message, ctx.message).add_reaction('✅')
