@@ -32,32 +32,32 @@ class Tweet:
     attachments: Dict[str, Any] = field(default_factory=dict)
 
 
-async def fetch_tweet_with_attachments(tweet_id: str, session: aiohttp.ClientSession) -> Optional[Tweet]:
-    url = f"https://api.twitter.com/2/tweets?ids={tweet_id}&tweet.fields=attachments"
-    headers = {"Authorization": f"Bearer {configuration['twitter_bearer_token']}"}
-    response = await session.request("GET", url, headers=headers)
-    if response.status != 200:
-        raise Exception(f"Twitter API request returned an error: {response.status} {await response.text()}")
-    response_parsed = await response.json()
-    if response_parsed.get('errors'):
-        if any((error['title'] != 'Not Found Error' for error in response_parsed['errors'])):
-            raise Exception(f"Twitter API request returned an error: {response_parsed}")
-        return None
-    return Tweet(**response_parsed['data'][0])
-
-
 class Twitter(commands.Cog):
     TWEET_URL_REGEX = re.compile(r'https?:\/\/(?:(?:m|www)\.)?twitter\.com\/\w+\/status\/(\d+)\b', flags=re.IGNORECASE)
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
 
+
+    async def fetch_tweet_with_attachments(self, tweet_id: str) -> Optional[Tweet]:
+        url = f"https://api.twitter.com/2/tweets?ids={tweet_id}&tweet.fields=attachments"
+        headers = {"Authorization": f"Bearer {configuration['twitter_bearer_token']}"}
+        response = await self.bot.session.get(url, headers=headers)
+        if response.status != 200:
+            raise Exception(f"Twitter API request returned an error: {response.status} {await response.text()}")
+        response_parsed = await response.json()
+        if response_parsed.get('errors'):
+            if any((error['title'] != 'Not Found Error' for error in response_parsed['errors'])):
+                raise Exception(f"Twitter API request returned an error: {response_parsed}")
+            return None
+        return Tweet(**response_parsed['data'][0])
+
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         matches = self.TWEET_URL_REGEX.finditer(message.content)
         for match in matches:
             tweet_id = match.group(1)
-            tweet = await fetch_tweet_with_attachments(tweet_id, cast(aiohttp.ClientSession, self.bot.session))
+            tweet = await self.fetch_tweet_with_attachments(tweet_id)
             if tweet is not None and tweet.attachments and tweet.attachments['media_keys']:
                 attachment_count = len(tweet.attachments['media_keys'])
                 if attachment_count > 1:
