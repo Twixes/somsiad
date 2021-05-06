@@ -112,7 +112,7 @@ class OpenAI(commands.Cog):
             else:
                 colon_index = result.find(': ')
                 if colon_index >= 0:
-                    result = result[colon_index:]
+                    result = result[colon_index + 1:]
             user_index = result.find(f'{user}:')
             if user_index >= 0:
                 result = result[:user_index]
