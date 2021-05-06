@@ -47,7 +47,7 @@ class OpenAI(commands.Cog):
         self.convos = {}
 
 
-    async def fetch_completion(self, prompt: str, *, engine_id: str = "davinci", max_tokens: Optional[int] = None, temperature: Optional[float] = None, top_p: Optional[float] = None, n: Optional[int] = None, presence_penalty: Optional[float] = None, frequency_penalty: Optional[float] = None, best_of: Optional[int] = None) -> Optional[Completion]:
+    async def fetch_completion(self, prompt: str, *, engine_id: str = "davinci", max_tokens: Optional[int] = None, temperature: Optional[float] = None, top_p: Optional[float] = None, n: Optional[int] = None, stop: Optional[str] = None, presence_penalty: Optional[float] = None, frequency_penalty: Optional[float] = None, best_of: Optional[int] = None) -> Optional[Completion]:
         url = f"https://api.openai.com/v1/engines/{engine_id}/completions"
         headers = {"Authorization": f"Bearer {configuration['openai_api_key']}"}
         data = {
@@ -56,6 +56,7 @@ class OpenAI(commands.Cog):
             "temperature": temperature,
             "top_p": top_p,
             "n": n,
+            "stop": stop,
             "presence_penalty": presence_penalty,
             "frequency_penalty": frequency_penalty,
             "best_of": best_of,
@@ -71,14 +72,14 @@ class OpenAI(commands.Cog):
         if self.convos.get(channel_id):
             convo = self.convos[channel_id]
         elif lang == 'en':
-            convo = f"It's {human_datetime(dt.datetime.now(), days_difference=False)}. You are bot Somsiad. You're chatting with person {user}:"
+            convo = f"It's {human_datetime(dt.datetime.now(), days_difference=False)}. You are bot Somsiad made by Twixes. You're chatting with person {user}:"
         else:
-            convo = f'Jest {human_datetime(dt.datetime.now(), days_difference=False)}. Jesteś bot o imieniu Somsiad. Rozmawiasz z osobą {user}:'
+            convo = f'Jest {human_datetime(dt.datetime.now(), days_difference=False)}. Jesteś bot o imieniu Somsiad stworzonym przez Twixesa. Rozmawiasz z osobą {user}:'
         convo += f'\n\n{user}: {prompt}\n'
 
         result = ''
         while not result or result == prompt:
-            completion = await self.fetch_completion(convo, max_tokens=100, temperature=0.8, top_p=0.9, frequency_penalty=0.5, presence_penalty=0.3, best_of=2)
+            completion = await self.fetch_completion(convo, max_tokens=80, temperature=0.9, top_p=0.9, frequency_penalty=0.5, presence_penalty=0.5)
             result: str = completion.choices[0]["text"]
             result = result.strip()
             colon_index = result.find(': ')
