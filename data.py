@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from contextlib import contextmanager
-from typing import Any, Dict, Optional, Sequence, Union, cast
+from typing import Any, Dict, Iterator, Optional, Sequence, Union, cast
 
 import discord
 from discord.ext import commands
@@ -44,7 +44,7 @@ Session = sessionmaker(bind=engine)
 
 
 @contextmanager
-def session(*, commit: bool = False):
+def session(*, commit: bool = False) -> Iterator[RawSession]:
     _session = Session()
     try:
         yield _session
