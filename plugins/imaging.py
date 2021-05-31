@@ -52,7 +52,7 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
 class Imaging(commands.Cog):
     ExtractedImage = Tuple[Optional[discord.Attachment], Optional[BinaryIO]]
 
-    IMAGE9000_SIMILARITY_TRESHOLD = 0.75
+    IMAGE9000_SIMILARITY_TRESHOLD = 0.8
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
