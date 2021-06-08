@@ -82,7 +82,7 @@ numpy==1.20.2
     #   matplotlib
     #   pywavelets
     #   scipy
-pillow==8.1.2
+pillow==8.2.0
     # via
     #   -r requirements.in
     #   imagehash
