@@ -444,8 +444,11 @@ class Birthday(commands.Cog):
                     title=f'🗓 {word_number_form(len(born_persons), "użytkownik upublicznił", "użytkownicy upublicznili", "użytkowników upubliczniło")} na tym serwerze swoją datę urodzin',
                     color=self.bot.COLOR,
                 )
-                born_persons.sort(key=lambda person: person.birthday.strftime('%m-%d-%Y'))
-                for born_person in born_persons:
+                born_persons_filtered_sorted = sorted(
+                    (person for person in born_persons if person.birthday),
+                    key=lambda person: person.birthday.strftime('%m-%d-%Y')
+                )
+                for born_person in born_persons_filtered_sorted:
                     user = born_person.discord_user(bot=ctx.bot)
                     date_presentation = born_person.birthday.strftime(
                         '%-d %B' if born_person.birthday.year == BornPerson.EDGE_YEAR else '%-d %B %Y'
