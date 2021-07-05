@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import asyncio
 import datetime as dt
 import random
 from typing import Optional, Sequence, Union
@@ -210,14 +211,18 @@ class Essentials(Cog):
         await self.bot.send(ctx, embed=embed)
 
     @commands.command()
-    async def ping(self, ctx, users: commands.Greedy[discord.User]):
+    async def ping(self, ctx, delay: Optional[float] = 0):
         """Pong!"""
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'), mention=users or None)
+        if delay is not None and delay > 0:
+            await asyncio.sleep(delay)
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pong!'))
 
     @commands.command()
-    async def pińg(self, ctx, users: commands.Greedy[discord.User]):
+    async def pińg(self, ctx, delay: Optional[float] = 0):
         """Pońg!"""
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'), mention=users or None)
+        if delay is not None and delay > 0:
+            await asyncio.sleep(delay)
+        await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'))
 
     @commands.command(aliases=['nope', 'nie'])
     @cooldown()
