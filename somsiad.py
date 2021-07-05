@@ -464,6 +464,11 @@ class Somsiad(commands.AutoShardedBot):
                     ),
                 )
             return None
+        except discord.HTTPException as e:
+            if 'message_reference' in e.text:
+                # Catch message_reference errors caused by message being replied to having been deleted
+                return None
+            raise e
         else:
             return messages[0] if len(messages) == 1 else messages
 
