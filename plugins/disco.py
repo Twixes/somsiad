@@ -164,16 +164,24 @@ class Disco(commands.Cog):
     def generate_embed(
         self, channel: discord.VoiceChannel, video: pytube.YouTube, status: str, emoji: str, notice: str = None
     ) -> discord.Embed:
-        embed = self.bot.generate_embed(
-            emoji, f'{video.title} – {notice}' if notice else video.title, url=video.watch_url
-        )
-        embed.set_author(name=video.author)
-        embed.set_thumbnail(url=video.thumbnail_url)
-        embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))
-        embed.add_field(name='Kanał', value=channel.name)
-        embed.add_field(name='Głośność', value=f'{int(self.servers[channel.guild.id]["volume"] * 100)}%')
-        embed.add_field(name='Status', value=status)
-        embed.set_footer(icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT)
+        try:
+            title = video.title
+            watch_url = video.watch_url
+        except HTTPError:
+            embed = self.bot.generate_embed(
+                '⚠️', 'Materiał niedostępny'
+            )
+        else:
+            embed = self.bot.generate_embed(
+                emoji, f'{title} – {notice}' if notice else title, url=watch_url
+            )
+            embed.set_author(name=video.author)
+            embed.set_thumbnail(url=video.thumbnail_url)
+            embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))
+            embed.add_field(name='Kanał', value=channel.name)
+            embed.add_field(name='Głośność', value=f'{int(self.servers[channel.guild.id]["volume"] * 100)}%')
+            embed.add_field(name='Status', value=status)
+            embed.set_footer(icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT)
         return embed
 
     @commands.group(aliases=['d'], invoke_without_command=True)
