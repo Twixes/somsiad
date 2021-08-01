@@ -14,7 +14,7 @@
 import asyncio
 import datetime as dt
 import random
-from typing import Optional, Sequence, Union
+from typing import List, Optional, Sequence, Union
 
 import discord
 from discord.ext import commands, tasks
@@ -64,16 +64,20 @@ class Help:
 
     class Command:
         "A command model."
-        __slots__ = ('_aliases', '_arguments', '_description')
+        __slots__ = ('_aliases', '_arguments', '_description', '_emoji', '_examples')
 
         _aliases: Sequence[str]
         _arguments: Sequence[str]
         _description: str
+        _emoji: Optional[str]
+        _examples: Optional[List[str]]
 
-        def __init__(self, aliases: Union[Sequence[str], str], arguments: Union[Sequence[str], str], description: str):
+        def __init__(self, aliases: Union[Sequence[str], str], arguments: Union[Sequence[str], str], description: str, emoji:  Optional[str] = None, examples: Optional[List[str]] = None):
             self._aliases = (aliases,) if isinstance(aliases, str) else aliases
             self._arguments = (arguments,) if isinstance(arguments, str) else arguments
             self._description = description
+            self._emoji = emoji
+            self._examples = examples
 
         def __str__(self) -> str:
             return ' '.join(filter(None, (self.name, self.aliases, self.arguments)))
@@ -92,7 +96,15 @@ class Help:
 
         @property
         def description(self) -> str:
+            if self._examples:
+                examples_joined = ", ".join((f"`{example}`" for example in self._examples))
+                example_word_form = 'Przykład' if len(self._examples) == 1 else 'Przykłady'
+                return f"{self._description}\n_{example_word_form}:_ {examples_joined}"
             return self._description
+
+        @property
+        def emoji(self) -> Optional[str]:
+            return self._emoji
 
     __slots__ = ('group', 'embeds')
 
@@ -164,7 +176,7 @@ class Essentials(Cog):
             notice = f'??? 6.6.6s'
             footer = '© 1963 👺'
         else:
-            emoji = random.choice(self.bot.EMOJIS)
+            emoji = self.bot.get_random_emoji()
             notice = f'Somsiad {__version__}'
             footer = __copyright__
         embed = self.bot.generate_embed(emoji, notice, url=self.bot.WEBSITE_URL)

@@ -12,8 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import itertools
-import random
 import re
+from somsiad import Somsiad
 from typing import Optional, Tuple, Union
 
 import discord
@@ -99,7 +99,7 @@ class React(commands.Cog):
     ]
     CUSTOM_EMOJI_REGEX = re.compile(r'<:\S+?:(\d+)>')
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
 
     def _convert_string(
@@ -123,7 +123,7 @@ class React(commands.Cog):
                 continue
             if character == ' ':
                 while True:
-                    random_emoji = random.choice(self.bot.EMOJIS)
+                    random_emoji = self.bot.get_random_emoji()
                     if random_emoji not in used_emojis:
                         break
                 emojis[i] = random_emoji
@@ -164,7 +164,7 @@ class React(commands.Cog):
         unique_emojis = tuple(itertools.islice(filter(None, emojis), 20))
         return unique_emojis
 
-    async def _find_message(self, ctx: commands.Context, member: discord.Member = None) -> discord.Message:
+    async def _find_message(self, ctx: commands.Context, member: discord.Member = None) -> Optional[discord.Message]:
         """Finds specified member's last non-command message.
         If no member was specified, adds emojis to the last non-command message sent in the given channel.
         """
@@ -255,5 +255,5 @@ class React(commands.Cog):
         await self._react(ctx, '😢', member, convert=False)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(React(bot))

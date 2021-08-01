@@ -16,6 +16,7 @@ import datetime as dt
 import itertools
 import os
 import platform
+import random
 import sys
 import traceback
 from collections import defaultdict
@@ -171,6 +172,7 @@ class Somsiad(commands.AutoShardedBot):
     google_client: Optional[GoogleClient]
     youtube_client: Optional[YouTubeClient]
     system_channel: Optional[discord.TextChannel]
+    public_channel: Optional[discord.TextChannel]
 
     def __init__(self):
         super().__init__(
@@ -195,6 +197,8 @@ class Somsiad(commands.AutoShardedBot):
             configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
         ) if configuration.get('google_key') is not None and configuration.get('google_custom_search_engine_id') is not None else None
         self.youtube_client = YouTubeClient(configuration['google_key'], self.loop) if configuration.get('google_key') is not None else None
+        self.system_channel = None
+        self.public_channel = None
 
     async def on_ready(self):
         psutil.cpu_percent()
@@ -219,6 +223,7 @@ class Somsiad(commands.AutoShardedBot):
                     if discord_server is not None and discord_server.me is not None:
                         server.joined_at = utc_to_naive_local(discord_server.me.joined_at)
         self.system_channel = cast(Optional[discord.TextChannel], await self.fetch_channel(517422572615499777))  # magic
+        self.public_channel = cast(Optional[discord.TextChannel], await self.fetch_channel(479458695126974466))  # magic
         self.loop.create_task(self.cycle_presence())
         await self.system_notify('✅', 'Włączyłem się')
         self.print_info()
@@ -471,6 +476,9 @@ class Somsiad(commands.AutoShardedBot):
             raise e
         else:
             return messages[0] if len(messages) == 1 else messages
+
+    def get_random_emoji(self) -> str:
+        return random.choice(self.EMOJIS)
 
     def format_diagnostics(self, ctx: commands.Context) -> str:
         processing_timedelta = dt.datetime.utcnow() - ctx.message.created_at

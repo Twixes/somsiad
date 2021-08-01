@@ -18,7 +18,7 @@ from collections import defaultdict, namedtuple
 from typing import List, Optional, Sequence
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import data
 from core import Help, cooldown, has_permissions
@@ -146,6 +146,10 @@ class Birthday(commands.Cog):
     def __init__(self, bot: Somsiad):
         self.bot = bot
         self.already_notified = defaultdict(set)
+        self.notification_cycle.start()
+
+    def cog_unload(self):
+        self.notification_cycle.cancel()
 
     @staticmethod
     def _comprehend_date(date_string: str, formats: Sequence[str]) -> dt.date:
@@ -211,16 +215,18 @@ class Birthday(commands.Cog):
                 if birthday_notifier.channel_id is not None:
                     await self.send_server_birthday_notifications(birthday_notifier)
 
-    async def initiate_notification_cycle(self):
-        initiated = False
-        while True:
-            now = dt.datetime.now()
-            next_iteration = dt.datetime(now.year, now.month, now.day, *self.NOTIFICATIONS_TIME).astimezone()
-            if initiated or (now.hour, now.minute) >= self.NOTIFICATIONS_TIME:
-                next_iteration += dt.timedelta(1)
-            await discord.utils.sleep_until(next_iteration)
-            await self.send_all_birthday_today_notifications()
-            initiated = True
+    @tasks.loop(hours=24)
+    async def notification_cycle(self):
+        await self.send_all_birthday_today_notifications()
+
+    @notification_cycle.before_loop
+    async def before_notification_cycle(self):
+        now = dt.datetime.now().astimezone()
+        next_iteration_moment = dt.datetime(now.year, now.month, now.day, *self.NOTIFICATIONS_TIME).astimezone()
+        if next_iteration_moment != now:
+            if next_iteration_moment < now:
+                next_iteration_moment += dt.timedelta(1)
+            await discord.utils.sleep_until(next_iteration_moment)
 
     def _get_birthday_public_servers_presentation(
         self, born_person: BornPerson, *, on_server_id: Optional[int] = None, period: bool = True
@@ -261,10 +267,6 @@ class Birthday(commands.Cog):
                 info = f'na {servers_number_form} {names_presentation}'
         main = f'Twoja data urodzin jest w tym momencie publiczna {info}{"." if period else ""}'
         return main, extra
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.initiate_notification_cycle()
 
     @commands.group(aliases=['urodziny'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
