@@ -660,7 +660,7 @@ class Help(commands.Cog):
     def compose_command_of_the_day_embed(self) -> discord.Embed:
         today = dt.date.today()
         today_number = today.year * 10_000 + today.month * 100 + today.day # Eg. datetime 2024-07-30 is integer 20240730
-        command_help_hash = int.from_bytes(hashlib.md5(today_number.to_bytes(8, "big", signed=False)).digest(), "big", signed=False)
+        command_help_hash = int.from_bytes(hashlib.sha1(today_number.to_bytes(8, "big", signed=False)).digest(), "big", signed=False)
         command_help = self.COMMANDS[command_help_hash % len(self.COMMANDS)]
         today_name_days = NAME_DAYS[today.month][today.day]
         cotd_message = f"{today.strftime('%-d %B %Y')}. Imieniny {join_using_and(today_name_days)}."
