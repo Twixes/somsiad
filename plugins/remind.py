@@ -127,14 +127,14 @@ class Remind(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == 'execute_at':
                 notice = 'Nie podano daty i godziny/liczby minut'
-                description = 'Przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
+                description = 'Przykłady: `przypomnij 08.04.2024T16:00 Zaćmienie`, `przypomnij 5min Piekarnik`, `przypomnij 2d12h Premiera filmu`'
             elif error.param.name == 'content':
                 notice = 'Nie podano treści przypomnienia'
         elif isinstance(error, commands.BadArgument):
             error_string = str(error)
             if 'execute_at' in error_string:
                 notice = 'Nie rozpoznano poprawnej daty i godziny/liczby minut'
-                description = 'Poprawne przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
+                description = 'Przykłady: `przypomnij 08.04.2024T16:00 Zaćmienie`, `przypomnij 5min Piekarnik`, `przypomnij 2d12h Premiera filmu`'
             elif 'content' in error_string:
                 notice = 'Treść przypomnienia nie może przekraczać 50 znaków'
         if notice is not None:

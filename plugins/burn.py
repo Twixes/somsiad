@@ -128,10 +128,10 @@ class Burn(commands.Cog):
         description = None
         if isinstance(error, commands.MissingRequiredArgument):
             notice = 'Nie podano daty i godziny/liczby minut'
-            description = 'Przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
+            description = 'Przykłady: `spal 11.09.2011T13:00 Cześć!`, `spal 5min Tajna wiadomość`, `spal 2d12h`'
         elif isinstance(error, commands.BadArgument):
             notice = 'Nie rozpoznano poprawnej daty i godziny/liczby minut'
-            description = 'Poprawne przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
+            description = 'Przykłady: `spal 11.09.2011T13:00 Cześć!`, `spal 5min Tajna wiadomość`, `spal 2d12h`'
         elif isinstance(error, commands.BotMissingPermissions):
             notice = 'Bot nie ma wymaganych do tego uprawnień (zarządzanie wiadomościami)'
         if notice is not None:
