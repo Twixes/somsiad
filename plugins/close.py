@@ -63,7 +63,7 @@ class Closing:
             return (
                 message.channel == self.ctx.channel
                 and message.content.strip().strip(',./1!').lower() == 'stop'
-                and message.author.permissions_in(self.ctx.channel).manage_channels
+                and self.ctx.channel.permissions_for(message.author).manage_channels
             )
 
         try:

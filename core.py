@@ -241,7 +241,7 @@ class Essentials(Cog):
     async def no(self, ctx, member: discord.Member = None):
         """Removes the last message sent by the bot in the channel on the requesting user's request."""
         member = member or ctx.author
-        if member == ctx.author or ctx.author.permissions_in(ctx.channel).manage_messages:
+        if member == ctx.author or ctx.channel.permissions_for(ctx.author).manage_messages:
             async for message in ctx.history(limit=10):
                 if message.author == ctx.me and member in message.mentions:
                     await message.delete()

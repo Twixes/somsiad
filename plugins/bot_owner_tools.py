@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Optional
+from typing import Optional, cast
 
 import discord
 from discord.ext import commands
@@ -35,7 +35,7 @@ class BotOwnerTools(commands.Cog):
             for channel in server.channels:
                 if (
                     not isinstance(channel, discord.CategoryChannel)
-                    and server.me.permissions_in(channel).create_instant_invite
+                    and cast(discord.abc.GuildChannel, channel).permissions_for(server.me).create_instant_invite
                 ):
                     try:
                         invite = await channel.create_invite(max_uses=1)
