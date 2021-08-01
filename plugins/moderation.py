@@ -11,9 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
 import datetime as dt
-from typing import List, Optional, Union, cast
+from typing import List, Union
 from math import ceil
 
 import discord
@@ -23,7 +22,7 @@ from discord.ext import commands
 import data
 from core import cooldown, has_permissions
 from somsiad import Somsiad
-from utilities import human_datetime, interpret_str_as_datetime, text_snippet, word_number_form
+from utilities import text_snippet, word_number_form
 
 
 class Event(data.Base, data.MemberRelated, data.ChannelRelated):

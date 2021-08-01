@@ -125,14 +125,17 @@ class Burn(commands.Cog):
     @burn.error
     async def burn_error(self, ctx, error):
         notice = None
+        description = None
         if isinstance(error, commands.MissingRequiredArgument):
             notice = 'Nie podano daty i godziny/liczby minut'
+            description = 'Przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
         elif isinstance(error, commands.BadArgument):
             notice = 'Nie rozpoznano poprawnej daty i godziny/liczby minut'
+            description = 'Poprawne przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
         elif isinstance(error, commands.BotMissingPermissions):
             notice = 'Bot nie ma wymaganych do tego uprawnień (zarządzanie wiadomościami)'
         if notice is not None:
-            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice, description))
 
 
 def setup(bot: Somsiad):

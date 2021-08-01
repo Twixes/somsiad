@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from somsiad import Somsiad
 
 import discord
 from discord.ext import commands
@@ -32,7 +33,7 @@ class Reminder(data.Base, data.ChannelRelated, data.UserRelated):
 
 
 class Remind(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
         self.reminders_set_off = set()
 
@@ -122,20 +123,23 @@ class Remind(commands.Cog):
     @remind.error
     async def remind_error(self, ctx, error):
         notice = None
+        description = None
         if isinstance(error, commands.MissingRequiredArgument):
             if error.param.name == 'execute_at':
                 notice = 'Nie podano daty i godziny/liczby minut'
+                description = 'Przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
             elif error.param.name == 'content':
                 notice = 'Nie podano treści przypomnienia'
         elif isinstance(error, commands.BadArgument):
             error_string = str(error)
             if 'execute_at' in error_string:
                 notice = 'Nie rozpoznano poprawnej daty i godziny/liczby minut'
+                description = 'Poprawne przykłady: `11.09.2011T13:00`, `5min`, `2d12h`'
             elif 'content' in error_string:
                 notice = 'Treść przypomnienia nie może przekraczać 50 znaków'
         if notice is not None:
-            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
+            await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice, description))
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Remind(bot))
