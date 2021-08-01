@@ -379,6 +379,10 @@ class Moderation(commands.Cog):
                     'reaction_add', check=lambda reaction, user: not user.bot and str(reaction.emoji) in relevant_emojis
                 )
                 reaction_emoji = str(reaction.emoji)
+                try:
+                    await cast(discord.Reaction, reaction).remove(user)
+                except:
+                    pass
                 if reaction_emoji == '👈':
                     if current_page_index > 0:
                         current_page_index -= 1
@@ -388,10 +392,6 @@ class Moderation(commands.Cog):
                 else:
                     current_page_index = SPECIFIC_PAGE_EMOJIS.index(reaction_emoji)
                 await file_message.edit(embed=await generate_events_embed())
-                try:
-                    await cast(discord.Reaction, reaction).remove(user)
-                except:
-                    pass
         else:
             if search_by_non_member_id:
                 embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
