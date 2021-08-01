@@ -388,6 +388,10 @@ class Moderation(commands.Cog):
                 else:
                     current_page_index = SPECIFIC_PAGE_EMOJIS.index(reaction_emoji)
                 await file_message.edit(embed=await generate_events_embed())
+                try:
+                    await cast(discord.Reaction, reaction).remove(user)
+                except:
+                    pass
         else:
             if search_by_non_member_id:
                 embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
