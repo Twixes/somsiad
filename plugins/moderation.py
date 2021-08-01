@@ -14,6 +14,7 @@
 import asyncio
 import datetime as dt
 from typing import List, Optional, Union, cast
+from math import ceil
 
 import discord
 import psycopg2.errors
@@ -95,6 +96,8 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
 
 
 class Moderation(commands.Cog):
+    PAGE_FIELDS = 20
+
     def __init__(self, bot: Somsiad):
         self.bot = bot
 
@@ -331,37 +334,58 @@ class Moderation(commands.Cog):
                 events = events.filter(
                     Event.server_id == ctx.guild.id, Event.user_id == member_id, Event.type.in_(event_types)
                 )
-            events = events.order_by(Event.occurred_at).all()
+            events = events.order_by(Event.occurred_at.desc()).all()
             if member == ctx.author:
                 address = 'Twoja kartoteka'
             else:
                 address = f'Kartoteka {member if member else "usuniętego użytkownika"}'
         if events:
-            if event_types is None:
-                event_types_description = ''
-            elif len(event_types) == 1:
-                event_types_description = ' podanego typu'
-            elif len(event_types) > 1:
-                event_types_description = ' podanych typów'
+            current_page_index = 0
+            page_count = ceil(len(events) / self.PAGE_FIELDS)
+            event_types_description = ''
+            if event_types is not None:
+                if len(event_types) == 1:
+                    event_types_description = ' podanego typu'
+                elif len(event_types) > 1:
+                    event_types_description = ' podanych typów'
             event_number_form = word_number_form(len(events), 'zdarzenie', 'zdarzenia', 'zdarzeń')
-            embed = self.bot.generate_embed(
-                '📂',
-                f'{address} zawiera {event_number_form}{event_types_description}',
-                'Pokazuję 25 najnowszych.' if len(events) > 25 else '',
-            )
-            for event in events[-25:]:
-                embed.add_field(
-                    name=await event.get_presentation(self.bot),
-                    value=text_snippet(event.details, Event.MAX_DETAILS_LENGTH) if event.details is not None else '—',
-                    inline=False,
+
+            async def generate_events_embed() -> discord.Embed:
+                embed = self.bot.generate_embed(
+                    '📂',
+                    f'{address} zawiera {event_number_form}{event_types_description}',
                 )
+                relevant_events = events[self.PAGE_FIELDS*current_page_index:self.PAGE_FIELDS*(current_page_index+1)]
+                if page_count > 1:
+                    embed.description = f"Strona {current_page_index+1}. z {page_count}. {word_number_form(len(relevant_events), 'zdarzenie', 'zdarzenia', 'zdarzeń')} na stronie."
+                for event in events[self.PAGE_FIELDS*current_page_index:self.PAGE_FIELDS*(current_page_index+1)]:
+                    embed.add_field(
+                        name=await event.get_presentation(self.bot),
+                        value=text_snippet(event.details, Event.MAX_DETAILS_LENGTH) if event.details is not None else '—',
+                        inline=False,
+                    )
+                return embed
+
+            file_message = await self.bot.send(ctx, embed=await generate_events_embed())
+            await file_message.add_reaction('⬅️')
+            await file_message.add_reaction('➡️')
+            while True:
+                reaction, user = await self.bot.wait_for(
+                    'reaction_add', check=lambda reaction, user: str(reaction.emoji) in ('⬅️', '➡️')
+                )
+                if str(reaction.emoji) == '⬅️' and current_page_index > 0:
+                    current_page_index -= 1
+                elif str(reaction.emoji) == '➡️' and current_page_index < page_count - 1:
+                    current_page_index += 1
+                await file_message.edit(embed=await generate_events_embed())
         else:
             if search_by_non_member_id:
                 embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             else:
                 notice = 'jest pusta' if event_types is None else 'nie zawiera zdarzeń podanego typu'
                 embed = self.bot.generate_embed('📂', f'{address} {notice}')
-        await self.bot.send(ctx, embed=embed)
+
+            await self.bot.send(ctx, embed=embed)
 
     @file.error
     async def file_error(self, ctx, error):
