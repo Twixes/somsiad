@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
-from typing import List, Union
+from typing import List, Union, cast
 from math import ceil
 
 import discord
@@ -24,6 +24,7 @@ from core import cooldown, has_permissions
 from somsiad import Somsiad
 from utilities import text_snippet, word_number_form
 
+SPECIFIC_PAGE_EMOJIS = ['1⃣', '2⃣','3⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣','9️⃣']
 
 class Event(data.Base, data.MemberRelated, data.ChannelRelated):
     MAX_DETAILS_LENGTH = 1000
@@ -356,26 +357,36 @@ class Moderation(commands.Cog):
                 )
                 relevant_events = events[self.PAGE_FIELDS*current_page_index:self.PAGE_FIELDS*(current_page_index+1)]
                 if page_count > 1:
-                    embed.description = f"Strona {current_page_index+1}. z {page_count}. {word_number_form(len(relevant_events), 'zdarzenie', 'zdarzenia', 'zdarzeń')} na stronie."
-                for event in events[self.PAGE_FIELDS*current_page_index:self.PAGE_FIELDS*(current_page_index+1)]:
+                    embed.description = f"Strona {current_page_index+1}. z {page_count}. Do {self.PAGE_FIELDS} zdarzeń na stronę."
+                for event_offset, event in enumerate(relevant_events, self.PAGE_FIELDS*current_page_index):
                     embed.add_field(
-                        name=await event.get_presentation(self.bot),
+                        name=f"{len(events)-event_offset}. {await event.get_presentation(self.bot)}",
                         value=text_snippet(event.details, Event.MAX_DETAILS_LENGTH) if event.details is not None else '—',
                         inline=False,
                     )
                 return embed
 
-            file_message = await self.bot.send(ctx, embed=await generate_events_embed())
-            await file_message.add_reaction('⬅️')
-            await file_message.add_reaction('➡️')
+            file_message = cast(discord.Message, await self.bot.send(ctx, embed=await generate_events_embed()))
+            relevant_emojis = ['👈', '👉']
+            await file_message.add_reaction('👈')
+            if page_count > 2:
+                for specific_page_emoji in SPECIFIC_PAGE_EMOJIS[:page_count]:
+                    await file_message.add_reaction(specific_page_emoji)
+                    relevant_emojis.append(specific_page_emoji)
+            await file_message.add_reaction('👉')
             while True:
                 reaction, user = await self.bot.wait_for(
-                    'reaction_add', check=lambda reaction, user: str(reaction.emoji) in ('⬅️', '➡️')
+                    'reaction_add', check=lambda reaction, user: not user.bot and str(reaction.emoji) in relevant_emojis
                 )
-                if str(reaction.emoji) == '⬅️' and current_page_index > 0:
-                    current_page_index -= 1
-                elif str(reaction.emoji) == '➡️' and current_page_index < page_count - 1:
-                    current_page_index += 1
+                reaction_emoji = str(reaction.emoji)
+                if reaction_emoji == '👈':
+                    if current_page_index > 0:
+                        current_page_index -= 1
+                elif reaction_emoji == '👉':
+                    if current_page_index < page_count - 1:
+                        current_page_index += 1
+                else:
+                    current_page_index = SPECIFIC_PAGE_EMOJIS.index(reaction_emoji)
                 await file_message.edit(embed=await generate_events_embed())
         else:
             if search_by_non_member_id:
