@@ -663,14 +663,14 @@ class Help(commands.Cog):
         command_help_hash = int.from_bytes(hashlib.sha1(today_number.to_bytes(8, "big", signed=False)).digest(), "big", signed=False)
         command_help = self.COMMANDS[command_help_hash % len(self.COMMANDS)]
         today_name_days = NAME_DAYS[today.month][today.day]
-        cotd_message = f"{today.strftime('%-d %B %Y')}. Imieniny {join_using_and(today_name_days)}."
+        trade_sunday_info = ''
         if today.weekday() == 6:
-            is_today_sunday_trade = determine_nearest_trade_sunday_after_date() == today
-            cotd_message += " Niedziela handlowa." if is_today_sunday_trade else " Niedziela bez handlu."
+            is_todays_sunday_trade = determine_nearest_trade_sunday_after_date(today) == today
+            trade_sunday_info = " (handlowa)" if is_todays_sunday_trade else " (bez handlu)"
         embed = self.bot.generate_embed(
             command_help.emoji,
             f"Komenda dnia: {command_help.name}",
-            cotd_message
+            f"{today.strftime(f'%A{trade_sunday_info}, %-d %B %Y').capitalize()}. Imieniny {join_using_and(today_name_days)}."
         )
         embed.add_field(name=str(command_help), value=command_help.description, inline=False)
         return embed
