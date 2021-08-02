@@ -22,7 +22,7 @@ import discord
 import hashlib
 from somsiad import Somsiad
 
-COTD_TIME = (14, 00)
+COTD_TIME = (12, 00)
 
 NAME_DAYS = {1: {1: ['Mieszka', 'Mieczysława', 'Marii'],
      2: ['Izydora', 'Bazylego', 'Grzegorza'],
