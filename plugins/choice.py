@@ -13,13 +13,14 @@
 
 import datetime as dt
 import hashlib
+from somsiad import SomsiadMixin
 
 from discord.ext import commands
 
 from core import cooldown
 
 
-class Choice(commands.Cog):
+class Choice(commands.Cog, SomsiadMixin):
     CATEGORIES_POOL = ['definitive'] * 24 + ['enigmatic']  # 96% one option, 4% unknown
     ANSWERS = {
         'definitive': [
@@ -48,9 +49,6 @@ class Choice(commands.Cog):
             'Nie.',
         ],
     }
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     @commands.command(aliases=['choose', 'wybierz'])
     @cooldown()

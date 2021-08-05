@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import io
+from somsiad import SomsiadMixin
 import time
 from typing import BinaryIO, Optional, Tuple
 
@@ -49,13 +50,10 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
         return ' '.join(parts)
 
 
-class Imaging(commands.Cog):
+class Imaging(commands.Cog, SomsiadMixin):
     ExtractedImage = Tuple[Optional[discord.Attachment], Optional[BinaryIO]]
 
     IMAGE9000_SIMILARITY_TRESHOLD = 0.8
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):

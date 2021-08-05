@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from difflib import SequenceMatcher
+from somsiad import SomsiadMixin
 from sentry_sdk import capture_exception
 import aiohttp
 from discord.ext import commands
@@ -20,13 +21,10 @@ from configuration import configuration
 from core import cooldown
 
 
-class LastFM(commands.Cog):
+class LastFM(commands.Cog, SomsiadMixin):
     FOOTER_TEXT = 'Last.fm'
     FOOTER_ICON_URL = 'https://www.last.fm/static/images/lastfm_avatar_twitter.png'
     API_URL = 'https://ws.audioscrobbler.com/2.0/'
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     async def get_user_info(self, user: str):
         params = {'api_key': configuration['last_fm_key'], 'format': 'json', 'method': 'user.getInfo', 'user': user}

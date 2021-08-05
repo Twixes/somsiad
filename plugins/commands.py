@@ -11,7 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from core import Invocation
 import datetime as dt
+from somsiad import SomsiadMixin
 
 import psycopg2
 from discord.ext import commands
@@ -20,22 +22,7 @@ import data
 from utilities import text_snippet, utc_to_naive_local
 
 
-class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
-    MAX_ERROR_LENGTH = 300
-
-    message_id = data.Column(data.BigInteger, primary_key=True)
-    prefix = data.Column(data.String(max(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=False)
-    full_command = data.Column(data.String(100), nullable=False, index=True)
-    root_command = data.Column(data.String(100), nullable=False, index=True)
-    created_at = data.Column(data.DateTime, nullable=False)
-    exited_at = data.Column(data.DateTime)
-    error = data.Column(data.String(MAX_ERROR_LENGTH))
-
-
-class Commands(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class Commands(commands.Cog, SomsiadMixin):
     @commands.Cog.listener()
     async def on_command(self, ctx: commands.Context):
         with data.session(commit=True) as session:

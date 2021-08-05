@@ -21,11 +21,11 @@ import discord
 from discord.ext import commands
 
 from core import Help, cooldown
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from utilities import word_number_form
 
 
-class Colors(commands.Cog):
+class Colors(commands.Cog, SomsiadMixin):
     GROUP = Help.Command(
         ('kolory', 'kolor', 'kolorki', 'kolorek'),
         (),
@@ -45,9 +45,6 @@ class Colors(commands.Cog):
     )
     HELP = Help(COMMANDS, '🎨', group=GROUP)
     GRAY = 0xCDD7DE
-
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
 
     @commands.group(
         invoke_without_command=True, case_insensitive=True, aliases=['kolory', 'kolor', 'kolorki', 'kolorek']

@@ -49,7 +49,9 @@ from utilities import GoogleClient, YouTubeClient, localize, utc_to_naive_local,
 from version import __copyright__, __version__
 
 
-class Cog(commands.Cog):
+class SomsiadMixin:
+    bot: "Somsiad"
+
     def __init__(self, bot: "Somsiad"):
         self.bot = bot
 
@@ -261,7 +263,7 @@ class Somsiad(commands.AutoShardedBot):
     async def on_guild_join(self, server):
         data.Server.register(server)
 
-    def load_and_run(self, cogs: Optional[Sequence[Type[Cog]]] = None):
+    def load_and_run(self, cogs: Optional[Sequence[Type[commands.Cog]]] = None):
         print('Ładowanie rozszerzeń...')
         if cogs:
             for cog in cogs:

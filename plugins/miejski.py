@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from somsiad import SomsiadMixin
 import urllib.parse
 
 from bs4 import BeautifulSoup
@@ -20,12 +21,9 @@ from discord.ext import commands
 from core import cooldown
 
 
-class Miejski(commands.Cog):
+class Miejski(commands.Cog, SomsiadMixin):
     FOOTER_TEXT = 'Miejski'
     API_URL = 'https://api.urbandictionary.com/v0/define'
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     @commands.command()
     @cooldown()

@@ -11,16 +11,14 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 from typing import Optional, cast
 
 import discord
 from discord.ext import commands
 
 
-class BotOwnerTools(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class BotOwnerTools(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['wejdź', 'wejdz'])
     @commands.is_owner()
     async def enter(self, ctx, *, server_name_or_id):

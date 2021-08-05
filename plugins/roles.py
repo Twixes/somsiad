@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from collections import Counter
+from somsiad import SomsiadMixin
 
 from discord.ext import commands
 
@@ -19,10 +20,7 @@ from core import cooldown
 from utilities import text_snippet, word_number_form
 
 
-class Roles(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class Roles(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['role'])
     @cooldown()
     @commands.guild_only()

@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from somsiad import SomsiadMixin
 
 from discord.ext import commands
 
@@ -77,10 +78,7 @@ class SchoolPeriod:
         return date
 
 
-class School(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class School(commands.Cog, SomsiadMixin):
     @commands.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
     async def how_much_longer(self, ctx):

@@ -42,7 +42,7 @@ from discord.ext import commands
 import data
 from configuration import configuration
 from core import Help, cooldown
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from utilities import human_datetime, md_link, rolling_average, utc_to_naive_local, word_number_form
 
 
@@ -64,11 +64,7 @@ class MaterializedMessageMetadata(MessageMetadata):
     date: str
 
 
-class MetadataCache:
-    bot: Somsiad
-
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
+class MetadataCache(SomsiadMixin):
 
     async def prepare(self):
         await self.bot.ch_client.execute(

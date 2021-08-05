@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from somsiad import SomsiadMixin
 import urllib.parse
 
 import discord
@@ -20,10 +21,7 @@ from discord.ext import commands
 from core import cooldown
 
 
-class Reddit(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class Reddit(commands.Cog, SomsiadMixin):
     async def fetch_subreddit_and_generate_embed(self, subreddit_name: str, is_nfsw_acceptable: bool) -> discord.Embed:
         url = f'https://www.reddit.com/r/{urllib.parse.quote_plus(subreddit_name)}'
         response = None

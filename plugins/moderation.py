@@ -21,7 +21,7 @@ from discord.ext import commands
 
 import data
 from core import cooldown, has_permissions
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from utilities import text_snippet, word_number_form
 
 SPECIFIC_PAGE_EMOJIS = ['1⃣', '2⃣','3⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣','9️⃣']
@@ -95,11 +95,8 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
         return types
 
 
-class Moderation(commands.Cog):
+class Moderation(commands.Cog, SomsiadMixin):
     PAGE_FIELDS = 20
-
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):

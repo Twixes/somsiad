@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 import aiohttp
 from discord.ext import commands
 
@@ -18,7 +19,7 @@ from core import cooldown
 from utilities import first_url, md_link
 
 
-class IsItUp(commands.Cog):
+class IsItUp(commands.Cog, SomsiadMixin):
     HTTP_CODE_WIKIPEDIA_URLS = {
         1: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_informacyjne',
         2: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_powodzenia',
@@ -26,9 +27,6 @@ class IsItUp(commands.Cog):
         4: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_aplikacji_klienta',
         5: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_serwera_HTTP',
     }
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     @commands.command(aliases=('isup', 'czydziała', 'czydziala'))
     @cooldown()

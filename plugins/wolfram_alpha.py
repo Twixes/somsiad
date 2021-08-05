@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 from typing import Optional
 
 import aiohttp
@@ -20,14 +21,11 @@ from configuration import configuration
 from core import cooldown
 
 
-class WolframAlpha(commands.Cog):
+class WolframAlpha(commands.Cog, SomsiadMixin):
     FOOTER_TEXT = 'Wolfram Alpha'
     FOOTER_ICON_URL = 'https://cdn.iconscout.com/icon/free/png-512/wolfram-alpha-2-569293.png'
     API_URL = 'https://api.wolframalpha.com/v2/query'
     API_PARAMS = {'appid': configuration['wolfram_alpha_app_id'], 'output': 'json'}
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     async def fetch_pods(self, query: str) -> Optional[dict]:
         try:

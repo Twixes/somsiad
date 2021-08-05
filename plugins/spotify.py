@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from difflib import SequenceMatcher
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from typing import cast
 from sentry_sdk import capture_exception
 import discord
@@ -22,15 +22,12 @@ from core import cooldown
 from utilities import human_amount_of_time
 
 
-class Spotify(commands.Cog):
+class Spotify(commands.Cog, SomsiadMixin):
     FOOTER_TEXT = 'Spotify'
     FOOTER_ICON_URL = (
         'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/'
         'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
     )
-
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
 
     @commands.command()
     @cooldown()

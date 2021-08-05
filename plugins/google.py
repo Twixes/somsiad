@@ -15,11 +15,11 @@ from discord.ext import commands
 from googleapiclient.errors import HttpError
 
 from core import cooldown
-from somsiad import Cog, Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from utilities import HttpError
 
 
-class Google(Cog):
+class Google(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['g', 'gugiel'])
     @cooldown()
     @commands.guild_only()

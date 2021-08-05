@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 from typing import Dict, List, Optional
 
 from defusedxml import ElementTree
@@ -20,13 +21,10 @@ from configuration import configuration
 from core import cooldown
 
 
-class Goodreads(commands.Cog):
+class Goodreads(commands.Cog, SomsiadMixin):
     API_SEARCH_URL = 'https://www.goodreads.com/search/index.xml'
     FOOTER_TEXT = 'goodreads'
     FOOTER_ICON_URL = 'https://www.goodreads.com/favicon.ico'
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     def resource_url(self, resource_type: str, resource_id: str) -> str:
         return f'https://www.goodreads.com/{resource_type}/show/{resource_id}'

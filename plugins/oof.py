@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 import discord
 from discord.ext import commands
 
@@ -23,10 +24,7 @@ class Oofer(data.Base, data.MemberSpecific):
     oofs = data.Column(data.Integer, nullable=False, default=1)
 
 
-class Oof(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class Oof(commands.Cog, SomsiadMixin):
     @commands.group(invoke_without_command=True, case_insensitive=True)
     @cooldown()
     @commands.guild_only()

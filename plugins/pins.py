@@ -19,7 +19,7 @@ from discord.ext import commands
 
 import data
 from core import Help, cooldown, has_permissions
-from somsiad import Cog, Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from utilities import first_url, word_number_form
 
 channel_being_processed_for_servers = {}
@@ -73,7 +73,7 @@ class PinArchive(data.ServerSpecific, data.ChannelRelated, data.Base):
             await archive_channel.send(embed=pin_embed)
 
 
-class Pins(Cog):
+class Pins(commands.Cog, SomsiadMixin):
     GROUP = Help.Command(
         ('przypięte', 'przypinki', 'piny'), (), 'Komendy związane z archiwizacją przypiętych wiadomości.'
     )

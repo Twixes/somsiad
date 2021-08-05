@@ -11,17 +11,14 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from discord.ext import commands
 
 from core import cooldown
 from utilities import HttpError
 
 
-class YouTube(commands.Cog):
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
-
+class YouTube(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['youtube', 'yt', 'tuba'])
     @cooldown()
     @commands.guild_only()

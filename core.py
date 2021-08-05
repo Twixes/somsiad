@@ -18,14 +18,25 @@ from typing import List, Optional, Sequence, Union
 
 import discord
 from discord.ext import commands, tasks
+from sqlalchemy.sql import functions
 
 import data
 from cache import redis_connection
 from configuration import configuration
-from somsiad import Cog, Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from utilities import human_amount_of_time, word_number_form
 from version import __copyright__, __version__
 
+class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
+    MAX_ERROR_LENGTH = 300
+
+    message_id = data.Column(data.BigInteger, primary_key=True)
+    prefix = data.Column(data.String(max(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=False)
+    full_command = data.Column(data.String(100), nullable=False, index=True)
+    root_command = data.Column(data.String(100), nullable=False, index=True)
+    created_at = data.Column(data.DateTime, nullable=False)
+    exited_at = data.Column(data.DateTime)
+    error = data.Column(data.String(MAX_ERROR_LENGTH))
 
 def cooldown(
     rate: int = 1,
@@ -152,7 +163,7 @@ class Help:
             self.embeds[-1].set_footer(text=footer_text, icon_url=footer_icon_url)  # type: ignore
 
 
-class Essentials(Cog):
+class Essentials(commands.Cog, SomsiadMixin):
     @commands.Cog.listener()
     async def on_ready(self):
         self.heartbeat.start()
@@ -215,6 +226,7 @@ class Essentials(Cog):
         embed = self.bot.generate_embed(emoji, notice, url=self.bot.WEBSITE_URL)
         embed.add_field(name='Liczba serwerów', value=f'{server_count:n}')
         embed.add_field(name='Liczba użytkowników', value=f'{user_count:n}')
+        embed.add_field(name='Liczba aktywnych użytkowników miesięcznie', value=f'{mau_count:n}')
         embed.add_field(name='Liczba shardów', value=f'{shard_count:n}')
         embed.add_field(name='Czas pracy', value=runtime)
         embed.add_field(name='Właściciel instancji', value=instance_owner)
@@ -292,7 +304,7 @@ class Essentials(Cog):
         1 / 0
 
 
-class Prefix(Cog):
+class Prefix(commands.Cog, SomsiadMixin):
     GROUP = Help.Command(
         ('prefiks', 'prefix', 'przedrostek'), (), 'Komendy związane z własnymi serwerowymi prefiksami komend.'
     )

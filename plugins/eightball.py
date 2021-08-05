@@ -14,13 +14,14 @@
 import datetime as dt
 import hashlib
 import random
+from somsiad import SomsiadMixin
 
 from discord.ext import commands
 
 from core import cooldown
 
 
-class Eightball(commands.Cog):
+class Eightball(commands.Cog, SomsiadMixin):
     CATEGORIES_POOL = ['affirmative'] * 7 + ['negative'] * 7 + ['enigmatic'] * 1
     ANSWERS = {
         'affirmative': [
@@ -70,9 +71,6 @@ class Eightball(commands.Cog):
             'Uwierz mi, tej odpowiedzi nie chcesz znać.',
         ],
     }
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     def ask(self, stripped_question: str) -> str:
         question_hash = hashlib.md5(stripped_question.encode())

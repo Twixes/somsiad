@@ -27,6 +27,8 @@ services:
             - '6379:6379'
     bot:
         build: .
+        volumes:
+            - ./:/code/
         restart: on-failure
         stop_grace_period: 20s
         depends_on:

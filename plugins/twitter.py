@@ -20,7 +20,7 @@ import discord
 from discord.ext import commands
 
 from configuration import configuration
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 
 from .reactions import React
 
@@ -32,12 +32,8 @@ class Tweet:
     attachments: Dict[str, Any] = field(default_factory=dict)
 
 
-class Twitter(commands.Cog):
+class Twitter(commands.Cog, SomsiadMixin):
     TWEET_URL_REGEX = re.compile(r'https?:\/\/(?:(?:m|www)\.)?twitter\.com\/\w+\/status\/(\d+)\b', flags=re.IGNORECASE)
-
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
-
 
     async def fetch_tweet_with_attachments(self, tweet_id: str) -> Optional[Tweet]:
         url = f"https://api.twitter.com/2/tweets?ids={tweet_id}&tweet.fields=attachments"

@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from somsiad import SomsiadMixin
 import urllib.parse
 
 from discord.ext import commands
@@ -20,12 +21,9 @@ from core import cooldown
 from utilities import text_snippet
 
 
-class UrbanDictionary(commands.Cog):
+class UrbanDictionary(commands.Cog, SomsiadMixin):
     FOOTER_TEXT = 'Urban Dictionary'
     API_URL = 'https://api.urbandictionary.com/v0/define'
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     def expand_links(self, string: str) -> str:
         current_link = ''

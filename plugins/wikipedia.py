@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 import aiohttp
 import discord
 from discord.ext import commands
@@ -19,7 +20,7 @@ from core import cooldown
 from utilities import text_snippet
 
 
-class Wikipedia(commands.Cog):
+class Wikipedia(commands.Cog, SomsiadMixin):
     """Handles Wikipedia search."""
 
     FOOTER_TEXT = 'Wikipedia'
@@ -41,9 +42,6 @@ class Wikipedia(commands.Cog):
 
         def __str__(self):
             return self.title
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     @staticmethod
     def link(language: str, path: str) -> str:

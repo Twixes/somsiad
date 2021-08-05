@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from somsiad import SomsiadMixin
 from typing import Optional
 
 import discord
@@ -22,7 +23,7 @@ from core import Help, cooldown
 from utilities import calculate_age, human_amount_of_time, text_snippet, word_number_form
 
 
-class TMDb(commands.Cog):
+class TMDb(commands.Cog, SomsiadMixin):
     GROUP = Help.Command(
         'tmdb',
         (),
@@ -59,9 +60,6 @@ class TMDb(commands.Cog):
         'Visual Effects': '🎇',
         'Writing': '🖋',
     }
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     async def fetch_result_and_generate_embed(self, query: str, media_type: Optional[str] = None) -> discord.Embed:
         params = {'api_key': configuration['tmdb_key'], 'query': query, 'language': 'pl-PL', 'region': 'PL'}

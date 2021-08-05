@@ -20,7 +20,7 @@ from typing import Optional, Union
 from discord.ext import commands
 
 from core import cooldown, has_permissions
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from utilities import human_amount_of_time, interpret_str_as_datetime
 
 
@@ -108,10 +108,7 @@ class Closing:
         return step_index
 
 
-class Close(commands.Cog):
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
-
+class Close(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['zamknij'])
     @cooldown()
     @commands.guild_only()

@@ -11,16 +11,14 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 import discord
 from discord.ext import commands
 
 from core import cooldown
 
 
-class Rimshot(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class Rimshot(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['badum', 'badumtss'])
     @cooldown()
     async def rimshot(self, ctx):

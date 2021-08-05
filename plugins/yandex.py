@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from somsiad import SomsiadMixin
 from typing import Optional
 
 import aiohttp
@@ -21,15 +22,12 @@ from configuration import configuration
 from core import cooldown
 
 
-class Yandex(commands.Cog):
+class Yandex(commands.Cog, SomsiadMixin):
     """Handles Yandex stuff."""
 
     FOOTER_TEXT = 'Yandex'
     FOOTER_ICON_URL = 'https://tech.yandex.com/favicon_en.ico'
     TRANSLATE_API_URL = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
-
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
 
     async def fetch_translation(
         self, text: str, target_language_code: str, source_language_code: str = None

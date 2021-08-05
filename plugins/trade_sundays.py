@@ -17,7 +17,7 @@ from typing import List, Optional
 from discord.ext import commands
 
 from core import Help, cooldown
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 
 ONE_WEEK = dt.timedelta(7)
 
@@ -233,7 +233,7 @@ def determine_nearest_trade_sunday_after_date(date: dt.date = None) -> dt.date:
             year += 1
             month = 1
 
-class TradeSundays(commands.Cog):
+class TradeSundays(commands.Cog, SomsiadMixin):
     GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Komendy związane z niedzielami handlowymi.')
     COMMANDS = (
         Help.Command(
@@ -250,9 +250,6 @@ class TradeSundays(commands.Cog):
         ),
     )
     HELP = Help(COMMANDS, '🛒', group=GROUP)
-
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
 
     @commands.group(
         aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'],

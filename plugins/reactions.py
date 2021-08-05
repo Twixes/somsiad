@@ -13,7 +13,7 @@
 
 import itertools
 import re
-from somsiad import Somsiad
+from somsiad import Somsiad, SomsiadMixin
 from typing import Optional, Tuple, Union
 
 import discord
@@ -22,7 +22,7 @@ from discord.ext import commands
 from core import cooldown
 
 
-class React(commands.Cog):
+class React(commands.Cog, SomsiadMixin):
     """Handles reacting to messages."""
 
     DIACRITIC_CONVERSIONS = {
@@ -98,9 +98,6 @@ class React(commands.Cog):
         {'abcd': '🔠🔡', 'cool': '🆒', 'free': '🆓', '1234': '🔢'},
     ]
     CUSTOM_EMOJI_REGEX = re.compile(r'<:\S+?:(\d+)>')
-
-    def __init__(self, bot: Somsiad):
-        self.bot = bot
 
     def _convert_string(
         self, string: str, message: discord.Message, server: discord.Guild

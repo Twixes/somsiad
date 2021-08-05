@@ -12,16 +12,14 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import random
+from somsiad import SomsiadMixin
 
 from discord.ext import commands
 
 from core import cooldown
 
 
-class Dice(commands.Cog):
-    def __init__(self, bot: commands.Bot):
-        self.bot = bot
-
+class Dice(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['roll', 'rzuć', 'rzuc'])
     @cooldown()
     async def roll_dice(self, ctx, *, arguments=''):
