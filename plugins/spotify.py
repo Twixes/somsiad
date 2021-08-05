@@ -34,9 +34,10 @@ class Spotify(commands.Cog, SomsiadMixin):
     @commands.guild_only()
     async def spotify(self, ctx, member: discord.Member = None):
         member = member or ctx.author
-        spotify_activity = cast(discord.Spotify, discord.utils.find(
-            lambda activity: isinstance(activity, discord.Spotify), member.activities
-        ))
+        spotify_activity = cast(
+            discord.Spotify,
+            discord.utils.find(lambda activity: isinstance(activity, discord.Spotify), member.activities),
+        )
         if spotify_activity is None:
             address = 'nie słuchasz' if member == ctx.author else f'{member.display_name} nie słucha'
             embed = self.bot.generate_embed('⏹', f'W tym momencie {address} niczego na Spotify')

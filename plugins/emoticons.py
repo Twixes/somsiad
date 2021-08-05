@@ -18,7 +18,6 @@ from core import cooldown
 
 
 class Emoticons(commands.Cog, SomsiadMixin):
-
     @commands.command(aliases=['lenny'])
     @cooldown()
     async def lennyface(self, ctx):

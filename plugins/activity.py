@@ -65,7 +65,6 @@ class MaterializedMessageMetadata(MessageMetadata):
 
 
 class MetadataCache(SomsiadMixin):
-
     async def prepare(self):
         await self.bot.ch_client.execute(
             '''

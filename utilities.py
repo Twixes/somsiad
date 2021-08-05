@@ -229,12 +229,14 @@ def word_number_form(
     parts.append(proper_form)
     return ' '.join(parts)
 
+
 def join_using_and(elements: Sequence[str]) -> str:
     if not elements:
         return "brak"
     if len(elements) == 1:
         return elements[0]
     return ", ".join(elements[:-1]) + " i " + elements[-1]
+
 
 def utc_to_naive_local(datetime: dt.datetime) -> dt.datetime:
     if datetime.tzinfo == dt.timezone.utc:

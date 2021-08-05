@@ -23,6 +23,7 @@ from discord.ext import commands
 
 from core import cooldown
 
+
 class Eightball(commands.Cog, SomsiadMixin):
     CATEGORIES_POOL = ['affirmative'] * 7 + ['negative'] * 7 + ['enigmatic'] * 1
     ANSWERS = {
@@ -89,7 +90,9 @@ class Eightball(commands.Cog, SomsiadMixin):
 
     @commands.command(aliases=['8ball', '8-ball', '8', 'czy'])
     @cooldown()
-    async def eightball(self, ctx: commands.Context, *, question: commands.clean_content(fix_channel_mentions=True) = ''):
+    async def eightball(
+        self, ctx: commands.Context, *, question: commands.clean_content(fix_channel_mentions=True) = ''
+    ):
         """Returns an 8-Ball answer."""
         stripped_question = question.strip('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?‽').lower()
         if stripped_question:
@@ -121,7 +124,6 @@ class Eightball(commands.Cog, SomsiadMixin):
             new_text = f'🎱 {random.choice(self.ANSWERS[new_category])}'
             await message.edit(content=new_text)
             break
-
 
 
 def setup(bot: commands.Bot):

@@ -168,13 +168,9 @@ class Disco(commands.Cog):
             title = video.title
             watch_url = video.watch_url
         except HTTPError:
-            embed = self.bot.generate_embed(
-                '⚠️', 'Materiał niedostępny'
-            )
+            embed = self.bot.generate_embed('⚠️', 'Materiał niedostępny')
         else:
-            embed = self.bot.generate_embed(
-                emoji, f'{title} – {notice}' if notice else title, url=watch_url
-            )
+            embed = self.bot.generate_embed(emoji, f'{title} – {notice}' if notice else title, url=watch_url)
             embed.set_author(name=video.author)
             embed.set_thumbnail(url=video.thumbnail_url)
             embed.add_field(name='Długość', value=human_amount_of_time(int(video.length)))

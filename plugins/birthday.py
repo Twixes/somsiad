@@ -448,7 +448,7 @@ class Birthday(commands.Cog):
                 )
                 born_persons_filtered_sorted = sorted(
                     (person for person in born_persons if person.birthday),
-                    key=lambda person: person.birthday.strftime('%m-%d-%Y')
+                    key=lambda person: person.birthday.strftime('%m-%d-%Y'),
                 )
                 for born_person in born_persons_filtered_sorted:
                     user = born_person.discord_user(bot=ctx.bot)

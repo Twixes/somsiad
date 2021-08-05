@@ -195,10 +195,17 @@ class Somsiad(commands.AutoShardedBot):
         self.ready_datetime = None
         self.session = None
         self.ch_client = None
-        self.google_client = GoogleClient(
-            configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop
-        ) if configuration.get('google_key') is not None and configuration.get('google_custom_search_engine_id') is not None else None
-        self.youtube_client = YouTubeClient(configuration['google_key'], self.loop) if configuration.get('google_key') is not None else None
+        self.google_client = (
+            GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop)
+            if configuration.get('google_key') is not None
+            and configuration.get('google_custom_search_engine_id') is not None
+            else None
+        )
+        self.youtube_client = (
+            YouTubeClient(configuration['google_key'], self.loop)
+            if configuration.get('google_key') is not None
+            else None
+        )
         self.system_channel = None
         self.public_channel = None
 

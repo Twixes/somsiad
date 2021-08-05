@@ -27,6 +27,7 @@ from somsiad import Somsiad, SomsiadMixin
 from utilities import human_amount_of_time, word_number_form
 from version import __copyright__, __version__
 
+
 class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
     MAX_ERROR_LENGTH = 300
 
@@ -37,6 +38,7 @@ class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
     created_at = data.Column(data.DateTime, nullable=False)
     exited_at = data.Column(data.DateTime)
     error = data.Column(data.String(MAX_ERROR_LENGTH))
+
 
 def cooldown(
     rate: int = 1,
@@ -83,7 +85,14 @@ class Help:
         _emoji: Optional[str]
         _examples: Optional[List[str]]
 
-        def __init__(self, aliases: Union[Sequence[str], str], arguments: Union[Sequence[str], str], description: str, emoji:  Optional[str] = None, examples: Optional[List[str]] = None):
+        def __init__(
+            self,
+            aliases: Union[Sequence[str], str],
+            arguments: Union[Sequence[str], str],
+            description: str,
+            emoji: Optional[str] = None,
+            examples: Optional[List[str]] = None,
+        ):
             self._aliases = (aliases,) if isinstance(aliases, str) else aliases
             self._arguments = (arguments,) if isinstance(arguments, str) else arguments
             self._description = description
@@ -218,7 +227,11 @@ class Essentials(commands.Cog, SomsiadMixin):
             user_count = self.bot.user_count
             with data.session() as session:
                 thirty_days_ago = dt.datetime.now() - dt.timedelta(30)
-                mau_count = session.query(functions.count(Invocation.user_id.distinct())).filter(Invocation.created_at > thirty_days_ago).scalar()
+                mau_count = (
+                    session.query(functions.count(Invocation.user_id.distinct()))
+                    .filter(Invocation.created_at > thirty_days_ago)
+                    .scalar()
+                )
             shard_count = self.bot.shard_count or 1
             runtime = (
                 'nieznany'

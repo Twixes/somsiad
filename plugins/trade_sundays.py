@@ -39,6 +39,7 @@ def determine_easter_date(year: int) -> dt.date:
     p = (h + l - 7 * m + 33 * n + 19) % 32
     return dt.date(year, n, p)
 
+
 def determine_possible_sunday_holiday_dates(year: int) -> List[dt.date]:
     if not isinstance(year, int):
         raise TypeError('year must be an int')
@@ -65,6 +66,7 @@ def determine_possible_sunday_holiday_dates(year: int) -> List[dt.date]:
     possible_sunday_holiday_dates.append(pentecost_date)
     return possible_sunday_holiday_dates
 
+
 def determine_special_trade_sunday_dates(year: int) -> List[dt.date]:
     special_trade_sunday_dates = [
         determine_nearest_sunday_before_date(determine_easter_date(year)),  # week before Easter
@@ -75,6 +77,7 @@ def determine_special_trade_sunday_dates(year: int) -> List[dt.date]:
         special_trade_sunday_dates.append(dt.date(2020, 12, 6))  # 2020 exclusive, 3rd Sunday before Christmas
     return special_trade_sunday_dates
 
+
 def determine_nearest_sunday_before_date(date: dt.date = None) -> dt.date:
     """Return any nearest Sunday before the specified date."""
     if date is not None and not isinstance(date, dt.date):
@@ -82,12 +85,14 @@ def determine_nearest_sunday_before_date(date: dt.date = None) -> dt.date:
     date = date or dt.date.today()
     return date - dt.timedelta(date.isoweekday())
 
+
 def determine_nearest_sunday_after_date(date: dt.date = None) -> dt.date:
     """Return any nearest Sunday after the specified date, or the specified date if it is a Sunday."""
     if date is not None and not isinstance(date, dt.date):
         raise TypeError('date must be None or a datetime.date')
     date = date or dt.date.today()
     return date + dt.timedelta(7 - date.isoweekday())
+
 
 def _determine_trade_sunday_dates_before_2018(
     possible_sunday_holiday_dates: List[dt.date], year: int, month: Optional[int]
@@ -106,6 +111,7 @@ def _determine_trade_sunday_dates_before_2018(
                 trade_sundays.append(current_sunday_date)
             current_sunday_date += ONE_WEEK
     return trade_sundays
+
 
 def _determine_trade_sunday_dates_2018(
     exceptions: List[dt.date], possible_sunday_holiday_dates: List[dt.date], year: int, month: Optional[int]
@@ -144,9 +150,8 @@ def _determine_trade_sunday_dates_2018(
                 trade_sundays.append(last_sunday_of_month)
     return trade_sundays
 
-def _determine_trade_sunday_dates_2019(
-    exceptions: List[dt.date], year: int, month: Optional[int]
-) -> List[dt.date]:
+
+def _determine_trade_sunday_dates_2019(exceptions: List[dt.date], year: int, month: Optional[int]) -> List[dt.date]:
     trade_sundays = []
     if month is not None:
         last_sunday_of_month = determine_nearest_sunday_before_date(
@@ -162,6 +167,7 @@ def _determine_trade_sunday_dates_2019(
             if last_sunday_of_month not in exceptions:
                 trade_sundays.append(last_sunday_of_month)
     return trade_sundays
+
 
 def _determine_trade_sunday_dates_after_2019(
     exceptions: List[dt.date], year: int, month: Optional[int]
@@ -183,6 +189,7 @@ def _determine_trade_sunday_dates_after_2019(
                 trade_sundays.append(last_sunday_of_month)
     return trade_sundays
 
+
 def determine_trade_sunday_dates(year: int, month: int = None) -> List[dt.date]:
     if not isinstance(year, int):
         raise TypeError('year must be an int')
@@ -200,9 +207,7 @@ def determine_trade_sunday_dates(year: int, month: int = None) -> List[dt.date]:
         special_trade_sunday_dates = determine_special_trade_sunday_dates(year)
         exceptions = possible_sunday_holiday_dates + special_trade_sunday_dates
         if year == 2018:
-            trade_sundays = _determine_trade_sunday_dates_2018(
-                exceptions, possible_sunday_holiday_dates, year, month
-            )
+            trade_sundays = _determine_trade_sunday_dates_2018(exceptions, possible_sunday_holiday_dates, year, month)
         elif year == 2019:
             trade_sundays = _determine_trade_sunday_dates_2019(exceptions, year, month)
         else:
@@ -215,6 +220,7 @@ def determine_trade_sunday_dates(year: int, month: int = None) -> List[dt.date]:
             trade_sundays.extend(special_trade_sunday_dates)
     trade_sundays.sort()
     return trade_sundays
+
 
 def determine_nearest_trade_sunday_after_date(date: dt.date = None) -> dt.date:
     """Return nearest trade Sunday after the specified date, or the specified date if it is a trade Sunday."""
@@ -232,6 +238,7 @@ def determine_nearest_trade_sunday_after_date(date: dt.date = None) -> dt.date:
         else:
             year += 1
             month = 1
+
 
 class TradeSundays(commands.Cog, SomsiadMixin):
     GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Komendy związane z niedzielami handlowymi.')

@@ -24,7 +24,8 @@ from core import cooldown, has_permissions
 from somsiad import Somsiad, SomsiadMixin
 from utilities import text_snippet, word_number_form
 
-SPECIFIC_PAGE_EMOJIS = ['1⃣', '2⃣','3⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣','9️⃣']
+SPECIFIC_PAGE_EMOJIS = ['1⃣', '2⃣', '3⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+
 
 class Event(data.Base, data.MemberRelated, data.ChannelRelated):
     MAX_DETAILS_LENGTH = 1000
@@ -348,17 +349,20 @@ class Moderation(commands.Cog, SomsiadMixin):
             event_number_form = word_number_form(len(events), 'zdarzenie', 'zdarzenia', 'zdarzeń')
 
             async def generate_events_embed() -> discord.Embed:
-                embed = self.bot.generate_embed(
-                    '📂',
-                    f'{address} zawiera {event_number_form}{event_types_description}',
-                )
-                relevant_events = events[self.PAGE_FIELDS*current_page_index:self.PAGE_FIELDS*(current_page_index+1)]
+                embed = self.bot.generate_embed('📂', f'{address} zawiera {event_number_form}{event_types_description}',)
+                relevant_events = events[
+                    self.PAGE_FIELDS * current_page_index : self.PAGE_FIELDS * (current_page_index + 1)
+                ]
                 if page_count > 1:
-                    embed.description = f"Strona {current_page_index+1}. z {page_count}. Do {self.PAGE_FIELDS} zdarzeń na stronę."
-                for event_offset, event in enumerate(relevant_events, self.PAGE_FIELDS*current_page_index):
+                    embed.description = (
+                        f"Strona {current_page_index+1}. z {page_count}. Do {self.PAGE_FIELDS} zdarzeń na stronę."
+                    )
+                for event_offset, event in enumerate(relevant_events, self.PAGE_FIELDS * current_page_index):
                     embed.add_field(
                         name=f"{len(events)-event_offset}. {await event.get_presentation(self.bot)}",
-                        value=text_snippet(event.details, Event.MAX_DETAILS_LENGTH) if event.details is not None else '—',
+                        value=text_snippet(event.details, Event.MAX_DETAILS_LENGTH)
+                        if event.details is not None
+                        else '—',
                         inline=False,
                     )
                 return embed
