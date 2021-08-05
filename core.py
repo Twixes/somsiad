@@ -204,6 +204,8 @@ class Essentials(commands.Cog, SomsiadMixin):
             footer = '© 1963 👺'
             server_count = 193
             user_count = 7_802_385_004 + int((dt.datetime.now() - dt.datetime(2020, 1, 1)).total_seconds() * 2.5)
+            mau_count = 1_323_519_222 + int((dt.datetime.now() - dt.datetime(2020, 1, 1)).total_seconds())
+            sau_count = 194
             shard_count = 8
             runtime = human_amount_of_time(dt.datetime.now() - dt.datetime(1963, 11, 22))
             instance_owner = '👺'
@@ -214,6 +216,9 @@ class Essentials(commands.Cog, SomsiadMixin):
             footer = __copyright__
             server_count = self.bot.server_count
             user_count = self.bot.user_count
+            with data.session() as session:
+                thirty_days_ago = dt.datetime.now() - dt.timedelta(30)
+                mau_count = session.query(functions.count(Invocation.user_id.distinct())).filter(Invocation.created_at > thirty_days_ago).scalar()
             shard_count = self.bot.shard_count or 1
             runtime = (
                 'nieznany'
