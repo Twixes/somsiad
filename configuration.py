@@ -43,17 +43,15 @@ class Setting:
             return str(self.value)
 
     def set_value_with_env(self):
-        try:
-            value_obtained = os.environ[self.name.upper()]
-        except KeyError:
+        value_obtained = os.environ.get(self.name.upper())
+        if not value_obtained:
             if self.optional:
                 self.value = self.default_value
             else:
                 raise Exception(
                     f'mandatory setting {self.name.upper()} could not be loaded from os.environ nor from .env'
                 )
-        else:
-            self.value = self._convert_value_to_type(value_obtained)
+        self.value = self._convert_value_to_type(value_obtained)
 
     def _convert_value_to_type(self, value: Any) -> Any:
         if value is None:
