@@ -51,7 +51,8 @@ class Setting:
                 raise Exception(
                     f'mandatory setting {self.name.upper()} could not be loaded from os.environ nor from .env'
                 )
-        self.value = self._convert_value_to_type(value_obtained)
+        else:
+            self.value = self._convert_value_to_type(value_obtained)
 
     def _convert_value_to_type(self, value: Any) -> Any:
         if value is None:
