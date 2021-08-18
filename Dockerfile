@@ -1,4 +1,4 @@
-FROM python:3.8.6
+FROM python:3.9
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL pl_PL.UTF-8
 ENV TZ Europe/Warsaw
@@ -24,4 +24,4 @@ RUN pip install --no-cache-dir -U -r requirements.txt
 
 COPY . .
 
-CMD ["python3", "run.py"]
+CMD ["python", "run.py"]
