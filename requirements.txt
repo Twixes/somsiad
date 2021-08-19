@@ -13,6 +13,7 @@ aiodns==2.0.0
 aiohttp==3.7.4
     # via
     #   aiochclient
+    #   discord-components
     #   discord.py
 async-timeout==3.0.1
     # via aiohttp
@@ -42,8 +43,12 @@ cycler==0.10.0
     # via matplotlib
 defusedxml==0.7.1
     # via -r requirements.in
-discord.py[voice]==1.7.3
+discord-components==2.0.1
     # via -r requirements.in
+discord.py[voice]==1.7.3
+    # via
+    #   -r requirements.in
+    #   discord-components
 google-api-core==1.23.0
     # via google-api-python-client
 google-api-python-client==1.12.8

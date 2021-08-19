@@ -1,4 +1,4 @@
-# Copyright 2018-2020 Twixes
+# Copyright 2018-2021 Twixes
 
 # This file is part of Somsiad - the Polish Discord bot.
 
@@ -11,12 +11,10 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from somsiad import SomsiadMixin
+from somsiad import Somsiad, SomsiadMixin
 from typing import Optional, cast
-
 import discord
 from discord.ext import commands
-
 
 class BotOwnerTools(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['wejdź', 'wejdz'])
@@ -112,5 +110,5 @@ class BotOwnerTools(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', f'Nie znaleziono kanału o ID {channel_id}'))
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(BotOwnerTools(bot))
