@@ -17,11 +17,10 @@ import random
 from typing import Optional, cast
 
 import discord
-from somsiad import SomsiadMixin
-
 from discord.ext import commands
 
 from core import cooldown
+from somsiad import SomsiadMixin
 
 
 class Eightball(commands.Cog, SomsiadMixin):
@@ -104,7 +103,7 @@ class Eightball(commands.Cog, SomsiadMixin):
             text = '⚠️ By zadać magicznej kuli pytanie musisz użyć *słów*.'
         await self.bot.send(ctx, text)
 
-    @commands.command(aliases=['niepierdol'])
+    @commands.command(aliases=['niepierdol', 'japa', 'sklejpizde', 'mordatam'])
     @cooldown()
     async def dontbullshit(self, ctx: commands.Context):
         """Inverts the last 8-Ball answer in the channel."""
