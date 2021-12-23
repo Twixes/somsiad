@@ -25,7 +25,6 @@ Polski bot discordowy. Napisany w Pythonie.
 * wyszukiwanie artykułów w [Wikipedii](https://www.wikipedia.org) w dowolnym języku
 * wyszukiwanie filmów i seriali w [TMDb](https://www.themoviedb.org/)
 * wyszukiwanie książek w [goodreads](https://www.goodreads.com)
-* tłumaczenie tekstu z [Yandex](https://translate.yandex.com/)
 * uzyskiwanie informacji i przeprowadzanie obliczeń z [Wolfram Alpha](https://www.wolframalpha.com/)
 * udostępnianie obecnie słuchanego na [Spotify](https://spotify.com) utworu
 * udostępnianie obecnie lub ostatnio słuchanego przez [Last.fm](https://last.fm) utworu
@@ -60,9 +59,6 @@ https://www.goodreads.com/api
 
 * Klucz API TMDb:
 https://developers.themoviedb.org/3/getting-started/introduction
-
-* Klucz API Yandex Translate:
-https://translate.yandex.com/developers/keys
 
 * Klucz API Last.fm:
 https://www.last.fm/api/account/create
@@ -129,8 +125,6 @@ The Polish Discord bot. Written in Python.
 * [Wikipedia](https://www.wikipedia.org) article search, in any language
 * [TMDb](https://www.themoviedb.org/) movie and TV show search
 * [goodreads](https://www.goodreads.com) book search
-* [TMDb](https://www.themoviedb.org/) movie and TV show search
-* text translation powered by [Yandex](https://translate.yandex.com/)
 * obtaining information and making calculations with [Wolfram Alpha](https://www.wolframalpha.com/)
 * sharing the song currently played on [Spotify](https://spotify.com)
 * sharing the song currently or previously played with [Last.fm](https://last.fm)
@@ -166,9 +160,6 @@ https://www.goodreads.com/api
 
 * A TMDb API key:
 https://developers.themoviedb.org/3/getting-started/introduction
-
-* A Yandex Translate API key:
-https://translate.yandex.com/developers/keys
 
 * A Last.fm API key:
 https://www.last.fm/api/account/create
