@@ -145,10 +145,13 @@ class Imaging(commands.Cog, SomsiadMixin):
         return attachment, image_bytes
 
     async def find_image(
-        self, channel: commands.Context, *, sent_by: Optional[discord.Member] = None, limit: int = 15
+        self, channel: commands.Context, *, sent_by: Optional[discord.Member] = None, message_id: Optional[int] = None, limit: int = 15
     ) -> ExtractedImage:
         attachment, input_image_bytes = None, None
         async with channel.typing():
+            if message_id is not None:
+                reference_message = await channel.fetch_message(message_id)
+                attachment, input_image_bytes = await self.extract_image(reference_message)
             async for message in channel.history(limit=limit):
                 if sent_by is not None and message.author != sent_by:
                     continue
@@ -202,9 +205,9 @@ class Imaging(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['r9k', 'było', 'bylo', 'byo'])
     @cooldown()
     @commands.guild_only()
-    async def robot9000(self, ctx, sent_by: discord.Member = None):
+    async def robot9000(self, ctx: commands.Context, sent_by: discord.Member = None):
         """Finds previous occurences of the image being sent."""
-        attachment, _ = await self.find_image(ctx.channel, sent_by=sent_by)
+        attachment, _ = await self.find_image(ctx.channel, sent_by=sent_by, message_id= ctx.message.reference.message_id if ctx.message is not None and ctx.message.reference is not None else None)
         if attachment is not None:
             with data.session() as session:
                 similar = []
