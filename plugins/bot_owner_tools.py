@@ -16,6 +16,7 @@ from typing import Optional, cast
 import discord
 from discord.ext import commands
 
+
 class BotOwnerTools(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['wejdź', 'wejdz'])
     @commands.is_owner()

@@ -409,7 +409,7 @@ class Somsiad(commands.AutoShardedBot):
         delete_after: Optional[float] = None,
         mention: Optional[Union[bool, Sequence[discord.User]]] = None,
         reply: bool = True,
-        components: Optional[Sequence[Component]] = None
+        components: Optional[Sequence[Component]] = None,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is None:
             embeds: List[discord.Embed] = []
@@ -449,7 +449,12 @@ class Somsiad(commands.AutoShardedBot):
         try:
             messages = [
                 await initial_send_function(
-                    content, embed=embeds[0] if embeds else None, file=file, files=files, delete_after=delete_after, components=components
+                    content,
+                    embed=embeds[0] if embeds else None,
+                    file=file,
+                    files=files,
+                    delete_after=delete_after,
+                    components=components,
                 )
             ]
             for extra_embed in embeds[1:]:

@@ -145,7 +145,12 @@ class Imaging(commands.Cog, SomsiadMixin):
         return attachment, image_bytes
 
     async def find_image(
-        self, channel: commands.Context, *, sent_by: Optional[discord.Member] = None, message_id: Optional[int] = None, limit: int = 15
+        self,
+        channel: commands.Context,
+        *,
+        sent_by: Optional[discord.Member] = None,
+        message_id: Optional[int] = None,
+        limit: int = 15,
     ) -> ExtractedImage:
         attachment, input_image_bytes = None, None
         async with channel.typing():
@@ -207,7 +212,13 @@ class Imaging(commands.Cog, SomsiadMixin):
     @commands.guild_only()
     async def robot9000(self, ctx: commands.Context, sent_by: discord.Member = None):
         """Finds previous occurences of the image being sent."""
-        attachment, _ = await self.find_image(ctx.channel, sent_by=sent_by, message_id= ctx.message.reference.message_id if ctx.message is not None and ctx.message.reference is not None else None)
+        attachment, _ = await self.find_image(
+            ctx.channel,
+            sent_by=sent_by,
+            message_id=ctx.message.reference.message_id
+            if ctx.message is not None and ctx.message.reference is not None
+            else None,
+        )
         if attachment is not None:
             with data.session() as session:
                 similar = []
