@@ -153,10 +153,10 @@ class Imaging(commands.Cog, SomsiadMixin):
         limit: int = 15,
     ) -> ExtractedImage:
         attachment, input_image_bytes = None, None
-        async with channel.typing():
-            if message_id is not None:
-                reference_message = await channel.fetch_message(message_id)
-                attachment, input_image_bytes = await self.extract_image(reference_message)
+        if message_id is not None:
+            reference_message = await channel.fetch_message(message_id)
+            attachment, input_image_bytes = await self.extract_image(reference_message)
+        else:
             async for message in channel.history(limit=limit):
                 if sent_by is not None and message.author != sent_by:
                     continue
@@ -212,78 +212,79 @@ class Imaging(commands.Cog, SomsiadMixin):
     @commands.guild_only()
     async def robot9000(self, ctx: commands.Context, sent_by: discord.Member = None):
         """Finds previous occurences of the image being sent."""
-        attachment, _ = await self.find_image(
-            ctx.channel,
-            sent_by=sent_by,
-            message_id=ctx.message.reference.message_id
-            if ctx.message is not None and ctx.message.reference is not None
-            else None,
-        )
-        if attachment is not None:
-            with data.session() as session:
-                similar = []
-                base_image9000 = session.query(Image9000).get(attachment.id)
-                if base_image9000 is None:
-                    embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
-                else:
-                    init_time = time.time()
-                    comparison_count = 0
-                    sent_by = ctx.guild.get_member(base_image9000.user_id)
-                    for other_image9000 in session.query(Image9000).filter(
-                        Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
-                    ):
-                        comparison_count += 1
-                        similarity = base_image9000.calculate_similarity_to(other_image9000)
-                        if similarity >= self.IMAGE9000_SIMILARITY_TRESHOLD:
-                            similar.append((other_image9000, similarity))
-                    if similar:
-                        embed = self.bot.generate_embed()
-                        for image9000, similarity in similar:
-                            channel = image9000.discord_channel(self.bot)
-                            message = None
-                            info = ''
-                            if channel is not None:
-                                try:
-                                    message = await channel.fetch_message(image9000.message_id)
-                                except discord.NotFound:
-                                    info = ' (wiadomość usunięta)'
-                            else:
-                                info = ' (kanał usunięty)'
-                            similarity_presentantion = f'{int(round(similarity*100))}% podobieństwa'
-                            embed.add_field(
-                                name=await image9000.get_presentation(self.bot),
-                                value=md_link(
-                                    similarity_presentantion, message.jump_url if message is not None else None
-                                )
-                                + info,
-                                inline=False,
-                            )
-                        occurences_form = word_number_form(
-                            len(embed.fields),
-                            'wcześniejsze wystąpienie',
-                            'wcześniejsze wystąpienia',
-                            'wcześniejszych wystąpień',
-                        )
-                        embed.title = (
-                            f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {sent_by} o '
-                            f'{base_image9000.sent_at.strftime("%-H:%M")}'
-                        )
+        with ctx.typing():
+            attachment, _ = await self.find_image(
+                ctx.channel,
+                sent_by=sent_by,
+                message_id=ctx.message.reference.message_id
+                if ctx.message is not None and ctx.message.reference is not None
+                else None,
+            )
+            if attachment is not None:
+                with data.session() as session:
+                    similar = []
+                    base_image9000 = session.query(Image9000).get(attachment.id)
+                    if base_image9000 is None:
+                        embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
                     else:
-                        embed = self.bot.generate_embed(
-                            '🤖',
-                            f'Nie wykryłem, aby obrazek wysłany przez {sent_by} '
-                            f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze',
+                        init_time = time.time()
+                        comparison_count = 0
+                        sent_by = ctx.guild.get_member(base_image9000.user_id)
+                        for other_image9000 in session.query(Image9000).filter(
+                            Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
+                        ):
+                            comparison_count += 1
+                            similarity = base_image9000.calculate_similarity_to(other_image9000)
+                            if similarity >= self.IMAGE9000_SIMILARITY_TRESHOLD:
+                                similar.append((other_image9000, similarity))
+                        if similar:
+                            embed = self.bot.generate_embed()
+                            for image9000, similarity in similar:
+                                channel = image9000.discord_channel(self.bot)
+                                message = None
+                                info = ''
+                                if channel is not None:
+                                    try:
+                                        message = await channel.fetch_message(image9000.message_id)
+                                    except discord.NotFound:
+                                        info = ' (wiadomość usunięta)'
+                                else:
+                                    info = ' (kanał usunięty)'
+                                similarity_presentantion = f'{int(round(similarity*100))}% podobieństwa'
+                                embed.add_field(
+                                    name=await image9000.get_presentation(self.bot),
+                                    value=md_link(
+                                        similarity_presentantion, message.jump_url if message is not None else None
+                                    )
+                                    + info,
+                                    inline=False,
+                                )
+                            occurences_form = word_number_form(
+                                len(embed.fields),
+                                'wcześniejsze wystąpienie',
+                                'wcześniejsze wystąpienia',
+                                'wcześniejszych wystąpień',
+                            )
+                            embed.title = (
+                                f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {sent_by} o '
+                                f'{base_image9000.sent_at.strftime("%-H:%M")}'
+                            )
+                        else:
+                            embed = self.bot.generate_embed(
+                                '🤖',
+                                f'Nie wykryłem, aby obrazek wysłany przez {sent_by} '
+                                f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze',
+                            )
+                        comparison_time = time.time() - init_time
+                        seen_image_form = word_number_form(
+                            comparison_count, 'obrazek zobaczony', 'obrazki zobaczone', 'obrazków zobaczonych'
                         )
-                    comparison_time = time.time() - init_time
-                    seen_image_form = word_number_form(
-                        comparison_count, 'obrazek zobaczony', 'obrazki zobaczone', 'obrazków zobaczonych'
-                    )
-                    embed.set_footer(
-                        text=f'Przejrzano {seen_image_form} do tej pory na serwerze w {round(comparison_time, 2):n} s.'
-                    )
-        else:
-            embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
-        await self.bot.send(ctx, embed=embed)
+                        embed.set_footer(
+                            text=f'Przejrzano {seen_image_form} do tej pory na serwerze w {round(comparison_time, 2):n} s.'
+                        )
+            else:
+                embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
+            await self.bot.send(ctx, embed=embed)
 
 
 def setup(bot: commands.Bot):
