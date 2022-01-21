@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from typing import Optional
 
 from discord.ext import commands
 
@@ -97,7 +98,9 @@ MINUTE_TO_WORD_ACCUSATIVE = {
 
 
 def write_time_out(hour: int, minute: int) -> str:
-    relevant_minute_to_word = MINUTE_TO_WORD_ACCUSATIVE if hour == 0 else MINUTE_TO_WORD
+    relevant_minute_to_word = (
+        MINUTE_TO_WORD_ACCUSATIVE if hour == 0 and (minute == 1 or minute % 10 != 1) else MINUTE_TO_WORD
+    )
     if minute == 0:
         minute_written = None
     elif minute in relevant_minute_to_word:
@@ -123,9 +126,9 @@ def write_time_out(hour: int, minute: int) -> str:
 class Time(commands.Cog, SomsiadMixin):
     @commands.command(aliases=['ktoragodzina', 'któragodzina', 'whattime', 'wiespät'])
     @cooldown()
-    async def what_time_is_it(self, ctx):
+    async def what_time_is_it(self, ctx, hour: Optional[int] = None, minute: Optional[int] = None):
         now = dt.datetime.now()
-        current_time = (now.hour, now.minute)
+        current_time = (hour or now.hour, minute or now.minute)
         if current_time == (1, 23):
             embed = self.bot.generate_embed(
                 '☢️',
