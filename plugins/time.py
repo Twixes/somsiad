@@ -17,31 +17,32 @@ from discord.ext import commands
 
 from core import cooldown
 from somsiad import Somsiad, SomsiadMixin
+from utilities import word_number_form
 
 HOUR_TO_WORD = {
-    1: "Pierwsza",
-    2: "Druga",
-    3: "Trzecia",
-    4: "Czwarta",
-    5: "Piąta",
-    6: "Szósta",
-    7: "Siódma",
-    8: "Ósma",
-    9: "Dziewiąta",
-    10: "Dziesiąta",
-    11: 'Jedenasta',
-    12: "Dwunasta",
-    13: "Trzynasta",
-    14: "Czternasta",
-    15: "Piętnasta",
-    16: "Szesnasta",
-    17: "Siedemnasta",
-    18: "Osiemnasta",
-    19: "Dziewiętnasta",
-    20: "Dwudziesta",
-    21: "Dwudziesta pierwsza",
-    22: "Dwudziesta druga",
-    23: "Dwudziesta trzecia",
+    1: "pierwsza",
+    2: "druga",
+    3: "trzecia",
+    4: "czwarta",
+    5: "piąta",
+    6: "szósta",
+    7: "siódma",
+    8: "ósma",
+    9: "dziewiąta",
+    10: "dziesiąta",
+    11: 'jedenasta',
+    12: "dwunasta",
+    13: "trzynasta",
+    14: "czternasta",
+    15: "piętnasta",
+    16: "szesnasta",
+    17: "siedemnasta",
+    18: "osiemnasta",
+    19: "dziewiętnasta",
+    20: "dwudziesta",
+    21: "dwudziesta pierwsza",
+    22: "dwudziesta druga",
+    23: "dwudziesta trzecia",
 }
 MINUTE_TO_WORD = {
     1: "jeden",
@@ -98,8 +99,6 @@ MINUTE_TO_WORD_ACCUSATIVE = {
 def write_time_out(hour: int, minute: int) -> str:
     relevant_minute_to_word = MINUTE_TO_WORD_ACCUSATIVE if hour == 0 else MINUTE_TO_WORD
     if minute == 0:
-        if hour == 0:
-            return 'Północ'
         minute_written = None
     elif minute in relevant_minute_to_word:
         minute_written = relevant_minute_to_word[minute]
@@ -111,10 +110,14 @@ def write_time_out(hour: int, minute: int) -> str:
         minute_written = ' '.join(map(str, filter(None, (minute_tens_written, minute_ones_written))))
 
     if hour == 0:
-        return f"{minute_written} minut po północy"
+        return (
+            f"{minute_written} {word_number_form(minute, 'minuta', 'minuty', 'minut', include_number=False)} po północy".capitalize()
+            if minute_written is not None
+            else 'Północ'
+        )
     else:
         hour_written = HOUR_TO_WORD[hour]
-        return ' '.join(map(str, filter(None, (hour_written, minute_written))))
+        return ' '.join(map(str, filter(None, (hour_written, minute_written)))).capitalize()
 
 
 class Time(commands.Cog, SomsiadMixin):
