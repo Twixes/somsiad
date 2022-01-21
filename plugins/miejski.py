@@ -29,7 +29,12 @@ class Miejski(commands.Cog, SomsiadMixin):
     @cooldown()
     async def miejski(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
-        query_url_safe = urllib.parse.quote_plus(query.replace(' ', '+',))
+        query_url_safe = urllib.parse.quote_plus(
+            query.replace(
+                ' ',
+                '+',
+            )
+        )
         url = f'https://www.miejski.pl/slowo-{query_url_safe}'
         async with self.bot.session.get(url) as request:
             if request.status == 200:
