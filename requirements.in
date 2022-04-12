@@ -5,7 +5,7 @@ SQLAlchemy==1.4.29
 psutil==5.9.0
 defusedxml==0.7.1
 google-api-python-client==2.33.0
-pytube==11.0.2
+pytube==12.0.0
 matplotlib==3.5.1
 sentry-sdk==1.5.1
 aiocontextvars==0.2.2

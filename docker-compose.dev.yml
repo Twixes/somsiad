@@ -56,7 +56,7 @@ services:
             - SENTRY_AUTH_TOKEN
             - SENTRY_ORG
             - PTVSD
-            - DATABASE_URL=postgres://somsiad:somsiad@postgres/somsiad
+            - DATABASE_URL=postgresql://somsiad:somsiad@postgres/somsiad
             - CLICKHOUSE_URL=http://clickhouse:8123
             - CLICKHOUSE_USER=somsiad
             - CLICKHOUSE_PASSWORD=somsiad
