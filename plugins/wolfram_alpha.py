@@ -32,7 +32,7 @@ class WolframAlpha(commands.Cog, SomsiadMixin):
             params = {'input': query, **self.API_PARAMS}
             async with self.bot.session.get(self.API_URL, params=params) as request:
                 if request.status == 200:
-                    response = await request.json(content_type='text/plain;charset=utf-8')
+                    response = await request.json()
                     result = response['queryresult']
                     if result['success']:
                         return result['pods']
