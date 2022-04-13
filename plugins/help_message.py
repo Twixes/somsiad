@@ -461,13 +461,6 @@ class Help(commands.Cog):
             '🎬',
         ),
         _Help.Command(
-            ('tłumacz', 'tlumacz', 'translator'),
-            ('kod języka źródłowego', 'kod języka docelowego', 'tekst'),
-            'Tłumaczy tekst z [Yandex](https://translate.yandex.com/). '
-            'Wpisanie znaku zapytania w miejscu kodu języka źródłowego spowoduje wykrycie języka źródłowego.',
-            '🌐',
-        ),
-        _Help.Command(
             'spotify',
             '?użytkownik Discorda',
             'Zwraca informacje na temat utworu obecnie słuchanego przez <?użytkownika Discorda> na Spotify. '

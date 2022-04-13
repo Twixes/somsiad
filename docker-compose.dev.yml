@@ -48,7 +48,6 @@ services:
             - GOODREADS_KEY
             - TMDB_KEY
             - LAST_FM_KEY
-            - YANDEX_TRANSLATE_KEY
             - WOLFRAM_ALPHA_APP_ID
             - TWITTER_BEARER_TOKEN
             - DISCO_MAX_FILE_SIZE_IN_MIB
