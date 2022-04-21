@@ -7,12 +7,12 @@ defusedxml==0.7.1
 google-api-python-client==2.33.0
 pytube==12.0.0
 matplotlib==3.5.1
-sentry-sdk==1.5.1
+sentry-sdk==1.5.10
 aiocontextvars==0.2.2
 ImageHash==4.2.1
 numpy==1.21.5
 beautifulsoup4==4.10.0
 ptvsd==4.3.2
-aiochclient[aiohttp-speedups]==2.0.1
+aiochclient[aiohttp-speedups]==2.1.0
 redis==4.1.0
 discord-components==2.1.2
