@@ -37,7 +37,7 @@ from typing import (
 
 import aiohttp
 import discord
-from discord_components.client import ComponentsBot, DiscordComponents
+from discord_components.client import DiscordComponents
 from discord_components.component import Component
 import psutil
 import sentry_sdk
