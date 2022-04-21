@@ -54,7 +54,7 @@ class Twitter(commands.Cog, SomsiadMixin):
         for match in matches:
             tweet_id = match.group(1)
             tweet = await self.fetch_tweet_with_attachments(tweet_id)
-            if tweet is not None and tweet.attachments and tweet.attachments['media_keys']:
+            if tweet is not None and tweet.attachments and tweet.attachments.get('media_keys'):
                 attachment_count = len(tweet.attachments['media_keys'])
                 if attachment_count > 1:
                     await message.add_reaction(React.EMOJIS[0][str(attachment_count)])
