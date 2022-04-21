@@ -431,6 +431,7 @@ class Birthday(commands.Cog):
 
     @birthday.command(aliases=['lista', 'serwer', 'wszyscy', 'wszystkie', 'kalendarz'])
     @cooldown()
+    @commands.guild_only()
     async def birthday_list(self, ctx):
         with data.session() as session:
             born_persons: List[BornPerson] = (
