@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio.futures
+import asyncio
 import functools
 import locale
 import os
@@ -66,7 +66,7 @@ class Disco(commands.Cog):
                     await channel.connect()
                 elif channel.guild.voice_client.channel != channel:
                     await channel.guild.voice_client.move_to(channel)
-            except asyncio.futures.TimeoutError:
+            except asyncio.TimeoutError:
                 continue
             else:
                 break
@@ -79,7 +79,7 @@ class Disco(commands.Cog):
         for _ in range(3):
             try:
                 await server.voice_client.disconnect()
-            except asyncio.futures.TimeoutError:
+            except asyncio.TimeoutError:
                 continue
             else:
                 break
