@@ -16,7 +16,7 @@
 from datetime import date
 
 __version__ = '2.6.0'
-__copyright__ = f'© 2018–{date.today().year} ondondil, Twixes et al.'
+__copyright__ = f'© 2018–{date.today().year} Twixes, ondondil et al.'
 
 if __name__ == '__main__':
     print(__version__, end='')
