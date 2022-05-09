@@ -611,6 +611,12 @@ class Help(commands.Cog):
             'Sprawdza czy ostatnio załączony na kanale lub, jeśli podano <?użytkownika>, na kanale przez <?użytkownika> obrazek pojawił się wcześniej na serwerze.',
             '🤖',
         ),
+        _Help.Command(
+            ('magiel', 'magluj', 'mangle'),
+            ('intensywność', '?tekst'),
+            'Magluje <?tekst> lub, jeśli nie podano <?tekstu>, ostatnio wysłaną na kanale wiadomość w <intensywność> procentach.',
+            '⌨️',
+        ),
         _Help.Command('tableflip', (), '(╯°□°）╯︵ ┻━┻', '🤬'),
         _Help.Command('unflip', (), '┬─┬ ノ( ゜-゜ノ)', '😞'),
         _Help.Command('shrug', (), r'¯\_(ツ)_/¯', '🤷'),
