@@ -257,7 +257,11 @@ class Birthday(commands.Cog):
                     )
                     extra = f'{these_servers_number_form} otrzymasz używającej tej komendy w wiadomościach prywatnych.'
             else:
-                names = [guild.name for guild in (self.bot.get_guild(server.id) for server in born_person.birthday_public_servers) if guild is not None]
+                names = [
+                    guild.name
+                    for guild in (self.bot.get_guild(server.id) for server in born_person.birthday_public_servers)
+                    if guild is not None
+                ]
                 servers_number_form = word_number_form(
                     number_of_other_servers, 'serwerze', 'serwerach', include_number=False
                 )

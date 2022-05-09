@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import random
-from somsiad import SomsiadMixin
+from somsiad import Somsiad, SomsiadMixin
 
 from discord.ext import commands
 
@@ -92,5 +92,5 @@ class Dice(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+def setup(bot: Somsiad):
     bot.add_cog(Dice(bot))

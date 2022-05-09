@@ -349,10 +349,7 @@ class Moderation(commands.Cog, SomsiadMixin):
             event_number_form = word_number_form(len(events), 'zdarzenie', 'zdarzenia', 'zdarzeń')
 
             async def generate_events_embed() -> discord.Embed:
-                embed = self.bot.generate_embed(
-                    '📂',
-                    f'{address} zawiera {event_number_form}{event_types_description}',
-                )
+                embed = self.bot.generate_embed('📂', f'{address} zawiera {event_number_form}{event_types_description}',)
                 relevant_events = events[
                     self.PAGE_FIELDS * current_page_index : self.PAGE_FIELDS * (current_page_index + 1)
                 ]

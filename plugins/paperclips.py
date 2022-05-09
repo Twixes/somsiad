@@ -102,9 +102,7 @@ class Paperclips(commands.Cog, SomsiadMixin):
             for x in (redis_connection.lrange(f"somsiad/paperclips/{ctx.guild.id}/machines", 0, -1) or [])
         ]
         message = await self.bot.send(
-            ctx,
-            embed=self.generate_paperclips_embed(clicks, machines),
-            components=make_components(clicks, machines),
+            ctx, embed=self.generate_paperclips_embed(clicks, machines), components=make_components(clicks, machines),
         )
         while True:
             await asyncio.sleep(5)
@@ -114,8 +112,7 @@ class Paperclips(commands.Cog, SomsiadMixin):
                 for x in (redis_connection.lrange(f"somsiad/paperclips/{ctx.guild.id}/machines", 0, -1) or [])
             ]
             await message.edit(
-                embed=self.generate_paperclips_embed(clicks, machines),
-                components=make_components(clicks, machines),
+                embed=self.generate_paperclips_embed(clicks, machines), components=make_components(clicks, machines),
             )
 
 
