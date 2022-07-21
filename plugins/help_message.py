@@ -239,7 +239,7 @@ NAME_DAYS = {
         18: ['Erwina', 'Kamila', 'Szymona'],
         19: ['Wincentego', 'Wodzisława', 'Marcina'],
         20: ['Czesława', 'Hieronioma', 'Małgorzaty'],
-        21: ['Daniela', 'Dalidy', 'Wawrzyäca'],
+        21: ['Daniela', 'Dalidy', 'Wawrzyńca'],
         22: ['Marii', 'Magdaleny'],
         23: ['Stwosza', 'Bogny', 'Brygidy'],
         24: ['Kingi', 'Krystyny'],

@@ -6,8 +6,6 @@ services:
             POSTGRES_PASSWORD: somsiad
             POSTGRES_USER: somsiad
         image: postgres:13
-        ports:
-            - '5439:5432'
     clickhouse:
         build:
             context: .
@@ -16,15 +14,8 @@ services:
             CLICKHOUSE_DB: somsiad
             CLICKHOUSE_USER: somsiad
             CLICKHOUSE_PASSWORD: somsiad
-        ports:
-            - '8123:8123'
-            - '9000:9000'
-            - '9440:9440'
-            - '9009:9009'
     redis:
         image: redis:alpine
-        ports:
-            - '6379:6379'
     bot:
         build: .
         volumes:
@@ -61,8 +52,6 @@ services:
             - CLICKHOUSE_PASSWORD=somsiad
             - REDIS_URL=redis://redis:6379/
             - GPT_AUTHORIZED_SERVERS=294182757209473024,479458694354960385,682561082719731742
-        ports:
-            - "5678:5678"
     web:
         build: web
         depends_on:
@@ -71,8 +60,6 @@ services:
             - redis:redis
         environment:
             - REDIS_URL=redis://redis:6379/
-        ports:
-            - '5000:5000'
         labels:
             - traefik.enable=true
             - traefik.http.routers.web.rule=Host(`localhost`)
@@ -86,9 +73,5 @@ services:
             - --providers.docker=true
             - --providers.docker.exposedbydefault=false
             - --api.insecure
-        ports:
-            - "80:80"
-            - "443:443"
-            - "8080:8080"
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock:ro"
