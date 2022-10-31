@@ -96,7 +96,7 @@ class LastFM(commands.Cog, SomsiadMixin):
                     # search for the song on YouTube
                     youtube_search_query = f'{user_recent_tracks[0]["name"]} {user_recent_tracks[0]["artist"]["#text"]}'
                     try:
-                        youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
+                        youtube_search_result = self.bot.youtube_client.search(youtube_search_query)
                     except:
                         capture_exception()
                     else:

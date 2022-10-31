@@ -131,8 +131,7 @@ class Vote(commands.Cog):
             reminder = session.query(Ballot).get(urn_message_id)
             reminder.has_been_concluded = True
 
-    @commands.Cog.listener()
-    async def on_ready(self):
+    async def cog_load(self):
         with data.session() as session:
             for reminder in session.query(Ballot).filter(Ballot.has_been_concluded == False):
                 self.bot.loop.create_task(

@@ -65,12 +65,11 @@ class GoogleClient:
         image_link: Optional[str]
         type: Optional[str]
 
-    def __init__(self, developer_key: str, custom_search_engine_id: str, loop: asyncio.AbstractEventLoop):
+    def __init__(self, developer_key: str, custom_search_engine_id: str):
         self.custom_search_engine_id = custom_search_engine_id
         self.search_client = build('customsearch', 'v1', developerKey=developer_key).cse()
-        self.loop = loop
 
-    async def search(
+    def search(
         self, query: str, *, language: str = 'pl', safe: str = 'active', search_type: str = None
     ) -> Optional[GoogleResult]:
         list_query = self.search_client.list(
@@ -81,7 +80,7 @@ class GoogleClient:
             safe=safe,
             searchType=search_type,
         )
-        results = await self.loop.run_in_executor(None, list_query.execute)
+        results = list_query.execute()
         if results['searchInformation']['totalResults'] != '0':
             if search_type == 'image':
                 for result in results['items']:
@@ -130,13 +129,12 @@ class YouTubeClient:
         url: str
         thumbnail_url: str
 
-    def __init__(self, developer_key: str, loop: asyncio.AbstractEventLoop):
+    def __init__(self, developer_key: str):
         self.search_client = build('youtube', 'v3', developerKey=developer_key).search()
-        self.loop = loop
 
-    async def search(self, query: str) -> Optional[YouTubeResult]:
+    def search(self, query: str) -> Optional[YouTubeResult]:
         list_query = self.search_client.list(q=query, part='snippet', maxResults=1, type='video')
-        response = await self.loop.run_in_executor(None, list_query.execute)
+        response = list_query.execute()
         items = response.get('items')
         if not items:
             return None

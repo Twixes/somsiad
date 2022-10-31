@@ -92,7 +92,7 @@ class Disco(commands.Cog):
             pytube.extract.video_id(query)
         except pytube.exceptions.RegexMatchError:
             try:
-                search_result = await self.bot.youtube_client.search(query)
+                search_result = self.bot.youtube_client.search(query)
             except (AttributeError, HTTPError):
                 video_url = None
             else:

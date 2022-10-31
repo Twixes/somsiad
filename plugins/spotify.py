@@ -54,7 +54,7 @@ class Spotify(commands.Cog, SomsiadMixin):
             # search for the song on YouTube
             youtube_search_query = f'{spotify_activity.title} {" ".join(spotify_activity.artists)}'
             try:
-                youtube_search_result = await self.bot.youtube_client.search(youtube_search_query)
+                youtube_search_result = self.bot.youtube_client.search(youtube_search_query)
             except:
                 capture_exception()
             else:

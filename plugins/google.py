@@ -26,7 +26,7 @@ class Google(commands.Cog, SomsiadMixin):
     async def google(self, ctx, *, query='bot somsiad'):
         """Returns first matching website from Google using the provided Custom Search Engine."""
         try:
-            result = await self.bot.google_client.search(query)
+            result = self.bot.google_client.search(query)
         except HttpError as e:
             if e.resp.status in (403, 429):
                 embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')
@@ -52,7 +52,7 @@ class Google(commands.Cog, SomsiadMixin):
     async def google_image(self, ctx, *, query='bot somsiad'):
         """Returns first matching image from Google using the provided Custom Search Engine."""
         try:
-            result = await self.bot.google_client.search(query, search_type='image')
+            result = self.bot.google_client.search(query, search_type='image')
         except HttpError as e:
             if e.resp.status in (403, 429):
                 embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')

@@ -39,7 +39,6 @@ import matplotlib.ticker as ticker
 from aiochclient.records import Record
 from discord.ext import commands
 
-import data
 from configuration import configuration
 from core import Help, cooldown
 from somsiad import Somsiad, SomsiadMixin
@@ -1122,8 +1121,7 @@ class Activity(commands.Cog):
         self.bot = bot
         self.metadata_cache = MetadataCache(bot)
 
-    @commands.Cog.listener()
-    async def on_ready(self):
+    async def cog_load(self):
         await self.metadata_cache.prepare()
 
     @cooldown()

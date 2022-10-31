@@ -699,6 +699,8 @@ class Help(commands.Cog):
         self.bot = bot
         description = self.DESCRIPTION + f'\nBy dowiedzieć się o mnie więcej, wejdź na {self.bot.WEBSITE_URL}.'
         self.HELP = _Help(self.COMMANDS, '👋', 'Dobry!', description)
+
+    async def cog_load(self):
         self.auto_command_of_the_day.start()
 
     def cog_unload(self):

@@ -28,7 +28,7 @@ class YouTube(commands.Cog, SomsiadMixin):
             result_url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
         else:
             try:
-                result = await self.bot.youtube_client.search(query)
+                result = self.bot.youtube_client.search(query)
             except HttpError as e:
                 if e.resp.status in (403, 429):
                     embed = self.bot.generate_embed('⚠️', 'Wyczerpał się dzienny limit wyszukiwań', 'Reset rano.')

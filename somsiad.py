@@ -40,7 +40,7 @@ import aiohttp
 import discord
 import psutil
 import sentry_sdk
-from aiochclient.client import ChClient
+import aiochclient
 from discord.ext import commands
 from discord.utils import utcnow
 from multidict import CIMultiDict
@@ -171,8 +171,8 @@ class Somsiad(commands.AutoShardedBot):
     diagnostics_on: bool
     commands_being_processed: DefaultDict[str, int]
     ready_datetime: Optional[dt.datetime]
-    session: Optional[aiohttp.ClientSession]
-    ch_client: Optional[ChClient]
+    session: aiohttp.ClientSession
+    ch_client: aiochclient.ChClient
     google_client: Optional[GoogleClient]
     youtube_client: Optional[YouTubeClient]
     system_channel: Optional[discord.TextChannel]
@@ -198,19 +198,8 @@ class Somsiad(commands.AutoShardedBot):
         self.diagnostics_on = False
         self.commands_being_processed = defaultdict(int)
         self.ready_datetime = None
-        self.session = None
-        self.ch_client = None
-        self.google_client = (
-            GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop)
-            if configuration.get('google_key') is not None
-            and configuration.get('google_custom_search_engine_id') is not None
-            else None
-        )
-        self.youtube_client = (
-            YouTubeClient(configuration['google_key'], self.loop)
-            if configuration.get('google_key') is not None
-            else None
-        )
+        self.google_client = None
+        self.youtube_client = None
         self.system_channel = None
         self.public_channel = None
 
@@ -218,14 +207,6 @@ class Somsiad(commands.AutoShardedBot):
         psutil.cpu_percent()
         localize()
         self.ready_datetime = dt.datetime.now()
-        self.session = aiohttp.ClientSession(loop=self.loop, headers=self.HEADERS)
-        self.ch_client = ChClient(
-            self.session,
-            url=configuration["clickhouse_url"],
-            user=configuration["clickhouse_user"],
-            password=configuration["clickhouse_password"],
-            database="somsiad",
-        )
         assert await self.ch_client.is_alive()
         print('Przygotowywanie danych serwerów...')
         data.Server.register_all(self.guilds)
@@ -276,27 +257,41 @@ class Somsiad(commands.AutoShardedBot):
         data.Server.register(server)
 
     async def load_and_start(self, cogs: Optional[Sequence[Type[commands.Cog]]] = None):
-        print('Ładowanie rozszerzeń...')
-        if cogs:
-            for cog in cogs:
-                await self.add_cog(cog(self))
-        for path in os.scandir('plugins'):
-            if path.is_file() and path.name.endswith('.py'):
-                await self.load_extension(f'plugins.{path.name[:-3]}')
-        self.prefix_safe_aliases = tuple(
-            (
-                variant
-                for command in self.PREFIX_SAFE_COMMANDS
-                for alias in [self.get_command(command).name, *self.get_command(command).aliases]
-                for variant in (
-                    configuration['command_prefix'] + ' ' + command,
-                    configuration['command_prefix'] + alias,
+        async with aiohttp.ClientSession(headers=self.HEADERS) as session:
+            async with self:
+                self.session = session
+                self.ch_client = aiochclient.ChClient(
+                    session,
+                    url=configuration["clickhouse_url"],
+                    user=configuration["clickhouse_user"],
+                    password=configuration["clickhouse_password"],
+                    database="somsiad",
                 )
-            )
-        )
-        data.create_all_tables()
-        print('Łączenie z Discordem...')
-        await self.start(configuration['discord_token'], reconnect=True)
+                if configuration.get('google_key') is not None and configuration.get('google_custom_search_engine_id') is not None:
+                    self.google_client = GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'])
+                if configuration.get('google_key') is not None:
+                    YouTubeClient(configuration['google_key'])
+                print('Ładowanie rozszerzeń...')
+                if cogs:
+                    for cog in cogs:
+                        await self.add_cog(cog(self))
+                for path in os.scandir('plugins'):
+                    if path.is_file() and path.name.endswith('.py'):
+                        await self.load_extension(f'plugins.{path.name[:-3]}')
+                self.prefix_safe_aliases = tuple(
+                    (
+                        variant
+                        for command in self.PREFIX_SAFE_COMMANDS
+                        for alias in [self.get_command(command).name, *self.get_command(command).aliases]
+                        for variant in (
+                            configuration['command_prefix'] + ' ' + command,
+                            configuration['command_prefix'] + alias,
+                        )
+                    )
+                )
+                data.create_all_tables()
+                print('Łączenie z Discordem...')
+                await self.start(configuration['discord_token'], reconnect=True)
 
     async def system_notify(
         self,
@@ -314,12 +309,11 @@ class Somsiad(commands.AutoShardedBot):
             return False
 
     async def close(self, code: int = 0):
-        print('Zatrzymywanie działania programu...')
+        print('Zatrzymywanie działania bota...')
         await self.system_notify(*(('🛑', 'Wyłączam się…') if not code else ('🔁', 'Restartuję się…')))
         if self.session is not None:
             await self.session.close()
         await super().close()
-        sys.exit(code)
 
     def signal_handler(self, signum: int, frame: FrameType):
         print(f'\nOtrzymano sygnał {signum}')

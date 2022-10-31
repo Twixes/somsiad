@@ -146,6 +146,8 @@ class Birthday(commands.Cog):
     def __init__(self, bot: Somsiad):
         self.bot = bot
         self.already_notified = defaultdict(set)
+
+    async def cog_load(self):
         self.notification_cycle.start()
 
     def cog_unload(self):

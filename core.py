@@ -173,8 +173,7 @@ class Help:
 
 
 class Essentials(commands.Cog, SomsiadMixin):
-    @commands.Cog.listener()
-    async def on_ready(self):
+    async def cog_load(self):
         self.heartbeat.start()
 
     def cog_unload(self):
