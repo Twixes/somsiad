@@ -13,7 +13,7 @@
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 import aiohttp
 import discord
@@ -30,6 +30,7 @@ class Tweet:
     id: str
     text: str = field(default_factory=str)
     attachments: Dict[str, Any] = field(default_factory=dict)
+    edit_history_tweet_ids: Optional[List[int]] = None
 
 
 class Twitter(commands.Cog, SomsiadMixin):
