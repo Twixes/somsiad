@@ -5,7 +5,7 @@ Polityka prywatności, którą właśnie czytasz, wyjaśnia sposób przetwarzani
 ## Kto zalicza się do użytkowników Bota?
 
 Jesteś użytkownikiem Bota jeśli należysz do jakiegokolwiek kanału na platformie Discord, do którego należy również Bot.
-Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do użytkowników nawet jeśli nie skorzystałeś jeszcze osobiście z żadnej z jego komend.
+Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do użytkowników, nawet jeśli nie skorzystałeś jeszcze osobiście z żadnej z jego komend.
 
 ## Jakie dane i dlaczego gromadzi Operator?
 
