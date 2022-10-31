@@ -170,10 +170,10 @@ class Somsiad(commands.AutoShardedBot):
     diagnostics_on: bool
     commands_being_processed: DefaultDict[str, int]
     ready_datetime: Optional[dt.datetime]
-    session: aiohttp.ClientSession
-    ch_client: ChClient
-    google_client: GoogleClient
-    youtube_client: YouTubeClient
+    session: Optional[aiohttp.ClientSession]
+    ch_client: Optional[ChClient]
+    google_client: Optional[GoogleClient]
+    youtube_client: Optional[YouTubeClient]
     system_channel: Optional[discord.TextChannel]
     public_channel: Optional[discord.TextChannel]
 
@@ -194,6 +194,8 @@ class Somsiad(commands.AutoShardedBot):
         self.diagnostics_on = False
         self.commands_being_processed = defaultdict(int)
         self.ready_datetime = None
+        self.session = None
+        self.ch_client = None
         self.google_client = (
             GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop)
             if configuration.get('google_key') is not None
