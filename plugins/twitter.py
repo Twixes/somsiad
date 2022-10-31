@@ -60,6 +60,6 @@ class Twitter(commands.Cog, SomsiadMixin):
                     await message.add_reaction(React.EMOJIS[0][str(attachment_count)])
 
 
-def setup(bot: Somsiad):
+async def setup(bot: Somsiad):
     if configuration.get('twitter_bearer_token') is not None:
-        bot.add_cog(Twitter(bot))
+        await bot.add_cog(Twitter(bot))

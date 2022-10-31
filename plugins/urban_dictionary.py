@@ -44,8 +44,8 @@ class UrbanDictionary(commands.Cog, SomsiadMixin):
                 new_string += character
         return new_string
 
-    @commands.command(aliases=['urbandictionary', 'urban', 'ud'])
     @cooldown()
+    @commands.command(aliases=['urbandictionary', 'urban', 'ud'])
     async def urban_dictionary(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
         params = {'term': query}
@@ -81,5 +81,5 @@ class UrbanDictionary(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(UrbanDictionary(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(UrbanDictionary(bot))

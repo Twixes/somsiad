@@ -6,7 +6,7 @@ ENV TZ Europe/Warsaw
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y locales tzdata python3-psycopg2 libffi-dev libnacl-dev libopus-dev libjpeg-dev libpq-dev ffmpeg \
+    && apt-get install --no-install-recommends -y locales tzdata python3-psycopg2 libffi-dev libssl-dev libsodium-dev libnacl-dev libopus-dev libjpeg-dev libpq-dev ffmpeg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
@@ -20,7 +20,7 @@ RUN sed -i -e "s/# $LC_ALL UTF-8/$LC_ALL UTF-8/" /etc/locale.gen && \
 WORKDIR /code/
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -U -r requirements.txt
+RUN SODIUM_INSTALL=system pip install --no-cache-dir -U -r requirements.txt
 
 COPY . .
 

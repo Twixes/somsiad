@@ -29,8 +29,8 @@ class Spotify(commands.Cog, SomsiadMixin):
         'Spotify_logo_without_text.svg/60px-Spotify_logo_without_text.svg.png'
     )
 
-    @commands.command()
     @cooldown()
+    @commands.command()
     @commands.guild_only()
     async def spotify(self, ctx, member: discord.Member = None):
         member = member or ctx.author
@@ -69,5 +69,5 @@ class Spotify(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Spotify(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Spotify(bot))

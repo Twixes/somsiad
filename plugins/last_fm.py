@@ -63,8 +63,8 @@ class LastFM(commands.Cog, SomsiadMixin):
         except aiohttp.client_exceptions.ClientConnectorError:
             return None
 
-    @commands.group(aliases=['lastfm', 'last', 'fm', 'lfm'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @commands.group(aliases=['lastfm', 'last', 'fm', 'lfm'], invoke_without_command=True, case_insensitive=True)
     async def last_fm(self, ctx, *, user):
         async with ctx.typing():
             user_info = await self.get_user_info(user)
@@ -130,6 +130,6 @@ class LastFM(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot):
     if configuration.get('last_fm_key') is not None:
-        bot.add_cog(LastFM(bot))
+        await bot.add_cog(LastFM(bot))

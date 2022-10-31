@@ -37,12 +37,11 @@ from typing import (
 
 import aiohttp
 import discord
-from discord_components.client import DiscordComponents
-from discord_components.component import Component
 import psutil
 import sentry_sdk
 from aiochclient.client import ChClient
 from discord.ext import commands
+from discord.utils import utcnow
 from multidict import CIMultiDict
 
 import data
@@ -171,14 +170,12 @@ class Somsiad(commands.AutoShardedBot):
     diagnostics_on: bool
     commands_being_processed: DefaultDict[str, int]
     ready_datetime: Optional[dt.datetime]
-    session: Optional[aiohttp.ClientSession]
-    ch_client: Optional[ChClient]
-    google_client: Optional[GoogleClient]
-    youtube_client: Optional[YouTubeClient]
+    session: aiohttp.ClientSession
+    ch_client: ChClient
+    google_client: GoogleClient
+    youtube_client: YouTubeClient
     system_channel: Optional[discord.TextChannel]
     public_channel: Optional[discord.TextChannel]
-
-    components_manager: DiscordComponents
 
     def __init__(self):
         super().__init__(
@@ -188,7 +185,6 @@ class Somsiad(commands.AutoShardedBot):
             case_insensitive=True,
             intents=discord.Intents.all(),
         )
-        self.components_manager = DiscordComponents(self)
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
         if not os.path.exists(self.cache_dir_path):
@@ -198,8 +194,6 @@ class Somsiad(commands.AutoShardedBot):
         self.diagnostics_on = False
         self.commands_being_processed = defaultdict(int)
         self.ready_datetime = None
-        self.session = None
-        self.ch_client = None
         self.google_client = (
             GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'], self.loop)
             if configuration.get('google_key') is not None
@@ -275,14 +269,14 @@ class Somsiad(commands.AutoShardedBot):
     async def on_guild_join(self, server):
         data.Server.register(server)
 
-    def load_and_run(self, cogs: Optional[Sequence[Type[commands.Cog]]] = None):
+    async def load_and_start(self, cogs: Optional[Sequence[Type[commands.Cog]]] = None):
         print('Ładowanie rozszerzeń...')
         if cogs:
             for cog in cogs:
-                self.add_cog(cog(self))
+                await self.add_cog(cog(self))
         for path in os.scandir('plugins'):
             if path.is_file() and path.name.endswith('.py'):
-                self.load_extension(f'plugins.{path.name[:-3]}')
+                await self.load_extension(f'plugins.{path.name[:-3]}')
         self.prefix_safe_aliases = tuple(
             (
                 variant
@@ -296,18 +290,18 @@ class Somsiad(commands.AutoShardedBot):
         )
         data.create_all_tables()
         print('Łączenie z Discordem...')
-        self.run(configuration['discord_token'], reconnect=True)
+        await self.start(configuration['discord_token'], reconnect=True)
 
     async def system_notify(
         self,
         emoji: Optional[str] = None,
         notice: Optional[str] = None,
-        description: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
+        description: Optional[str] = None
     ) -> bool:
         if self.system_channel is not None:
             await self.system_channel.send(
                 content='<@171599592708767744>',
-                embed=self.generate_embed(emoji, notice, description, timestamp=dt.datetime.utcnow()),
+                embed=self.generate_embed(emoji, notice, description, timestamp=utcnow()),
             )
             return True
         else:
@@ -326,7 +320,7 @@ class Somsiad(commands.AutoShardedBot):
 
     def invite_url(self) -> str:
         """Return the invitation URL of the bot."""
-        return discord.utils.oauth_url(str(self.user.id), discord.Permissions(305392727))
+        return discord.utils.oauth_url(str(self.user.id), permissions=discord.Permissions(305392727))
 
     @property
     def server_count(self) -> int:
@@ -379,22 +373,22 @@ class Somsiad(commands.AutoShardedBot):
         self,
         emoji: Optional[str] = None,
         notice: Optional[str] = None,
-        description: Optional[Union[str, discord.embeds._EmptyEmbed]] = discord.Embed.Empty,
+        description: Optional[str] = None,
         *,
-        url: Union[str, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
+        url: Optional[str] = None,
         color: Optional[Union[discord.Color, int]] = None,
-        timestamp: Union[dt.datetime, discord.embeds._EmptyEmbed] = discord.Embed.Empty,
+        timestamp: Optional[dt.datetime] = None
     ):
         title_parts = tuple(filter(None, (emoji, notice)))
         color = color or self.COLOR
         color_value = color.value if isinstance(color, discord.Color) else color
         color = color if color_value != 0xFFFFFF else 0xFEFEFE  # Discord treats pure white as no color at all
         return discord.Embed(
-            title=' '.join(title_parts) if title_parts else discord.Embed.Empty,
+            title=' '.join(title_parts) if title_parts else None,
             url=url,
             timestamp=timestamp,
             color=color or self.COLOR,
-            description=description or discord.Embed.Empty,
+            description=description,
         )
 
     async def send(
@@ -409,7 +403,6 @@ class Somsiad(commands.AutoShardedBot):
         delete_after: Optional[float] = None,
         mention: Optional[Union[bool, Sequence[discord.User]]] = None,
         reply: bool = True,
-        components: Optional[Sequence[Component]] = None,
     ) -> Optional[Union[discord.Message, List[discord.Message]]]:
         if embed is None:
             embeds: List[discord.Embed] = []
@@ -454,7 +447,6 @@ class Somsiad(commands.AutoShardedBot):
                     file=file,
                     files=files,
                     delete_after=delete_after,
-                    components=components,
                 )
             ]
             for extra_embed in embeds[1:]:
@@ -501,7 +493,7 @@ class Somsiad(commands.AutoShardedBot):
         return random.choice(self.EMOJIS)
 
     def format_diagnostics(self, ctx: commands.Context) -> str:
-        processing_timedelta = dt.datetime.utcnow() - ctx.message.created_at
+        processing_timedelta = utcnow() - ctx.message.created_at
         now_also = ', '.join(
             (f'{command} ({number})' for command, number in self.commands_being_processed.items() if number > 0)
         )

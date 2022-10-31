@@ -88,8 +88,8 @@ class Remind(commands.Cog):
                     )
                 )
 
-    @commands.command(aliases=['przypomnij', 'przypomnienie', 'pomidor'])
     @cooldown()
+    @commands.command(aliases=['przypomnij', 'przypomnienie', 'pomidor'])
     async def remind(
         self, ctx, execute_at: interpret_str_as_datetime, *, content: commands.clean_content(fix_channel_mentions=True)
     ):
@@ -141,5 +141,5 @@ class Remind(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice, description))
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Remind(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Remind(bot))

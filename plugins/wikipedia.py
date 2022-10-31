@@ -139,8 +139,8 @@ class Wikipedia(commands.Cog, SomsiadMixin):
         )
         return embed
 
-    @commands.command(aliases=['wiki', 'w'])
     @cooldown()
+    @commands.command(aliases=['wiki', 'w'])
     async def wikipedia(self, ctx, language, *, title='Wikipedia'):
         """The Wikipedia search command."""
         embed = await self.embed_search_result(language, title)
@@ -154,5 +154,5 @@ class Wikipedia(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Wikipedia(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Wikipedia(bot))

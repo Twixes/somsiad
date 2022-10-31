@@ -92,8 +92,8 @@ class Burn(commands.Cog):
                     )
                 )
 
-    @commands.command(aliases=['spal'])
     @cooldown()
+    @commands.command(aliases=['spal'])
     @commands.bot_has_permissions(manage_messages=True)
     async def burn(self, ctx, execute_at: interpret_str_as_datetime):
         """Removes the message after a specified mount time."""
@@ -138,5 +138,5 @@ class Burn(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice, description))
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Burn(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Burn(bot))

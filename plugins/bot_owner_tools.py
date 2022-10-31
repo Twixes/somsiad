@@ -111,5 +111,5 @@ class BotOwnerTools(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', f'Nie znaleziono kanału o ID {channel_id}'))
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(BotOwnerTools(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(BotOwnerTools(bot))

@@ -79,8 +79,8 @@ class SchoolPeriod:
 
 
 class School(commands.Cog, SomsiadMixin):
-    @commands.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @commands.group(aliases=['rokszkolny', 'wakacje', 'ilejeszcze'], invoke_without_command=True, case_insensitive=True)
     async def how_much_longer(self, ctx):
         """Says how much of the school year or summer break is left."""
         current_school_period = SchoolPeriod()
@@ -112,8 +112,8 @@ class School(commands.Cog, SomsiadMixin):
         embed.add_field(name='Data zakończenia', value=current_school_period.end_date.strftime('%-d %B %Y'))
         await self.bot.send(ctx, embed=embed)
 
-    @how_much_longer.group(aliases=['matury'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @how_much_longer.group(aliases=['matury'], invoke_without_command=True, case_insensitive=True)
     async def matura(self, ctx):
         """Says how much of the school year or summer break is left."""
         current_school_period = SchoolPeriod(matura=True)
@@ -148,5 +148,5 @@ class School(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(School(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(School(bot))

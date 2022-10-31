@@ -704,8 +704,8 @@ class Help(commands.Cog):
     def cog_unload(self):
         self.auto_command_of_the_day.cancel()
 
-    @commands.command(aliases=['cotd', 'komendadnia'])
     @cooldown()
+    @commands.command(aliases=['cotd', 'komendadnia'])
     async def command_of_the_day(self, ctx):
         await self.bot.send(ctx, embed=self.compose_command_of_the_day_embed())
 
@@ -745,11 +745,11 @@ class Help(commands.Cog):
         embed.add_field(name=str(command_help), value=command_help.description, inline=False)
         return embed
 
-    @commands.command(aliases=['help', 'pomocy', 'pomoc'])
     @cooldown()
+    @commands.command(aliases=['help', 'pomocy', 'pomoc'])
     async def help_message(self, ctx):
         await self.bot.send(ctx, direct=True, embed=self.HELP.embeds)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Help(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Help(bot))

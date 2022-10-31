@@ -47,9 +47,9 @@ def cooldown(
 ):
     def decorator(func):
         if isinstance(func, commands.Command):
-            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per, type))
+            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per), type)
         else:
-            func.__commands_cooldown__ = commands.Cooldown(rate, per, type)
+            raise ValueError("Decorator must be applied to command, not the function")
         return func
 
     return decorator
@@ -187,8 +187,8 @@ class Essentials(commands.Cog, SomsiadMixin):
         redis_connection.set('somsiad/user_count', self.bot.user_count)
         redis_connection.set('somsiad/version', __version__)
 
-    @commands.command(aliases=['wersja', 'v'])
     @cooldown()
+    @commands.command(aliases=['wersja', 'v'])
     async def version(self, ctx, *, x=None):
         """Responds with current version of the bot."""
         if x and 'fccchk' in x.lower():
@@ -203,8 +203,8 @@ class Essentials(commands.Cog, SomsiadMixin):
         embed.set_footer(text=footer)
         await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['informacje'])
     @cooldown()
+    @commands.command(aliases=['informacje'])
     async def info(self, ctx, *, x: str = ''):
         """Responds with current version of the bot."""
         if 'fccchk' in x.lower():
@@ -266,8 +266,8 @@ class Essentials(commands.Cog, SomsiadMixin):
             await asyncio.sleep(delay)
         await self.bot.send(ctx, embed=self.bot.generate_embed('🏓', 'Pońg!'))
 
-    @commands.command(aliases=['nope', 'nie'])
     @cooldown()
+    @commands.command(aliases=['nope', 'nie'])
     async def no(self, ctx, member: discord.Member = None):
         """Removes the last message sent by the bot in the channel on the requesting user's request."""
         member = member or ctx.author
@@ -340,17 +340,17 @@ class Prefix(commands.Cog, SomsiadMixin):
     )
     HELP = Help(COMMANDS, '🔧', group=GROUP)
 
+    @cooldown()
     @commands.group(
         aliases=['prefixes', 'prefixy', 'prefiks', 'prefiksy', 'przedrostek', 'przedrostki'],
         invoke_without_command=True,
     )
-    @cooldown()
     async def prefix(self, ctx):
         """Command prefix commands."""
         await self.bot.send(ctx, embed=self.HELP.embeds)
 
-    @prefix.command(aliases=['sprawdź', 'sprawdz'])
     @cooldown()
+    @prefix.command(aliases=['sprawdź', 'sprawdz'])
     async def check(self, ctx):
         """Presents the current command prefix."""
         if not ctx.guild:
@@ -389,8 +389,8 @@ class Prefix(commands.Cog, SomsiadMixin):
         )
         await self.bot.send(ctx, embed=embed)
 
-    @prefix.command(aliases=['ustaw'])
     @cooldown()
+    @prefix.command(aliases=['ustaw'])
     @commands.guild_only()
     @has_permissions(administrator=True)
     async def set(self, ctx, *, new_prefixes_raw: str):
@@ -455,8 +455,8 @@ class Prefix(commands.Cog, SomsiadMixin):
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-    @prefix.command(aliases=['przywróć', 'przywroc'])
     @cooldown()
+    @prefix.command(aliases=['przywróć', 'przywroc'])
     @commands.guild_only()
     @has_permissions(administrator=True)
     async def restore(self, ctx):

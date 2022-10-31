@@ -62,8 +62,8 @@ class Goodreads(commands.Cog, SomsiadMixin):
                                         books[-1]['author_id'] = author.text
         return books
 
-    @commands.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
     @cooldown()
+    @commands.command(aliases=['gr', 'książka', 'ksiazka', 'buk', 'book', 'buch'])
     async def goodreads(self, ctx, *, query):
         """Goodreads search. Responds with for the most popular books matching the query."""
         async with ctx.typing():
@@ -97,6 +97,6 @@ class Goodreads(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot):
     if configuration.get('goodreads_key') is not None:
-        bot.add_cog(Goodreads(bot))
+        await bot.add_cog(Goodreads(bot))

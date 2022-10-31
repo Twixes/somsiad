@@ -25,8 +25,8 @@ class Miejski(commands.Cog, SomsiadMixin):
     FOOTER_TEXT = 'Miejski'
     API_URL = 'https://api.urbandictionary.com/v0/define'
 
-    @commands.command()
     @cooldown()
+    @commands.command()
     async def miejski(self, ctx, *, query):
         """Returns Urban Dictionary word definition."""
         query_url_safe = urllib.parse.quote_plus(query.replace(' ', '+',))
@@ -63,5 +63,5 @@ class Miejski(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Miejski(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Miejski(bot))

@@ -20,8 +20,8 @@ from core import cooldown
 
 
 class Dice(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['roll', 'rzuć', 'rzuc'])
     @cooldown()
+    @commands.command(aliases=['roll', 'rzuć', 'rzuc'])
     async def roll_dice(self, ctx, *, arguments=''):
         number_of_dice = 1
         number_of_sides_on_a_die = 6
@@ -92,5 +92,5 @@ class Dice(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Dice(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Dice(bot))

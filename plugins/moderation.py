@@ -139,8 +139,8 @@ class Moderation(commands.Cog, SomsiadMixin):
         except psycopg2.errors.ForeignKeyViolation:
             pass
 
-    @commands.command(aliases=['ostrzeż', 'ostrzez'])
     @cooldown()
+    @commands.command(aliases=['ostrzeż', 'ostrzez'])
     @commands.guild_only()
     @has_permissions(kick_members=True)
     async def warn(self, ctx, subject_user: discord.Member, *, reason):
@@ -182,8 +182,8 @@ class Moderation(commands.Cog, SomsiadMixin):
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-    @commands.command(aliases=['wyrzuć', 'wyrzuc'])
     @cooldown()
+    @commands.command(aliases=['wyrzuć', 'wyrzuc'])
     @commands.guild_only()
     @has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
@@ -225,8 +225,8 @@ class Moderation(commands.Cog, SomsiadMixin):
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-    @commands.command(aliases=['zbanuj'])
     @cooldown()
+    @commands.command(aliases=['zbanuj'])
     @commands.guild_only()
     @has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
@@ -268,8 +268,8 @@ class Moderation(commands.Cog, SomsiadMixin):
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-    @commands.command(aliases=['przebacz'])
     @cooldown()
+    @commands.command(aliases=['przebacz'])
     @commands.guild_only()
     @has_permissions(kick_members=True)
     async def pardon(self, ctx, subject_user: discord.Member):
@@ -308,8 +308,8 @@ class Moderation(commands.Cog, SomsiadMixin):
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-    @commands.command(aliases=['kartoteka'])
     @cooldown()
+    @commands.command(aliases=['kartoteka'])
     @commands.guild_only()
     async def file(self, ctx, member: Union[discord.Member, int] = None, *, event_types: Event.comprehend_types = None):
         """Responds with a list of the user's files events on the server."""
@@ -412,8 +412,8 @@ class Moderation(commands.Cog, SomsiadMixin):
         if notice is not None:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', notice))
 
-    @commands.command(aliases=['wyczyść', 'wyczysc'])
     @cooldown()
+    @commands.command(aliases=['wyczyść', 'wyczysc'])
     @commands.guild_only()
     @has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
@@ -435,5 +435,5 @@ class Moderation(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Moderation(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Moderation(bot))

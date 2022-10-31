@@ -58,5 +58,5 @@ class Commands(commands.Cog, SomsiadMixin):
                 )
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Commands(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Commands(bot))

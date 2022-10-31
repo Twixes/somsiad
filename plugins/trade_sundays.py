@@ -258,17 +258,17 @@ class TradeSundays(commands.Cog, SomsiadMixin):
     )
     HELP = Help(COMMANDS, '🛒', group=GROUP)
 
+    @cooldown()
     @commands.group(
         aliases=['niedzielehandlowe', 'handlowe', 'niedzielahandlowa', 'handlowa'],
         invoke_without_command=True,
         case_insensitive=True,
     )
-    @cooldown()
     async def trade_sundays(self, ctx):
         await self.bot.send(ctx, embed=self.HELP.embeds)
 
-    @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
     @cooldown()
+    @trade_sundays.command(aliases=['najbliższa', 'najblizsza'])
     async def trade_sundays_nearest(self, ctx):
         nearest_sunday_date = determine_nearest_sunday_after_date()
         nearest_trade_sunday_date = determine_nearest_trade_sunday_after_date()
@@ -289,8 +289,8 @@ class TradeSundays(commands.Cog, SomsiadMixin):
         embed = self.bot.generate_embed(emoji, notice, description)
         await self.bot.send(ctx, embed=embed)
 
-    @trade_sundays.command(aliases=['terminarz', 'lista', 'spis'])
     @cooldown()
+    @trade_sundays.command(aliases=['terminarz', 'lista', 'spis'])
     async def trade_sundays_list(self, ctx, year: Optional[int], month: Optional[int]):
         month_names = [
             'Styczeń',
@@ -328,5 +328,5 @@ class TradeSundays(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(TradeSundays(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(TradeSundays(bot))

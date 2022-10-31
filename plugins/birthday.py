@@ -272,8 +272,8 @@ class Birthday(commands.Cog):
         main = f'Twoja data urodzin jest w tym momencie publiczna {info}{"." if period else ""}'
         return main, extra
 
-    @commands.group(aliases=['urodziny'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @commands.group(aliases=['urodziny'], invoke_without_command=True, case_insensitive=True)
     async def birthday(self, ctx, *, member: discord.Member = None):
         if member is None:
             await self.bot.send(ctx, embed=self.HELP.embeds)
@@ -286,8 +286,8 @@ class Birthday(commands.Cog):
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['zapamiętaj', 'zapamietaj', 'ustaw'])
     @cooldown()
+    @birthday.command(aliases=['zapamiętaj', 'zapamietaj', 'ustaw'])
     async def birthday_remember(self, ctx, *, raw_date_string):
         try:
             date = self.comprehend_date_without_year(raw_date_string)
@@ -341,8 +341,8 @@ class Birthday(commands.Cog):
             embed = self.bot.generate_embed('⚠️', notice)
             await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['zapomnij'])
     @cooldown()
+    @birthday.command(aliases=['zapomnij'])
     async def birthday_forget(self, ctx):
         forgotten = False
         with data.session(commit=True) as session:
@@ -360,8 +360,8 @@ class Birthday(commands.Cog):
             embed = self.bot.generate_embed('ℹ️', 'Brak daty urodzin do zapomnienia')
         await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['upublicznij'])
     @cooldown()
+    @birthday.command(aliases=['upublicznij'])
     @commands.guild_only()
     async def birthday_make_public(self, ctx):
         with data.session(commit=True) as session:
@@ -388,8 +388,8 @@ class Birthday(commands.Cog):
                 )
         await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['utajnij'])
     @cooldown()
+    @birthday.command(aliases=['utajnij'])
     @commands.guild_only()
     async def birthday_make_secret(self, ctx):
         with data.session(commit=True) as session:
@@ -414,8 +414,8 @@ class Birthday(commands.Cog):
                 )
         await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['gdzie'])
     @cooldown()
+    @birthday.command(aliases=['gdzie'])
     async def birthday_where(self, ctx):
         with data.session() as session:
             born_person = session.query(BornPerson).get(ctx.author.id)
@@ -433,8 +433,8 @@ class Birthday(commands.Cog):
         )
         await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['lista', 'serwer', 'wszyscy', 'wszystkie', 'kalendarz'])
     @cooldown()
+    @birthday.command(aliases=['lista', 'serwer', 'wszyscy', 'wszystkie', 'kalendarz'])
     @commands.guild_only()
     async def birthday_list(self, ctx):
         with data.session() as session:
@@ -463,8 +463,8 @@ class Birthday(commands.Cog):
                     embed.add_field(name=str(user), value=date_presentation, inline=True)
         return await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['kiedy', 'sprawdź', 'sprawdz', 'pokaż', 'pokaz'])
     @cooldown()
+    @birthday.command(aliases=['kiedy', 'sprawdź', 'sprawdz', 'pokaż', 'pokaz'])
     async def birthday_when(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
         with data.session() as session:
@@ -506,8 +506,8 @@ class Birthday(commands.Cog):
             )
             await self.bot.send(ctx, embed=embed)
 
-    @birthday.command(aliases=['wiek'])
     @cooldown()
+    @birthday.command(aliases=['wiek'])
     async def birthday_age(self, ctx, *, member: discord.Member = None):
         member = member or ctx.author
         with data.session() as session:
@@ -561,15 +561,15 @@ class Birthday(commands.Cog):
             )
             await self.bot.send(ctx, embed=embed)
 
-    @birthday.group(aliases=['powiadomienia'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @birthday.group(aliases=['powiadomienia'], invoke_without_command=True, case_insensitive=True)
     @commands.guild_only()
     @has_permissions(administrator=True)
     async def birthday_notifications(self, ctx):
         await self.bot.send(ctx, embed=self.NOTIFICATIONS_HELP.embeds)
 
-    @birthday_notifications.command(aliases=['status'])
     @cooldown()
+    @birthday_notifications.command(aliases=['status'])
     @commands.guild_only()
     async def birthday_notifications_status(self, ctx, *, channel: discord.TextChannel = None):
         channel = channel or ctx.channel
@@ -584,8 +584,8 @@ class Birthday(commands.Cog):
         embed = discord.Embed(title=title, description=description, color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
-    @birthday_notifications.command(aliases=['włącz', 'wlacz'])
     @cooldown()
+    @birthday_notifications.command(aliases=['włącz', 'wlacz'])
     @commands.guild_only()
     async def birthday_notifications_enable(self, ctx, *, channel: discord.TextChannel = None):
         channel = channel or ctx.channel
@@ -603,8 +603,8 @@ class Birthday(commands.Cog):
         embed = discord.Embed(title=title, description=self.NOTIFICATIONS_EXPLANATION, color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
-    @birthday_notifications.command(aliases=['wyłącz', 'wylacz'])
     @cooldown()
+    @birthday_notifications.command(aliases=['wyłącz', 'wylacz'])
     @commands.guild_only()
     async def birthday_notifications_disable(self, ctx):
         with data.session(commit=True) as session:
@@ -621,5 +621,5 @@ class Birthday(commands.Cog):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Birthday(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Birthday(bot))

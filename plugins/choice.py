@@ -50,8 +50,8 @@ class Choice(commands.Cog, SomsiadMixin):
         ],
     }
 
-    @commands.command(aliases=['choose', 'wybierz'])
     @cooldown()
+    @commands.command(aliases=['choose', 'wybierz'])
     async def random_choice(self, ctx, *, raw_options=''):
         """Randomly chooses one of provided options."""
         raw_options = raw_options.replace(';', ',').replace('|', ',')
@@ -87,5 +87,5 @@ class Choice(commands.Cog, SomsiadMixin):
             )
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Choice(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Choice(bot))

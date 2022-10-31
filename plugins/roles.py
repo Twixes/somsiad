@@ -21,8 +21,8 @@ from utilities import text_snippet, word_number_form
 
 
 class Roles(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['role'])
     @cooldown()
+    @commands.command(aliases=['role'])
     @commands.guild_only()
     async def roles(self, ctx):
         roles_counter = Counter((role for member in ctx.guild.members for role in member.roles))
@@ -37,5 +37,5 @@ class Roles(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Roles(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Roles(bot))

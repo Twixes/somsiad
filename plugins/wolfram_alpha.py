@@ -43,10 +43,10 @@ class WolframAlpha(commands.Cog, SomsiadMixin):
         except aiohttp.client_exceptions.ClientConnectorError:
             return None
 
+    @cooldown()
     @commands.command(
         aliases=['wolframalpha', 'wolfram', 'wa', 'kalkulator', 'oblicz', 'policz', 'przelicz', 'konwertuj']
     )
-    @cooldown()
     async def wolfram_alpha(self, ctx, *, query):
         async with ctx.typing():
             pods = await self.fetch_pods(query)
@@ -88,6 +88,6 @@ class WolframAlpha(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot):
     if configuration.get('wolfram_alpha_app_id') is not None:
-        bot.add_cog(WolframAlpha(bot))
+        await bot.add_cog(WolframAlpha(bot))

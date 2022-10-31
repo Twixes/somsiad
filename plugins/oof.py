@@ -25,8 +25,8 @@ class Oofer(data.Base, data.MemberSpecific):
 
 
 class Oof(commands.Cog, SomsiadMixin):
-    @commands.group(invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @commands.group(invoke_without_command=True, case_insensitive=True)
     @commands.guild_only()
     async def oof(self, ctx):
         with data.session(commit=True) as session:
@@ -38,14 +38,14 @@ class Oof(commands.Cog, SomsiadMixin):
                 session.add(oofer)
         await self.bot.send(ctx, 'Oof!')
 
-    @oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @oof.group(aliases=['ile'], invoke_without_command=True, case_insensitive=True)
     @commands.guild_only()
     async def oof_how_many(self, ctx, *, member: discord.Member = None):
         await ctx.invoke(self.oof_how_many_member, member=member)
 
-    @oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
     @cooldown()
+    @oof_how_many.command(aliases=['member', 'user', 'członek', 'użytkownik'])
     @commands.guild_only()
     async def oof_how_many_member(self, ctx, member: discord.Member = None):
         member = member or ctx.author
@@ -65,14 +65,14 @@ class Oof(commands.Cog, SomsiadMixin):
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             await self.bot.send(ctx, embed=embed)
 
-    @oof_how_many.command(aliases=['server', 'serwer', 'ranking'])
     @cooldown()
+    @oof_how_many.command(aliases=['server', 'serwer', 'ranking'])
     @commands.guild_only()
     async def oof_how_many_server(self, ctx):
         await ctx.invoke(self.oof_server)
 
-    @oof.command(aliases=['server', 'serwer', 'ranking'])
     @cooldown()
+    @oof.command(aliases=['server', 'serwer', 'ranking'])
     @commands.guild_only()
     async def oof_server(self, ctx):
         async with ctx.typing():
@@ -102,5 +102,5 @@ class Oof(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Oof(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Oof(bot))

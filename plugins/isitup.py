@@ -28,8 +28,8 @@ class IsItUp(commands.Cog, SomsiadMixin):
         5: 'https://pl.wikipedia.org/wiki/Kod_odpowiedzi_HTTP#Kody_błędu_serwera_HTTP',
     }
 
-    @commands.command(aliases=('isup', 'czydziała', 'czydziala'))
     @cooldown()
+    @commands.command(aliases=('isup', 'czydziała', 'czydziala'))
     async def isitup(self, ctx, *, query='https://google.com'):
         """Returns information about website status."""
         async with ctx.typing():
@@ -65,5 +65,5 @@ class IsItUp(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(IsItUp(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(IsItUp(bot))

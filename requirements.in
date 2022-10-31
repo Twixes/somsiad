@@ -1,5 +1,5 @@
 Pillow==8.4.0
-discord.py[voice]==1.7.3
+discord.py[voice]==2.0.1
 psycopg2==2.9.3
 SQLAlchemy==1.4.29
 psutil==5.9.0
@@ -15,4 +15,3 @@ beautifulsoup4==4.10.0
 ptvsd==4.3.2
 aiochclient[aiohttp-speedups]==2.1.0
 redis==4.1.0
-discord-components==2.1.2

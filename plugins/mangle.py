@@ -77,8 +77,8 @@ BASE_SHIFT_RATE = 0.05
 
 
 class Mangle(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['magiel', 'magluj', 'kiwcio'])
     @cooldown()
+    @commands.command(aliases=['magiel', 'magluj', 'kiwcio'])
     async def mangle(self, ctx: commands.Context, percentage: int, *, content: Optional[str] = None):
         if not content:
             async for message in ctx.history():
@@ -112,5 +112,5 @@ class Mangle(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, transformed_content)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Mangle(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Mangle(bot))

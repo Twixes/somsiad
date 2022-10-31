@@ -20,8 +20,8 @@ from utilities import HttpError
 
 
 class Google(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['g', 'gugiel'])
     @cooldown()
+    @commands.command(aliases=['g', 'gugiel'])
     @commands.guild_only()
     async def google(self, ctx, *, query='bot somsiad'):
         """Returns first matching website from Google using the provided Custom Search Engine."""
@@ -46,8 +46,8 @@ class Google(commands.Cog, SomsiadMixin):
         embed.set_footer(text=self.bot.google_client.FOOTER_TEXT, icon_url=self.bot.google_client.FOOTER_ICON_URL)
         await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['googleimage', 'gi', 'i'])
     @cooldown()
+    @commands.command(aliases=['googleimage', 'gi', 'i'])
     @commands.guild_only()
     async def google_image(self, ctx, *, query='bot somsiad'):
         """Returns first matching image from Google using the provided Custom Search Engine."""
@@ -73,6 +73,6 @@ class Google(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
+async def setup(bot: Somsiad):
     if bot.google_client is not None:
-        bot.add_cog(Google(bot))
+        await bot.add_cog(Google(bot))

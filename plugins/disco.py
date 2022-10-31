@@ -180,14 +180,14 @@ class Disco(commands.Cog):
             embed.set_footer(icon_url=self.bot.youtube_client.FOOTER_ICON_URL, text=self.bot.youtube_client.FOOTER_TEXT)
         return embed
 
-    @commands.group(aliases=['d'], invoke_without_command=True)
     @cooldown()
+    @commands.group(aliases=['d'], invoke_without_command=True)
     @commands.guild_only()
     async def disco(self, ctx):
         await self.bot.send(ctx, embed=self.HELP.embeds)
 
-    @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])
     @cooldown()
+    @disco.command(aliases=['play', 'zagraj', 'graj', 'puść', 'pusc', 'odtwórz', 'odtworz'])
     @commands.guild_only()
     async def disco_play(self, ctx, *, query):
         """Starts playing music on the voice channel where the invoking user currently resides."""
@@ -207,8 +207,8 @@ class Disco(commands.Cog):
             embed = discord.Embed(title=f':warning: Nie podano zapytania ani linku!', color=self.bot.COLOR)
             await self.bot.send(ctx, embed=embed)
 
-    @disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
     @cooldown()
+    @disco.command(aliases=['powtórz', 'powtorz', 'znów', 'znow', 'znowu', 'again', 'repeat', 'replay'])
     @commands.guild_only()
     async def disco_again(self, ctx):
         """Starts playing music on the voice channel where the invoking user currently resides."""
@@ -227,8 +227,8 @@ class Disco(commands.Cog):
             async with ctx.typing():
                 await self.channel_play_song(ctx, self.servers[ctx.guild.id]['song_url'])
 
-    @disco.command(aliases=['pauza', 'spauzuj', 'pauzuj', 'pause'])
     @cooldown()
+    @disco.command(aliases=['pauza', 'spauzuj', 'pauzuj', 'pause'])
     @commands.guild_only()
     async def disco_pause(self, ctx):
         """Pauses the currently played song."""
@@ -255,8 +255,8 @@ class Disco(commands.Cog):
             embed = discord.Embed(title=f':pause_button: Spauzowano utwór', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
-    @disco.command(aliases=['wznów', 'wznow', 'odpauzuj', 'unpause', 'resume'])
     @cooldown()
+    @disco.command(aliases=['wznów', 'wznow', 'odpauzuj', 'unpause', 'resume'])
     @commands.guild_only()
     async def disco_resume(self, ctx):
         """Resumes playing song."""
@@ -284,8 +284,8 @@ class Disco(commands.Cog):
             embed = discord.Embed(title=f':arrow_forward: Wznowiono odtwarzanie utworu', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
-    @disco.command(aliases=['pomiń', 'pomin', 'skip'])
     @cooldown()
+    @disco.command(aliases=['pomiń', 'pomin', 'skip'])
     @commands.guild_only()
     async def disco_skip(self, ctx):
         """Skips the currently played song."""
@@ -303,8 +303,8 @@ class Disco(commands.Cog):
             embed = discord.Embed(title=f':fast_forward: Pominięto utwór', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
-    @disco.command(aliases=['rozłącz', 'rozlacz', 'stop'])
     @cooldown()
+    @disco.command(aliases=['rozłącz', 'rozlacz', 'stop'])
     @commands.guild_only()
     async def disco_disconnect(self, ctx):
         """Disconnects from the server."""
@@ -325,8 +325,8 @@ class Disco(commands.Cog):
             embed = discord.Embed(title=f':stop_button: Rozłączono z kanałem {voice_channel}', color=self.bot.COLOR)
         await self.bot.send(ctx, embed=embed)
 
-    @disco.command(aliases=['głośność', 'glosnosc', 'poziom', 'volume', 'vol'])
     @cooldown()
+    @disco.command(aliases=['głośność', 'glosnosc', 'poziom', 'volume', 'vol'])
     @commands.guild_only()
     async def disco_volume(self, ctx, volume_percentage: Union[int, locale.atoi] = None):
         """Sets the volume."""
@@ -359,6 +359,6 @@ class Disco(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
+async def setup(bot: Somsiad):
     if bot.youtube_client is not None:
-        bot.add_cog(Disco(bot))
+        await bot.add_cog(Disco(bot))

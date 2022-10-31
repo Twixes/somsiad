@@ -236,8 +236,8 @@ class TMDb(commands.Cog, SomsiadMixin):
             embed.set_image(url=f'https://image.tmdb.org/t/p/w780{result["backdrop_path"]}')
         return embed
 
-    @commands.group(invoke_without_command=True)
     @cooldown()
+    @commands.group(invoke_without_command=True)
     async def tmdb(self, ctx, *, query):
         """Responds with the most popular movie/series/person matching the query."""
         async with ctx.typing():
@@ -249,49 +249,49 @@ class TMDb(commands.Cog, SomsiadMixin):
         if isinstance(error, commands.MissingRequiredArgument):
             await self.bot.send(ctx, embed=self.HELP.embeds)
 
-    @tmdb.command(aliases=['film', 'kino'])
     @cooldown()
+    @tmdb.command(aliases=['film', 'kino'])
     async def movie(self, ctx, *, query):
         """Responds with the most popular movie matching the query."""
         async with ctx.typing():
             embed = await self.fetch_result_and_generate_embed(query, 'movie')
             await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['movie', 'film', 'kino'])
     @cooldown()
+    @commands.command(aliases=['movie', 'film', 'kino'])
     async def movie_unbound(self, ctx, *, query):
         """Responds with the most popular movie matching the query."""
         await ctx.invoke(self.movie, query=query)
 
-    @tmdb.command(aliases=['serial', 'seria', 'telewizja'])
     @cooldown()
+    @tmdb.command(aliases=['serial', 'seria', 'telewizja'])
     async def tv(self, ctx, *, query):
         """Responds with the most popular TV series matching the query."""
         async with ctx.typing():
             embed = await self.fetch_result_and_generate_embed(query, 'tv')
             await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['tv', 'serial', 'seria', 'telewizja'])
     @cooldown()
+    @commands.command(aliases=['tv', 'serial', 'seria', 'telewizja'])
     async def tv_unbound(self, ctx, *, query):
         """Responds with the most popular TV series matching the query."""
         await ctx.invoke(self.tv, query=query)
 
-    @tmdb.command(aliases=['osoba'])
     @cooldown()
+    @tmdb.command(aliases=['osoba'])
     async def person(self, ctx, *, query):
         """Responds with the most popular person matching the query."""
         async with ctx.typing():
             embed = await self.fetch_result_and_generate_embed(query, 'person')
             await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['person', 'osoba'])
     @cooldown()
+    @commands.command(aliases=['person', 'osoba'])
     async def person_unbound(self, ctx, *, query):
         """Responds with the most popular person matching the query."""
         await ctx.invoke(self.person, query=query)
 
 
-def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot):
     if configuration.get('tmdb_key') is not None:
-        bot.add_cog(TMDb(bot))
+        await bot.add_cog(TMDb(bot))

@@ -189,8 +189,8 @@ class React(commands.Cog, SomsiadMixin):
             except discord.HTTPException:
                 pass
 
-    @commands.command(aliases=['zareaguj', 'reaguj', 'x'])
     @cooldown()
+    @commands.command(aliases=['zareaguj', 'reaguj', 'x'])
     @commands.guild_only()
     async def react(
         self,
@@ -202,55 +202,55 @@ class React(commands.Cog, SomsiadMixin):
         """Reacts with the provided characters."""
         await self._react(ctx, characters, member)
 
-    @commands.command(aliases=['pomógł', 'pomogl'])
     @cooldown()
+    @commands.command(aliases=['pomógł', 'pomogl'])
     @commands.guild_only()
     async def helped(self, ctx, member: discord.Member = None):
         """Reacts with "POMÓGŁ"."""
         await self._react(ctx, 'pomógł', member)
 
-    @commands.command(aliases=['niepomógł', 'niepomogl'])
     @cooldown()
+    @commands.command(aliases=['niepomógł', 'niepomogl'])
     @commands.guild_only()
     async def didnothelp(self, ctx, member: discord.Member = None):
         """Reacts with "NIEPOMÓGŁ"."""
         await self._react(ctx, 'niepomógł', member)
 
-    @commands.command(aliases=['up', 'this', 'to', '^'])
     @cooldown()
+    @commands.command(aliases=['up', 'this', 'to', '^'])
     @commands.guild_only()
     async def upvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬆"."""
         await self._react(ctx, '⬆', member, convert=False)
 
-    @commands.command(aliases=['down'])
     @cooldown()
+    @commands.command(aliases=['down'])
     @commands.guild_only()
     async def downvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬇"."""
         await self._react(ctx, '⬇', member, convert=False)
 
-    @commands.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
     @cooldown()
+    @commands.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
     @commands.guild_only()
     async def thinking(self, ctx, member: discord.Member = None):
         """Reacts with "🤔"."""
         await self._react(ctx, '🤔', member, convert=False)
 
-    @commands.command()
     @cooldown()
+    @commands.command()
     @commands.guild_only()
     async def f(self, ctx, member: discord.Member = None):
         """Reacts with "F"."""
         await self._react(ctx, '🇫', member, convert=False)
 
-    @commands.command(aliases=['chlip', '😢'])
     @cooldown()
+    @commands.command(aliases=['chlip', '😢'])
     @commands.guild_only()
     async def sob(self, ctx, member: discord.Member = None):
         """Reacts with "😢"."""
         await self._react(ctx, '😢', member, convert=False)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(React(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(React(bot))

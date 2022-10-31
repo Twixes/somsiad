@@ -165,8 +165,8 @@ class Imaging(commands.Cog, SomsiadMixin):
                     break
         return attachment, input_image_bytes
 
-    @commands.command(aliases=['obróć', 'obroc', 'niewytrzymie'])
     @cooldown()
+    @commands.command(aliases=['obróć', 'obroc', 'niewytrzymie'])
     @commands.guild_only()
     async def rotate(self, ctx, sent_by: Optional[discord.Member] = None, times_or_degrees: int = 1):
         """Rotates an image."""
@@ -184,8 +184,8 @@ class Imaging(commands.Cog, SomsiadMixin):
         else:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do obrócenia'))
 
-    @commands.command(aliases=['usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'])
     @cooldown()
+    @commands.command(aliases=['usmaż', 'głębokosmaż', 'usmaz', 'glebokosmaz'])
     @commands.guild_only()
     async def deepfry(self, ctx, sent_by: Optional[discord.Member] = None, doneness: int = 2):
         """Deep-fries an image.
@@ -207,8 +207,8 @@ class Imaging(commands.Cog, SomsiadMixin):
         else:
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do usmażenia'))
 
-    @commands.command(aliases=['r9k', 'było', 'bylo', 'byo'])
     @cooldown()
+    @commands.command(aliases=['r9k', 'było', 'bylo', 'byo'])
     @commands.guild_only()
     async def robot9000(self, ctx: commands.Context, sent_by: discord.Member = None):
         """Finds previous occurences of the image being sent."""
@@ -287,5 +287,5 @@ class Imaging(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Imaging(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Imaging(bot))

@@ -19,13 +19,13 @@ from core import cooldown
 
 
 class Rimshot(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['badum', 'badumtss'])
     @cooldown()
+    @commands.command(aliases=['badum', 'badumtss'])
     async def rimshot(self, ctx):
         """Ba dum tss!"""
         file = discord.File(fp='plugins/assets/BA-DUM-TSS.mp3')
         await self.bot.send(ctx, file=file)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Rimshot(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Rimshot(bot))

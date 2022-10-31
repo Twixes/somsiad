@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import os
 
 env_ptvsd = os.getenv('PTVSD')
@@ -31,4 +32,4 @@ if __name__ == '__main__':
             release=f'{configuration.get("sentry_proj") or "somsiad"}@{__version__}',
             integrations=[SqlalchemyIntegration(), AioHttpIntegration()],
         )
-    somsiad.load_and_run((Essentials, Prefix))
+    asyncio.run(somsiad.load_and_start((Essentials, Prefix)))

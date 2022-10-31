@@ -707,7 +707,7 @@ class Report:
         if self.caching_progress_message is None:
             self.caching_progress_message = await self.bot.send(self.ctx, embed=embed)
         else:
-            await self.caching_progress_message.edit(embed=embed)
+            self.caching_progress_message = await self.caching_progress_message.edit(embed=embed)
 
     async def _finalize_progress(self):
         if self.caching_progress_message is not None:
@@ -715,7 +715,7 @@ class Report:
                 self.messages_cached, 'nową wiadomość', 'nowe wiadomości', 'nowych wiadomości'
             )
             caching_progress_embed = self.bot.generate_embed('✅', f'Zbuforowano {new_messages_form}')
-            await self.caching_progress_message.edit(embed=caching_progress_embed)
+            self.caching_progress_message = await self.caching_progress_message.edit(embed=caching_progress_embed)
 
     def _generate_server_embed(self):
         """Analyzes the subject as a server."""
@@ -1126,12 +1126,12 @@ class Activity(commands.Cog):
     async def on_ready(self):
         await self.metadata_cache.prepare()
 
+    @cooldown()
     @commands.group(
         aliases=['staty', 'stats', 'activity', 'aktywność', 'aktywnosc'],
         invoke_without_command=True,
         case_insensitive=True,
     )
-    @cooldown()
     async def stat(
         self,
         ctx,
@@ -1157,16 +1157,16 @@ class Activity(commands.Cog):
                 ),
             )
 
-    @stat.command(aliases=['server', 'serwer'])
     @cooldown()
+    @stat.command(aliases=['server', 'serwer'])
     @commands.guild_only()
     async def stat_server(self, ctx, last_days: int = None):
         async with ctx.typing():
             report = Report(ctx, ctx.guild, metadata_cache=self.metadata_cache, last_days=last_days)
             await report.enqueue()
 
-    @stat.command(aliases=['channel', 'kanał', 'kanal'])
     @cooldown()
+    @stat.command(aliases=['channel', 'kanał', 'kanal'])
     @commands.guild_only()
     async def stat_channel(self, ctx, channel: discord.TextChannel = None, last_days: int = None):
         channel = channel or ctx.channel
@@ -1181,8 +1181,8 @@ class Activity(commands.Cog):
                 ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego kanału')
             )
 
-    @stat.command(aliases=['category', 'kategoria'])
     @cooldown()
+    @stat.command(aliases=['category', 'kategoria'])
     @commands.guild_only()
     async def stat_category(self, ctx, category: discord.CategoryChannel = None, last_days: int = None):
         if category is None:
@@ -1200,8 +1200,8 @@ class Activity(commands.Cog):
                 ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującej kategorii')
             )
 
-    @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
     @cooldown()
+    @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
     @commands.guild_only()
     async def stat_member(self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None):
         member = member or ctx.author
@@ -1216,8 +1216,8 @@ class Activity(commands.Cog):
                 ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             )
 
-    @stat.command(aliases=['role', 'rola', 'ranga', 'grupa'])
     @cooldown()
+    @stat.command(aliases=['role', 'rola', 'ranga', 'grupa'])
     @commands.guild_only()
     async def stat_role(self, ctx, role: discord.Role, last_days: int = None):
         async with ctx.typing():
@@ -1230,5 +1230,5 @@ class Activity(commands.Cog):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującej roli'))
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Activity(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Activity(bot))

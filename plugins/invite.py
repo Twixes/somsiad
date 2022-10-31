@@ -19,8 +19,8 @@ from core import cooldown
 
 
 class Invite(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['zaproś', 'zapros'])
     @cooldown()
+    @commands.command(aliases=['zaproś', 'zapros'])
     @commands.guild_only()
     async def invite(self, ctx, *, argument=''):
         is_user_permitted_to_invite = False
@@ -89,5 +89,5 @@ class Invite(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Invite(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Invite(bot))

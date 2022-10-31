@@ -87,8 +87,8 @@ class Eightball(commands.Cog, SomsiadMixin):
         aNSwEr = ''.join(random.choice([letter.lower(), letter.upper()]) for letter in self.ask(stripped_question))
         return aNSwEr
 
-    @commands.command(aliases=['8ball', '8-ball', '8', 'czy'])
     @cooldown()
+    @commands.command(aliases=['8ball', '8-ball', '8', 'czy'])
     async def eightball(
         self, ctx: commands.Context, *, question: commands.clean_content(fix_channel_mentions=True) = ''
     ):
@@ -103,8 +103,8 @@ class Eightball(commands.Cog, SomsiadMixin):
             text = '⚠️ By zadać magicznej kuli pytanie musisz użyć *słów*.'
         await self.bot.send(ctx, text)
 
-    @commands.command(aliases=['niepierdol', 'japa', 'sklejpizde', 'mordatam'])
     @cooldown()
+    @commands.command(aliases=['niepierdol', 'japa', 'sklejpizde', 'mordatam'])
     async def dontbullshit(self, ctx: commands.Context):
         """Inverts the last 8-Ball answer in the channel."""
         async for message in ctx.history(limit=10):
@@ -125,5 +125,5 @@ class Eightball(commands.Cog, SomsiadMixin):
             break
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Eightball(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Eightball(bot))

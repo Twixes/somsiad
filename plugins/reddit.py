@@ -106,8 +106,8 @@ class Reddit(commands.Cog, SomsiadMixin):
         embed.set_footer(text='Reddit', icon_url='https://www.reddit.com/favicon.ico')
         return embed
 
-    @commands.command(aliases=['r', 'sub'])
     @cooldown()
+    @commands.command(aliases=['r', 'sub'])
     async def subreddit(self, ctx, subreddit_name):
         async with ctx.typing():
             embed = await self.fetch_subreddit_and_generate_embed(subreddit_name, ctx.channel.is_nsfw())
@@ -120,8 +120,8 @@ class Reddit(commands.Cog, SomsiadMixin):
             embed.set_footer(text='Reddit', icon_url='https://www.reddit.com/favicon.ico')
             await self.bot.send(ctx, embed=embed)
 
-    @commands.command(aliases=['u'])
     @cooldown()
+    @commands.command(aliases=['u'])
     async def user(self, ctx, username):
         async with ctx.typing():
             embed = await self.fetch_user_and_generate_embed(username, ctx.channel.is_nsfw())
@@ -135,5 +135,5 @@ class Reddit(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Reddit(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Reddit(bot))

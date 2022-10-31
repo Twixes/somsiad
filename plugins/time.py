@@ -124,8 +124,8 @@ def write_time_out(hour: int, minute: int) -> str:
 
 
 class Time(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['ktoragodzina', 'któragodzina', 'whattime', 'wiespät'])
     @cooldown()
+    @commands.command(aliases=['ktoragodzina', 'któragodzina', 'whattime', 'wiespät'])
     async def what_time_is_it(self, ctx, hour: Optional[int] = None, minute: Optional[int] = None):
         now = dt.datetime.now()
         current_time = (hour or now.hour, minute or now.minute)
@@ -150,5 +150,5 @@ class Time(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Time(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Time(bot))

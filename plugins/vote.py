@@ -147,8 +147,8 @@ class Vote(commands.Cog):
                     )
                 )
 
-    @commands.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
     @cooldown()
+    @commands.command(aliases=['głosowanie', 'glosowanie', 'poll', 'ankieta'])
     async def vote(
         self,
         ctx,
@@ -209,5 +209,5 @@ class Vote(commands.Cog):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Vote(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Vote(bot))

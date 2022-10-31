@@ -46,16 +46,16 @@ class Colors(commands.Cog, SomsiadMixin):
     HELP = Help(COMMANDS, '🎨', group=GROUP)
     GRAY = 0xCDD7DE
 
+    @cooldown()
     @commands.group(
         invoke_without_command=True, case_insensitive=True, aliases=['kolory', 'kolor', 'kolorki', 'kolorek']
     )
-    @cooldown()
     @commands.guild_only()
     async def colors(self, ctx):
         await self.bot.send(ctx, embed=self.HELP.embeds)
 
-    @colors.command(aliases=['role', 'lista'])
     @cooldown()
+    @colors.command(aliases=['role', 'lista'])
     @commands.guild_only()
     async def roles(self, ctx):
         relevant_roles = list(filter(lambda role: role.name.startswith('🎨'), ctx.guild.roles))
@@ -79,8 +79,8 @@ class Colors(commands.Cog, SomsiadMixin):
         embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
 
-    @colors.command(aliases=['ustaw'])
     @cooldown()
+    @colors.command(aliases=['ustaw'])
     @commands.guild_only()
     async def set(self, ctx, *, role_candidate: Union[discord.Role, str] = '?'):
         role = None
@@ -134,8 +134,8 @@ class Colors(commands.Cog, SomsiadMixin):
         embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
 
-    @colors.command(aliases=['pokaż', 'pokaz'])
     @cooldown()
+    @colors.command(aliases=['pokaż', 'pokaz'])
     @commands.guild_only()
     async def show(self, ctx, *, subject_candidate: Union[discord.Member, discord.Role, str] = None):
         subject_candidate = subject_candidate or ctx.author
@@ -194,8 +194,8 @@ class Colors(commands.Cog, SomsiadMixin):
         embed = self.bot.generate_embed(emoji, notice, description, color=color)
         await self.bot.send(ctx, embed=embed)
 
-    @colors.command(aliases=['wyczyść', 'wyczysc'])
     @cooldown()
+    @colors.command(aliases=['wyczyść', 'wyczysc'])
     @commands.guild_only()
     async def clear(self, ctx):
         roles_for_removal = [role for role in ctx.author.roles if role.name.startswith('🎨')]
@@ -214,5 +214,5 @@ class Colors(commands.Cog, SomsiadMixin):
         await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Colors(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Colors(bot))

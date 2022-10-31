@@ -51,7 +51,7 @@ class PinArchive(data.ServerSpecific, data.ChannelRelated, data.Base):
 
     async def _archive_message(self, bot: Somsiad, archive_channel: discord.TextChannel, message: discord.Message):
         pin_embed = bot.generate_embed(description=message.content, timestamp=message.created_at)
-        pin_embed.set_author(name=message.author.display_name, url=message.jump_url, icon_url=message.author.avatar_url)
+        pin_embed.set_author(name=message.author.display_name, url=message.jump_url, icon_url=message.author.display_avatar.url)
         pin_embed.set_footer(text=f'#{message.channel}')
         files: List[discord.File] = []
         for attachment in message.attachments:
@@ -93,14 +93,14 @@ class Pins(commands.Cog, SomsiadMixin):
     )
     HELP = Help(COMMANDS, '📌', group=GROUP)
 
-    @commands.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
     @cooldown()
+    @commands.group(aliases=['przypięte', 'przypinki', 'piny'], invoke_without_command=True, case_insensitive=True)
     async def pins(self, ctx):
         """A group of pin-related commands."""
         await self.bot.send(ctx, embed=self.HELP.embeds)
 
-    @pins.command(aliases=['kanał', 'kanal'])
     @cooldown()
+    @pins.command(aliases=['kanał', 'kanal'])
     @commands.guild_only()
     @has_permissions(manage_channels=True)
     async def pins_channel(self, ctx, channel: discord.TextChannel = None):
@@ -138,8 +138,8 @@ class Pins(commands.Cog, SomsiadMixin):
             embed = self.bot.generate_embed('⚠️', notice)
             await self.bot.send(ctx, embed=embed)
 
-    @pins.command(aliases=['archiwizuj', 'zarchiwizuj'])
     @cooldown()
+    @pins.command(aliases=['archiwizuj', 'zarchiwizuj'])
     @commands.guild_only()
     @has_permissions(manage_messages=True)
     async def pins_archive(self, ctx):
@@ -196,8 +196,8 @@ class Pins(commands.Cog, SomsiadMixin):
             embed = self.bot.generate_embed(emoji, notice, description)
             await self.bot.send(ctx, embed=embed)
 
-    @pins.command(aliases=['wyczyść', 'wyczysc'])
     @cooldown()
+    @pins.command(aliases=['wyczyść', 'wyczysc'])
     @commands.guild_only()
     @has_permissions(manage_messages=True)
     async def pins_clear(self, ctx):
@@ -224,5 +224,5 @@ class Pins(commands.Cog, SomsiadMixin):
             await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Pins(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Pins(bot))

@@ -19,8 +19,8 @@ from utilities import HttpError
 
 
 class YouTube(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['youtube', 'yt', 'tuba'])
     @cooldown()
+    @commands.command(aliases=['youtube', 'yt', 'tuba'])
     @commands.guild_only()
     async def youtube_search(self, ctx, *, query=None):
         """Returns first matching result from YouTube."""
@@ -47,6 +47,6 @@ class YouTube(commands.Cog, SomsiadMixin):
             return await self.bot.send(ctx, embed=embed)
 
 
-def setup(bot: Somsiad):
+async def setup(bot: Somsiad):
     if bot.youtube_client is not None:
-        bot.add_cog(YouTube(bot))
+        await bot.add_cog(YouTube(bot))

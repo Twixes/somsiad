@@ -109,8 +109,8 @@ class Closing:
 
 
 class Close(commands.Cog, SomsiadMixin):
-    @commands.command(aliases=['zamknij'])
     @cooldown()
+    @commands.command(aliases=['zamknij'])
     @commands.guild_only()
     @has_permissions(manage_channels=True)
     @commands.bot_has_permissions(manage_channels=True)
@@ -133,5 +133,5 @@ class Close(commands.Cog, SomsiadMixin):
             await asyncio.gather(closing.timeout_handler(), closing.countdown_handler())
 
 
-def setup(bot: Somsiad):
-    bot.add_cog(Close(bot))
+async def setup(bot: Somsiad):
+    await bot.add_cog(Close(bot))
