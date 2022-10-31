@@ -20,6 +20,7 @@ import random
 import sys
 import traceback
 from collections import defaultdict
+from types import FrameType
 from typing import (
     Any,
     Callable,
@@ -310,14 +311,15 @@ class Somsiad(commands.AutoShardedBot):
             return False
 
     async def close(self, code: int = 0):
-        print('\nZatrzymywanie działania programu...')
+        print('Zatrzymywanie działania programu...')
         await self.system_notify(*(('🛑', 'Wyłączam się…') if not code else ('🔁', 'Restartuję się…')))
         if self.session is not None:
             await self.session.close()
         await super().close()
         sys.exit(code)
 
-    def signal_handler(self, *args, **kwargs):
+    def signal_handler(self, signum: int, frame: FrameType):
+        print(f'\nOtrzymano sygnał {signum}')
         asyncio.run(self.close())
 
     def invite_url(self) -> str:
