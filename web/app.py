@@ -5,6 +5,7 @@ import os
 import random
 from typing import Optional
 
+import markdown
 import redis
 from flask import Flask, render_template
 
@@ -137,4 +138,12 @@ def index():
         user_count_display=user_count_display,
         version=version,
         emoji=emoji,
+    )
+
+@application.route('/polityka-prywatnosci')
+def privacy_policy():
+    return render_template(
+        '_document.html',
+        title="Polityka prywatności Somsiada",
+        content=markdown.markdown(open('documents/polityka-prywatnosci.md').read()),
     )

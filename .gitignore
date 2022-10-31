@@ -6,3 +6,4 @@ __pycache__
 *.cprof
 /venv/
 letsencrypt/
+*/.python-version
