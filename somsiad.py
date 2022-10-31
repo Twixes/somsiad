@@ -179,12 +179,15 @@ class Somsiad(commands.AutoShardedBot):
     public_channel: Optional[discord.TextChannel]
 
     def __init__(self):
+        intents = discord.Intents.default()
+        intents.presences = True
+        intents.members = True
         super().__init__(
             command_prefix=self._get_prefix,
             help_command=None,
             description='Zawsze pomocny Somsiad',
             case_insensitive=True,
-            intents=discord.Intents.all(),
+            intents=intents,
         )
         if not os.path.exists(self.storage_dir_path):
             os.makedirs(self.storage_dir_path)
