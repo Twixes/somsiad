@@ -120,14 +120,14 @@ def index():
 
     server_count_raw = redis_connection.get('somsiad/server_count')
     server_count: Optional[int] = int(server_count_raw.decode('utf-8')) if server_count_raw else None
-    server_count_display: str = f'{server_count:n}' if server_count else '?'
+    server_count_display: str = f'{server_count:n}' if server_count else 'Ileś'
 
     user_count_raw = redis_connection.get('somsiad/user_count')
     user_count: Optional[int] = int(user_count_raw.decode('utf-8')) if user_count_raw else None
-    user_count_display: str = f'{user_count:n}' if user_count else '?'
+    user_count_display: str = f'{user_count:n}' if user_count else 'Ileś'
 
     version_raw = redis_connection.get('somsiad/version')
-    version: str = version_raw.decode('utf-8') if version_raw else '?'
+    version: str = version_raw.decode('utf-8') if version_raw else '0.0.0'
 
     emoji: str = random.choice(EMOJIS)
 
@@ -139,6 +139,7 @@ def index():
         version=version,
         emoji=emoji,
     )
+
 
 @application.route('/polityka-prywatnosci')
 def privacy_policy():
