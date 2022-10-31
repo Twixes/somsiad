@@ -9,7 +9,7 @@ Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do 
 
 ## Jakie dane i dlaczego gromadzi Operator?
 
-2. W ramach komendy ***stat*** dla każdej wysłanej przez Ciebie na czacie wiadomości przechowywane są:
+2. W ramach komendy _stat_ dla każdej wysłanej przez Ciebie na czacie wiadomości przechowywane są:
 
     - twoje ID użytkownika Discorda
     - ID wiadomości
@@ -19,10 +19,10 @@ Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do 
     - liczba znaków w wiadomości
     - data i czas wysłania
 
-    Powyższe dane pozwalają na generowanie raportów aktywności w obrębie serwera poprzez wywołanie komendy ***stat***.
+    Powyższe dane pozwalają na generowanie raportów aktywności w obrębie serwera poprzez wywołanie komendy _stat_.
     W tym procesie treść wiadomości nigdy nie zostaje zapisana poza Discordem, gdyż do analizy statystycznej potrzebne są tylko metadane wymienione wyżej.
 
-1. W ramach komendy ***było*** dla każdego wysłanego przez Ciebie na czacie obrazka przechowywane są:
+1. W ramach komendy _było_ dla każdego wysłanego przez Ciebie na czacie obrazka przechowywane są:
 
     - twoje ID użytkownika Discorda
     - ID załącznika zawierającego obraz
@@ -32,12 +32,14 @@ Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do 
     - hash percepcjny obrazu
     - data i czas wysłania
 
-    Powyższe dane pozwalają na wizualne wyszukiwanie obrazów w obrębie serwera poprzez wywołanie komendy ***było***.
+    Powyższe dane pozwalają na wizualne wyszukiwanie obrazów w obrębie serwera poprzez wywołanie komendy _było_.
     Obliczenia dające w rezultacie hash percepcyjny obrazu są nieodwracalne, więc żaden obraz nie zostaje zapisany poza Discordem.
 
-3. Jeśli skorzystałeś z komendy ***urodziny zapamiętaj***, przechowywane jest powiązanie Twojego ID użytkownika Discorda z datą urodzin.
-  Twoja data urodzin jest domyślnie publiczna, tj. dostępna na żądanie dla wszystkich użytkowników, tylko na serwerze na którym użyłeś komendy ***urodziny zapamiętaj***. Wszędzie indziej jest ona prywatna, tj. nikt nie może jej zobaczyć. Możesz w dowolnym momencie zmienić widoczność swojej daty urodzin odrębnie dla każdego serwera przy użyciu komend ***urodziny upublicznij***/***urodziny utajnij***.
-  Możesz także w dowolnym momencie całkowicie usunąć swoją datę urodzin z systemu Somsiada przy użyciu komendy ***urodziny zapomnij***.
+1. Jeśli skorzystałeś z komendy _urodziny zapamiętaj_, przechowywane jest powiązanie Twojego ID użytkownika Discorda z datą urodzin.
+
+    Twoja data urodzin jest domyślnie publiczna, tj. dostępna na żądanie dla wszystkich użytkowników, tylko na serwerze na którym użyłeś komendy _urodziny zapamiętaj_. Wszędzie indziej jest ona prywatna, tj. nikt nie może jej zobaczyć. Możesz w dowolnym momencie zmienić widoczność swojej daty urodzin odrębnie dla każdego serwera przy użyciu komend _urodziny upublicznij_/_urodziny utajnij_.
+
+    Możesz także w dowolnym momencie całkowicie usunąć swoją datę urodzin z systemu Somsiada przy użyciu komendy _urodziny zapomnij_.
 
 ## Jak przechowywane są powyższe dane?
 
