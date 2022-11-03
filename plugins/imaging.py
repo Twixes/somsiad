@@ -24,7 +24,7 @@ import psycopg2.errors
 from discord.ext import commands
 
 import data
-from core import cooldown
+from core import cooldown, is_user_opted_out_of_data_processing
 from utilities import md_link, utc_to_naive_local, word_number_form
 
 
@@ -57,34 +57,36 @@ class Imaging(commands.Cog, SomsiadMixin):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if not message.attachments or message.guild is None:
-            return
-        images9000 = []
-        for attachment in message.attachments:
-            if attachment.height and attachment.width:
-                image_bytes = io.BytesIO()
-                try:
-                    await attachment.save(image_bytes)
-                except (discord.HTTPException, discord.NotFound):
-                    continue
-                else:
-                    try:
-                        hash_string = self._hash(image_bytes)
-                    except:
-                        continue
-                    images9000.append(
-                        Image9000(
-                            attachment_id=attachment.id,
-                            message_id=message.id,
-                            user_id=message.author.id,
-                            channel_id=message.channel.id,
-                            server_id=message.guild.id,
-                            hash=hash_string,
-                            sent_at=utc_to_naive_local(message.created_at),
-                        )
-                    )
         try:
             with data.session(commit=True) as session:
+                if is_user_opted_out_of_data_processing(session, message.author.id):
+                    return  # User opted out of data processing
+                if not message.attachments or message.guild is None:
+                    return
+                images9000 = []
+                for attachment in message.attachments:
+                    if attachment.height and attachment.width:
+                        image_bytes = io.BytesIO()
+                        try:
+                            await attachment.save(image_bytes)
+                        except (discord.HTTPException, discord.NotFound):
+                            continue
+                        else:
+                            try:
+                                hash_string = self._hash(image_bytes)
+                            except:
+                                continue
+                            images9000.append(
+                                Image9000(
+                                    attachment_id=attachment.id,
+                                    message_id=message.id,
+                                    user_id=message.author.id,
+                                    channel_id=message.channel.id,
+                                    server_id=message.guild.id,
+                                    hash=hash_string,
+                                    sent_at=utc_to_naive_local(message.created_at),
+                                )
+                            )
                 session.bulk_save_objects(images9000)
         except (psycopg2.errors.ForeignKeyViolation, psycopg2.errors.UniqueViolation):
             pass

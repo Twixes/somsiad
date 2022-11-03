@@ -18,6 +18,7 @@ import datetime as dt
 import enum
 import functools
 import io
+import data
 from collections import defaultdict, deque
 from typing import (
     Any,
@@ -40,7 +41,7 @@ from aiochclient.records import Record
 from discord.ext import commands
 
 from configuration import configuration
-from core import Help, cooldown
+from core import DataProcessingOptOut, Help, cooldown
 from somsiad import Somsiad, SomsiadMixin
 from utilities import human_datetime, md_link, rolling_average, utc_to_naive_local, word_number_form
 
@@ -654,9 +655,13 @@ class Report:
             after: Optional[dt.datetime] = (
                 latest_cached_message.created_at if latest_cached_message is not None else None
             )
+            with data.session() as session:
+                users_opted_out_of_data_processing_ids: List[int] =  [r[0] for r in session.query(DataProcessingOptOut).values('user_id')]
             while True:
                 try:
                     async for message in channel.history(limit=None, after=after):
+                        if message.author.id in users_opted_out_of_data_processing_ids:
+                            continue  # User opted out of data processing
                         if message.type != discord.MessageType.default:
                             continue
                         message_datetime = utc_to_naive_local(message.created_at)
