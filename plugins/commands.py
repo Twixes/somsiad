@@ -11,9 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-from core import Invocation
+from core import Invocation, is_user_opted_out_of_data_processing
 import datetime as dt
-from somsiad import SomsiadMixin
+from somsiad import Somsiad, SomsiadMixin
 
 import psycopg2
 from discord.ext import commands
@@ -26,6 +26,8 @@ class Commands(commands.Cog, SomsiadMixin):
     @commands.Cog.listener()
     async def on_command(self, ctx: commands.Context):
         with data.session(commit=True) as session:
+            if not ctx.command or is_user_opted_out_of_data_processing(session, ctx.author.id):
+                return
             invocation = Invocation(
                 message_id=ctx.message.id,
                 server_id=ctx.guild.id if ctx.guild is not None else None,
@@ -36,20 +38,21 @@ class Commands(commands.Cog, SomsiadMixin):
                 root_command=str(ctx.command.root_parent or ctx.command.qualified_name),
                 created_at=utc_to_naive_local(ctx.message.created_at),
             )
-            try:
-                session.add(invocation)
-            except psycopg2.Error:
-                pass
+            session.add(invocation)
 
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
         with data.session(commit=True) as session:
+            if is_user_opted_out_of_data_processing(session, ctx.author.id):
+                return
             invocation = session.query(Invocation).get(ctx.message.id)
             invocation.exited_at = dt.datetime.now()
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
         with data.session(commit=True) as session:
+            if is_user_opted_out_of_data_processing(session, ctx.author.id):
+                return
             invocation = session.query(Invocation).get(ctx.message.id)
             if invocation is not None:
                 invocation.exited_at = dt.datetime.now()
@@ -58,5 +61,5 @@ class Commands(commands.Cog, SomsiadMixin):
                 )
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Somsiad):
     await bot.add_cog(Commands(bot))

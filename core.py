@@ -23,9 +23,10 @@ from sqlalchemy.sql import functions
 import data
 from cache import redis_connection
 from configuration import configuration
-from somsiad import Somsiad, SomsiadMixin
+from somsiad import Somsiad, SomsiadMixin, OptedOutOfDataProcessing
 from utilities import human_amount_of_time, word_number_form
 from version import __copyright__, __version__
+from sqlalchemy.orm import Session
 
 
 class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
@@ -38,6 +39,14 @@ class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
     created_at = data.Column(data.DateTime, nullable=False)
     exited_at = data.Column(data.DateTime)
     error = data.Column(data.String(MAX_ERROR_LENGTH))
+
+
+class DataProcessingOptOut(data.UserSpecific, data.Base):
+    pass
+
+
+def is_user_opted_out_of_data_processing(session: Session, user_id: int) -> bool:
+    return session.query(DataProcessingOptOut).get(user_id) is not None
 
 
 def cooldown(
@@ -53,6 +62,17 @@ def cooldown(
         return func
 
     return decorator
+
+
+def did_not_opt_out_of_data_processing():
+    async def predicate(ctx):
+        with data.session() as session:
+            if is_user_opted_out_of_data_processing(session, ctx.author.id):
+                await ctx.bot.send(ctx, embed=ctx.bot.generate_embed('👤', 'Ta komenda wymaga Twojej zgody na przetwarzanie Twoich danych', "Możesz wyrazić ją za pomocą komendy `przetwarzanie-danych zapisz`."))
+                raise OptedOutOfDataProcessing
+        return True
+
+    return commands.check(predicate)
 
 
 def has_permissions(**perms):

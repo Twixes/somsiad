@@ -21,7 +21,7 @@ import discord
 from discord.ext import commands, tasks
 
 import data
-from core import Help, cooldown, has_permissions
+from core import Help, cooldown, did_not_opt_out_of_data_processing, has_permissions
 from somsiad import Somsiad
 from utilities import calculate_age, word_number_form
 
@@ -288,6 +288,7 @@ class Birthday(commands.Cog):
             embed = self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującego użytkownika')
             await self.bot.send(ctx, embed=embed)
 
+    @did_not_opt_out_of_data_processing()
     @cooldown()
     @birthday.command(aliases=['zapamiętaj', 'zapamietaj', 'ustaw'])
     async def birthday_remember(self, ctx, *, raw_date_string):
@@ -343,6 +344,7 @@ class Birthday(commands.Cog):
             embed = self.bot.generate_embed('⚠️', notice)
             await self.bot.send(ctx, embed=embed)
 
+    @did_not_opt_out_of_data_processing()
     @cooldown()
     @birthday.command(aliases=['zapomnij'])
     async def birthday_forget(self, ctx):
@@ -362,6 +364,7 @@ class Birthday(commands.Cog):
             embed = self.bot.generate_embed('ℹ️', 'Brak daty urodzin do zapomnienia')
         await self.bot.send(ctx, embed=embed)
 
+    @did_not_opt_out_of_data_processing()
     @cooldown()
     @birthday.command(aliases=['upublicznij'])
     @commands.guild_only()

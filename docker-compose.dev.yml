@@ -6,6 +6,8 @@ services:
             POSTGRES_PASSWORD: somsiad
             POSTGRES_USER: somsiad
         image: postgres:13
+        ports:
+            - "5432:5432"
     clickhouse:
         build:
             context: .

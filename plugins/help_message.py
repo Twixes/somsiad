@@ -679,6 +679,11 @@ class Help(commands.Cog):
             'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
             '🔧',
         ),
+        _Help.Command(
+            'przetwarzanie-danych',
+            (),
+            'Narzędzia dotyczące przetwarzania Twoich danych przez Somsiada.',
+        ),
         _Help.Command(('komendadnia', 'cotd'), (), 'Pokazuje dzisiejszą komendę dnia.', '👀'),
         _Help.Command(('ping', 'pińg'), (), 'Pong!', '🏓'),
         _Help.Command(('wersja', 'v'), (), 'Pokazuje działającą wersja bota.', '🍆'),

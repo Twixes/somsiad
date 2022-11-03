@@ -148,11 +148,19 @@ class ChannelSpecific(ChannelRelated):
     channel_id = Column(BigInteger, primary_key=True)
 
 
+USER_RELATED_MODELS = []
+
+
 class UserRelated:
     user_id = Column(BigInteger, index=True)
 
     def discord_user(self, bot: commands.Bot) -> Optional[discord.User]:
         return bot.get_user(self.user_id) if self.user_id is not None else None
+
+    def __init_subclass__(cls):
+        if issubclass(cls, Base):
+            USER_RELATED_MODELS.append(cls)
+        return super().__init_subclass__()
 
 
 class UserSpecific(UserRelated):

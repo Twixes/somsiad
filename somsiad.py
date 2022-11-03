@@ -57,6 +57,8 @@ class SomsiadMixin:
     def __init__(self, bot: "Somsiad"):
         self.bot = bot
 
+class OptedOutOfDataProcessing(commands.CommandError):
+    pass
 
 class Somsiad(commands.AutoShardedBot):
     COLOR = 0x7289DA
@@ -159,6 +161,7 @@ class Somsiad(commands.AutoShardedBot):
         commands.BadUnionArgument,
         commands.CommandOnCooldown,
         commands.NotOwner,
+        OptedOutOfDataProcessing
     )
     PREFIX_SAFE_COMMANDS = ('prefix', 'ping', 'info', 'help')
 
