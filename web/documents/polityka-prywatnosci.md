@@ -47,7 +47,11 @@ Dane przetwarzane przechowywane są w wewnętrznej bazie danych Bota, hostowanej
 
 ## Jak mogę zażądać usunięcia swoich danych?
 
-Masz prawo do likwidacji wszystkich dotyczących Ciebie danych przechowywanych przez Operatora. Możesz zgłosić takie życzenie za pośrednictwem [oficjalnego serwera discordowego Somsiad Labs](http://discord.gg/xRCpDs7). Życzenie zostanie zrealizowane w ciągu 7 dni, o czym zostaniesz poinformowany.
+Masz prawo do likwidacji wszystkich dotyczących Ciebie danych przechowywanych przez Operatora.
+
+Najprostszym rozwiązaniem jest użycie komendy _przetwarzanie-danych wypisz_, która usunie wszystkie związane z tobą dane z bazy danych Bota i zapobiegnie ich przetwarzaniu w przyszłości. Swoją decyzję odnośnie przetwarzania danych w przyszłości możesz w każdej chwili cofnąć przy użyciu komendy _przetwarzanie-danych zapisz_, lecz raz usuniętych danych nie da się w żaden sposób przywrócić.
+
+Poza tym możesz zgłosić takie życzenie za pośrednictwem [oficjalnego serwera discordowego Somsiad Labs](http://discord.gg/xRCpDs7). Życzenie zostanie zrealizowane w ciągu 7 dni, o czym zostaniesz poinformowany.
 
 ## Co jeśli mam dalsze pytania?
 
