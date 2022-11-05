@@ -129,7 +129,15 @@ class Time(commands.Cog, SomsiadMixin):
     async def what_time_is_it(self, ctx, hour: Optional[int] = None, minute: Optional[int] = None):
         now = dt.datetime.now()
         current_time = (hour or now.hour, minute or now.minute)
-        if current_time == (1, 23):
+        if current_time == (0, 30):
+            embed = self.bot.generate_embed(
+                '🕧',
+                'Abbowa',
+                "gimme gimme gimme",
+            )
+        if current_time == (0, 42):
+            embed = self.bot.generate_embed('🐭', 'Autostopowa')
+        elif current_time == (1, 23):
             embed = self.bot.generate_embed(
                 '☢️',
                 'Czarnobylowa',
@@ -137,6 +145,8 @@ class Time(commands.Cog, SomsiadMixin):
             )
         elif current_time == (4, 20):
             embed = self.bot.generate_embed('🪴', 'Ziołowa (poranna)')
+        elif current_time == (7, 37):
+            embed = self.bot.generate_embed('✈️', 'Boeingowa')
         elif current_time == (13, 37):
             embed = self.bot.generate_embed('👾', 'Leetowa')
         elif current_time == (16, 20):
