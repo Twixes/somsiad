@@ -16,6 +16,7 @@ from somsiad import Somsiad, SomsiadMixin
 from core import DataProcessingOptOut
 from discord.ext import commands
 import data
+from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 
 
@@ -48,8 +49,11 @@ class DataProcessing(commands.Cog, SomsiadMixin):
                 session.add(invocation)
                 for model in data.USER_RELATED_MODELS:
                     session.query(model).filter_by(user_id=ctx.author.id).delete()
-        except IntegrityError:
-            embed = self.bot.generate_embed('👤', 'Już jesteś wypisany z przetwarzania Twoich danych przez Somsiada')
+        except IntegrityError as e:
+            if isinstance(e.orig, UniqueViolation):
+                embed = self.bot.generate_embed('👤', 'Już jesteś wypisany z przetwarzania Twoich danych przez Somsiada')
+            else:
+                raise e
         else:
             embed = self.bot.generate_embed('👤', 'Wypisano Cię z przetwarzania Twoich danych przez Somsiada', 'Usunięto także wszystkie istniejące dane związane z Tobą.')
         await self.bot.send(ctx, embed=embed)
