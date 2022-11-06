@@ -214,7 +214,7 @@ class Imaging(commands.Cog, SomsiadMixin):
     @commands.guild_only()
     async def robot9000(self, ctx: commands.Context, sent_by: discord.Member = None):
         """Finds previous occurences of the image being sent."""
-        with ctx.typing():
+        async with ctx.typing():
             attachment, _ = await self.find_image(
                 ctx.channel,
                 sent_by=sent_by,
