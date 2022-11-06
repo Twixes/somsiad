@@ -34,7 +34,7 @@ class BornPerson(data.Base, data.UserSpecific):
     EDGE_YEAR = 1900
     birthday = data.Column(data.Date)
     birthday_public_servers = data.relationship(
-        'Server', secondary='birthday_publicness_links', backref='birthday_public_born_persons'
+        'Server', secondary='birthday_publicness_links', backref='birthday_public_born_persons', cascade="all, delete"
     )
 
     def age(self) -> int:
