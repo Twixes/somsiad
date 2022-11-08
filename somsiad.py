@@ -271,10 +271,10 @@ class Somsiad(commands.AutoShardedBot):
                     password=configuration["clickhouse_password"],
                     database="somsiad",
                 )
-                if configuration.get('google_key') is not None and configuration.get('google_custom_search_engine_id') is not None:
-                    self.google_client = GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'])
                 if configuration.get('google_key') is not None:
-                    YouTubeClient(configuration['google_key'])
+                    self.youtube_client = YouTubeClient(configuration['google_key'])
+                    if configuration.get('google_custom_search_engine_id') is not None:
+                        self.google_client = GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'])
                 print('Ładowanie rozszerzeń...')
                 if cogs:
                     for cog in cogs:
