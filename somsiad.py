@@ -185,6 +185,7 @@ class Somsiad(commands.AutoShardedBot):
         intents = discord.Intents.default()
         intents.presences = True
         intents.members = True
+        intents.message_content = True
         super().__init__(
             command_prefix=self._get_prefix,
             help_command=None,
