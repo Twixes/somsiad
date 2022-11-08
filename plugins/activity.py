@@ -15,6 +15,7 @@ import asyncio
 import calendar
 import dataclasses
 import datetime as dt
+import aiohttp
 import enum
 import functools
 import io
@@ -89,9 +90,15 @@ class MetadataCache(SomsiadMixin):
         )
 
     async def insert(self, metadata_batch: Sequence[MessageMetadata]):
-        await self.bot.ch_client.execute(
-            "INSERT INTO message_metadata_cache VALUES", *map(dataclasses.astuple, metadata_batch)
-        )
+        try:
+            await self.bot.ch_client.execute(
+                "INSERT INTO message_metadata_cache VALUES", *map(dataclasses.astuple, metadata_batch)
+            )
+        except aiohttp.ClientOSError:
+            # Retry once
+            await self.bot.ch_client.execute(
+                "INSERT INTO message_metadata_cache VALUES", *map(dataclasses.astuple, metadata_batch)
+            )
 
     async def fetch_edge_message(
         self,
