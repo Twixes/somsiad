@@ -39,6 +39,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from aiochclient.records import Record
 from discord.ext import commands
+from sqlalchemy import column
 
 from configuration import configuration
 from core import DataProcessingOptOut, Help, cooldown
@@ -656,7 +657,7 @@ class Report:
                 latest_cached_message.created_at if latest_cached_message is not None else None
             )
             with data.session() as session:
-                users_opted_out_of_data_processing_ids: List[int] =  [r[0] for r in session.query(DataProcessingOptOut).values('user_id')]
+                users_opted_out_of_data_processing_ids: List[int] =  [r[0] for r in session.query(DataProcessingOptOut).values(column('user_id'))]
             while True:
                 try:
                     async for message in channel.history(limit=None, after=after):
