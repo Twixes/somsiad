@@ -170,7 +170,7 @@ class React(commands.Cog, SomsiadMixin):
                 if message.author == member:
                     return message
         else:
-            messages = await ctx.history(limit=2).flatten()
+            messages = [user async for user in ctx.history(limit=2)]
             if len(messages) > 1:
                 return messages[1]
         return None
