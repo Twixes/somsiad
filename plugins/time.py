@@ -132,7 +132,6 @@ class Time(commands.Cog, SomsiadMixin):
         if current_time == (0, 30):
             embed = self.bot.generate_embed(
                 '🕧',
-                'Abbowa',
                 "gimme gimme gimme",
             )
         if current_time == (0, 42):
