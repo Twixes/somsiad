@@ -12,7 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
 from discord.ext import commands
 
@@ -124,34 +124,32 @@ def write_time_out(hour: int, minute: int) -> str:
 
 
 class Time(commands.Cog, SomsiadMixin):
+    MOMENTS_OF_INTEREST: Dict[Tuple[int, int], Tuple[str, str, Optional[str]]] = {
+        (0, 30): ('🕧', "gimme gimme gimme", None),
+        (0, 42): ('🐭', 'Autostopowa', None),
+        (1, 23): (
+            '☢️',
+            'Czarnobylowa',
+            "26 kwietnia 1986 roku o godzinie 1:23 w wyniku nieudanego testu bezpieczeństwa, doszło do wybuchu reaktora nr 4 w Czarnobylskiej Elektrowni Jądrowej. Wieczna pamięć i szacunek dla pracowników elektrowni, strażaków, żołnierzy, milicjantów, górników, inżynierów oraz robotników budowlanych i innych osób, które poświęciły swoje życie lub zdrowie pracując przy akcji usuwania skutków awarii.",
+        ),
+        (3, 20): ('✈️', 'Airbusowa (mała)', None),
+        (3, 50): ('✈️', 'Airbusowa (średnia)', None),
+        (4, 20): ('🪴', 'Ziołowa (poranna)', None),
+        (7, 37): ('✈️', 'Boeingowa (mała)', None),
+        (7, 47): ('✈️', 'Boeingowa (duża)', None),
+        (13, 37): ('👾', 'Leetowa', None),
+        (16, 20): ('💨', 'Ziołowa (popołudniowa)', None),
+        (21, 37): ('🌝', 'Papieżowa', None),
+        (21, 38): ('🌚', 'Anty-papieżowa', None),
+    }
+
     @cooldown()
     @commands.command(aliases=['ktoragodzina', 'któragodzina', 'whattime', 'wiespät'])
     async def what_time_is_it(self, ctx, hour: Optional[int] = None, minute: Optional[int] = None):
         now = dt.datetime.now()
         current_time = (hour or now.hour, minute or now.minute)
-        if current_time == (0, 30):
-            embed = self.bot.generate_embed(
-                '🕧',
-                "gimme gimme gimme",
-            )
-        elif current_time == (0, 42):
-            embed = self.bot.generate_embed('🐭', 'Autostopowa')
-        elif current_time == (1, 23):
-            embed = self.bot.generate_embed(
-                '☢️',
-                'Czarnobylowa',
-                "26 kwietnia 1986 roku o godzinie 1:23 w wyniku nieudanego testu bezpieczeństwa, doszło do wybuchu reaktora nr 4 w Czarnobylskiej Elektrowni Jądrowej. Wieczna pamięć i szacunek dla pracowników elektrowni, strażaków, żołnierzy, milicjantów, górników, inżynierów oraz robotników budowlanych i innych osób, które poświęciły swoje życie lub zdrowie pracując przy akcji usuwania skutków awarii.",
-            )
-        elif current_time == (4, 20):
-            embed = self.bot.generate_embed('🪴', 'Ziołowa (poranna)')
-        elif current_time == (7, 37):
-            embed = self.bot.generate_embed('✈️', 'Boeingowa')
-        elif current_time == (13, 37):
-            embed = self.bot.generate_embed('👾', 'Leetowa')
-        elif current_time == (16, 20):
-            embed = self.bot.generate_embed('💨', 'Ziołowa (popołudniowa)')
-        elif current_time == (21, 37):
-            embed = self.bot.generate_embed('🌝', 'Papieżowa')
+        if moment := self.MOMENTS_OF_INTEREST.get(current_time):
+            embed = self.bot.generate_embed(*moment)
         else:
             emoji_hour = (now.hour - 1) % 12 + 1
             nearest_emoji_time = f'{emoji_hour}30' if now.minute >= 30 else str(emoji_hour)
