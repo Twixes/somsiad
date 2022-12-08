@@ -30,7 +30,6 @@ class Tweet:
     id: str
     text: str = field(default_factory=str)
     attachments: Dict[str, Any] = field(default_factory=dict)
-    edit_history_tweet_ids: Optional[List[int]] = None
 
 
 class Twitter(commands.Cog, SomsiadMixin):
@@ -47,7 +46,8 @@ class Twitter(commands.Cog, SomsiadMixin):
             if any((error['title'] != 'Not Found Error' for error in response_parsed['errors'])):
                 raise Exception(f"Twitter API request returned an error: {response_parsed}")
             return None
-        return Tweet(**response_parsed['data'][0])
+        raw_tweet = response_parsed['data'][0]
+        return Tweet(id=raw_tweet['id'], text=raw_tweet['text'], attachments=raw_tweet['attachments'])
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
