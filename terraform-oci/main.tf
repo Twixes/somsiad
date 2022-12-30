@@ -30,7 +30,7 @@ module "vcn" {
   version = "~> 3.5.3"
 
   compartment_id          = var.compartment_ocid
-  label_prefix            = "somsiad-"
+  label_prefix            = "somsiad"
   vcn_dns_label           = "somsiad"
   vcn_cidrs               = [local.vcn_cidr_block]
   create_internet_gateway = true
