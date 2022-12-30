@@ -37,9 +37,9 @@ variable "compartment_ocid" {
 }
 
 variable "node_source_image_ocid" {
-  description = "OCI image OCID from https://cloud.oracle.com/compute/images"
+  description = "OCI image OCID from https://docs.oracle.com/en-us/iaas/Content/ContEng/Reference/contengimagesshapes.htm#images__oke-images"
   type        = string
   nullable    = false
-  # Oracle Linux 8.6 - https://docs.oracle.com/en-us/iaas/images/image/93335573-b912-4796-b761-6aab2ecc73fa/
-  default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaabnrabiyzoob3v2d63lwm5cuzr3q34cskuqewohkfsidxuyoutbma"
+  # OKE Oracle Linux 8.6, obtained via `oci ce node-pool-options get --node-pool-option-id all`
+  default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaaisg5jmxrefsgaexzap4mm2spbenrjmeem6aoxescosf6wu7h4nuq"
 }
