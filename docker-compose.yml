@@ -1,83 +1,86 @@
 version: "3.8"
 volumes:
-    clickhouse-persistence:
+  clickhouse-persistence:
 services:
-    clickhouse:
-        build:
-            context: .
-            dockerfile: clickhouse.Dockerfile
-        environment:
-            CLICKHOUSE_DB: somsiad
-            CLICKHOUSE_USER: somsiad
-            CLICKHOUSE_PASSWORD: somsiad
-        volumes:
-            - clickhouse-persistence:/var/lib/clickhouse
-    redis:
-        image: redis:alpine
-    bot:
-        build: .
-        restart: on-failure
-        stop_grace_period: 20s
-        depends_on:
-            - clickhouse
-            - redis
-        links:
-            - clickhouse:clickhouse
-            - redis:redis
-        environment:
-            - DISCORD_TOKEN
-            - COMMAND_PREFIX
-            - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
-            - GOOGLE_KEY
-            - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
-            - GOODREADS_KEY
-            - TMDB_KEY
-            - LAST_FM_KEY
-            - WOLFRAM_ALPHA_APP_ID
-            - TWITTER_BEARER_TOKEN
-            - DISCO_MAX_FILE_SIZE_IN_MIB
-            - SENTRY_DSN
-            - SENTRY_AUTH_TOKEN
-            - SENTRY_ORG
-            - DATABASE_URL
-            - CLICKHOUSE_URL=http://clickhouse:8123
-            - CLICKHOUSE_USER=somsiad
-            - CLICKHOUSE_PASSWORD=somsiad
-            - REDIS_URL=redis://redis:6379/
-            - GPT_AUTHORIZED_SERVERS=294182757209473024,479458694354960385,682561082719731742
-    web:
-        build: web
-        depends_on:
-            - redis
-        links:
-            - redis:redis
-        environment:
-            - REDIS_URL=redis://redis:6379/
-        labels:
-            - traefik.enable=true
-            - traefik.http.routers.web.rule=Host(`somsiad.net`)
-            - traefik.http.routers.web.entrypoints=websecure
-            - traefik.http.routers.web.tls=true
-            - traefik.http.routers.web.tls.certresolver=le
-    router:
-        image: "traefik:v2.4"
-        depends_on:
-            - web
-        command:
-            - --entrypoints.web.address=:80
-            - --entrypoints.websecure.address=:443
-            - --providers.docker=true
-            - --providers.docker.exposedbydefault=false
-            - --entrypoints.web.http.redirections.entryPoint.to=websecure
-            - --entrypoints.web.http.redirections.entryPoint.scheme=https
-            - --entrypoints.web.http.redirections.entrypoint.permanent=true
-            - --certificatesresolvers.le.acme.httpchallenge=true
-            - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
-            - --certificatesresolvers.le.acme.email=dev@twixes.com
-            - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
-        ports:
-            - "80:80"
-            - "443:443"
-        volumes:
-            - "/var/run/docker.sock:/var/run/docker.sock:ro"
-            - "./letsencrypt:/letsencrypt"
+  clickhouse:
+    build:
+      context: .
+      dockerfile: clickhouse.Dockerfile
+    environment:
+      CLICKHOUSE_DB: somsiad
+      CLICKHOUSE_USER: somsiad
+      CLICKHOUSE_PASSWORD: somsiad
+    volumes:
+      - clickhouse-persistence:/var/lib/clickhouse
+    labels:
+      - kompose.service.type=NodePort
+      - kompose.volume.size=15Gi
+      - kompose.volume.type=persistentVolumeClaim
+  redis:
+    image: redis:alpine
+  bot:
+    build: .
+    stop_grace_period: 20s
+    depends_on:
+      - clickhouse
+      - redis
+    links:
+      - clickhouse:clickhouse
+      - redis:redis
+    environment:
+      - DISCORD_TOKEN
+      - COMMAND_PREFIX
+      - COMMAND_COOLDOWN_PER_USER_IN_SECONDS
+      - GOOGLE_KEY
+      - GOOGLE_CUSTOM_SEARCH_ENGINE_ID
+      - GOODREADS_KEY
+      - TMDB_KEY
+      - LAST_FM_KEY
+      - WOLFRAM_ALPHA_APP_ID
+      - TWITTER_BEARER_TOKEN
+      - DISCO_MAX_FILE_SIZE_IN_MIB
+      - SENTRY_DSN
+      - SENTRY_AUTH_TOKEN
+      - SENTRY_ORG
+      - DATABASE_URL
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_USER=somsiad
+      - CLICKHOUSE_PASSWORD=somsiad
+      - REDIS_URL=redis://redis:6379/
+      - GPT_AUTHORIZED_SERVERS=294182757209473024,479458694354960385,682561082719731742
+  web:
+    build: web
+    depends_on:
+      - redis
+    links:
+      - redis:redis
+    environment:
+      - REDIS_URL=redis://redis:6379/
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.web.rule=Host(`somsiad.net`)
+      - traefik.http.routers.web.entrypoints=websecure
+      - traefik.http.routers.web.tls=true
+      - traefik.http.routers.web.tls.certresolver=le
+  router:
+    image: "traefik:v2.4"
+    depends_on:
+      - web
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.le.acme.email=dev@twixes.com
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
