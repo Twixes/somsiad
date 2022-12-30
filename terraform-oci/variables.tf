@@ -40,6 +40,6 @@ variable "node_source_image_ocid" {
   description = "OCI image OCID from https://cloud.oracle.com/compute/images"
   type        = string
   nullable    = false
-  # Oracle Linux 9.0 - https://docs.oracle.com/en-us/iaas/images/image/9801d535-f7a9-4051-9fbe-2df35ce229e0/
-  default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaat5wpayf23ew5m2oilaq3sg6mnclfy62ukwb3br3z6jlmsha4wxnq"
+  # Oracle Linux 8.6 - https://docs.oracle.com/en-us/iaas/images/image/93335573-b912-4796-b761-6aab2ecc73fa/
+  default     = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaabnrabiyzoob3v2d63lwm5cuzr3q34cskuqewohkfsidxuyoutbma"
 }
