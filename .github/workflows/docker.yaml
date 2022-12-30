@@ -21,9 +21,17 @@ jobs:
         uses: docker/setup-buildx-action@v2
         with:
           platforms: 'linux/amd64,linux/arm64'
-      - name: Build and push
+      - name: Build and push bot
         uses: docker/build-push-action@v3
         with:
           push: true
+          context: .
           tags: twixes/somsiad:latest
+          platforms: 'linux/amd64,linux/arm64'
+      - name: Build and push website
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: web
+          tags: twixes/somsiad-web:latest
           platforms: 'linux/amd64,linux/arm64'
