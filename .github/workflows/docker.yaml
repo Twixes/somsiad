@@ -2,6 +2,12 @@ name: Docker
 on:
   push:
     branches: ['master']
+    paths-ignore:
+      - helm/
+      - .vscode/
+      - terraform-oci/
+      - tests/
+      - '*.md'
 jobs:
   docker:
     runs-on: ubuntu-latest
