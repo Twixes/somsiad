@@ -260,6 +260,10 @@ class Somsiad(commands.AutoShardedBot):
     async def on_guild_join(self, server):
         data.Server.register(server)
 
+    async def add_cog(self, cog: commands.Cog, /, **kwargs) -> None:
+        data.create_all_tables()
+        return await super().add_cog(cog, **kwargs)
+
     async def load_and_start(self, cogs: Optional[Sequence[Type[commands.Cog]]] = None):
         async with aiohttp.ClientSession(headers=self.HEADERS) as session:
             async with self:
@@ -279,9 +283,9 @@ class Somsiad(commands.AutoShardedBot):
                 if cogs:
                     for cog in cogs:
                         await self.add_cog(cog(self))
-                for path in os.scandir('plugins'):
-                    if path.is_file() and path.name.endswith('.py'):
-                        await self.load_extension(f'plugins.{path.name[:-3]}')
+                plugins = [path.name[:-3] for path in os.scandir('plugins') if path.is_file() and path.name.endswith('.py')]
+                for plugin_name in plugins:
+                    await self.load_extension(f'plugins.{plugin_name}')
                 self.prefix_safe_aliases = tuple(
                     (
                         variant
@@ -293,7 +297,6 @@ class Somsiad(commands.AutoShardedBot):
                         )
                     )
                 )
-                data.create_all_tables()
                 print('Łączenie z Discordem...')
                 await self.start(configuration['discord_token'], reconnect=True)
 
