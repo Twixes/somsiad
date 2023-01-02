@@ -34,6 +34,8 @@ jobs:
           context: .
           tags: twixes/somsiad:latest
           platforms: 'linux/amd64,linux/arm64'
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Build and push website
         uses: docker/build-push-action@v3
         with:
@@ -41,3 +43,5 @@ jobs:
           context: web
           tags: twixes/somsiad-web:latest
           platforms: 'linux/amd64,linux/arm64'
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
