@@ -108,6 +108,7 @@ SETTINGS = (
     Setting('clickhouse_url', description='URL ClickHouse'),
     Setting('clickhouse_user', description='Nazwa użytkownika ClickHouse'),
     Setting('clickhouse_password', description='Hasło użytkownika ClickHouse'),
+    Setting('clickhouse_database', description='Baza danych ClickHouse', default_value='somsiad'),
     Setting('sentry_dsn', description='DSN Sentry', optional=True),
     Setting('google_key', description='Klucz API Google', optional=True),
     Setting('google_custom_search_engine_id', description='Identyfikator CSE Google', optional=True),

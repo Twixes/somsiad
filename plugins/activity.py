@@ -40,7 +40,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from aiochclient.records import Record
 from discord.ext import commands
-from sqlalchemy import column
 
 from configuration import configuration
 from core import DataProcessingOptOut, Help, cooldown

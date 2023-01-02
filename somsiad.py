@@ -273,7 +273,7 @@ class Somsiad(commands.AutoShardedBot):
                     url=configuration["clickhouse_url"],
                     user=configuration["clickhouse_user"],
                     password=configuration["clickhouse_password"],
-                    database="somsiad",
+                    database=configuration["clickhouse_database"],
                 )
                 if configuration.get('google_key') is not None:
                     self.youtube_client = YouTubeClient(configuration['google_key'])
