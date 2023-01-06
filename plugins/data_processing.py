@@ -35,7 +35,6 @@ class DataProcessing(commands.Cog, SomsiadMixin):
     @cooldown()
     @commands.group(aliases=['przetwarzanie-danych'], invoke_without_command=True, case_insensitive=True)
     async def data_processing(self, ctx):
-        print(data.USER_RELATED_MODELS)
         await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @cooldown()

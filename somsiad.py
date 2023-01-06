@@ -14,8 +14,8 @@
 import asyncio
 import datetime as dt
 import itertools
+import logging
 import os
-import platform
 import random
 import sys
 import traceback
@@ -47,8 +47,10 @@ from multidict import CIMultiDict
 
 import data
 from configuration import configuration
-from utilities import GoogleClient, YouTubeClient, localize, utc_to_naive_local, word_number_form
-from version import __copyright__, __version__
+from utilities import GoogleClient, YouTubeClient, localize, utc_to_naive_local
+from version import __version__
+
+logger = logging.getLogger(__name__)
 
 
 class SomsiadMixin:
@@ -57,8 +59,10 @@ class SomsiadMixin:
     def __init__(self, bot: "Somsiad"):
         self.bot = bot
 
+
 class OptedOutOfDataProcessing(commands.CommandError):
     pass
+
 
 class Somsiad(commands.AutoShardedBot):
     COLOR = 0x7289DA
@@ -212,7 +216,7 @@ class Somsiad(commands.AutoShardedBot):
         localize()
         self.ready_datetime = dt.datetime.now()
         assert await self.ch_client.is_alive()
-        print('Przygotowywanie danych serwerów...')
+        logger.info('Preparing guilds data...')
         data.Server.register_all(self.guilds)
         with data.session(commit=True) as session:
             for server in session.query(data.Server):
@@ -224,8 +228,8 @@ class Somsiad(commands.AutoShardedBot):
         self.system_channel = cast(Optional[discord.TextChannel], await self.fetch_channel(517422572615499777))  # magic
         self.public_channel = cast(Optional[discord.TextChannel], await self.fetch_channel(479458695126974466))  # magic
         self.loop.create_task(self.cycle_presence())
+        logger.info('Somsiad ready!')
         await self.system_notify('✅', 'Włączyłem się')
-        self.print_info()
 
     async def on_error(self, event_method, *args, **kwargs):
         self.register_error(event_method, cast(Exception, sys.exc_info()[1]))
@@ -279,7 +283,7 @@ class Somsiad(commands.AutoShardedBot):
                     self.youtube_client = YouTubeClient(configuration['google_key'])
                     if configuration.get('google_custom_search_engine_id') is not None:
                         self.google_client = GoogleClient(configuration['google_key'], configuration['google_custom_search_engine_id'])
-                print('Ładowanie rozszerzeń...')
+                logger.info('Loading extensions...')
                 if cogs:
                     for cog in cogs:
                         await self.add_cog(cog(self))
@@ -297,7 +301,6 @@ class Somsiad(commands.AutoShardedBot):
                         )
                     )
                 )
-                print('Łączenie z Discordem...')
                 await self.start(configuration['discord_token'], reconnect=True)
 
     async def system_notify(
@@ -316,14 +319,14 @@ class Somsiad(commands.AutoShardedBot):
             return False
 
     async def close(self, code: int = 0):
-        print('Zatrzymywanie działania bota...')
+        logger.info('Stopping the bot...')
         await self.system_notify(*(('🛑', 'Wyłączam się…') if not code else ('🔁', 'Restartuję się…')))
         if self.session is not None:
             await self.session.close()
         await super().close()
 
     def signal_handler(self, signum: int, frame: FrameType):
-        print(f'\nOtrzymano sygnał {signum}')
+        logger.info(f'Received {signum} signal')
         asyncio.run(self.close())
 
     def invite_url(self) -> str:
@@ -344,26 +347,6 @@ class Somsiad(commands.AutoShardedBot):
                 if not server.name or 'bot' not in server.name.lower()
             }
         )
-
-    def print_info(self) -> str:
-        """Return a block of bot information."""
-        info_lines = [
-            f'\nPołączono jako {self.user} (ID {self.user.id}). '
-            f'{word_number_form(self.user_count, "użytkownik", "użytkownicy", "użytkowników")} '
-            f'na {word_number_form(self.server_count, "serwerze", "serwerach")} '
-            f'z {word_number_form(self.shard_count or 1, "sharda", "shardów")}.',
-            '',
-            self.invite_url(),
-            '',
-            *map(str, configuration.settings.values()),
-            '',
-            f'Somsiad {__version__} • discord.py {discord.__version__} • Python {platform.python_version()}',
-            '',
-            __copyright__,
-        ]
-        info = '\n'.join(info_lines)
-        print(info)
-        return info
 
     async def cycle_presence(self):
         """Cycle through prefix safe commands in the presence."""
