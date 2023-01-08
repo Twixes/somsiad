@@ -327,7 +327,7 @@ class Somsiad(commands.AutoShardedBot):
 
     def signal_handler(self, signum: int, frame: FrameType):
         logger.info(f'Received {signum} signal')
-        asyncio.run(self.close())
+        self.loop.create_task(self.close())
 
     def invite_url(self) -> str:
         """Return the invitation URL of the bot."""
