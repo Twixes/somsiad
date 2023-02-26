@@ -12,6 +12,8 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+
+from sentry_sdk import capture_exception
 from somsiad import Somsiad
 
 import discord
@@ -49,7 +51,11 @@ class Remind(commands.Cog):
         if confirmation_message_id in self.reminders_set_off:
             return
         self.reminders_set_off.add(confirmation_message_id)
-        await discord.utils.sleep_until(execute_at.astimezone())
+        try:
+            await discord.utils.sleep_until(execute_at.astimezone())
+        except ValueError:
+            capture_exception()
+            return
         if confirmation_message_id not in self.reminders_set_off:
             return
         self.reminders_set_off.remove(confirmation_message_id)

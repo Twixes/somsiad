@@ -15,6 +15,7 @@ import datetime as dt
 
 import discord
 from discord.ext import commands
+from sentry_sdk import capture_exception
 
 import data
 from core import cooldown
@@ -47,7 +48,11 @@ class Burn(commands.Cog):
         if confirmation_message_id in self.burnings_set_off:
             return
         self.burnings_set_off.add(confirmation_message_id)
-        await discord.utils.sleep_until(execute_at.astimezone())
+        try:
+            await discord.utils.sleep_until(execute_at.astimezone())
+        except ValueError:
+            capture_exception()
+            return
         if confirmation_message_id not in self.burnings_set_off:
             return
         self.burnings_set_off.remove(confirmation_message_id)
