@@ -28,8 +28,8 @@ from .reactions import React
 @dataclass
 class Tweet:
     id: str
-    text: str = field(default_factory=str)
-    attachments: Dict[str, Any] = field(default_factory=dict)
+    text: str
+    attachments: Optional[Dict[str, Any]]
 
 
 class Twitter(commands.Cog, SomsiadMixin):
@@ -47,7 +47,7 @@ class Twitter(commands.Cog, SomsiadMixin):
                 raise Exception(f"Twitter API request returned an error: {response_parsed}")
             return None
         raw_tweet = response_parsed['data'][0]
-        return Tweet(id=raw_tweet['id'], text=raw_tweet['text'], attachments=raw_tweet['attachments'])
+        return Tweet(id=raw_tweet['id'], text=raw_tweet['text'], attachments=raw_tweet.get('attachments'))
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
