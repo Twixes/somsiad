@@ -36,7 +36,10 @@ from sqlalchemy.orm import relationship, sessionmaker
 
 from configuration import configuration
 
-engine = create_engine(configuration["database_url"], pool_pre_ping=True,)
+engine = create_engine(
+    configuration["database_url"],
+    pool_pre_ping=True,
+)
 Session = sessionmaker(bind=engine)
 
 

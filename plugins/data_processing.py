@@ -27,8 +27,16 @@ class DataProcessing(commands.Cog, SomsiadMixin):
         'Narzędzia dotyczące przetwarzania Twoich danych przez Somsiada.',
     )
     COMMANDS = (
-        Help.Command(('wypisz'), [], 'Wypisuje Cię z przetwarzania Twoich danych przez Somsiada i usuwa istniejące dane z systemu. Niektóre funkcje Somsiada mogą na skutek tego przestać dla Ciebie działać.'),
-        Help.Command(('przywróć'), [], 'Przywraca zgodę na przetwarzanie Twoich danych przez Somsiada, pozwalając wszystkim funkcjom działać w pełni.'),
+        Help.Command(
+            ('wypisz'),
+            [],
+            'Wypisuje Cię z przetwarzania Twoich danych przez Somsiada i usuwa istniejące dane z systemu. Niektóre funkcje Somsiada mogą na skutek tego przestać dla Ciebie działać.',
+        ),
+        Help.Command(
+            ('przywróć'),
+            [],
+            'Przywraca zgodę na przetwarzanie Twoich danych przez Somsiada, pozwalając wszystkim funkcjom działać w pełni.',
+        ),
     )
     HELP = Help(COMMANDS, '😎', group=GROUP)
 
@@ -54,7 +62,11 @@ class DataProcessing(commands.Cog, SomsiadMixin):
             else:
                 raise e
         else:
-            embed = self.bot.generate_embed('👤', 'Wypisano Cię z przetwarzania Twoich danych przez Somsiada', 'Usunięto także wszystkie istniejące dane związane z Tobą.')
+            embed = self.bot.generate_embed(
+                '👤',
+                'Wypisano Cię z przetwarzania Twoich danych przez Somsiada',
+                'Usunięto także wszystkie istniejące dane związane z Tobą.',
+            )
         await self.bot.send(ctx, embed=embed)
 
     @cooldown()
@@ -62,7 +74,15 @@ class DataProcessing(commands.Cog, SomsiadMixin):
     async def data_processing_opt_in(self, ctx):
         with data.session(commit=True) as session:
             deleted_count = session.query(DataProcessingOptOut).filter_by(user_id=ctx.author.id).delete()
-        await self.bot.send(ctx, embed=self.bot.generate_embed('🙋', 'Przywrócono Somsiadowi możliwość przetwarzania Twoich danych' if deleted_count else 'Somsiad ma już możliwość przetwarzania Twoich danych'))
+        await self.bot.send(
+            ctx,
+            embed=self.bot.generate_embed(
+                '🙋',
+                'Przywrócono Somsiadowi możliwość przetwarzania Twoich danych'
+                if deleted_count
+                else 'Somsiad ma już możliwość przetwarzania Twoich danych',
+            ),
+        )
 
 
 async def setup(bot: Somsiad):

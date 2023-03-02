@@ -51,7 +51,9 @@ class PinArchive(data.ServerSpecific, data.ChannelRelated, data.Base):
 
     async def _archive_message(self, bot: Somsiad, archive_channel: discord.TextChannel, message: discord.Message):
         pin_embed = bot.generate_embed(description=message.content, timestamp=message.created_at)
-        pin_embed.set_author(name=message.author.display_name, url=message.jump_url, icon_url=message.author.display_avatar.url)
+        pin_embed.set_author(
+            name=message.author.display_name, url=message.jump_url, icon_url=message.author.display_avatar.url
+        )
         pin_embed.set_footer(text=f'#{message.channel}')
         files: List[discord.File] = []
         for attachment in message.attachments:

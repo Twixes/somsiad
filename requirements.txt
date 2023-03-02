@@ -14,6 +14,7 @@ aiohttp==3.7.4
     # via
     #   aiochclient
     #   discord-py
+    #   openai
 async-timeout==3.0.1
     # via aiohttp
 attrs==20.3.0
@@ -85,6 +86,8 @@ numpy==1.21.5
     #   imagehash
     #   matplotlib
     #   pywavelets
+openai==0.27.0
+    # via -r requirements.in
 packaging==21.3
     # via
     #   matplotlib
@@ -132,7 +135,9 @@ pywavelets==1.1.1
 redis==4.1.0
     # via -r requirements.in
 requests==2.25.0
-    # via google-api-core
+    # via
+    #   google-api-core
+    #   openai
 rsa==4.7
     # via google-auth
 scipy==1.5.4
@@ -155,6 +160,8 @@ sqlalchemy==1.4.29
     # via -r requirements.in
 sqlparse==0.4.2
     # via aiochclient
+tqdm==4.64.1
+    # via openai
 typing-extensions==3.10.0.0
     # via aiohttp
 uritemplate==3.0.1
