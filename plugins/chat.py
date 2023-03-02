@@ -22,8 +22,6 @@ from configuration import configuration
 from core import cooldown
 from somsiad import Somsiad
 
-openai.api_key = configuration["openai_api_key"]
-
 CONVERSATION_CHANNEL_IDS = [517422572615499777, 682562562457731144]  # Hard-coded for now
 
 

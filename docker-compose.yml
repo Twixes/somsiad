@@ -38,6 +38,7 @@ services:
       - LAST_FM_KEY
       - WOLFRAM_ALPHA_APP_ID
       - TWITTER_BEARER_TOKEN
+      - OPENAI_API_KEY
       - DISCO_MAX_FILE_SIZE_IN_MIB
       - SENTRY_DSN
       - SENTRY_AUTH_TOKEN
