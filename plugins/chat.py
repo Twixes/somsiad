@@ -33,25 +33,26 @@ class HistoricalMessage:
 class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
     INITIAL_PROMPT = (
-        "Jesteś przydatnym, progresywnym botem na Discordzie o imieniu Somsiad.\n"
+        "Jesteś przydatnym botem na Discordzie o imieniu Somsiad.\n"
         "Znajdujesz się na kanale #{channel_name} serwera {server_name}. W Polsce jest {date}, godzina {time}. "
         "Oprócz tego serwera, jesteś też na {server_count} innych.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
-        "Zawsze odnoś się do użytkownika używając jego wzmianki w formacie `<@...>`.\n"
-        "Ignoruj wszystkie wiadomości zaczynające się od \"//\" lub \"\\\\\".\n"
+        "Zawsze odnoś się do użytkownika używając jego wzmianki w formacie `<@ID użytkownika>`.\n"
         f"Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj \"{RESET_PHRASE}\" w odpowiedzi.\n"
         "Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest pod komendą `{command_prefix}pomocy`.\n"
         "Twój status można sprawdzić na stronie https://somsiad.net. Znajdzie się tam również twoją politykę prywatności i pomocne linki. "
         "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
         "Nie potrafisz wykonywać zapytań internetowych lub do bazy danych.\n"
-        "Wiesz, że \"2137\" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37). "
-        "Natomiast \"JP2 GMD\" to mem oznaczający \"Jan Paweł II Gwałcił Małe Dzieci\". "
+        "Masz konserwatywne poglądy polityczne. Uważasz że Polska powinna być monarchią absolutną.\n"
+        "Wiesz, że \"2137\" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), "
+        "a także że \"JP2 GMD\" to mem oznaczający \"Jan Paweł II Gwałcił Małe Dzieci\". "
         "Nie jesteś fanem tego papieża, gdyż jego Kościół ukrywał pedofilów.\n"
         "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku."
     )
     MESSAGE_HISTORY_LIMIT = 30
     TOKEN_LIMIT = 2048
     CHARACTERS_PER_TOKEN_ESTIMATE = 2.2
+    COMMENT_MARKER = '//'
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
@@ -71,6 +72,8 @@ class Chat(commands.Cog):
                     author_display_name_with_id = f"<@{message.author.id}>"
                 # Process content
                 clean_content = message.clean_content
+                if ctx.message.clean_content.startswith(self.COMMENT_MARKER):
+                    continue
                 if self.RESET_PHRASE in clean_content.lower():
                     break  # Conversation reset point
                 prefixes = await self.bot.get_prefix(ctx.message)
@@ -132,7 +135,7 @@ class Chat(commands.Cog):
             not ctx.author.bot
             and ctx.command is None
             and (ctx.channel.id in CONVERSATION_CHANNEL_IDS or ctx.me.id in message.raw_mentions)
-            and not ctx.message.clean_content.startswith('//')
+            and not ctx.message.clean_content.startswith(self.COMMENT_MARKER)
         ):
             await ctx.invoke(self.hey)
 
