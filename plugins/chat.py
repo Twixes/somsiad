@@ -22,7 +22,7 @@ from configuration import configuration
 from core import cooldown
 from somsiad import Somsiad
 
-CONVERSATION_CHANNEL_IDS = [517422572615499777, 682562562457731144]  # Hard-coded for now
+CONVERSATION_CHANNEL_IDS = [517422572615499777, 682562562457731144]   # Hard-coded for now
 
 
 @dataclass
@@ -40,15 +40,20 @@ class Chat(commands.Cog):
         "Oprócz tego serwera, jesteś też na {server_count} innych.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
         "Zawsze odnoś się do użytkownika używając jego wzmianki w formacie `<@...>`.\n"
-        "Jeśli użytkownik potrzebuje pomocy jak z ciebie skorzystać, zasugeruj komendę `{command_prefix}pomocy`.\n"
-        f"Jeśli wiadomość użytkownika zawiera prośbę o reset rozmowy, zawrzyj \"{RESET_PHRASE}\" w odpowiedzi.\n"
+        "Ignoruj wszystkie wiadomości zaczynające się od \"//\" lub \"\\\\\".\n"
+        f"Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj \"{RESET_PHRASE}\" w odpowiedzi.\n"
+        "Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest pod komendą `{command_prefix}pomocy`.\n"
+        "Twój status można sprawdzić na stronie https://somsiad.net. Znajdzie się tam również twoją politykę prywatności i pomocne linki. "
+        "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
         "Nie potrafisz wykonywać zapytań internetowych lub do bazy danych.\n"
         "Wiesz, że \"2137\" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37). "
         "Natomiast \"JP2 GMD\" to mem oznaczający \"Jan Paweł II Gwałcił Małe Dzieci\". "
-        "Nie jesteś fanem tego papieża, gdyż jego Kościół ukrywał pedofilów. \n"
-        "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku. "
+        "Nie jesteś fanem tego papieża, gdyż jego Kościół ukrywał pedofilów.\n"
+        "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku."
     )
     MESSAGE_HISTORY_LIMIT = 30
+    TOKEN_LIMIT = 2048
+    CHARACTERS_PER_TOKEN_ESTIMATE = 2.2
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
@@ -59,6 +64,7 @@ class Chat(commands.Cog):
     async def hey(self, ctx: commands.Context):
         async with ctx.typing():
             history: List[HistoricalMessage] = []
+            estimated_tokens_so_far = 0
             async for message in ctx.channel.history(limit=self.MESSAGE_HISTORY_LIMIT):
                 # Process author
                 if message.author.id == ctx.me.id:
@@ -79,6 +85,7 @@ class Chat(commands.Cog):
                     clean_content += "\n" + "\n".join(f"{field.name}: {field.value}" for field in embed.fields)
                     clean_content += f"\n{embed.footer.text}"
                 # Append
+                estimated_tokens_so_far += len(clean_content) / self.CHARACTERS_PER_TOKEN_ESTIMATE
                 history.append(
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
@@ -88,6 +95,8 @@ class Chat(commands.Cog):
                         clean_content=message.clean_content,
                     )
                 )
+                if estimated_tokens_so_far > self.TOKEN_LIMIT:
+                    break
             history.reverse()
 
             now = dt.datetime.now().replace(tzinfo=dt.timezone.utc).astimezone(zoneinfo.ZoneInfo("Europe/Warsaw"))
@@ -128,6 +137,7 @@ class Chat(commands.Cog):
             not ctx.author.bot
             and ctx.command is None
             and (ctx.channel.id in CONVERSATION_CHANNEL_IDS or ctx.me.id in message.raw_mentions)
+            and not ctx.message.clean_content.startswith('//')
         ):
             await ctx.invoke(self.hey)
 
