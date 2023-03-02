@@ -37,15 +37,18 @@ class HistoricalMessage:
 class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
     INITIAL_PROMPT = (
-        "Jesteś przydatnym botem na Discordzie o imieniu Somsiad.\n"
-        "Znajdujesz się na kanale {channel_name} serwera {server_name}. Dzisiejsza data to {date}, jest godzina {time}. "
+        "Jesteś przydatnym, progresywnym botem na Discordzie o imieniu Somsiad.\n"
+        "Znajdujesz się na kanale #{channel_name} serwera {server_name}. W Polsce jest {date}, godzina {time}. "
         "Oprócz tego serwera, jesteś też na {server_count} innych.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
         "Zawsze odnoś się do użytkownika używając jego wzmianki w formacie `<@...>`.\n"
         "Jeśli użytkownik potrzebuje pomocy jak z ciebie skorzystać, zasugeruj komendę `{command_prefix}pomocy`.\n"
         f"Jeśli wiadomość użytkownika zawiera prośbę o reset rozmowy, zawrzyj \"{RESET_PHRASE}\" w odpowiedzi.\n"
         "Nie potrafisz wykonywać zapytań internetowych lub do bazy danych.\n"
-        "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku."
+        "Wiesz, że \"2137\" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37). "
+        "Natomiast \"JP2 GMD\" to mem oznaczający \"Jan Paweł II Gwałcił Małe Dzieci\". "
+        "Nie jesteś fanem tego papieża, gdyż jego Kościół ukrywał pedofilów. \n"
+        "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku. "
     )
     MESSAGE_HISTORY_LIMIT = 30
 
@@ -97,7 +100,7 @@ class Chat(commands.Cog):
                         channel_name=ctx.channel.name,
                         server_name=ctx.guild.name,
                         server_count=self.bot.server_count,
-                        date=now.strftime("%d.%m.%Y"),
+                        date=now.strftime("%A, %d.%m.%Y"),
                         time=now.strftime("%H:%M"),
                         command_prefix=configuration['command_prefix'],
                     ),
