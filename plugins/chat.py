@@ -17,7 +17,6 @@ import discord
 from discord.ext import commands
 import openai
 import datetime as dt
-import zoneinfo
 from configuration import configuration
 from core import cooldown
 from somsiad import Somsiad
@@ -28,7 +27,6 @@ CONVERSATION_CHANNEL_IDS = [517422572615499777, 682562562457731144]   # Hard-cod
 @dataclass
 class HistoricalMessage:
     author_display_name_with_id: Optional[str]
-    timestamp: dt.datetime
     clean_content: str
 
 
@@ -89,9 +87,6 @@ class Chat(commands.Cog):
                 history.append(
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
-                        timestamp=message.created_at.replace(tzinfo=dt.timezone.utc).astimezone(
-                            zoneinfo.ZoneInfo("Europe/Warsaw")
-                        ),
                         clean_content=message.clean_content,
                     )
                 )
@@ -99,7 +94,7 @@ class Chat(commands.Cog):
                     break
             history.reverse()
 
-            now = dt.datetime.now().replace(tzinfo=dt.timezone.utc).astimezone(zoneinfo.ZoneInfo("Europe/Warsaw"))
+            now = dt.datetime.now()
             prompt_messages = [
                 {
                     "role": "system",
