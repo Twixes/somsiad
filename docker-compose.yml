@@ -28,6 +28,8 @@ services:
     links:
       - clickhouse:clickhouse
       - redis:redis
+    extra_hosts:
+      - host.docker.internal:host-gateway
     environment:
       - DISCORD_TOKEN
       - COMMAND_PREFIX
