@@ -107,7 +107,7 @@ class Chat(commands.Cog):
                 if message.author.id == ctx.me.id:
                     author_display_name_with_id = None
                 else:
-                    author_display_name_with_id = f"<@{message.author.id}>"
+                    author_display_name_with_id = f"{message.author.display_name} aka <@{message.author.id}>"
                 try:
                     clean_content = await self.message_to_text(message)
                 except StopIteration:
