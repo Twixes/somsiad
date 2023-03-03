@@ -62,6 +62,34 @@ class Chat(commands.Cog):
     def __init__(self, bot: Somsiad):
         self.bot = bot
 
+    def embeds_to_text(self, embeds: List[discord.Embed]) -> str:
+        parts = []
+        for embed in embeds:
+            if embed.title:
+                parts.append(embed.title)
+            if embed.description:
+                parts.append(embed.description)
+            if embed.fields:
+                parts.append("\n".join(f"{field.name}: {field.value}" for field in embed.fields))
+            if embed.footer.text:
+                parts.append(embed.footer.text)
+        return "\n".join(parts)
+
+    async def message_to_text(self, message: discord.Message) -> Optional[str]:
+        parts = [message.clean_content]
+        if message.clean_content.strip().startswith(self.COMMENT_MARKER):
+            return None
+        if self.RESET_PHRASE in message.clean_content.lower():
+            raise StopIteration  # Conversation reset point
+        prefixes = await self.bot.get_prefix(message)
+        for prefix in prefixes:
+            if parts[0].startswith(prefix):
+                parts[0] = parts[0][len(prefix):]
+                break
+        if message.embeds:
+            parts.append(self.embeds_to_text(message.embeds))
+        return "\n".join(parts)
+
     @cooldown()
     @commands.command(aliases=['hej'])
     @commands.guild_only()
@@ -76,26 +104,16 @@ class Chat(commands.Cog):
                     has_trigger_message_been_encountered = True
                 if not has_trigger_message_been_encountered:
                     continue
-                # Process author
                 if message.author.id == ctx.me.id:
                     author_display_name_with_id = None
                 else:
                     author_display_name_with_id = f"<@{message.author.id}>"
-                # Process content
-                clean_content = message.clean_content
-                if ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER):
+                try:
+                    clean_content = await self.message_to_text(message)
+                except StopIteration:
+                    break
+                if clean_content is None:
                     continue
-                if self.RESET_PHRASE in clean_content.lower():
-                    break  # Conversation reset point
-                prefixes = await self.bot.get_prefix(ctx.message)
-                for prefix in prefixes:
-                    if clean_content.startswith(prefix):
-                        clean_content = clean_content[len(prefix) :]
-                        break
-                for embed in message.embeds:
-                    clean_content += f"\n\n{embed.title}\n{embed.description}"
-                    clean_content += "\n" + "\n".join(f"{field.name}: {field.value}" for field in embed.fields)
-                    clean_content += f"\n{embed.footer.text}"
                 # Append
                 prompt_token_count_so_far += len(encoding.encode(clean_content))
                 history.append(
