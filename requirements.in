@@ -16,3 +16,4 @@ ptvsd==4.3.2
 aiochclient[aiohttp-speedups]==2.2.0
 redis==4.1.0
 openai==0.27.0
+tiktoken==0.3.0

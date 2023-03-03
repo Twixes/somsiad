@@ -8,6 +8,10 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# tiktoken needs Rust
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+
+ENV PATH /root/.cargo/bin:$PATH
 ENV LC_ALL pl_PL.UTF-8
 ENV TZ Europe/Warsaw
 

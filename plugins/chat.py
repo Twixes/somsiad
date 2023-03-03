@@ -20,8 +20,11 @@ import datetime as dt
 from configuration import configuration
 from core import cooldown
 from somsiad import Somsiad
+import tiktoken
 
 CONVERSATION_CHANNEL_IDS = [517422572615499777, 682562562457731144, 1080974848324546560]  # Hard-coded for now
+
+encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
 
 @dataclass
@@ -32,28 +35,29 @@ class HistoricalMessage:
 
 class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
+    MESSAGE_HISTORY_LIMIT = 30
+    TOKEN_LIMIT = 2048
+    COMMENT_MARKER = '//'
     INITIAL_PROMPT = (
         "Jesteś przydatnym polskim botem na Discordzie o imieniu Somsiad.\n"
         "Odpowiadasz zwięźle, używasz języka potocznego. "
         "Na końcu wiadomości umieszczasz emoji reprezentujące pasującą emocję, np. 😊, 😮 albo 😡.\n"
-        "Znajdujesz się na kanale #{channel_name} serwera {server_name}. W Polsce jest {date}, obecna godzina to {time}. "
+        "Znajdujesz się na kanale #{channel_name} serwera {server_name}. "
         "Oprócz tego serwera, jesteś też na {server_count} innych.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
-        "Zawsze odnoś się do użytkownika używając jego wzmianki w formacie `<@ID użytkownika>`.\n"
+        "Zawsze odnoś się do innych użytkowników przy użyciu wzmianki `<@ID użytkownika>`. Nie zakładaj płci użytkownika.\n"
         f"Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj \"{RESET_PHRASE}\" w odpowiedzi.\n"
         "Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest pod komendą `{command_prefix}pomocy`.\n"
         "Twój status można sprawdzić na stronie https://somsiad.net. Znajdzie się tam również twoją politykę prywatności i pomocne linki. "
         "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
-        "Nie potrafisz wykonywać zapytań internetowych lub do bazy danych.\n"
         "Wiesz, że \"2137\" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), "
         "zwanej godziną papieżową. Natomiast \"JP2GMD\" to mem oznaczający \"Jan Paweł II Gwałcił Małe Dzieci\". "
         "Nie jesteś fanem tego papieża, gdyż jego Kościół ukrywał pedofilów.\n"
-        "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku."
+        "Masz dostęp do Google. Poza tym nie masz dostępu do stron internetowych, API, ani bazy danych. "
+        f"Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.\n"
+        "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku.\n"
+        "W Polsce jest {date}, obecna godzina to {time}."
     )
-    MESSAGE_HISTORY_LIMIT = 30
-    TOKEN_LIMIT = 2048
-    CHARACTERS_PER_TOKEN_ESTIMATE = 2.2
-    COMMENT_MARKER = '//'
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
@@ -64,8 +68,14 @@ class Chat(commands.Cog):
     async def hey(self, ctx: commands.Context):
         async with ctx.typing():
             history: List[HistoricalMessage] = []
-            estimated_tokens_so_far = 0
+            prompt_token_count_so_far = 0
+            has_trigger_message_been_encountered = False
             async for message in ctx.channel.history(limit=self.MESSAGE_HISTORY_LIMIT):
+                # Skip messages that were sent after the trigger message to prevent confusion
+                if message.id == ctx.message.id:
+                    has_trigger_message_been_encountered = True
+                if not has_trigger_message_been_encountered:
+                    continue
                 # Process author
                 if message.author.id == ctx.me.id:
                     author_display_name_with_id = None
@@ -73,7 +83,7 @@ class Chat(commands.Cog):
                     author_display_name_with_id = f"<@{message.author.id}>"
                 # Process content
                 clean_content = message.clean_content
-                if ctx.message.clean_content.startswith(self.COMMENT_MARKER):
+                if ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER):
                     continue
                 if self.RESET_PHRASE in clean_content.lower():
                     break  # Conversation reset point
@@ -87,14 +97,14 @@ class Chat(commands.Cog):
                     clean_content += "\n" + "\n".join(f"{field.name}: {field.value}" for field in embed.fields)
                     clean_content += f"\n{embed.footer.text}"
                 # Append
-                estimated_tokens_so_far += len(clean_content) / self.CHARACTERS_PER_TOKEN_ESTIMATE
+                prompt_token_count_so_far += len(encoding.encode(clean_content))
                 history.append(
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
                         clean_content=message.clean_content,
                     )
                 )
-                if estimated_tokens_so_far > self.TOKEN_LIMIT:
+                if prompt_token_count_so_far > self.TOKEN_LIMIT:
                     break
             history.reverse()
 
@@ -136,7 +146,7 @@ class Chat(commands.Cog):
             not ctx.author.bot
             and ctx.command is None
             and (ctx.channel.id in CONVERSATION_CHANNEL_IDS or ctx.me.id in message.raw_mentions)
-            and not ctx.message.clean_content.startswith(self.COMMENT_MARKER)
+            and not ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER)
         ):
             await ctx.invoke(self.hey)
 
