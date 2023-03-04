@@ -11,7 +11,9 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from asyncio import sleep
 from dataclasses import dataclass
+import random
 from typing import List, Optional
 import discord
 from discord.ext import commands
@@ -21,8 +23,6 @@ from configuration import configuration
 from core import cooldown
 from somsiad import Somsiad
 import tiktoken
-
-CONVERSATION_CHANNEL_IDS = [517422572615499777, 682562562457731144, 1080974848324546560]  # Hard-coded for now
 
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
@@ -95,65 +95,72 @@ class Chat(commands.Cog):
     @commands.guild_only()
     async def hey(self, ctx: commands.Context):
         async with ctx.typing():
-            history: List[HistoricalMessage] = []
-            prompt_token_count_so_far = 0
-            has_trigger_message_been_encountered = False
-            async for message in ctx.channel.history(limit=self.MESSAGE_HISTORY_LIMIT):
-                # Skip messages that were sent after the trigger message to prevent confusion
-                if message.id == ctx.message.id:
-                    has_trigger_message_been_encountered = True
-                if not has_trigger_message_been_encountered:
-                    continue
-                if message.author.id == ctx.me.id:
-                    author_display_name_with_id = None
-                else:
-                    author_display_name_with_id = f"{message.author.display_name} aka <@{message.author.id}>"
-                try:
-                    clean_content = await self.message_to_text(message)
-                except StopIteration:
-                    break
-                if clean_content is None:
-                    continue
-                # Append
-                prompt_token_count_so_far += len(encoding.encode(clean_content))
-                history.append(
-                    HistoricalMessage(
-                        author_display_name_with_id=author_display_name_with_id,
-                        clean_content=message.clean_content,
-                    )
-                )
-                if prompt_token_count_so_far > self.TOKEN_LIMIT:
-                    break
-            history.reverse()
+            # history: List[HistoricalMessage] = []
+            # prompt_token_count_so_far = 0
+            # has_trigger_message_been_encountered = False
+            # async for message in ctx.channel.history(limit=self.MESSAGE_HISTORY_LIMIT):
+            #     # Skip messages that were sent after the trigger message to prevent confusion
+            #     if message.id == ctx.message.id:
+            #         has_trigger_message_been_encountered = True
+            #     if not has_trigger_message_been_encountered:
+            #         continue
+            #     if message.author.id == ctx.me.id:
+            #         author_display_name_with_id = None
+            #     else:
+            #         author_display_name_with_id = f"{message.author.display_name} aka <@{message.author.id}>"
+            #     try:
+            #         clean_content = await self.message_to_text(message)
+            #     except StopIteration:
+            #         break
+            #     if clean_content is None:
+            #         continue
+            #     # Append
+            #     prompt_token_count_so_far += len(encoding.encode(clean_content))
+            #     history.append(
+            #         HistoricalMessage(
+            #             author_display_name_with_id=author_display_name_with_id,
+            #             clean_content=message.clean_content,
+            #         )
+            #     )
+            #     if prompt_token_count_so_far > self.TOKEN_LIMIT:
+            #         break
+            # history.reverse()
 
-            now = dt.datetime.now()
-            prompt_messages = [
-                {
-                    "role": "system",
-                    "content": self.INITIAL_PROMPT.format(
-                        channel_name=ctx.channel.name,
-                        server_name=ctx.guild.name,
-                        server_count=self.bot.server_count,
-                        date=now.strftime("%A, %d.%m.%Y"),
-                        time=now.strftime("%H:%M"),
-                        command_prefix=configuration['command_prefix'],
-                    ),
-                },
-                *(
-                    {
-                        "role": "user" if m.author_display_name_with_id else "assistant",
-                        "content": f"{m.author_display_name_with_id}: {m.clean_content}"
-                        if m.author_display_name_with_id
-                        else m.clean_content,
-                    }
-                    for m in history
-                ),
-            ]
+            # now = dt.datetime.now()
+            # prompt_messages = [
+            #     {
+            #         "role": "system",
+            #         "content": self.INITIAL_PROMPT.format(
+            #             channel_name=ctx.channel.name,
+            #             server_name=ctx.guild.name,
+            #             server_count=self.bot.server_count,
+            #             date=now.strftime("%A, %d.%m.%Y"),
+            #             time=now.strftime("%H:%M"),
+            #             command_prefix=configuration['command_prefix'],
+            #         ),
+            #     },
+            #     *(
+            #         {
+            #             "role": "user" if m.author_display_name_with_id else "assistant",
+            #             "content": f"{m.author_display_name_with_id}: {m.clean_content}"
+            #             if m.author_display_name_with_id
+            #             else m.clean_content,
+            #         }
+            #         for m in history
+            #     ),
+            # ]
 
-            result = await openai.ChatCompletion.acreate(
-                model="gpt-3.5-turbo", messages=prompt_messages, user=str(ctx.author.id)
-            )
-            result_message = result.get('choices')[0]["message"]["content"]
+            # result = await openai.ChatCompletion.acreate(
+            #     model="gpt-3.5-turbo", messages=prompt_messages, user=str(ctx.author.id)
+            # )
+            # result_message = result.get('choices')[0]["message"]["content"]
+            await sleep(0.3)
+            result_message = random.choice([
+                "Przepraszam, w tym momencie jestem w hibernacji. Spróbuj ponownie za parę dni.",
+                "Nie mogę teraz na to odpowiedzieć. Spróbuj ponownie później.",
+                "Obecnie jestem w hibernacji. Spróbuj ponownie za kilka dni.",
+                "Naprawdę chciałbym pomóc, ale w tym momencie nie mogę. Ponów próbę w innym czasie."
+            ])
 
         await self.bot.send(ctx, result_message)
 
@@ -163,7 +170,7 @@ class Chat(commands.Cog):
         if (
             not ctx.author.bot
             and ctx.command is None
-            and (ctx.channel.id in CONVERSATION_CHANNEL_IDS or ctx.me.id in message.raw_mentions)
+            and ctx.me.id in message.raw_mentions
             and not ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER)
         ):
             await ctx.invoke(self.hey)
