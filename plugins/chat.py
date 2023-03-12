@@ -25,6 +25,9 @@ import tiktoken
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
 
+WHITELISTED_SERVER_IDS = [682561082719731742, 294182757209473024]
+
+
 @dataclass
 class HistoricalMessage:
     author_display_name_with_id: Optional[str]
@@ -82,16 +85,18 @@ class Chat(commands.Cog):
         prefixes = await self.bot.get_prefix(message)
         for prefix in prefixes:
             if parts[0].startswith(prefix):
-                parts[0] = parts[0][len(prefix):]
+                parts[0] = parts[0][len(prefix) :]
                 break
         if message.embeds:
             parts.append(self.embeds_to_text(message.embeds))
         return "\n".join(parts)
 
-    @cooldown(rate=10, per=3600*24*7)
+    @cooldown(rate=10, per=3600 * 24 * 7)
     @commands.command(aliases=['hej'])
     @commands.guild_only()
     async def hey(self, ctx: commands.Context):
+        if ctx.guild.id not in WHITELISTED_SERVER_IDS:
+            return
         async with ctx.typing():
             history: List[HistoricalMessage] = []
             prompt_token_count_so_far = 0
@@ -159,8 +164,10 @@ class Chat(commands.Cog):
     async def on_message(self, message: discord.Message):
         ctx = await self.bot.get_context(message)
         if (
-            not ctx.author.bot
-            and ctx.command is None
+            ctx.command is None
+            and ctx.guild is not None
+            and ctx.guild.id in WHITELISTED_SERVER_IDS
+            and not ctx.author.bot
             and ctx.me.id in message.raw_mentions
             and not ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER)
         ):
