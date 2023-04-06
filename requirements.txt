@@ -47,7 +47,7 @@ defusedxml==0.7.1
     # via -r requirements.in
 deprecated==1.2.13
     # via redis
-discord-py[voice]==2.0.1
+discord-py[voice]==2.2.2
     # via -r requirements.in
 filelock==3.9.0
     # via blobfile
