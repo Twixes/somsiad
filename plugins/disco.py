@@ -308,7 +308,7 @@ class Disco(commands.Cog):
     @commands.guild_only()
     async def disco_disconnect(self, ctx):
         """Disconnects from the server."""
-        if ctx.voice_client is None:
+        if ctx.voice_client is None or ctx.me.voice is None:
             embed = discord.Embed(
                 title=':warning: Nie rozłączono z kanałem głosowym, bo bot nie jest połączony z żadnym!',
                 color=self.bot.COLOR,
