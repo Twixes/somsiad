@@ -91,7 +91,7 @@ class Chat(commands.Cog):
             parts.append(self.embeds_to_text(message.embeds))
         return "\n".join(parts)
 
-    @cooldown(rate=10, per=3600 * 24 * 7)
+    @cooldown(rate=50, per=3600 * 24 * 7)
     @commands.command(aliases=['hej'])
     @commands.guild_only()
     async def hey(self, ctx: commands.Context):
