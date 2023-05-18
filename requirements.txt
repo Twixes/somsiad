@@ -134,7 +134,7 @@ pyparsing==2.4.7
     #   packaging
 python-dateutil==2.8.1
     # via matplotlib
-pytube==12.0.0
+pytube==15.0.0
     # via -r requirements.in
 pytz==2020.4
     # via google-api-core
