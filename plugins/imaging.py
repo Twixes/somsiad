@@ -13,6 +13,7 @@
 
 from collections import defaultdict
 import io
+from sentry_sdk import capture_exception
 
 from sqlalchemy import func, desc
 
@@ -89,6 +90,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             try:
                                 perceptualization = self._perceptualize(image_bytes)
                             except:
+                                capture_exception()
                                 continue
                             images9000.append(
                                 Image9000(
