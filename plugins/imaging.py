@@ -282,19 +282,31 @@ class Imaging(commands.Cog, SomsiadMixin):
                         init_time = time.time()
                         comparison_count = 0
                         sent_by = ctx.guild.get_member(base_image9000.user_id)
-                        for other_image9000, textual_similarity in (
-                            session.query(Image9000)
-                            .add_column(
-                                func.word_similarity(base_image9000.text, Image9000.text).label("textual_similarity")
-                            )
-                            .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
-                        ):
-                            comparison_count += 1
-                            visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
-                            if visual_similarity >= self.IMAGE9000_VISUAL_SIMILARITY_TRESHOLD:
-                                similar[other_image9000]["visual"] = visual_similarity
-                            if textual_similarity >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD:
-                                similar[other_image9000]["textual"] = textual_similarity
+
+                        if base_image9000.text:
+                            for other_image9000, textual_similarity in (
+                                session.query(Image9000)
+                                .add_column(
+                                    func.word_similarity(base_image9000.text, Image9000.text).label("textual_similarity")
+                                )
+                                .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
+                            ):
+                                comparison_count += 1
+                                visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
+                                if visual_similarity >= self.IMAGE9000_VISUAL_SIMILARITY_TRESHOLD:
+                                    similar[other_image9000]["visual"] = visual_similarity
+                                if textual_similarity >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD:
+                                    similar[other_image9000]["textual"] = textual_similarity
+                        else:
+                            for other_image9000 in (
+                                session.query(Image9000)
+                                .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
+                            ):
+                                comparison_count += 1
+                                visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
+                                if visual_similarity >= self.IMAGE9000_VISUAL_SIMILARITY_TRESHOLD:
+                                    similar[other_image9000]["visual"] = visual_similarity
+
                         if similar:
                             embed = self.bot.generate_embed()
                             for image9000, similarity in similar.items():
