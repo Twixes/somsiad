@@ -311,7 +311,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                         if similar:
                             embed = self.bot.generate_embed()
                             for image9000, similarity in similar.items():
-                                name, value = await self._image_to_embed_field(embed, image9000, similarity)
+                                name, value = await self._image_to_embed_field(image9000, similarity)
                                 embed.add_field(name=name, value=value, inline=False)
                             occurences_form = word_number_form(
                                 len(embed.fields),
