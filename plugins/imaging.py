@@ -13,6 +13,7 @@
 
 from collections import defaultdict
 import io
+import time
 from sentry_sdk import capture_exception
 
 from sqlalchemy import func, desc
