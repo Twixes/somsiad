@@ -228,7 +228,7 @@ class Imaging(commands.Cog, SomsiadMixin):
     @cooldown()
     @commands.command(aliases=['r9k', 'było', 'bylo', 'byo'])
     @commands.guild_only()
-    async def robot9000(self, ctx: commands.Context, text_query: Optional[str] = None):
+    async def robot9000(self, ctx: commands.Context, *, text_query: Optional[str] = None):
         """Finds previous occurences of the image being sent."""
         async with ctx.typing():
             if text_query:
