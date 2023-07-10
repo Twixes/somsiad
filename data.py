@@ -25,7 +25,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     SmallInteger,
-    String,
+    String,UnicodeText,
     create_engine,
     func,
 )

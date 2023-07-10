@@ -11,21 +11,34 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from collections import defaultdict
 import io
+
+from sqlalchemy import func
+
 from somsiad import SomsiadMixin
 import time
-from typing import BinaryIO, Optional, Tuple
-
+from typing import BinaryIO, DefaultDict, Dict, Optional, Tuple, TypedDict
+import pytesseract
 import discord
 import imagehash
 import PIL.Image
 import PIL.ImageEnhance
 import psycopg2.errors
 from discord.ext import commands
-
 import data
 from core import cooldown, is_user_opted_out_of_data_processing
 from utilities import md_link, utc_to_naive_local, word_number_form
+
+
+class Similarity(TypedDict, total=False):
+    visual: float
+    textual: float
+
+
+class Perceptualization(TypedDict):
+    text: str
+    visual_hash: str
 
 
 class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
@@ -34,10 +47,11 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
     attachment_id = data.Column(data.BigInteger, primary_key=True)
     message_id = data.Column(data.BigInteger, nullable=False)
     hash = data.Column(data.String(25), nullable=False)
+    text = data.Column(data.UnicodeText(), nullable=False)
     sent_at = data.Column(data.DateTime, nullable=False)
 
-    def calculate_similarity_to(self, other) -> float:
-        return (self.HASH_SIZE ** 2 - bin(int(self.hash, 16) ^ int(other.hash, 16)).count('1')) / self.HASH_SIZE ** 2
+    def calculate_visual_similarity(self, other) -> float:
+        return (self.HASH_SIZE**2 - bin(int(self.hash, 16) ^ int(other.hash, 16)).count('1')) / self.HASH_SIZE**2
 
     async def get_presentation(self, bot: commands.Bot) -> str:
         parts = [self.sent_at.strftime('%-d %B %Y o %-H:%M')]
@@ -53,7 +67,8 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
 class Imaging(commands.Cog, SomsiadMixin):
     ExtractedImage = Tuple[Optional[discord.Attachment], Optional[BinaryIO]]
 
-    IMAGE9000_SIMILARITY_TRESHOLD = 0.8
+    IMAGE9000_VISUAL_SIMILARITY_TRESHOLD = 0.8
+    IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD = 0.3
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -73,7 +88,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             continue
                         else:
                             try:
-                                hash_string = self._hash(image_bytes)
+                                perceptualization = self._perceptualize(image_bytes)
                             except:
                                 continue
                             images9000.append(
@@ -83,7 +98,8 @@ class Imaging(commands.Cog, SomsiadMixin):
                                     user_id=message.author.id,
                                     channel_id=message.channel.id,
                                     server_id=message.guild.id,
-                                    hash=hash_string,
+                                    hash=perceptualization["visual_hash"],
+                                    text=perceptualization["text"],
                                     sent_at=utc_to_naive_local(message.created_at),
                                 )
                             )
@@ -124,10 +140,11 @@ class Imaging(commands.Cog, SomsiadMixin):
         return image_bytes
 
     @staticmethod
-    def _hash(image_bytes: BinaryIO) -> str:
+    def _perceptualize(image_bytes: BinaryIO) -> Perceptualization:
         image = PIL.Image.open(image_bytes)
+        image_text = pytesseract.image_to_string(image, lang='eng+pol', config="--psm 11", timeout=1).strip()
         image_hash = imagehash.phash(image, Image9000.HASH_SIZE)
-        return str(image_hash)
+        return {"text": image_text, "visual_hash": str(image_hash)}
 
     @staticmethod
     async def extract_image(message: discord.Message) -> ExtractedImage:
@@ -224,24 +241,30 @@ class Imaging(commands.Cog, SomsiadMixin):
             )
             if attachment is not None:
                 with data.session() as session:
-                    similar = []
-                    base_image9000 = session.query(Image9000).get(attachment.id)
+                    similar: DefaultDict[Image9000, Similarity] = defaultdict(Similarity)
+                    base_image9000: Optional[Image9000] = session.query(Image9000).get(attachment.id)
                     if base_image9000 is None:
-                        embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
+                        embed = self.bot.generate_embed('⚠️', 'Obrazek do wyszukania nie został jeszcze zindeksowany')
                     else:
                         init_time = time.time()
                         comparison_count = 0
                         sent_by = ctx.guild.get_member(base_image9000.user_id)
-                        for other_image9000 in session.query(Image9000).filter(
-                            Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
+                        for other_image9000, textual_similarity in (
+                            session.query(Image9000)
+                            .add_column(
+                                func.similarity(Image9000.text, base_image9000.text).label("textual_similarity")
+                            )
+                            .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
                         ):
                             comparison_count += 1
-                            similarity = base_image9000.calculate_similarity_to(other_image9000)
-                            if similarity >= self.IMAGE9000_SIMILARITY_TRESHOLD:
-                                similar.append((other_image9000, similarity))
+                            visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
+                            if visual_similarity >= self.IMAGE9000_VISUAL_SIMILARITY_TRESHOLD:
+                                similar[other_image9000]["visual"] = visual_similarity
+                            if textual_similarity >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD:
+                                similar[other_image9000]["textual"] = textual_similarity
                         if similar:
                             embed = self.bot.generate_embed()
-                            for image9000, similarity in similar:
+                            for image9000, similarity in similar.items():
                                 channel = image9000.discord_channel(self.bot)
                                 message = None
                                 info = ''
@@ -252,11 +275,20 @@ class Imaging(commands.Cog, SomsiadMixin):
                                         info = ' (wiadomość usunięta)'
                                 else:
                                     info = ' (kanał usunięty)'
-                                similarity_presentantion = f'{int(round(similarity*100))}% podobieństwa'
+                                similarity_presentantion_parts = []
+                                if "visual" in similarity:
+                                    similarity_presentantion_parts.append(
+                                        f'{similarity["visual"]:.0%}% podobieństwa wizualnego'
+                                    )
+                                if "textual" in similarity:
+                                    similarity_presentantion_parts.append(
+                                        f'{similarity["textual"]:.0%}% podobieństwa tekstu'
+                                    )
                                 embed.add_field(
                                     name=await image9000.get_presentation(self.bot),
                                     value=md_link(
-                                        similarity_presentantion, message.jump_url if message is not None else None
+                                        ', '.join(similarity_presentantion_parts),
+                                        message.jump_url if message is not None else None,
                                     )
                                     + info,
                                     inline=False,

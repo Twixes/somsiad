@@ -5,7 +5,10 @@ services:
       POSTGRES_DB: somsiad
       POSTGRES_PASSWORD: somsiad
       POSTGRES_USER: somsiad
-    image: postgres:13
+      POSTGRES_EXTENSIONS: pg_trgm
+    build:
+      context: .
+      dockerfile: postgres.Dockerfile
     ports:
       - "5432:5432"
   clickhouse:

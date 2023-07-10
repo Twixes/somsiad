@@ -4,7 +4,9 @@ ENV PYTHONUNBUFFERED 1
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update \
-    && apt-get install --no-install-recommends -y locales tzdata python3-psycopg2 libffi-dev libssl-dev libsodium-dev libnacl-dev libopus-dev libjpeg-dev libpq-dev ffmpeg \
+    && apt-get install --no-install-recommends -y \
+        locales tzdata python3-psycopg2 libffi-dev libssl-dev libsodium-dev libnacl-dev libopus-dev libjpeg-dev \
+        libpq-dev ffmpeg tesseract-ocr tesseract-ocr-eng tesseract-ocr-pol \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
