@@ -37,7 +37,7 @@ class Similarity(TypedDict, total=False):
 
 
 class Perceptualization(TypedDict):
-    text: str
+    text: Optional[str]
     visual_hash: str
 
 
@@ -47,7 +47,7 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
     attachment_id = data.Column(data.BigInteger, primary_key=True)
     message_id = data.Column(data.BigInteger, nullable=False)
     hash = data.Column(data.String(25), nullable=False)
-    text = data.Column(data.UnicodeText(), nullable=False)
+    text = data.Column(data.UnicodeText(), nullable=True)
     sent_at = data.Column(data.DateTime, nullable=False)
 
     def calculate_visual_similarity(self, other) -> float:
@@ -143,7 +143,11 @@ class Imaging(commands.Cog, SomsiadMixin):
     @staticmethod
     def _perceptualize(image_bytes: BinaryIO) -> Perceptualization:
         image = PIL.Image.open(image_bytes)
-        image_text = pytesseract.image_to_string(image, lang='eng+pol', config="--psm 11", timeout=1).strip()
+        try:
+            image_text = pytesseract.image_to_string(image, lang='eng+pol', config="--psm 11", timeout=5).strip()
+        except RuntimeError:
+            capture_exception()
+            image_text = None
         image_hash = imagehash.phash(image, Image9000.HASH_SIZE)
         return {"text": image_text, "visual_hash": str(image_hash)}
 
