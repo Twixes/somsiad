@@ -14,11 +14,10 @@
 from collections import defaultdict
 import io
 
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 from somsiad import SomsiadMixin
-import time
-from typing import BinaryIO, DefaultDict, Dict, Optional, Tuple, TypedDict
+from typing import BinaryIO, DefaultDict, Dict, List, Optional, Tuple, TypedDict
 import pytesseract
 import discord
 import imagehash
@@ -68,7 +67,7 @@ class Imaging(commands.Cog, SomsiadMixin):
     ExtractedImage = Tuple[Optional[discord.Attachment], Optional[BinaryIO]]
 
     IMAGE9000_VISUAL_SIMILARITY_TRESHOLD = 0.8
-    IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD = 0.3
+    IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD = 0.6
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -229,12 +228,40 @@ class Imaging(commands.Cog, SomsiadMixin):
     @cooldown()
     @commands.command(aliases=['r9k', 'było', 'bylo', 'byo'])
     @commands.guild_only()
-    async def robot9000(self, ctx: commands.Context, sent_by: discord.Member = None):
+    async def robot9000(self, ctx: commands.Context, text_query: Optional[str] = None):
         """Finds previous occurences of the image being sent."""
         async with ctx.typing():
+            if text_query:
+                search_results: Dict[Image9000, float] = {}
+                with data.session() as session:
+                    for image9000, query_similarity in (
+                        session.query(Image9000)
+                            .add_column(
+                                func.word_similarity(text_query, Image9000.text).label("query_similarity")
+                            )
+                        .filter(
+                            Image9000.server_id == ctx.guild.id,
+                            Image9000.text.op(r"%>")(text_query),
+                        )
+                        .order_by(desc("query_similarity"))
+                    ):
+                        search_results[image9000] = query_similarity
+                if search_results:
+                    embed = self.bot.generate_embed(
+                        '🤖',
+                        f'Znaleziono {word_number_form(len(search_results), "obrazek", "obrazki", "obrazków")} pasujących do zapytania "{text_query}"',
+                    )
+                    for image9000, query_similarity in search_results.items():
+                        name, value = await self._image_to_embed_field(image9000, { "textual": query_similarity})
+                        embed.add_field(name=name, value=value, inline=False)
+                else:
+                    embed = self.bot.generate_embed(
+                        '🤖',
+                        f'Nie znalazłem żadnego obrazka pasującego do zapytania "{text_query}"',
+                    )
+                return await self.bot.send(ctx, embed=embed)
             attachment, _ = await self.find_image(
                 ctx.channel,
-                sent_by=sent_by,
                 message_id=ctx.message.reference.message_id
                 if ctx.message is not None and ctx.message.reference is not None
                 else None,
@@ -252,7 +279,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                         for other_image9000, textual_similarity in (
                             session.query(Image9000)
                             .add_column(
-                                func.similarity(Image9000.text, base_image9000.text).label("textual_similarity")
+                                func.word_similarity(base_image9000.text, Image9000.text).label("textual_similarity")
                             )
                             .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
                         ):
@@ -265,34 +292,8 @@ class Imaging(commands.Cog, SomsiadMixin):
                         if similar:
                             embed = self.bot.generate_embed()
                             for image9000, similarity in similar.items():
-                                channel = image9000.discord_channel(self.bot)
-                                message = None
-                                info = ''
-                                if channel is not None:
-                                    try:
-                                        message = await channel.fetch_message(image9000.message_id)
-                                    except discord.NotFound:
-                                        info = ' (wiadomość usunięta)'
-                                else:
-                                    info = ' (kanał usunięty)'
-                                similarity_presentantion_parts = []
-                                if "visual" in similarity:
-                                    similarity_presentantion_parts.append(
-                                        f'{similarity["visual"]:.0%}% podobieństwa wizualnego'
-                                    )
-                                if "textual" in similarity:
-                                    similarity_presentantion_parts.append(
-                                        f'{similarity["textual"]:.0%}% podobieństwa tekstu'
-                                    )
-                                embed.add_field(
-                                    name=await image9000.get_presentation(self.bot),
-                                    value=md_link(
-                                        ', '.join(similarity_presentantion_parts),
-                                        message.jump_url if message is not None else None,
-                                    )
-                                    + info,
-                                    inline=False,
-                                )
+                                name, value = await self._image_to_embed_field(embed, image9000, similarity)
+                                embed.add_field(name=name, value=value, inline=False)
                             occurences_form = word_number_form(
                                 len(embed.fields),
                                 'wcześniejsze wystąpienie',
@@ -319,6 +320,31 @@ class Imaging(commands.Cog, SomsiadMixin):
             else:
                 embed = self.bot.generate_embed('⚠️', 'Nie znaleziono obrazka do sprawdzenia')
             await self.bot.send(ctx, embed=embed)
+
+    async def _image_to_embed_field(self, image9000: Image9000, similarity: Similarity) -> Tuple[str, str]:
+        channel = image9000.discord_channel(self.bot)
+        message = None
+        info = ''
+        if channel is not None:
+            try:
+                message = await channel.fetch_message(image9000.message_id)
+            except discord.NotFound:
+                info = ' (wiadomość usunięta)'
+        else:
+            info = ' (kanał usunięty)'
+        similarity_presentantion_parts = []
+        if "visual" in similarity:
+            similarity_presentantion_parts.append(f'{similarity["visual"]:.0%} podobieństwa wizualnego')
+        if "textual" in similarity:
+            similarity_presentantion_parts.append(f'{similarity["textual"]:.0%} podobieństwa tekstu')
+        return (
+            await image9000.get_presentation(self.bot),
+            md_link(
+                ', '.join(similarity_presentantion_parts),
+                message.jump_url if message is not None else None,
+            )
+            + info,
+        )
 
 
 async def setup(bot: commands.Bot):
