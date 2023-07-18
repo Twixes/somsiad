@@ -22,10 +22,10 @@ from core import cooldown
 from somsiad import Somsiad
 import tiktoken
 
-encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+MODEL = "gpt-3.5-turbo"
+WHITELISTED_SERVER_IDS = [294182757209473024, 479458694354960385, 682561082719731742]
 
-
-WHITELISTED_SERVER_IDS = [682561082719731742, 294182757209473024]
+encoding = tiktoken.encoding_for_model(MODEL)
 
 
 @dataclass
@@ -81,7 +81,7 @@ class Chat(commands.Cog):
         if message.clean_content.strip().startswith(self.COMMENT_MARKER):
             return None
         if self.RESET_PHRASE in message.clean_content.lower():
-            raise StopIteration  # Conversation reset point
+            raise IndexError  # Conversation reset point
         prefixes = await self.bot.get_prefix(message)
         for prefix in prefixes:
             if parts[0].startswith(prefix):
@@ -113,7 +113,7 @@ class Chat(commands.Cog):
                     author_display_name_with_id = f"{message.author.display_name} aka <@{message.author.id}>"
                 try:
                     clean_content = await self.message_to_text(message)
-                except StopIteration:
+                except IndexError:
                     break
                 if clean_content is None:
                     continue
@@ -154,7 +154,7 @@ class Chat(commands.Cog):
             ]
 
             result = await openai.ChatCompletion.acreate(
-                model="gpt-3.5-turbo", messages=prompt_messages, user=str(ctx.author.id)
+                model=MODEL, messages=prompt_messages, user=str(ctx.author.id)
             )
             result_message = result.get('choices')[0]["message"]["content"]
 
