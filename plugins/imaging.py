@@ -243,9 +243,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                 with data.session() as session:
                     for image9000, query_similarity in (
                         session.query(Image9000)
-                            .add_column(
-                                func.word_similarity(text_query, Image9000.text).label("query_similarity")
-                            )
+                        .add_column(func.word_similarity(text_query, Image9000.text).label("query_similarity"))
                         .filter(
                             Image9000.server_id == ctx.guild.id,
                             Image9000.text.op(r"%>")(text_query),
@@ -256,10 +254,10 @@ class Imaging(commands.Cog, SomsiadMixin):
                 if search_results:
                     embed = self.bot.generate_embed(
                         '🤖',
-                        f'Znaleziono {word_number_form(len(search_results), "obrazek", "obrazki", "obrazków")} pasujących do zapytania "{text_query}"',
+                        f'Znaleziono {word_number_form(len(search_results), "obrazek pasujący", "obrazki pasujące", "obrazków pasujących")} do zapytania "{text_query}"',
                     )
                     for image9000, query_similarity in search_results.items():
-                        name, value = await self._image_to_embed_field(image9000, { "textual": query_similarity})
+                        name, value = await self._image_to_embed_field(image9000, {"textual": query_similarity})
                         embed.add_field(name=name, value=value, inline=False)
                 else:
                     embed = self.bot.generate_embed(
@@ -288,7 +286,9 @@ class Imaging(commands.Cog, SomsiadMixin):
                             for other_image9000, textual_similarity in (
                                 session.query(Image9000)
                                 .add_column(
-                                    func.word_similarity(base_image9000.text, Image9000.text).label("textual_similarity")
+                                    func.word_similarity(base_image9000.text, Image9000.text).label(
+                                        "textual_similarity"
+                                    )
                                 )
                                 .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
                             ):
@@ -299,9 +299,8 @@ class Imaging(commands.Cog, SomsiadMixin):
                                 if textual_similarity >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD:
                                     similar[other_image9000]["textual"] = textual_similarity
                         else:
-                            for other_image9000 in (
-                                session.query(Image9000)
-                                .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
+                            for other_image9000 in session.query(Image9000).filter(
+                                Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
                             ):
                                 comparison_count += 1
                                 visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
