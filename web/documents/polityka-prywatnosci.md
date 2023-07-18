@@ -29,7 +29,8 @@ Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do 
     - ID wiadomości
     - ID kanału
     - ID serwera
-    - hash percepcjny obrazu
+    - hash percepcyjny obrazu
+    - tekst znajdujący się na obrazku
     - data i czas wysłania
 
     Powyższe dane pozwalają na wizualne wyszukiwanie obrazów w obrębie serwera poprzez wywołanie komendy _było_.
