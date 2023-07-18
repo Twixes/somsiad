@@ -17,4 +17,4 @@ aiochclient[aiohttp-speedups]==2.2.0
 redis==4.1.0
 openai==0.27.8
 tiktoken==0.4.0
-pytesseract==0.3.10
+aiopytesseract==0.10.0

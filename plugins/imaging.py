@@ -19,8 +19,9 @@ from sentry_sdk import capture_exception
 from sqlalchemy import func, desc
 
 from somsiad import SomsiadMixin
-from typing import BinaryIO, DefaultDict, Dict, List, Optional, Tuple, TypedDict
-import pytesseract
+from typing import BinaryIO, DefaultDict, Dict, Optional, Tuple, TypedDict
+import aiopytesseract
+from aiopytesseract.exceptions import TesseractError
 import discord
 import imagehash
 import PIL.Image
@@ -89,7 +90,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             continue
                         else:
                             try:
-                                perceptualization = self._perceptualize(image_bytes)
+                                perceptualization = await self._perceptualize(image_bytes)
                             except:
                                 capture_exception()
                                 continue
@@ -142,13 +143,14 @@ class Imaging(commands.Cog, SomsiadMixin):
         return image_bytes
 
     @staticmethod
-    def _perceptualize(image_bytes: BinaryIO) -> Perceptualization:
-        image = PIL.Image.open(image_bytes)
+    async def _perceptualize(image_bytes: BinaryIO) -> Perceptualization:
         try:
-            image_text = pytesseract.image_to_string(image, lang='eng+pol', config="--psm 11", timeout=5).strip()
-        except RuntimeError:
+            image_text = await aiopytesseract.image_to_string(image_bytes.read(), lang='eng+pol', psm=11, timeout=5)
+            image_text = image_text.strip()
+        except TesseractError as e:
             capture_exception()
             image_text = None
+        image = PIL.Image.open(image_bytes)
         image_hash = imagehash.phash(image, Image9000.HASH_SIZE)
         return {"text": image_text, "visual_hash": str(image_hash)}
 

@@ -10,19 +10,27 @@ aiocontextvars==0.2.2
     # via -r requirements.in
 aiodns==2.0.0
     # via aiochclient
+aiofiles==23.1.0
+    # via aiopytesseract
 aiohttp==3.7.4
     # via
     #   aiochclient
     #   discord-py
     #   openai
+aiopytesseract==0.10.0
+    # via -r requirements.in
 async-timeout==3.0.1
     # via aiohttp
 attrs==20.3.0
-    # via aiohttp
+    # via
+    #   aiohttp
+    #   cattrs
 beautifulsoup4==4.10.0
     # via -r requirements.in
 cachetools==4.1.1
     # via google-auth
+cattrs==23.1.2
+    # via aiopytesseract
 cchardet==2.1.7
     # via aiochclient
 certifi==2020.11.8
@@ -47,6 +55,8 @@ deprecated==1.2.13
     # via redis
 discord-py[voice]==2.3.0
     # via -r requirements.in
+exceptiongroup==1.1.2
+    # via cattrs
 fonttools==4.32.0
     # via matplotlib
 google-api-core==1.23.0
@@ -92,14 +102,12 @@ openai==0.27.8
 packaging==21.3
     # via
     #   matplotlib
-    #   pytesseract
     #   redis
 pillow==9.5.0
     # via
     #   -r requirements.in
     #   imagehash
     #   matplotlib
-    #   pytesseract
 protobuf==3.14.0
     # via
     #   google-api-core
@@ -127,8 +135,6 @@ pyparsing==2.4.7
     #   httplib2
     #   matplotlib
     #   packaging
-pytesseract==0.3.10
-    # via -r requirements.in
 python-dateutil==2.8.1
     # via matplotlib
 pytube==15.0.0
@@ -172,8 +178,10 @@ tiktoken==0.4.0
     # via -r requirements.in
 tqdm==4.64.1
     # via openai
-typing-extensions==3.10.0.0
-    # via aiohttp
+typing-extensions==4.7.1
+    # via
+    #   aiohttp
+    #   cattrs
 uritemplate==3.0.1
     # via google-api-python-client
 urllib3==1.26.5
