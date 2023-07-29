@@ -56,4 +56,4 @@ Poza tym możesz zgłosić takie życzenie za pośrednictwem [oficjalnego serwer
 
 ## Co jeśli mam dalsze pytania?
 
-Odpowiedzi na wszelkie pytania związane z przetwarzaniem danych przez Bota uzyskasz za pośrednictwem [oficjalnego serwera discordowy Somsiad Labs](http://discord.gg/xRCpDs7).
+Odpowiedzi na wszelkie pytania związane z przetwarzaniem danych przez Bota uzyskasz za pośrednictwem [oficjalnego serwera discordowego Somsiad Labs](http://discord.gg/xRCpDs7).
