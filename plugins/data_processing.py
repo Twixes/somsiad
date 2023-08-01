@@ -12,7 +12,6 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from core import Help, cooldown
-from plugins.birthday import BirthdayPublicnessLink
 from somsiad import Somsiad, SomsiadMixin
 from core import DataProcessingOptOut
 from discord.ext import commands
@@ -42,13 +41,14 @@ class DataProcessing(commands.Cog, SomsiadMixin):
     HELP = Help(COMMANDS, '😎', group=GROUP)
 
     @cooldown()
-    @commands.group(aliases=['przetwarzanie-danych'], invoke_without_command=True, case_insensitive=True)
+    @commands.group(aliases=['przetwarzanie-danych', 'gdpr', 'rodo'], invoke_without_command=True, case_insensitive=True)
     async def data_processing(self, ctx):
         await self.bot.send(ctx, embed=self.HELP.embeds)
 
     @cooldown()
     @data_processing.command(aliases=['wypisz'])
     async def data_processing_opt_out(self, ctx):
+        from plugins.birthday import BirthdayPublicnessLink
         try:
             with data.session(commit=True) as session:
                 invocation = DataProcessingOptOut(
