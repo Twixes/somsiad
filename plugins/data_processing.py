@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from core import Help, cooldown
+from plugins.birthday import BirthdayPublicnessLink
 from somsiad import Somsiad, SomsiadMixin
 from core import DataProcessingOptOut
 from discord.ext import commands
@@ -54,6 +55,7 @@ class DataProcessing(commands.Cog, SomsiadMixin):
                     user_id=ctx.author.id,
                 )
                 session.add(invocation)
+                session.query(BirthdayPublicnessLink).filter_by(born_person_user_id=ctx.author.id).delete()
                 for model in data.USER_RELATED_MODELS:
                     session.query(model).filter_by(user_id=ctx.author.id).delete()
         except IntegrityError as e:
