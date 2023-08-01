@@ -344,7 +344,6 @@ class Birthday(commands.Cog):
             embed = self.bot.generate_embed('⚠️', notice)
             await self.bot.send(ctx, embed=embed)
 
-    @did_not_opt_out_of_data_processing()
     @cooldown()
     @birthday.command(aliases=['zapomnij'])
     async def birthday_forget(self, ctx):
