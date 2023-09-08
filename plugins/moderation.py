@@ -59,7 +59,10 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
         if self.executing_user_id is not None:
             discord_executing_user = bot.get_user(self.executing_user_id)
             if discord_executing_user is None:
-                discord_executing_user = await bot.fetch_user(self.executing_user_id)
+                try:
+                    discord_executing_user = await bot.fetch_user(self.executing_user_id)
+                except discord.NotFound:
+                    discord_executing_user = None
             parts.append(
                 f'przez {discord_executing_user}'
                 if discord_executing_user is not None

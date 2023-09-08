@@ -61,7 +61,10 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
         parts.append('na usuniętym kanale' if discord_channel is None else f'na #{discord_channel}')
         discord_user = self.discord_user(bot)
         if discord_user is None:
-            discord_user = await bot.fetch_user(self.user_id)
+            try:
+                discord_user = await bot.fetch_user(self.user_id)
+            except discord.NotFound:
+                pass
         parts.append(f'przez {"przez usuniętego użytkownika" if discord_user is None else discord_user}')
         return ' '.join(parts)
 
