@@ -263,6 +263,8 @@ class Imaging(commands.Cog, SomsiadMixin):
                     )
                     for image9000, query_similarity in search_results.items():
                         name, value = await self._image_to_embed_field(image9000, {"textual": query_similarity})
+                        if len(embed) + len(name) + len(value) > 6000:
+                            break
                         embed.add_field(name=name, value=value, inline=False)
                 else:
                     embed = self.bot.generate_embed(
@@ -314,8 +316,13 @@ class Imaging(commands.Cog, SomsiadMixin):
 
                         if similar:
                             embed = self.bot.generate_embed()
-                            for image9000, similarity in similar.items():
+                            for image9000, similarity in sorted(
+                                similar.items(), key=lambda x: x[1]["visual"], reverse=True
+                            ):
                                 name, value = await self._image_to_embed_field(image9000, similarity)
+                                # Respect the embed size limit of 6000 characters, setting aside 200 for the title
+                                if len(embed) + len(name) + len(value) >= 5800:
+                                    break
                                 embed.add_field(name=name, value=value, inline=False)
                             occurences_form = word_number_form(
                                 len(embed.fields),
