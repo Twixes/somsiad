@@ -317,7 +317,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                         if similar:
                             embed = self.bot.generate_embed()
                             for image9000, similarity in sorted(
-                                similar.items(), key=lambda x: x[1]["visual"], reverse=True
+                                similar.items(), key=lambda x: x[1].get("visual", 0), reverse=True
                             ):
                                 name, value = await self._image_to_embed_field(image9000, similarity)
                                 # Respect the embed size limit of 6000 characters, setting aside 200 for the title
