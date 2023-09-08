@@ -53,7 +53,7 @@ defusedxml==0.7.1
     # via -r requirements.in
 deprecated==1.2.13
     # via redis
-discord-py[voice]==2.3.0
+discord-py[voice]==2.3.2
     # via -r requirements.in
 exceptiongroup==1.1.2
     # via cattrs
