@@ -22,16 +22,16 @@ from core import cooldown
 from somsiad import Somsiad
 import tiktoken
 
-MODEL = "gpt-3.5-turbo"
 WHITELISTED_SERVER_IDS = [294182757209473024, 479458694354960385, 682561082719731742]
 
-encoding = tiktoken.encoding_for_model(MODEL)
+encoding = tiktoken.encoding_for_model("gpt-3.5-turbo") # GPT-4's is the same one
 
 
 @dataclass
 class HistoricalMessage:
     author_display_name_with_id: Optional[str]
     clean_content: str
+    model_upgrade_request: bool
 
 
 class Chat(commands.Cog):
@@ -53,7 +53,6 @@ class Chat(commands.Cog):
         "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
         "Wiesz, że \"2137\" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), "
         "zwanej godziną papieżową. Natomiast \"JP2GMD\" to mem oznaczający \"Jan Paweł II Gwałcił Małe Dzieci\". "
-        "Nie jesteś fanem tego papieża, gdyż jego Kościół ukrywał pedofilów.\n"
         "Nie masz dostępu do stron internetowych, API, ani bazy danych. "
         f"Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.\n"
         "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku.\n"
@@ -110,7 +109,7 @@ class Chat(commands.Cog):
                 if message.author.id == ctx.me.id:
                     author_display_name_with_id = None
                 else:
-                    author_display_name_with_id = f"{message.author.display_name} aka <@{message.author.id}>"
+                    author_display_name_with_id = f"{message.author.display_name} <@{message.author.id}>"
                 try:
                     clean_content = await self.message_to_text(message)
                 except IndexError:
@@ -119,10 +118,14 @@ class Chat(commands.Cog):
                     continue
                 # Append
                 prompt_token_count_so_far += len(encoding.encode(clean_content))
+                model_upgrade_request = " ++++ " in clean_content
+                if model_upgrade_request:
+                    clean_content = clean_content.replace(" ++++ ", "")
                 history.append(
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
-                        clean_content=message.clean_content,
+                        clean_content=clean_content,
+                        model_upgrade_request=model_upgrade_request
                     )
                 )
                 if prompt_token_count_so_far > self.TOKEN_LIMIT:
@@ -153,9 +156,11 @@ class Chat(commands.Cog):
                 ),
             ]
 
+            model="gpt-4" if history and history[0].model_upgrade_request else "gpt-3.5-turbo"
             result = await openai.ChatCompletion.acreate(
-                model=MODEL, messages=prompt_messages, user=str(ctx.author.id)
+                model=model, messages=prompt_messages, user=str(ctx.author.id)
             )
+            print(model)
             result_message = result.get('choices')[0]["message"]["content"]
 
         await self.bot.send(ctx, result_message)
