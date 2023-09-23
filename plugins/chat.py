@@ -82,9 +82,9 @@ class Chat(commands.Cog):
         if self.RESET_PHRASE in message.clean_content.lower():
             raise IndexError  # Conversation reset point
         prefixes = await self.bot.get_prefix(message)
-        for prefix in prefixes:
+        for prefix in prefixes + [f"@<{message.guild.me.display_name}"]:
             if parts[0].startswith(prefix):
-                parts[0] = parts[0][len(prefix) :]
+                parts[0] = parts[0][len(prefix) :].lstrip()
                 break
         if message.embeds:
             parts.append(self.embeds_to_text(message.embeds))
@@ -118,9 +118,9 @@ class Chat(commands.Cog):
                     continue
                 # Append
                 prompt_token_count_so_far += len(encoding.encode(clean_content))
-                model_upgrade_request = " ++++ " in clean_content
+                model_upgrade_request = "++++ " in clean_content
                 if model_upgrade_request:
-                    clean_content = clean_content.replace(" ++++ ", "")
+                    clean_content = clean_content.replace("++++ ", "")
                 history.append(
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
@@ -156,12 +156,13 @@ class Chat(commands.Cog):
                 ),
             ]
 
-            model="gpt-4" if history and history[0].model_upgrade_request else "gpt-3.5-turbo"
+            model="gpt-4" if history and history[-1].model_upgrade_request else "gpt-3.5-turbo"
             result = await openai.ChatCompletion.acreate(
                 model=model, messages=prompt_messages, user=str(ctx.author.id)
             )
-            print(model)
             result_message = result.get('choices')[0]["message"]["content"]
+            if model == "gpt-4":
+                result_message = "✨ " + result_message
 
         await self.bot.send(ctx, result_message)
 
