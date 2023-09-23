@@ -65,7 +65,7 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
                 discord_user = await bot.fetch_user(self.user_id)
             except discord.NotFound:
                 pass
-        parts.append(f'przez {"przez usuniętego użytkownika" if discord_user is None else discord_user}')
+        parts.append(f'przez {"przez usuniętego użytkownika" if discord_user is None else discord_user.display_name}')
         return ' '.join(parts)
 
 
@@ -331,13 +331,13 @@ class Imaging(commands.Cog, SomsiadMixin):
                                 'wcześniejszych wystąpień',
                             )
                             embed.title = (
-                                f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {sent_by} o '
+                                f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego przez {sent_by.display_name} o '
                                 f'{base_image9000.sent_at.strftime("%-H:%M")}'
                             )
                         else:
                             embed = self.bot.generate_embed(
                                 '🤖',
-                                f'Nie wykryłem, aby obrazek wysłany przez {sent_by} '
+                                f'Nie wykryłem, aby obrazek wysłany przez {sent_by.display_name} '
                                 f'o {base_image9000.sent_at.strftime("%-H:%M")} wystąpił wcześniej na serwerze',
                             )
                         comparison_time = time.time() - init_time

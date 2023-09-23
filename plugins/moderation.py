@@ -64,7 +64,7 @@ class Event(data.Base, data.MemberRelated, data.ChannelRelated):
                 except discord.NotFound:
                     discord_executing_user = None
             parts.append(
-                f'przez {discord_executing_user}'
+                f'przez {discord_executing_user.display_name}'
                 if discord_executing_user is not None
                 else 'przez usuniętego użytkownika'
             )
