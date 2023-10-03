@@ -74,6 +74,7 @@ class Imaging(commands.Cog, SomsiadMixin):
 
     IMAGE9000_VISUAL_SIMILARITY_TRESHOLD = 0.8
     IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD = 0.6
+    IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS = 5
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -303,7 +304,10 @@ class Imaging(commands.Cog, SomsiadMixin):
                                 visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
                                 if visual_similarity >= self.IMAGE9000_VISUAL_SIMILARITY_TRESHOLD:
                                     similar[other_image9000]["visual"] = visual_similarity
-                                if textual_similarity >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD:
+                                if (
+                                    len(base_image9000.text) >= self.IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS
+                                    and textual_similarity >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD
+                                ):
                                     similar[other_image9000]["textual"] = textual_similarity
                         else:
                             for other_image9000 in session.query(Image9000).filter(
