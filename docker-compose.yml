@@ -5,7 +5,7 @@ services:
   clickhouse:
     build:
       context: .
-      dockerfile: clickhouse.Dockerfile
+      dockerfile: clickhouse/Dockerfile
     environment:
       CLICKHOUSE_DB: somsiad
       CLICKHOUSE_USER: somsiad
