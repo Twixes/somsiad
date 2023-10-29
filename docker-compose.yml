@@ -7,9 +7,9 @@ services:
       context: .
       dockerfile: clickhouse/Dockerfile
     environment:
-      CLICKHOUSE_DB: somsiad
-      CLICKHOUSE_USER: somsiad
-      CLICKHOUSE_PASSWORD: somsiad
+      - CLICKHOUSE_DB=somsiad
+      - CLICKHOUSE_USER=somsiad
+      - CLICKHOUSE_PASSWORD
     ports:
       - "8123:8123"
       - "9000:9000"
