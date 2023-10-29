@@ -10,12 +10,11 @@ services:
       CLICKHOUSE_DB: somsiad
       CLICKHOUSE_USER: somsiad
       CLICKHOUSE_PASSWORD: somsiad
+    ports:
+      - "8123:8123"
+      - "9000:9000"
     volumes:
       - clickhouse-persistence:/var/lib/clickhouse
-    labels:
-      - kompose.service.type=NodePort
-      - kompose.volume.size=15Gi
-      - kompose.volume.type=persistentVolumeClaim
   redis:
     image: redis:alpine
   bot:
