@@ -1,4 +1,2 @@
 FROM clickhouse/clickhouse-server:22.3
 RUN sed -i "s/<!-- <access_management>1<\/access_management> -->/<access_management>1<\/access_management>/g" /etc/clickhouse-server/users.xml
-RUN sed -i "s/<max_memory_usage>10000000000<\/max_memory_usage>/<max_memory_usage>4000000000<\/max_memory_usage><background_pool_size>1<\/background_pool_size>/g" /etc/clickhouse-server/users.xml
-RUN sed -i "s/<max_concurrent_queries>100<\/max_concurrent_queries>/<max_concurrent_queries>3<\/max_concurrent_queries><number_of_free_entries_in_pool_to_lower_max_size_of_merge>1<\/number_of_free_entries_in_pool_to_lower_max_size_of_merge><number_of_free_entries_in_pool_to_execute_mutation>1<\/number_of_free_entries_in_pool_to_execute_mutation><max_thread_pool_free_size>0<\/max_thread_pool_free_size>/g" /etc/clickhouse-server/config.xml
