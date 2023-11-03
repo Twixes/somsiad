@@ -18,6 +18,32 @@ from discord.ext import commands
 
 
 class BotOwnerTools(commands.Cog, SomsiadMixin):
+    @commands.command(aliases=['opuść', 'opusc'])
+    @commands.is_owner()
+    async def leave(self, ctx, *, server_name_or_id):
+        """Leaves the provided server."""
+        server = None
+        for this_server in ctx.bot.guilds:
+            if server_name_or_id in (this_server.name, str(this_server.id)):
+                server = this_server
+                break
+        if server is not None:
+            await server.leave()
+            await self.bot.send(ctx, '✅ Pomyślnie opuszczono serwer')
+        else:
+            await self.bot.send(ctx, '⚠️ Nie znaleziono podanego serwera')
+
+    @commands.command(aliases=['wylistuj'])
+    @commands.is_owner()
+    async def list_servers(self, ctx):
+        """Lists all servers the bot is in, by users descending, to 50."""
+        servers = sorted(ctx.bot.guilds, key=lambda x: x.member_count, reverse=True)[:50]
+        embed = self.bot.generate_embed('📜', 'Lista serwerów')
+        for server in servers:
+            embed.add_field(name=server.name, value=f'{server.member_count} użytkowników')
+        await self.bot.send(ctx, embed=embed)
+
+
     @commands.command(aliases=['wejdź', 'wejdz'])
     @commands.is_owner()
     async def enter(self, ctx, *, server_name_or_id):
