@@ -44,7 +44,7 @@ Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do 
 
 ## Jak przechowywane są powyższe dane?
 
-Dane przetwarzane przechowywane są w wewnętrznej bazie danych Bota, hostowanej na terenie Unii Europejskiej. Operator nie udostępnia danych żadnej stronie trzeciej.
+Dane przetwarzane przechowywane są w wewnętrznej bazie danych Bota. Operator nie udostępnia danych żadnej stronie trzeciej.
 
 ## Jak mogę zażądać usunięcia swoich danych?
 
