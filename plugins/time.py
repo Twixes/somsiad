@@ -138,6 +138,7 @@ class Time(commands.Cog, SomsiadMixin):
         (7, 37): ('✈️', 'Boeingowa (mała)', None),
         (7, 47): ('✈️', 'Boeingowa (duża)', None),
         (13, 37): ('👾', 'Leetowa', None),
+        (14, 53): ('⚔️', 'Konstantynopolowa', None),
         (16, 20): ('💨', 'Ziołowa (popołudniowa)', None),
         (21, 37): ('🌝', 'Papieżowa', None),
         (21, 38): ('🌚', 'Anty-papieżowa', None),
