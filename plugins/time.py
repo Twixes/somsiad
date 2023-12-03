@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+from random import random
 from typing import Dict, Optional, Tuple
 
 from discord.ext import commands
@@ -146,14 +147,17 @@ class Time(commands.Cog, SomsiadMixin):
     @cooldown()
     @commands.command(aliases=['ktoragodzina', 'któragodzina', 'whattime', 'wiespät'])
     async def what_time_is_it(self, ctx, hour: Optional[int] = None, minute: Optional[int] = None):
-        now = dt.datetime.now()
-        current_time = (hour or now.hour, minute or now.minute)
-        if moment := self.MOMENTS_OF_INTEREST.get(current_time):
-            embed = self.bot.generate_embed(*moment)
+        if random() < 0.01:
+             embed = self.bot.generate_embed('🕰️', 'Wpół do komina')
         else:
-            emoji_hour = (now.hour - 1) % 12 + 1
-            nearest_emoji_time = f'{emoji_hour}30' if now.minute >= 30 else str(emoji_hour)
-            embed = self.bot.generate_embed(f':clock{nearest_emoji_time}:', write_time_out(*current_time))
+            now = dt.datetime.now()
+            current_time = (hour or now.hour, minute or now.minute)
+            if moment := self.MOMENTS_OF_INTEREST.get(current_time):
+                embed = self.bot.generate_embed(*moment)
+            else:
+                emoji_hour = (now.hour - 1) % 12 + 1
+                nearest_emoji_time = f'{emoji_hour}30' if now.minute >= 30 else str(emoji_hour)
+                embed = self.bot.generate_embed(f':clock{nearest_emoji_time}:', write_time_out(*current_time))
         await self.bot.send(ctx, embed=embed)
 
 
