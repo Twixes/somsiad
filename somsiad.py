@@ -47,7 +47,7 @@ from multidict import CIMultiDict
 
 import data
 from configuration import configuration
-from utilities import GoogleClient, YouTubeClient, localize, utc_to_naive_local
+from utilities import GoogleClient, YouTubeClient, localize, text_snippet, utc_to_naive_local
 from version import __version__
 
 logger = logging.getLogger(__name__)
@@ -416,7 +416,7 @@ class Somsiad(commands.AutoShardedBot):
             content_elements.extend((user.mention for user in mention))
         elif mention:
             content_elements.append(ctx.author.mention)
-        content = ' '.join(content_elements)
+        content = text_snippet(' '.join(content_elements), 2000) # Discord message length limit
         if self.diagnostics_on and ctx.author.id == self.owner_id:
             if content is None:
                 content = ''
