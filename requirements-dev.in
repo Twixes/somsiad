@@ -1,9 +1,7 @@
 pip-tools
 pre-commit
+pyyaml==6.0
 mypy
 black
-isort
-flake8
-bandit
-discord.py-stubs==1.6.3
+ruff
 sqlalchemy-stubs==0.4

@@ -23,6 +23,7 @@ services:
     image: redis:alpine
   bot:
     build: .
+    command: ["python", "-m", "jurigged", "run.py"]
     volumes:
       - ./:/code/
     restart: on-failure
