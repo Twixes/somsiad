@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 import discord
 from discord.ext import commands
-import openai
+from openai import AsyncOpenAI
 import datetime as dt
 from configuration import configuration
 from core import cooldown
@@ -24,7 +24,8 @@ import tiktoken
 
 WHITELISTED_SERVER_IDS = [294182757209473024, 479458694354960385, 682561082719731742]
 
-encoding = tiktoken.encoding_for_model("gpt-3.5-turbo") # GPT-4's is the same one
+encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")  # GPT-4's is the same one
+aclient = AsyncOpenAI()
 
 
 @dataclass
@@ -125,7 +126,7 @@ class Chat(commands.Cog):
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
                         clean_content=clean_content,
-                        model_upgrade_request=model_upgrade_request
+                        model_upgrade_request=model_upgrade_request,
                     )
                 )
                 if prompt_token_count_so_far > self.TOKEN_LIMIT:
@@ -156,11 +157,11 @@ class Chat(commands.Cog):
                 ),
             ]
 
-            model="gpt-4" if history and history[-1].model_upgrade_request else "gpt-3.5-turbo"
-            result = await openai.ChatCompletion.acreate(
+            model = "gpt-4" if history and history[-1].model_upgrade_request else "gpt-3.5-turbo"
+            result = await aclient.chat.completions.create(
                 model=model, messages=prompt_messages, user=str(ctx.author.id)
             )
-            result_message = result.get('choices')[0]["message"]["content"]
+            result_message = result.choices[0].message.content.lstrip('✨').strip()
             if model == "gpt-4":
                 result_message = "✨ " + result_message
 
