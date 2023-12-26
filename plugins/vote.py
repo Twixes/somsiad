@@ -222,7 +222,7 @@ class Vote(commands.Cog):
                 numeric_scale_max = max(digits)
         description = 'Zagłosuj w tej sprawie przy użyciu reakcji.'
         if numeric_scale_max:
-            description += ' Każdy może zaznaczyć tylko jedną odpowiedź.'
+            description += ' Można zaznaczyć tylko jedną opcję.'
         if conclude_at is not None:
             description += (
                 f'\n**Wyniki zostaną ogłoszone {human_datetime(conclude_at)}.**\n*Ogłoszenie wyników zostanie '
