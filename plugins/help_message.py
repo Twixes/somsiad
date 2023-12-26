@@ -561,7 +561,7 @@ class Help(commands.Cog):
             ('głosowanie', 'glosowanie', 'ankieta'),
             ('?liczba minut/data i godzina', 'sprawa'),
             'Gdy <sprawa> jest w formacie "A. Opcja pierwsza, B. Opcja druga, ...", rozpoczyna głosowanie nad najpopularniejszą z opcji.\n'
-            'Gdy <sprawa> jest w formacie "1. Opcja pierwsza, 2. Opcja druga, ..., n. Opcja n-ta", rozpoczyna głosowanie w skali nad uśrednioną wartość odpowiedzi w skali od 1 do n.\n'
+            'Gdy <sprawa> jest w formacie "1. Opcja pierwsza, 2. Opcja druga, ..., n. Opcja n-ta", rozpoczyna głosowanie nad uśrednioną wartość odpowiedzi w skali od 1 do n .\n'
             'Jeśli <sprawa> nie jest w żadnym z powyższych formatów, rozpoczyna głosowanie "za/przeciw".\n'
             'Ogłasza wynik po upływie podanego czasu, jeśli go podano.',
             '🗳',

@@ -102,7 +102,7 @@ class Remind(commands.Cog):
             raise commands.BadArgument
         description = (
             f'**Przypomnę ci tutaj "{content}" {human_datetime(execute_at)}.**\n*Przypomnienie zostanie anulowane '
-            'jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
+            'jeśli usuniesz tę wiadomość (możesz zrobić to komendą `nie`).*'
         )
         embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description)
         confirmation_message = await self.bot.send(ctx, embed=embed)

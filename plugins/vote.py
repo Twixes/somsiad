@@ -221,10 +221,12 @@ class Vote(commands.Cog):
             if len(digits) >= 2:
                 numeric_scale_max = max(digits)
         description = 'Zagłosuj w tej sprawie przy użyciu reakcji.'
+        if numeric_scale_max:
+            description += ' Każdy może zaznaczyć tylko jedną odpowiedź.'
         if conclude_at is not None:
             description += (
                 f'\n**Wyniki zostaną ogłoszone {human_datetime(conclude_at)}.**\n*Ogłoszenie wyników zostanie '
-                'anulowane jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
+                'anulowane jeśli usuniesz tę wiadomość (możesz zrobić to komendą `nie`).*'
             )
         embed = self.bot.generate_embed('🗳', matter, description)
         urn_message = await self.bot.send(ctx, embed=embed)

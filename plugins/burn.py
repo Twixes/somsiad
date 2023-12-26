@@ -103,7 +103,7 @@ class Burn(commands.Cog):
         """Removes the message after a specified mount time."""
         confirmation_description = (
             md_link(f'**Zostanie ona usunięta {human_datetime(execute_at)}.**', ctx.message.jump_url)
-            + '\n*Spalenie zostanie anulowane jeśli usuniesz tę wiadomość. Możesz to zrobić przy użyciu komendy `nie`.*'
+            + '\n*Spalenie zostanie anulowane jeśli usuniesz tę wiadomość (możesz zrobić to komendą `nie`).*'
         )
         confirmation_embed = self.bot.generate_embed('🔥', f'Spalę twoją wiadomość', confirmation_description)
         confirmation_message = await self.bot.send(ctx, embed=confirmation_embed)
