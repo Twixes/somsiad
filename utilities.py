@@ -11,7 +11,6 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import asyncio
 import calendar
 import datetime as dt
 import locale
@@ -23,15 +22,23 @@ from typing import Optional, Sequence, Tuple, Union
 
 import numpy as np
 from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 
 
 @dataclass
 class DatetimeFormat:
     format: str
-    imply_year: bool = False
-    imply_month: bool = False
-    imply_day: bool = False
+
+    @property
+    def imply_year(self) -> bool:
+        return '%Y' not in self.format
+
+    @property
+    def imply_month(self) -> bool:
+        return '%m' not in self.format
+
+    @property
+    def imply_day(self) -> bool:
+        return '%d' not in self.format
 
 
 DHMS_REGEX = re.compile(
@@ -43,9 +50,10 @@ DHMS_REGEX = re.compile(
 DATETIME_FORMATS = (
     DatetimeFormat('%d.%m.%YT%H.%M'),
     DatetimeFormat('%d.%m.%yT%H.%M'),
-    DatetimeFormat('%d.%mT%H.%M', True),
-    DatetimeFormat('%dT%H.%M', True, True),
-    DatetimeFormat('%H.%M', True, True, True),
+    DatetimeFormat('%d.%mT%H.%M'),
+    DatetimeFormat('%dT%H.%M'),
+    DatetimeFormat('%Y.%m.%dT%H.%M'),
+    DatetimeFormat('%H.%M'),
 )
 URL_REGEX = re.compile(r'(https?:\/\/\S+\.\S+)')
 URL_REGEX_PROTOCOL_SEPARATE = re.compile(r'(?:(\w+):\/\/)?(\S+\.\S+)')
@@ -342,15 +350,16 @@ def interpret_str_as_datetime(
     string: str, roll_over: bool = True, now_override: dt.datetime = None, years_in_future_limit: Optional[int] = 5
 ) -> dt.datetime:
     """Interpret the provided string as a datetime."""
-    now = now_override or dt.datetime.now()
     string = string.replace(',', '.')
+    if string.endswith('.'):
+        raise ValueError  # Ignore strings ending with a dot or comma to prevent ordinals being misinterpreted
     timedelta_arguments = {}
-    # string as numbers of minute strategy
+    # Strategy 1: string as number of minutes
     try:
         timedelta_arguments['minutes'] = float(string)
     except ValueError:
         pass
-    # string as custom 'dhms' format strategy
+    # Strategy 2: string as custom 'dhms' format
     match = DHMS_REGEX.match(string)
     if match is not None:
         for group, value in match.groupdict().items():
@@ -361,12 +370,13 @@ def interpret_str_as_datetime(
             except ValueError:
                 timedelta_arguments.clear()
                 break
+    now = now_override or dt.datetime.now()
     if any(timedelta_arguments.values()):
         datetime = now + dt.timedelta(**timedelta_arguments)
         if years_in_future_limit is not None and datetime > now.replace(year=now.year + years_in_future_limit):
             raise ValueError
     else:
-        # string as datetime strategy
+        # Strategy 3: string as datetime
         string = string.replace('-', '.').replace('/', '.').replace(':', '.').strip('T')
         for datetime_format in DATETIME_FORMATS:
             try:
