@@ -15,7 +15,7 @@ from somsiad import Somsiad, SomsiadMixin
 from discord.ext import commands
 
 from core import cooldown
-from utilities import HttpError
+from googleapiclient.errors import HttpError
 
 
 class YouTube(commands.Cog, SomsiadMixin):

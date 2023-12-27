@@ -16,7 +16,6 @@ from googleapiclient.errors import HttpError
 
 from core import cooldown
 from somsiad import Somsiad, SomsiadMixin
-from utilities import HttpError
 
 
 class Google(commands.Cog, SomsiadMixin):
