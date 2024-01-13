@@ -65,7 +65,7 @@ class OptedOutOfDataProcessing(commands.CommandError):
 
 
 class Somsiad(commands.AutoShardedBot):
-    COLOR = 0x7289DA
+    COLOR = 0x5865F2
     USER_AGENT = f'SomsiadBot/{__version__}'
     HEADERS = CIMultiDict([('User-Agent', USER_AGENT)])
     WEBSITE_URL = 'https://somsiad.net'
