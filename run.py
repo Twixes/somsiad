@@ -31,7 +31,7 @@ from version import __version__
 
 logger = logging.getLogger(__name__)
 
-MAX_MEMORY = 2e9 # Limit to 2 GB to keep costs down
+MAX_MEMORY = 2_000_000_000 # Limit to 2 GB to keep costs down
 
 if __name__ == '__main__':
     soft, hard = resource.getrlimit(resource.RLIMIT_AS)
