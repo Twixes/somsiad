@@ -3,6 +3,9 @@
 import asyncio
 import logging
 import os
+from re import M
+import resource
+from tkinter.tix import MAX
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +31,11 @@ from version import __version__
 
 logger = logging.getLogger(__name__)
 
+MAX_MEMORY = 2e9 # Limit to 2 GB to keep costs down
+
 if __name__ == '__main__':
+    soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+    resource.setrlimit(resource.RLIMIT_AS, (MAX_MEMORY, hard))
     setup_logging()
     signal.signal(signal.SIGTERM, somsiad.signal_handler)
     signal.signal(signal.SIGINT, somsiad.signal_handler)
