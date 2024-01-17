@@ -3,9 +3,7 @@
 import asyncio
 import logging
 import os
-from re import M
 import resource
-from tkinter.tix import MAX
 
 logger = logging.getLogger(__name__)
 
