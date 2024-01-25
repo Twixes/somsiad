@@ -125,7 +125,7 @@ numpy==1.26.2
     #   matplotlib
     #   pywavelets
     #   scipy
-openai==1.6.1
+openai==1.10.0
     # via -r requirements.in
 ovld==0.3.2
     # via jurigged

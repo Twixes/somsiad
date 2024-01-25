@@ -32,7 +32,6 @@ aclient = AsyncOpenAI()
 class HistoricalMessage:
     author_display_name_with_id: Optional[str]
     clean_content: str
-    model_upgrade_request: bool
 
 
 class Chat(commands.Cog):
@@ -119,14 +118,10 @@ class Chat(commands.Cog):
                     continue
                 # Append
                 prompt_token_count_so_far += len(encoding.encode(clean_content))
-                model_upgrade_request = "++++ " in clean_content
-                if model_upgrade_request:
-                    clean_content = clean_content.replace("++++ ", "")
                 history.append(
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
                         clean_content=clean_content,
-                        model_upgrade_request=model_upgrade_request,
                     )
                 )
                 if prompt_token_count_so_far > self.TOKEN_LIMIT:
@@ -157,13 +152,10 @@ class Chat(commands.Cog):
                 ),
             ]
 
-            model = "gpt-4" if history and history[-1].model_upgrade_request else "gpt-3.5-turbo"
             result = await aclient.chat.completions.create(
-                model=model, messages=prompt_messages, user=str(ctx.author.id)
+                model="gpt-4-turbo-preview", messages=prompt_messages, user=str(ctx.author.id)
             )
-            result_message = result.choices[0].message.content.lstrip('✨').strip()
-            if model == "gpt-4":
-                result_message = "✨ " + result_message
+            result_message = result.choices[0].message.content.strip()
 
         await self.bot.send(ctx, result_message)
 
