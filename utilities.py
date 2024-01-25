@@ -23,6 +23,8 @@ from typing import Optional, Sequence, Tuple, Union
 import numpy as np
 from googleapiclient.discovery import build
 
+AI_ALLOWED_SERVER_IDS = [294182757209473024, 479458694354960385, 682561082719731742]
+
 
 @dataclass
 class DatetimeFormat:

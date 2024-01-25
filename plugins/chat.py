@@ -21,8 +21,8 @@ from configuration import configuration
 from core import cooldown
 from somsiad import Somsiad
 import tiktoken
+from utilities import AI_ALLOWED_SERVER_IDS
 
-WHITELISTED_SERVER_IDS = [294182757209473024, 479458694354960385, 682561082719731742]
 
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")  # GPT-4's is the same one
 aclient = AsyncOpenAI()
@@ -94,7 +94,7 @@ class Chat(commands.Cog):
     @commands.command(aliases=['hej'])
     @commands.guild_only()
     async def hey(self, ctx: commands.Context):
-        if ctx.guild.id not in WHITELISTED_SERVER_IDS:
+        if ctx.guild.id not in AI_ALLOWED_SERVER_IDS:
             return
         async with ctx.typing():
             history: List[HistoricalMessage] = []
@@ -165,7 +165,7 @@ class Chat(commands.Cog):
         if (
             ctx.command is None
             and ctx.guild is not None
-            and ctx.guild.id in WHITELISTED_SERVER_IDS
+            and ctx.guild.id in AI_ALLOWED_SERVER_IDS
             and not ctx.author.bot
             and ctx.me.id in message.raw_mentions
             and not ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER)
