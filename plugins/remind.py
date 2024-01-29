@@ -68,12 +68,12 @@ class Remind(commands.Cog):
             reminder_description = md_link(
                 f'Przypomnienie z {human_datetime(requested_at)}.', confirmation_message.jump_url
             )
-            reminder_embed = self.bot.generate_embed('🍅', content, reminder_description)
+            reminder_embed = self.bot.generate_embed('🍅', content, reminder_description, timestamp=execute_at)
             reminder_message = await channel.send(f'<@{user_id}>', embed=reminder_embed)
             confirmation_description = md_link(
                 f'Przypomniano ci tutaj "{content}" {human_datetime()}.', reminder_message.jump_url
             )
-            confirmation_embed = self.bot.generate_embed('🍅', 'Zrealizowano przypomnienie', confirmation_description)
+            confirmation_embed = self.bot.generate_embed('🍅', 'Zrealizowano przypomnienie', confirmation_description, timestamp=execute_at)
             await confirmation_message.edit(embed=confirmation_embed)
         with data.session(commit=True) as session:
             reminder = session.query(Reminder).get(confirmation_message_id)
@@ -104,7 +104,7 @@ class Remind(commands.Cog):
             f'**Przypomnę ci tutaj "{content}" {human_datetime(execute_at)}.**\n*Przypomnienie zostanie anulowane '
             'jeśli usuniesz tę wiadomość (możesz zrobić to komendą `nie`).*'
         )
-        embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description)
+        embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description, timestamp=execute_at)
         confirmation_message = await self.bot.send(ctx, embed=embed)
         if confirmation_message is None:
             return

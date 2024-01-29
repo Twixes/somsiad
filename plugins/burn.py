@@ -71,12 +71,12 @@ class Burn(commands.Cog):
                 burning_description = md_link(
                     f'Usunięto twoją wiadomość wysłaną {human_datetime(requested_at)}.', confirmation_message.jump_url
                 )
-                burning_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', burning_description)
+                burning_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', burning_description, timestamp=execute_at)
                 burning_message = await channel.send(f'<@{user_id}>', embed=burning_embed)
                 confirmation_description = md_link(
                     f'Usunięto twoją wiadomość {human_datetime()}.', burning_message.jump_url
                 )
-                confirmation_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', confirmation_description)
+                confirmation_embed = self.bot.generate_embed('✅', 'Spalono wiadomość', confirmation_description, timestamp=execute_at)
                 await confirmation_message.edit(embed=confirmation_embed)
         with data.session(commit=True) as session:
             reminder = session.query(Burning).get(confirmation_message_id)
@@ -105,7 +105,7 @@ class Burn(commands.Cog):
             md_link(f'**Zostanie ona usunięta {human_datetime(execute_at)}.**', ctx.message.jump_url)
             + '\n*Spalenie zostanie anulowane jeśli usuniesz tę wiadomość (możesz zrobić to komendą `nie`).*'
         )
-        confirmation_embed = self.bot.generate_embed('🔥', f'Spalę twoją wiadomość', confirmation_description)
+        confirmation_embed = self.bot.generate_embed('🔥', 'Spalę twoją wiadomość', confirmation_description, timestamp=execute_at)
         confirmation_message = await self.bot.send(ctx, embed=confirmation_embed)
         if confirmation_message is None:
             return

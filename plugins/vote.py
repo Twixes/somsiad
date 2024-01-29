@@ -22,6 +22,7 @@ from discord.ext import commands
 
 import data
 from core import cooldown
+from somsiad import Somsiad
 from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to_naive_local, word_number_form
 
 
@@ -92,7 +93,7 @@ class Vote(commands.Cog):
     ballots_set_off: Set[int]
     ballot_reaction_cleanup_tasks: DefaultDict[int, List[asyncio.Task]]
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Somsiad):
         self.bot = bot
         self.ballots_set_off = set()
         self.ballot_reaction_cleanup_tasks = defaultdict(list)
@@ -228,7 +229,7 @@ class Vote(commands.Cog):
                 f'\n**Wyniki zostaną ogłoszone {human_datetime(conclude_at)}.**\n*Ogłoszenie wyników zostanie '
                 'anulowane jeśli usuniesz tę wiadomość (możesz zrobić to komendą `nie`).*'
             )
-        embed = self.bot.generate_embed('🗳', matter, description)
+        embed = self.bot.generate_embed('🗳', matter, description, timestamp=conclude_at)
         urn_message = await self.bot.send(ctx, embed=embed)
         if urn_message is None:
             return
@@ -304,5 +305,5 @@ class Vote(commands.Cog):
                 asyncio.create_task(other_reaction.remove(user))
             )
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Somsiad):
     await bot.add_cog(Vote(bot))
