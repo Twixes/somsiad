@@ -21,7 +21,7 @@ from configuration import configuration
 from core import cooldown
 from somsiad import Somsiad
 import tiktoken
-from utilities import AI_ALLOWED_SERVER_IDS
+from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time
 
 
 encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")  # GPT-4's is the same one
@@ -38,7 +38,7 @@ class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
     MESSAGE_HISTORY_LIMIT = 30
     TOKEN_LIMIT = 1024
-    COMMENT_MARKER = '//'
+    COMMENT_MARKER = "//"
     INITIAL_PROMPT = (
         "Jesteś przydatnym polskim botem na Discordzie o imieniu Somsiad.\n"
         "Odpowiadasz tak zwięźle jak to możliwe, używasz języka potocznego. "
@@ -47,12 +47,12 @@ class Chat(commands.Cog):
         "Oprócz tego serwera, jesteś też na {server_count} innych.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
         "Zawsze odnoś się do innych użytkowników przy użyciu wzmianki `<@ID użytkownika>`. Nie zakładaj płci użytkownika.\n"
-        f"Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj \"{RESET_PHRASE}\" w odpowiedzi.\n"
+        f'Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj "{RESET_PHRASE}" w odpowiedzi.\n'
         "Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest pod komendą `{command_prefix}pomocy`.\n"
         "Twój status można sprawdzić na stronie https://somsiad.net. Znajdzie się tam również twoją politykę prywatności i pomocne linki. "
         "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
-        "Wiesz, że \"2137\" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), "
-        "zwanej godziną papieżową. Natomiast \"JP2GMD\" to mem oznaczający \"Jan Paweł II Gwałcił Małe Dzieci\". "
+        'Wiesz, że "2137" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), '
+        'zwanej godziną papieżową. Natomiast "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". '
         "Nie masz dostępu do stron internetowych, API, ani bazy danych. "
         f"Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.\n"
         "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku.\n"
@@ -70,7 +70,9 @@ class Chat(commands.Cog):
             if embed.description:
                 parts.append(embed.description)
             if embed.fields:
-                parts.append("\n".join(f"{field.name}: {field.value}" for field in embed.fields))
+                parts.append(
+                    "\n".join(f"{field.name}: {field.value}" for field in embed.fields)
+                )
             if embed.footer.text:
                 parts.append(embed.footer.text)
         return "\n".join(parts)
@@ -90,8 +92,8 @@ class Chat(commands.Cog):
             parts.append(self.embeds_to_text(message.embeds))
         return "\n".join(parts)
 
-    @cooldown(rate=50, per=3600 * 24 * 7)
-    @commands.command(aliases=['hej'])
+    @cooldown(rate=15, per=3600 * 10, type=commands.BucketType.channel)
+    @commands.command(aliases=["hej"])
     @commands.guild_only()
     async def hey(self, ctx: commands.Context):
         if ctx.guild.id not in AI_ALLOWED_SERVER_IDS:
@@ -109,7 +111,9 @@ class Chat(commands.Cog):
                 if message.author.id == ctx.me.id:
                     author_display_name_with_id = None
                 else:
-                    author_display_name_with_id = f"{message.author.display_name} <@{message.author.id}>"
+                    author_display_name_with_id = (
+                        f"{message.author.display_name} <@{message.author.id}>"
+                    )
                 try:
                     clean_content = await self.message_to_text(message)
                 except IndexError:
@@ -138,12 +142,14 @@ class Chat(commands.Cog):
                         server_count=self.bot.server_count,
                         date=now.strftime("%A, %d.%m.%Y"),
                         time=now.strftime("%H:%M"),
-                        command_prefix=configuration['command_prefix'],
+                        command_prefix=configuration["command_prefix"],
                     ),
                 },
                 *(
                     {
-                        "role": "user" if m.author_display_name_with_id else "assistant",
+                        "role": "user"
+                        if m.author_display_name_with_id
+                        else "assistant",
                         "content": f"{m.author_display_name_with_id}: {m.clean_content}"
                         if m.author_display_name_with_id
                         else m.clean_content,
@@ -153,11 +159,22 @@ class Chat(commands.Cog):
             ]
 
             result = await aclient.chat.completions.create(
-                model="gpt-4-turbo-preview", messages=prompt_messages, user=str(ctx.author.id)
+                model="gpt-4-turbo-preview",
+                messages=prompt_messages,
+                user=str(ctx.author.id),
             )
             result_message = result.choices[0].message.content.strip()
 
         await self.bot.send(ctx, result_message)
+
+    @hey.error
+    async def hey_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            await ctx.send(
+                f"Zmęczyłem się na tym kanale… wróćmy do rozmowy za {human_amount_of_time(error.retry_after)}. 😴"
+            )
+        else:
+            raise error
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
