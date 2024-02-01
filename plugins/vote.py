@@ -27,10 +27,8 @@ from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to
 
 
 class Ballot(data.Base, data.ChannelRelated, data.UserRelated):
-    MAX_MATTER_LENGTH = 300
-
     urn_message_id = data.Column(data.BigInteger, primary_key=True)
-    matter = data.Column(data.String(MAX_MATTER_LENGTH), nullable=False)
+    matter = data.Column(data.String(300), nullable=False)
     letters = data.Column(data.String(26))  # This has to be null if numeric_scale is non-null
     commenced_at = data.Column(data.DateTime, nullable=False)
     conclude_at = data.Column(data.DateTime, nullable=False)
@@ -89,6 +87,7 @@ class Vote(commands.Cog):
         '8️⃣': 8,
         '9️⃣': 9,
     }
+    MAX_MATTER_LENGTH = 256 # Discord's embed title limit
 
     ballots_set_off: Set[int]
     ballot_reaction_cleanup_tasks: DefaultDict[int, List[asyncio.Task]]
@@ -212,7 +211,7 @@ class Vote(commands.Cog):
         *,
         matter: commands.clean_content(fix_channel_mentions=True),
     ):
-        if len(matter) > Ballot.MAX_MATTER_LENGTH:
+        if len(matter) > self.MAX_MATTER_LENGTH:
             raise commands.BadArgument
         letters = ''.join((match[0] for match in self.LETTER_REGEX.findall(matter)))
         numeric_scale_max = None
@@ -271,7 +270,7 @@ class Vote(commands.Cog):
                 '🔢 By głosować w skali od 1 do n, użyj formatu "1. Opcja pierwsza, 2. Opcja druga, ..., n. Opcja n-ta". Rezultatem będzie uśredniona wartość odpowiedzi.'
             )
         elif isinstance(error, commands.BadArgument):
-            character_form = word_number_form(Ballot.MAX_MATTER_LENGTH, 'znak', 'znaki', 'znaków')
+            character_form = word_number_form(self.MAX_MATTER_LENGTH, 'znak', 'znaki', 'znaków')
             notice = f'Tekst sprawy nie może być dłuższy niż {character_form}'
         if notice is not None:
             embed = self.bot.generate_embed('⚠️', notice, description)
