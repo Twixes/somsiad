@@ -322,7 +322,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             embed = self.bot.generate_embed()
                             for image9000, similarity in sorted(
                                 similar.items(), key=lambda x: sum(x[1].values()), reverse=True
-                            ):
+                            )[:25]: # Discord embeds have a limit of 25 fields
                                 name, value = await self._image_to_embed_field(image9000, similarity)
                                 # Respect the embed size limit of 6000 characters, setting aside 200 for the title
                                 if len(embed) + len(name) + len(value) >= 5800:
