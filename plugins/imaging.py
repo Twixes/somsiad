@@ -336,7 +336,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             )
                             embed.title = (
                                 f'🤖 Wykryłem {occurences_form} na serwerze obrazka wysłanego '
-                                + f"przez {sent_by.display_name} " if sent_by is not None else ""
+                                + (f"przez {sent_by.display_name} " if sent_by is not None else "")
                                 + f'o {base_image9000.sent_at.strftime("%-H:%M")}'
                             )
                         else:
