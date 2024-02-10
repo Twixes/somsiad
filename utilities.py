@@ -14,6 +14,7 @@
 import calendar
 import datetime as dt
 import locale
+from math import ceil
 import os
 import re
 from dataclasses import dataclass
@@ -306,9 +307,9 @@ def human_datetime(
 def human_amount_of_time(time: Union[dt.timedelta, int, float]) -> str:
     """Return the provided amoutt of in Polish."""
     if isinstance(time, dt.timedelta):
-        total_seconds = int(round(time.total_seconds()))
+        total_seconds = int(ceil(time.total_seconds()))
     elif isinstance(time, (int, float)):
-        total_seconds = int(round(time))
+        total_seconds = int(ceil(time))
     else:
         raise TypeError('time must be datetime.timedelta or numbers.Number')
 

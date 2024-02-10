@@ -187,7 +187,8 @@ class Chat(commands.Cog):
             and ctx.me.id in message.raw_mentions
             and not ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER)
         ):
-            await ctx.invoke(self.hey)
+            ctx.command = self.hey
+            await self.bot.invoke(ctx)
 
 
 async def setup(bot: Somsiad):
