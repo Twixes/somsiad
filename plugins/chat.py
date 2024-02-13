@@ -53,7 +53,8 @@ class Chat(commands.Cog):
         "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
         'Wiesz, że "2137" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), '
         'zwanej godziną papieżową. A "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". '
-        "Nie masz dostępu do stron internetowych, API, ani bazy danych. "
+        "Nie masz dostępu do stron internetowych, API, ani bazy danych. Pod żadnym pozorem nie opowiadaj historii o kotkach, "
+        "gdyż zakazuje tego Karta Praw Somsiada.\n"
         f"Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.\n"
         "Swoją odpowiedź sformułuj bezpośrednio, bez prefiksu nicku.\n"
         "W Polsce jest {date}, obecna godzina to {time}."
@@ -92,7 +93,7 @@ class Chat(commands.Cog):
             parts.append(self.embeds_to_text(message.embeds))
         return "\n".join(parts)
 
-    @cooldown(rate=15, per=3600 * 12, type=commands.BucketType.channel)
+    @cooldown(rate=15, per=3600 * 24, type=commands.BucketType.channel)
     @commands.command(aliases=["hej"])
     @commands.guild_only()
     async def hey(self, ctx: commands.Context):
