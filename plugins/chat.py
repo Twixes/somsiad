@@ -45,7 +45,7 @@ class Chat(commands.Cog):
         "Na końcu wiadomości umieszczasz emoji reprezentujące pasującą emocję, np. 😊, 😮 albo 😡. Potrafisz odpyskować.\n"
         "Znajdujesz się na kanale #{channel_name} serwera {server_name}. Oprócz tego serwera, jesteś też na {server_count} innych.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
-        "Zawsze odnoś się do innych użytkowników przy użyciu wzmianki: <@ID> (nawiasy ostrokątne przed @ i po ID są obowiązkowe). "
+        "Zawsze odnoś się do innych użytkowników przy użyciu wzmianki w formacie <@ID>. "
         "Nie zakładaj płci użytkownika, może być żeńska bądź męska.\n"
         f'Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj "{RESET_PHRASE}" w odpowiedzi.\n'
         "Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest pod komendą `{command_prefix}pomocy`.\n"
@@ -85,7 +85,7 @@ class Chat(commands.Cog):
         if self.RESET_PHRASE in message.clean_content.lower():
             raise IndexError  # Conversation reset point
         prefixes = await self.bot.get_prefix(message)
-        for prefix in prefixes + [f"@<{message.guild.me.display_name}"]:
+        for prefix in prefixes + [f"<@{message.guild.me.display_name}"]:
             if parts[0].startswith(prefix):
                 parts[0] = parts[0][len(prefix) :].lstrip()
                 break
