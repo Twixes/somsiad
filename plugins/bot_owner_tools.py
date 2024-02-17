@@ -37,7 +37,7 @@ class BotOwnerTools(commands.Cog, SomsiadMixin):
     @commands.is_owner()
     async def list_servers(self, ctx):
         """Lists all servers the bot is in, by users descending, to 50."""
-        servers = sorted(ctx.bot.guilds, key=lambda x: x.member_count, reverse=True)[:50]
+        servers = sorted(ctx.bot.guilds, key=lambda x: x.member_count, reverse=True)[:25]
         embed = self.bot.generate_embed('📜', 'Lista serwerów')
         for server in servers:
             embed.add_field(name=server.name, value=f'{server.member_count} użytkowników')
