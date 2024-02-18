@@ -27,4 +27,5 @@ services:
       - CLICKHOUSE_URL
       - CLICKHOUSE_USER
       - CLICKHOUSE_PASSWORD
+      - CLICKHOUSE_DATABASE
       - REDIS_URL

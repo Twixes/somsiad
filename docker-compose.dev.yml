@@ -56,6 +56,7 @@ services:
       - CLICKHOUSE_URL=http://clickhouse:8123
       - CLICKHOUSE_USER=somsiad
       - CLICKHOUSE_PASSWORD=somsiad
+      - CLICKHOUSE_DATABASE
       - REDIS_URL=redis://redis:6379/
   web:
     build: web
