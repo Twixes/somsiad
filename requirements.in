@@ -1,7 +1,7 @@
 Pillow==9.5.0
 discord.py[voice]==2.3.2
 psycopg2==2.9.3
-SQLAlchemy==1.4.29
+SQLAlchemy==1.4.51
 psutil==5.9.0
 defusedxml==0.7.1
 google-api-python-client==2.33.0
