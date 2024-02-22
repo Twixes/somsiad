@@ -440,7 +440,7 @@ class Birthday(commands.Cog):
     @cooldown()
     @birthday.command(aliases=['lista', 'serwer', 'wszyscy', 'wszystkie', 'kalendarz'])
     @commands.guild_only()
-    async def birthday_list(self, ctx):
+    async def birthday_list(self, ctx: commands.Context):
         with data.session() as session:
             born_persons: List[BornPerson] = (
                 session.query(BornPerson).join(BornPerson.birthday_public_servers).filter_by(id=ctx.guild.id).all()
@@ -451,20 +451,24 @@ class Birthday(commands.Cog):
                     color=self.bot.COLOR,
                 )
             else:
-                embed = discord.Embed(
+                embed = [discord.Embed(
                     title=f'🗓 {word_number_form(len(born_persons), "użytkownik upublicznił", "użytkownicy upublicznili", "użytkowników upubliczniło")} na tym serwerze swoją datę urodzin',
                     color=self.bot.COLOR,
-                )
+                )]
                 born_persons_filtered_sorted = sorted(
                     (person for person in born_persons if person.birthday),
                     key=lambda person: person.birthday.strftime('%m-%d-%Y'),
                 )
                 for born_person in born_persons_filtered_sorted:
-                    user = born_person.discord_user(bot=ctx.bot)
+                    user = ctx.guild.get_member(born_person.user_id)
+                    if user is None:
+                        continue
                     date_presentation = born_person.birthday.strftime(
                         '%-d %B' if born_person.birthday.year == BornPerson.EDGE_YEAR else '%-d %B %Y'
                     )
-                    embed.add_field(name=str(user), value=date_presentation, inline=True)
+                    embed[-1].add_field(name=str(user), value=date_presentation, inline=True)
+                    if len(embed[-1].fields) == 25: # Discord limit
+                        embed.append(discord.Embed(color=self.bot.COLOR))
         return await self.bot.send(ctx, embed=embed)
 
     @cooldown()
