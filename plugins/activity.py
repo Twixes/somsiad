@@ -91,12 +91,14 @@ class MetadataCache(SomsiadMixin):
     async def insert(self, metadata_batch: Sequence[MessageMetadata]):
         try:
             await self.bot.ch_client.execute(
-                "INSERT INTO message_metadata_cache VALUES", *map(dataclasses.astuple, metadata_batch)
+                "INSERT INTO message_metadata_cache VALUES",
+                *map(dataclasses.astuple, metadata_batch),
             )
-        except aiohttp.ClientOSError:
+        except (aiohttp.ClientOSError, aiohttp.ServerDisconnectedError):
             # Retry once
             await self.bot.ch_client.execute(
-                "INSERT INTO message_metadata_cache VALUES", *map(dataclasses.astuple, metadata_batch)
+                "INSERT INTO message_metadata_cache VALUES",
+                *map(dataclasses.astuple, metadata_batch),
             )
 
     async def fetch_edge_message(
