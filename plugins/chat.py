@@ -165,7 +165,7 @@ class Chat(commands.Cog):
             ]
 
             result = await aclient.chat.completions.create(
-                model="gpt-4-turbo-preview",
+                model="gpt-4o",
                 messages=prompt_messages,
                 user=str(ctx.author.id),
             )
