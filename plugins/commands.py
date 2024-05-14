@@ -15,7 +15,6 @@ from core import Invocation, is_user_opted_out_of_data_processing
 import datetime as dt
 from somsiad import Somsiad, SomsiadMixin
 
-import psycopg2
 from discord.ext import commands
 
 import data

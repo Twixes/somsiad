@@ -33,7 +33,7 @@ class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
     MAX_ERROR_LENGTH = 300
 
     message_id = data.Column(data.BigInteger, primary_key=True)
-    prefix = data.Column(data.String(max(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=False)
+    prefix = data.Column(data.String(max(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=True)
     full_command = data.Column(data.String(100), nullable=False, index=True)
     root_command = data.Column(data.String(100), nullable=False, index=True)
     created_at = data.Column(data.DateTime, nullable=False)
