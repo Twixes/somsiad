@@ -46,7 +46,8 @@ class Commands(commands.Cog, SomsiadMixin):
             if is_user_opted_out_of_data_processing(session, ctx.author.id):
                 return
             invocation = session.query(Invocation).get(ctx.message.id)
-            invocation.exited_at = dt.datetime.now()
+            if invocation is not None:
+                invocation.exited_at = dt.datetime.now()
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
