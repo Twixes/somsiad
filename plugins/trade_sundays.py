@@ -241,7 +241,7 @@ def determine_nearest_trade_sunday_after_date(date: dt.date = None) -> dt.date:
 
 
 class TradeSundays(commands.Cog, SomsiadMixin):
-    GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Komendy związane z niedzielami handlowymi.')
+    GROUP = Help.Command(('handlowe', 'niedzielehandlowe'), (), 'Kiedy wypada niedziela handlowa? Czy zrobisz dziś zakupy? W jakich datach Polska jest zamknięta? Sprawdź, kiedy sklepy będą otwarte [KALENDARZ]')
     COMMANDS = (
         Help.Command(
             ('najbliższa', 'najblizsza'),

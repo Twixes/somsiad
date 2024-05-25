@@ -526,7 +526,7 @@ class Help(commands.Cog):
         _Help.Command(
             ('handlowe', 'niedzielehandlowe'),
             '?podkomenda',
-            'Komendy związane z niedzielami handlowymi. Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
+            'Kiedy wypada niedziela handlowa? Czy zrobisz dziś zakupy? W jakich datach Polska jest zamknięta? Sprawdź, kiedy sklepy będą otwarte [KALENDARZ]',
             '🛒',
         ),
         _Help.Command(
