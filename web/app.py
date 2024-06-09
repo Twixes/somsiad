@@ -145,6 +145,15 @@ def index():
 def privacy_policy():
     return render_template(
         '_document.html',
-        title="Polityka prywatności Somsiada",
+        title="Polityka prywatności • Somsiad",
         content=markdown.markdown(open('documents/polityka-prywatnosci.md').read()),
+    )
+
+
+@application.route('/warunki-swiadczenia-uslugi')
+def terms_of_service():
+    return render_template(
+        '_document.html',
+        title="Warunki świadczenia usługi • Somsiad",
+        content=markdown.markdown(open('documents/warunki-swiadczenia-uslugi.md').read()),
     )
