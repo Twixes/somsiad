@@ -56,7 +56,7 @@ class Burn(commands.Cog):
         if confirmation_message_id not in self.burnings_set_off:
             return
         self.burnings_set_off.remove(confirmation_message_id)
-        channel = self.bot.get_channel(channel_id)
+        channel = await self.bot.fetch_channel(channel_id)
         try:
             target_message = await channel.fetch_message(target_message_id)
             confirmation_message = await channel.fetch_message(confirmation_message_id)

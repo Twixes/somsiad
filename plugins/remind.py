@@ -64,7 +64,7 @@ class Remind(commands.Cog):
         if confirmation_message_id not in self.reminders_set_off:
             return
         self.reminders_set_off.remove(confirmation_message_id)
-        channel = self.bot.get_channel(channel_id)
+        channel = await self.bot.fetch_channel(channel_id)
         try:
             confirmation_message = await channel.fetch_message(confirmation_message_id)
         except (AttributeError, discord.NotFound):

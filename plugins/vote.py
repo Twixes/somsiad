@@ -115,7 +115,7 @@ class Vote(commands.Cog):
         if urn_message_id not in self.ballots_set_off:
             return
         self.ballots_set_off.remove(urn_message_id)
-        channel = self.bot.get_channel(channel_id)
+        channel = await self.bot.fetch_channel(channel_id)
         try:
             urn_message = await channel.fetch_message(urn_message_id)
         except (AttributeError, discord.NotFound):
