@@ -12,6 +12,9 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import datetime as dt
+import re
+from typing import List, Optional
+from sqlalchemy.dialects import postgresql
 
 from sentry_sdk import capture_exception
 from somsiad import Somsiad
@@ -29,6 +32,7 @@ class Reminder(data.Base, data.ChannelRelated, data.UserRelated):
 
     confirmation_message_id = data.Column(data.BigInteger, primary_key=True)
     content = data.Column(data.String(MAX_CONTENT_LENGTH), nullable=False)
+    extra_mention_ids = data.Column(postgresql.ARRAY(data.BigInteger), nullable=True)
     requested_at = data.Column(data.DateTime, nullable=False)
     execute_at = data.Column(data.DateTime, nullable=False)
     has_been_executed = data.Column(data.Boolean, nullable=False, default=False)
@@ -45,6 +49,7 @@ class Remind(commands.Cog):
         channel_id: int,
         user_id: int,
         content: str,
+        extra_mention_ids: Optional[List[int]],
         requested_at: dt.datetime,
         execute_at: dt.datetime,
     ):
@@ -65,11 +70,18 @@ class Remind(commands.Cog):
         except (AttributeError, discord.NotFound):
             pass
         else:
+            confirmation_message.mentions
             reminder_description = md_link(
                 f'Przypomnienie z {human_datetime(requested_at)}.', confirmation_message.jump_url
             )
             reminder_embed = self.bot.generate_embed('🍅', content, reminder_description, timestamp=execute_at)
-            reminder_message = await channel.send(f'<@{user_id}>', embed=reminder_embed)
+            mention_ids = [user_id]
+            if extra_mention_ids:
+                for id in extra_mention_ids:
+                    if id not in mention_ids:
+                        mention_ids.append(id)
+            mentions = ', '.join([f'<@{match}>' for match in mention_ids])
+            reminder_message = await channel.send(mentions, embed=reminder_embed)
             confirmation_description = md_link(
                 f'Przypomniano ci tutaj "{content}" {human_datetime()}.', reminder_message.jump_url
             )
@@ -88,6 +100,7 @@ class Remind(commands.Cog):
                         reminder.channel_id,
                         reminder.user_id,
                         reminder.content,
+                        reminder.extra_mention_ids,
                         reminder.requested_at,
                         reminder.execute_at,
                     )
@@ -96,7 +109,7 @@ class Remind(commands.Cog):
     @cooldown()
     @commands.command(aliases=['przypomnij', 'przypomnienie', 'pomidor'])
     async def remind(
-        self, ctx, execute_at: interpret_str_as_datetime, *, content: commands.clean_content(fix_channel_mentions=True)
+        self, ctx: commands.Context, execute_at: interpret_str_as_datetime, *, content: commands.clean_content(fix_channel_mentions=True)
     ):
         if len(content) > Reminder.MAX_CONTENT_LENGTH:
             raise commands.BadArgument
@@ -106,6 +119,7 @@ class Remind(commands.Cog):
         )
         embed = self.bot.generate_embed('🍅', 'Ustawiono przypomnienie', description, timestamp=execute_at)
         confirmation_message = await self.bot.send(ctx, embed=embed)
+        extra_mention_ids = list(map(int, re.findall(r"<@!?([0-9]{15,20})>", ctx.message.content)))
         if confirmation_message is None:
             return
         try:
@@ -113,6 +127,7 @@ class Remind(commands.Cog):
                 'confirmation_message_id': confirmation_message.id,
                 'channel_id': ctx.channel.id,
                 'content': content,
+                'extra_mention_ids': extra_mention_ids,
                 'user_id': ctx.author.id,
                 'requested_at': utc_to_naive_local(ctx.message.created_at),
                 'execute_at': execute_at,
