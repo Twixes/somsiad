@@ -38,7 +38,7 @@ Ze względu na funkcje Bota dotyczące statystyk aktywności, zaliczasz się do 
 
 1. Jeśli skorzystałeś z komendy _urodziny zapamiętaj_, przechowywane jest powiązanie Twojego ID użytkownika Discorda z datą urodzin.
 
-    Twoja data urodzin jest domyślnie publiczna, tj. dostępna na żądanie dla wszystkich użytkowników, tylko na serwerze na którym użyłeś komendy _urodziny zapamiętaj_. Wszędzie indziej jest ona prywatna, tj. nikt nie może jej zobaczyć. Możesz w dowolnym momencie zmienić widoczność swojej daty urodzin odrębnie dla każdego serwera przy użyciu komend _urodziny upublicznij_/_urodziny utajnij_.
+    Twoja data urodzin jest domyślnie publiczna – tj. dostępna na żądanie dla wszystkich użytkowników – tylko na serwerze na którym użyłeś komendy _urodziny zapamiętaj_. Wszędzie indziej jest ona prywatna – tj. nikt nie może jej zobaczyć. Możesz w dowolnym momencie zmienić widoczność swojej daty urodzin odrębnie dla każdego serwera przy użyciu komend _urodziny upublicznij_/_urodziny utajnij_.
 
     Możesz także w dowolnym momencie całkowicie usunąć swoją datę urodzin z systemu Somsiada przy użyciu komendy _urodziny zapomnij_.
 

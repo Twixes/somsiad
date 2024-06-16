@@ -182,6 +182,8 @@ a {
 }
 
 .legal {
+  display: flex;
+  gap: 0.5rem;
   position: absolute;
   bottom: 1.5rem;
   margin: 0 auto;
