@@ -91,7 +91,7 @@ class Remind(commands.Cog):
             reminder = session.query(Reminder).get(confirmation_message_id)
             reminder.has_been_executed = True
 
-    async def cog_load(self):
+    async def on_ready(self):
         with data.session() as session:
             for reminder in session.query(Reminder).filter(Reminder.has_been_executed == False):
                 self.bot.loop.create_task(
