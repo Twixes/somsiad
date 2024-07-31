@@ -15,6 +15,8 @@ import asyncio
 import datetime as dt
 import random
 from typing import List, Optional, Sequence, Union
+from cachetools import LRUCache, TTLCache, cached
+from cachetools.keys import hashkey
 
 import discord
 from discord.ext import commands, tasks
@@ -44,7 +46,7 @@ class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
 class DataProcessingOptOut(data.UserSpecific, data.Base):
     pass
 
-
+@cached(cache=TTLCache(maxsize=5000, ttl=300), key=lambda _, user_id: hashkey(user_id))
 def is_user_opted_out_of_data_processing(session: Session, user_id: int) -> bool:
     return session.query(DataProcessingOptOut).get(user_id) is not None
 

@@ -94,7 +94,9 @@ class Imaging(commands.Cog, SomsiadMixin):
                             continue
                         else:
                             try:
-                                perceptualization = await self._perceptualize(image_bytes)
+                                perceptualization = await self.bot.loop.run_in_executor(
+                                    None, self._perceptualize, image_bytes
+                                )
                             except:
                                 capture_exception()
                                 continue
