@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from collections import defaultdict
+import functools
 import io
 import time
 from sentry_sdk import capture_exception
@@ -94,9 +95,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             continue
                         else:
                             try:
-                                perceptualization = await self.bot.loop.run_in_executor(
-                                    None, self._perceptualize, image_bytes
-                                )
+                                perceptualization = self._perceptualize(image_bytes)
                             except:
                                 capture_exception()
                                 continue
@@ -148,12 +147,20 @@ class Imaging(commands.Cog, SomsiadMixin):
             image_bytes.seek(0)
         return image_bytes
 
-    @staticmethod
-    async def _perceptualize(image_bytes: BinaryIO) -> Perceptualization:
+    async def _perceptualize(self, image_bytes: BinaryIO) -> Perceptualization:
         try:
-            image_text = await aiopytesseract.image_to_string(image_bytes.read(), lang='eng+pol', psm=11, timeout=5)
+            image_text = await self.bot.loop.run_in_executor(
+                None,
+                functools.partial(
+                    aiopytesseract.image_to_string,
+                    image_bytes.read(),
+                    lang="eng+pol",
+                    psm=11,
+                    timeout=5,
+                ),
+            )
             image_text = image_text.strip()
-        except TesseractError as e:
+        except TesseractError:
             capture_exception()
             image_text = None
         image = PIL.Image.open(image_bytes)
