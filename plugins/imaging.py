@@ -147,7 +147,7 @@ class Imaging(commands.Cog, SomsiadMixin):
             image_bytes.seek(0)
         return image_bytes
 
-    async def _perceptualize(self, image_bytes: BinaryIO) -> Perceptualization:
+    def _perceptualize(self, image_bytes: BinaryIO) -> Perceptualization:
         try:
             image_text = await self.bot.loop.run_in_executor(
                 None,
