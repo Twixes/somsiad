@@ -95,7 +95,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             continue
                         else:
                             try:
-                                perceptualization = self._perceptualize(image_bytes)
+                                perceptualization = await self._perceptualize(image_bytes)
                             except:
                                 capture_exception()
                                 continue
@@ -147,7 +147,7 @@ class Imaging(commands.Cog, SomsiadMixin):
             image_bytes.seek(0)
         return image_bytes
 
-    def _perceptualize(self, image_bytes: BinaryIO) -> Perceptualization:
+    async def _perceptualize(self, image_bytes: BinaryIO) -> Perceptualization:
         try:
             image_text = await self.bot.loop.run_in_executor(
                 None,
