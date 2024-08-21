@@ -149,15 +149,11 @@ class Imaging(commands.Cog, SomsiadMixin):
 
     async def _perceptualize(self, image_bytes: BinaryIO) -> Perceptualization:
         try:
-            image_text = await self.bot.loop.run_in_executor(
-                None,
-                functools.partial(
-                    aiopytesseract.image_to_string,
-                    image_bytes.read(),
-                    lang="eng+pol",
-                    psm=11,
-                    timeout=5,
-                ),
+            image_text = await aiopytesseract.image_to_string(
+                image_bytes.read(),
+                lang="eng+pol",
+                psm=11,
+                timeout=5,
             )
             image_text = image_text.strip()
         except TesseractError:
