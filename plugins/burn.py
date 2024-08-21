@@ -82,6 +82,7 @@ class Burn(commands.Cog):
             reminder = session.query(Burning).get(confirmation_message_id)
             reminder.has_been_executed = True
 
+    @commands.Cog.listener()
     async def on_ready(self):
         with data.session() as session:
             for reminder in session.query(Burning).filter(Burning.has_been_executed == False):
