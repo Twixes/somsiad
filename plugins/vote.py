@@ -15,7 +15,7 @@ import asyncio
 from collections import defaultdict
 import datetime as dt
 import re
-from typing import DefaultDict, List, Optional, Set
+from typing import Any, DefaultDict, List, Optional, Set
 
 import discord
 from discord.ext import commands
@@ -25,6 +25,7 @@ from core import cooldown
 from somsiad import Somsiad
 from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to_naive_local, word_number_form
 
+CONVICTED_MANIPULATOR_IDS = [564069255948009473] # Users convicted in absentia of manipulating the vote
 
 class Ballot(data.Base, data.ChannelRelated, data.UserRelated):
     urn_message_id = data.Column(data.BigInteger, primary_key=True)
@@ -122,9 +123,10 @@ class Vote(commands.Cog):
             pass
         else:
             emojis = self._list_answers(letters=letters, numeric_scale_max=numeric_scale_max)
-            results = {
-                reaction.emoji: reaction.count - 1 for reaction in urn_message.reactions if reaction.emoji in emojis
-            }
+            reactions_with_users = await asyncio.gather(
+                *(self._resolve_reaction_with_user_count(reaction) for reaction in urn_message.reactions)
+            )
+            results = dict(reactions_with_users)
             winning_emojis = []
             winning_count = 1  # 0 is never a winning count
             numeric_result = None  # Only used if numeric scale is used
@@ -185,6 +187,15 @@ class Vote(commands.Cog):
         with data.session(commit=True) as session:
             reminder = session.query(Ballot).get(urn_message_id)
             reminder.has_been_concluded = True
+
+    @staticmethod
+    async def _resolve_reaction_with_user_count(reaction: discord.Reaction) -> tuple[Any, int]:
+        count = 0
+        async for user in reaction.users():
+            if user.bot or user.id in CONVICTED_MANIPULATOR_IDS:
+                continue
+            count += 1
+        return (reaction.emoji, count)
 
     @commands.Cog.listener()
     async def on_ready(self):
