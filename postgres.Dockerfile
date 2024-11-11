@@ -1,4 +1,4 @@
-FROM postgres:13
+FROM pgvector/pgvector:pg16
 
 # Variables needed at runtime to configure postgres and run the initdb scripts
 ENV POSTGRES_DB ''

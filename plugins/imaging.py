@@ -11,13 +11,14 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+from asyncio import sleep
 from collections import defaultdict
-import functools
 import io
 import time
 from sentry_sdk import capture_exception
 
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, literal
+from sqlalchemy.dialects.postgresql import BIT
 
 from somsiad import SomsiadMixin
 from typing import BinaryIO, DefaultDict, Dict, Optional, Tuple, TypedDict
@@ -53,9 +54,6 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
     text = data.Column(data.UnicodeText(), nullable=True)
     sent_at = data.Column(data.DateTime, nullable=False)
 
-    def calculate_visual_similarity(self, other) -> float:
-        return (self.HASH_SIZE**2 - bin(int(self.hash, 16) ^ int(other.hash, 16)).count('1')) / self.HASH_SIZE**2
-
     async def get_presentation(self, bot: commands.Bot) -> str:
         parts = [self.sent_at.strftime('%-d %B %Y o %-H:%M')]
         discord_channel = self.discord_channel(bot)
@@ -73,9 +71,12 @@ class Image9000(data.Base, data.MemberRelated, data.ChannelRelated):
 class Imaging(commands.Cog, SomsiadMixin):
     ExtractedImage = Tuple[Optional[discord.Attachment], Optional[BinaryIO]]
 
+    IMAGE9000_HASH_BIT_COUNT = 80
     IMAGE9000_VISUAL_SIMILARITY_TRESHOLD = 0.8
     IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD = 0.6
     IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS = 5
+
+    IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE = int(IMAGE9000_HASH_BIT_COUNT * (1 - IMAGE9000_VISUAL_SIMILARITY_TRESHOLD))
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -252,23 +253,23 @@ class Imaging(commands.Cog, SomsiadMixin):
             if text_query:
                 search_results: Dict[Image9000, float] = {}
                 with data.session() as session:
-                    for image9000, query_similarity in (
+                    for image9000, textual_similarity in (
                         session.query(Image9000)
-                        .add_column(func.word_similarity(text_query, Image9000.text).label("query_similarity"))
+                        .add_column(func.word_similarity(text_query, Image9000.text).label("textual_similarity"))
                         .filter(
                             Image9000.server_id == ctx.guild.id,
                             Image9000.text.op(r"%>")(text_query),
                         )
-                        .order_by(desc("query_similarity"))
+                        .order_by(desc("textual_similarity"))
                     ):
-                        search_results[image9000] = query_similarity
+                        search_results[image9000] = textual_similarity
                 if search_results:
                     embed = self.bot.generate_embed(
                         '🤖',
                         f'Znaleziono {word_number_form(len(search_results), "obrazek pasujący", "obrazki pasujące", "obrazków pasujących")} do zapytania "{text_query}"',
                     )
-                    for image9000, query_similarity in search_results.items():
-                        name, value = await self._image_to_embed_field(image9000, {"textual": query_similarity})
+                    for image9000, textual_similarity in search_results.items():
+                        name, value = await self._image_to_embed_field(image9000, {"textual": textual_similarity})
                         if len(embed) + len(name) + len(value) > 6000:
                             break
                         embed.add_field(name=name, value=value, inline=False)
@@ -290,38 +291,44 @@ class Imaging(commands.Cog, SomsiadMixin):
                     base_image9000: Optional[Image9000] = session.query(Image9000).get(attachment.id)
                     if base_image9000 is None:
                         embed = self.bot.generate_embed('⚠️', 'Obrazek do wyszukania nie został jeszcze zindeksowany')
-                    else:
+                        for wait_seconds in [0.5, 1, 2, 4, 8]: # Exponential backoff
+                            await sleep(wait_seconds)
+                            base_image9000 = session.query(Image9000).get(attachment.id)
+                            if base_image9000 is not None:
+                                break
+                    if base_image9000 is not None:
                         init_time = time.time()
-                        comparison_count = 0
+                        server_images = session.query(Image9000).filter(
+                            Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
+                        )
                         sent_by = ctx.guild.get_member(base_image9000.user_id)
 
-                        if base_image9000.text:
-                            for other_image9000, textual_similarity in (
-                                session.query(Image9000)
-                                .add_column(
-                                    func.word_similarity(base_image9000.text, Image9000.text).label(
-                                        "textual_similarity"
+                        perceptual_distance_column = literal('x').op('||')(Image9000.hash).cast(BIT(self.IMAGE9000_HASH_BIT_COUNT)).op('<~>')(
+                            literal('x').op('||')(base_image9000.hash).cast(BIT(self.IMAGE9000_HASH_BIT_COUNT))
+                        ).label("perceptual_distance")
+
+                        if base_image9000.text and len(base_image9000.text) >= self.IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS:
+                            textual_similarity_column = func.word_similarity(base_image9000.text, Image9000.text).label("textual_similarity")
+                            for other_image9000, perceptual_distance, textual_similarity in (
+                                server_images
+                                .add_column(perceptual_distance_column)
+                                .add_column(textual_similarity_column)
+                                .filter(
+                                    (perceptual_distance_column <= self.IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE) |
+                                    (
+                                        (func.length(Image9000.text) >= self.IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS) &
+                                        (textual_similarity_column >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD)
                                     )
                                 )
-                                .filter(Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id)
                             ):
-                                comparison_count += 1
-                                visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
-                                if visual_similarity >= self.IMAGE9000_VISUAL_SIMILARITY_TRESHOLD:
-                                    similar[other_image9000]["visual"] = visual_similarity
-                                if (
-                                    len(base_image9000.text) >= self.IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS
-                                    and textual_similarity >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD
-                                ):
-                                    similar[other_image9000]["textual"] = textual_similarity
+                                similar[other_image9000]["visual"] = 1 - perceptual_distance / self.IMAGE9000_HASH_BIT_COUNT
+                                similar[other_image9000]["textual"] = textual_similarity
                         else:
-                            for other_image9000 in session.query(Image9000).filter(
-                                Image9000.server_id == ctx.guild.id, Image9000.attachment_id != attachment.id
+                            for other_image9000, perceptual_distance in (
+                                server_images.add_column(perceptual_distance_column)
+                                .filter(perceptual_distance_column <= self.IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE)
                             ):
-                                comparison_count += 1
-                                visual_similarity = base_image9000.calculate_visual_similarity(other_image9000)
-                                if visual_similarity >= self.IMAGE9000_VISUAL_SIMILARITY_TRESHOLD:
-                                    similar[other_image9000]["visual"] = visual_similarity
+                                similar[other_image9000]["visual"] = 1 - perceptual_distance / self.IMAGE9000_HASH_BIT_COUNT
 
                         if similar:
                             embed = self.bot.generate_embed()
@@ -352,7 +359,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                             )
                         comparison_time = time.time() - init_time
                         seen_image_form = word_number_form(
-                            comparison_count, 'obrazek zobaczony', 'obrazki zobaczone', 'obrazków zobaczonych'
+                            server_images.count(), 'obrazek zobaczony', 'obrazki zobaczone', 'obrazków zobaczonych'
                         )
                         embed.set_footer(
                             text=f'Przejrzano {seen_image_form} do tej pory na serwerze w {round(comparison_time, 2):n} s.'
