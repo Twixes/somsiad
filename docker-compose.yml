@@ -2,9 +2,13 @@ version: "3.8"
 volumes:
   clickhouse-persistence:
 services:
+  redis:
+      image: redis:alpine
   bot:
     build: .
     restart: on-failure
+    depends_on:
+      - redis
     stop_grace_period: 20s
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -29,8 +33,6 @@ services:
       - CLICKHOUSE_PASSWORD
       - CLICKHOUSE_DATABASE
       - REDIS_URL=redis://redis:6379/
-  redis:
-      image: redis:alpine
   web:
     build: web
     depends_on:
