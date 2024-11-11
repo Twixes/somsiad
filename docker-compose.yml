@@ -37,8 +37,6 @@ services:
     build: web
     depends_on:
       - redis
-    links:
-      - redis:redis
     environment:
       - REDIS_URL=redis://redis:6379/
     labels:
@@ -48,7 +46,7 @@ services:
       - traefik.http.routers.web.tls=true
       - traefik.http.routers.web.tls.certresolver=le
   router:
-    image: "traefik:v2.4"
+    image: "traefik:v3.2"
     depends_on:
       - web
     command:
