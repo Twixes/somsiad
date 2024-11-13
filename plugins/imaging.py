@@ -12,6 +12,7 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from asyncio import sleep
+import asyncio
 from collections import defaultdict
 import io
 import time
@@ -267,8 +268,11 @@ class Imaging(commands.Cog, SomsiadMixin):
                         '🤖',
                         f'Znaleziono {word_number_form(len(search_results), "obrazek pasujący", "obrazki pasujące", "obrazków pasujących")} do zapytania "{text_query}"',
                     )
-                    for image9000, textual_similarity in search_results.items():
-                        name, value = await self._image_to_embed_field(image9000, {"textual": textual_similarity})
+                    field_parts = await asyncio.gather(*(
+                        self._image_to_embed_field(image9000, {"textual": textual_similarity})
+                        for image9000, textual_similarity in search_results.items()
+                    ), loop=self.bot.loop)
+                    for name, value in field_parts:
                         if len(embed) + len(name) + len(value) > 6000:
                             break
                         embed.add_field(name=name, value=value, inline=False)
@@ -342,10 +346,11 @@ class Imaging(commands.Cog, SomsiadMixin):
 
                         if similar:
                             embed = self.bot.generate_embed()
-                            for image9000, similarity in sorted(
-                                similar.items(), key=lambda x: sum(x[1].values()), reverse=True
-                            )[:25]: # Discord embeds have a limit of 25 fields
-                                name, value = await self._image_to_embed_field(image9000, similarity)
+                            field_parts = await asyncio.gather(*(
+                                self._image_to_embed_field(image9000, similarity)
+                                for image9000, similarity in similar.items()
+                            ), loop=self.bot.loop)
+                            for name, value in field_parts:
                                 # Respect the embed size limit of 6000 characters, setting aside 200 for the title
                                 if len(embed) + len(name) + len(value) >= 5800:
                                     break
