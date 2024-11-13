@@ -73,7 +73,6 @@ class Imaging(commands.Cog, SomsiadMixin):
 
     IMAGE9000_HASH_BIT_COUNT = 80
     IMAGE9000_VISUAL_SIMILARITY_TRESHOLD = 0.8
-    IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD = 0.6
     IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS = 5
 
     IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE = int(IMAGE9000_HASH_BIT_COUNT * (1 - IMAGE9000_VISUAL_SIMILARITY_TRESHOLD))
@@ -255,12 +254,13 @@ class Imaging(commands.Cog, SomsiadMixin):
                 with data.session() as session:
                     for image9000, textual_similarity in (
                         session.query(Image9000)
-                        .add_column(func.word_similarity(text_query, Image9000.text).label("textual_similarity"))
+                        .add_column(Image9000.text.op('<%')(text_query).label("textual_similarity"))
                         .filter(
                             Image9000.server_id == ctx.guild.id,
-                            Image9000.text.op(r"%>")(text_query),
+                            Image9000.text.op('<%')(text_query)
                         )
                         .order_by(desc("textual_similarity"))
+                        .limit(20)
                     ):
                         search_results[image9000] = textual_similarity
                 if search_results:
@@ -308,26 +308,33 @@ class Imaging(commands.Cog, SomsiadMixin):
                         ).label("perceptual_distance")
 
                         if base_image9000.text and len(base_image9000.text) >= self.IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS:
-                            textual_similarity_column = func.word_similarity(base_image9000.text, Image9000.text).label("textual_similarity")
-                            for other_image9000, perceptual_distance, textual_similarity in (
+                            textual_similarity_column = func.word_similarity(
+                                Image9000.text, base_image9000.text
+                            ).label("textual_similarity")
+                            perceptual_matches = (
                                 server_images
                                 .add_column(perceptual_distance_column)
                                 .add_column(textual_similarity_column)
-                                .filter(
-                                    (perceptual_distance_column <= self.IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE) |
-                                    (
-                                        (func.length(Image9000.text) >= self.IMAGE9000_TEXTUAL_SIMILARITY_MIN_CHARS) &
-                                        (textual_similarity_column >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD)
-                                    )
-                                )
+                                .filter(perceptual_distance_column <= self.IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE)
                                 .order_by("perceptual_distance")
                                 .limit(20)
+                            )
+                            textual_matches = (
+                                server_images
+                                .add_column(perceptual_distance_column)
+                                .add_column(textual_similarity_column)
+                                .filter(Image9000.text.op('<%')(base_image9000.text))
+                            )
+                            for other_image9000, perceptual_distance, textual_similarity in (
+                                perceptual_matches.union(textual_matches).distinct()
+                                .order_by("perceptual_distance", desc("textual_similarity")).limit(20)
                             ):
                                 similar[other_image9000]["visual"] = 1 - perceptual_distance / self.IMAGE9000_HASH_BIT_COUNT
                                 similar[other_image9000]["textual"] = textual_similarity
                         else:
                             for other_image9000, perceptual_distance in (
-                                server_images.add_column(perceptual_distance_column)
+                                server_images
+                                .add_column(perceptual_distance_column)
                                 .filter(perceptual_distance_column <= self.IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE)
                                 .order_by("perceptual_distance")
                                 .limit(20)
