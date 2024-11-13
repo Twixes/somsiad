@@ -325,7 +325,7 @@ class Imaging(commands.Cog, SomsiadMixin):
                                 .filter(Image9000.text.op('%>')(base_image9000.text))
                             )
                             for other_image9000, perceptual_distance, textual_similarity in (
-                                perceptual_matches.union(textual_matches).distinct()
+                                perceptual_matches.union(textual_matches)
                                 .order_by("perceptual_distance", desc("textual_similarity")).limit(20)
                             ):
                                 similar[other_image9000]["visual"] = 1 - perceptual_distance / self.IMAGE9000_HASH_BIT_COUNT
