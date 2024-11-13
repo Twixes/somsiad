@@ -252,15 +252,14 @@ class Imaging(commands.Cog, SomsiadMixin):
             if text_query:
                 search_results: Dict[Image9000, float] = {}
                 with data.session() as session:
-                    for image9000, textual_similarity in (
+                    for image9000, textual_similarity in sorted(
                         session.query(Image9000)
                         .add_column(func.word_similarity(text_query, Image9000.text).label("textual_similarity"))
                         .filter(
                             Image9000.server_id == ctx.guild.id,
                             Image9000.text.op('%>')(text_query)
                         )
-                        .order_by(desc("textual_similarity"))
-                        .limit(20)
+                        .limit(20), key=lambda x: x[1], reverse=True
                     ):
                         search_results[image9000] = textual_similarity
                 if search_results:
