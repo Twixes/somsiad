@@ -320,6 +320,8 @@ class Imaging(commands.Cog, SomsiadMixin):
                                         (textual_similarity_column >= self.IMAGE9000_TEXTUAL_SIMILARITY_TRESHOLD)
                                     )
                                 )
+                                .order_by("perceptual_distance")
+                                .limit(20)
                             ):
                                 similar[other_image9000]["visual"] = 1 - perceptual_distance / self.IMAGE9000_HASH_BIT_COUNT
                                 similar[other_image9000]["textual"] = textual_similarity
@@ -327,6 +329,8 @@ class Imaging(commands.Cog, SomsiadMixin):
                             for other_image9000, perceptual_distance in (
                                 server_images.add_column(perceptual_distance_column)
                                 .filter(perceptual_distance_column <= self.IMAGE9000_ACCEPTABLE_PERCEPTUAL_DISTANCE)
+                                .order_by("perceptual_distance")
+                                .limit(20)
                             ):
                                 similar[other_image9000]["visual"] = 1 - perceptual_distance / self.IMAGE9000_HASH_BIT_COUNT
 
