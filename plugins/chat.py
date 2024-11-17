@@ -195,11 +195,9 @@ class Chat(commands.Cog):
                         asyncio.gather(
                             clean_content_converter.convert(ctx, field.name),
                             clean_content_converter.convert(ctx, field.value),
-                            loop=self.bot.loop,
                         )
                         for field in embed.fields
                     ),
-                    loop=self.bot.loop,
                 )
                 parts.append("\n".join(f"{name}: {value}" for name, value in embed_fields_cleaned))
             if embed.footer.text:
@@ -249,7 +247,7 @@ class Chat(commands.Cog):
                     clean_content = await self.message_to_text(ctx, message)
                     if clean_content is None:
                         continue
-                    clean_content = clean_content.split('-#')[0].strip() # Remove citations
+                    clean_content = clean_content.split("-#")[0].strip()  # Remove citations
                 except IndexError:
                     break
                 # Append
@@ -302,7 +300,9 @@ class Chat(commands.Cog):
                 iteration_choice = iteration_result.choices[0]
                 if iteration_choice.finish_reason == "tool_calls":
                     if iteration_choice.message.content:
-                        self.bot.send(ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message)
+                        self.bot.send(
+                            ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message
+                        )
                     function_call = iteration_choice.message.tool_calls[0].function
                     if function_call.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
                         resulting_message_content = await self.execute_ask_online(citations, function_call)
@@ -342,9 +342,7 @@ class Chat(commands.Cog):
                         )
                     if math_operations:
                         final_message += "\n-# Obliczenia: "
-                        final_message += ", ".join(
-                            f"`{operation}`" for operation in math_operations
-                        )
+                        final_message += ", ".join(f"`{operation}`" for operation in math_operations)
                     break
 
         await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
@@ -378,11 +376,11 @@ class Chat(commands.Cog):
     def execute_calculator(self, math_operations, function_call):
         expr = json.loads(function_call.arguments)["expr"]
         try:
-           result = arithmetic_eval.evaluate(expr)
+            result = arithmetic_eval.evaluate(expr)
         except Exception as e:
             return f"⚠️ {e}"
-        math_operations.append(f'{expr} = {result:n}')
-        return f'{result:n}'
+        math_operations.append(f"{expr} = {result:n}")
+        return f"{result:n}"
 
     async def invoke_command(self, ctx: commands.Context, prompt_messages: list, function_call) -> tuple[str, bool]:
         command_invocation = (
