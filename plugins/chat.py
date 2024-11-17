@@ -226,10 +226,11 @@ class Chat(commands.Cog):
                     author_display_name_with_id = f"{message.author.display_name} <@{message.author.id}>"
                 try:
                     clean_content = await self.message_to_text(ctx, message)
+                    if clean_content is None:
+                        continue
+                    clean_content = clean_content.split('-#')[0].strip() # Remove citations
                 except IndexError:
                     break
-                if clean_content is None:
-                    continue
                 # Append
                 prompt_token_count_so_far += len(encoding.encode(clean_content))
                 history.append(
