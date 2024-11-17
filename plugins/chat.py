@@ -29,7 +29,7 @@ from core import Help, cooldown
 from plugins.help_message import Help as HelpCog
 from somsiad import Somsiad
 import tiktoken
-from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time
+from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time, md_link
 from unidecode import unidecode
 
 
@@ -63,16 +63,23 @@ ASK_ONLINE_FUNCTION_DEFINITION = FunctionDefinition(
 )
 CALCULATOR_FUNCTION_DEFINITION = FunctionDefinition(
     name="oblicz",
-    description="Wykonuje operację matematyczną w kalkulatorze. Wspierane operacje: dodawanie (+), odejmowanie (-), mnożenie (*), potęgowanie (**), dzielenie (/), modulo (%).",
+    description=(
+        "Wykonuje proste wyrażenia matematyczna w kalkulatorze. Może być wiele wyrażeń naraz. "
+        "Wspierane operacje: dodawanie (+), odejmowanie (-), mnożenie (*), potęgowanie (**), dzielenie (/), modulo (%)."
+    ),
     parameters={
         "type": "object",
         "properties": {
-            "expr": {
-                "type": "string",
-                "description": "Wyrażenie matematyczne. Przykład: ((1.5 + 17) ** 3) % 2",
+            "exprs": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "Wyrażenia matematyczne do obliczenia, bez spacji. Jedno wyrażenie to jeden element. Musi być co najmniej jedno wyrażenie.\n"
+                    "Przykłady wyrażeń:\n((1.5+17)**3)%2\n179530*7"
+                ),
             }
         },
-        "required": ["expr"],
+        "required": ["exprs"],
         "additionalProperties": False,
     },
 )
@@ -87,7 +94,8 @@ class Chat(commands.Cog):
     INITIAL_PROMPT = (
         "Jesteś przydatnym polskim botem na Discordzie o imieniu Somsiad.\n"
         "Odpowiadasz maksymalnie krótko i używasz języka potocznego. Normalnie mówisz jak na ulicy z kumplami. "
-        "Na końcu wiadomości umieszczasz jedno emoji reprezentujące pasującą emocję, np. 😊, 😮 albo 😡. NIE UŻYWASZ KROPKI NA KOŃCU WIADOMOŚCI. "
+        "Na końcu wiadomości umieszczasz jedno emoji reprezentujące pasującą emocję, np. 😊, 😮 albo 😡. "
+        "NIE PISZESZ W PUNKTACH. Tylko naturalne odpowiedzi w formie zdań. NIE UŻYWASZ KROPKI NA KOŃCU WIADOMOŚCI. "
         "Potrafisz odpyskować.\n Znajdujesz się na kanale #{channel_name} serwera {server_name}. "
         "Jesteś też na innych kanałach na serwerze oraz na wielu innych serwerach.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
@@ -98,12 +106,12 @@ class Chat(commands.Cog):
         "Twój status można sprawdzić na stronie https://somsiad.net. Znajdzie się tam również twoją politykę prywatności i pomocne linki. "
         "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
         'Wiesz, że "2137" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), '
-        'zwanej godziną papieżową. A "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". '
+        'zwanej godziną papieżową. A "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". Inna śmieszna liczba to 42.\n'
         "Masz dostęp do wszystkich swoich komend w ramach tool calling. Jeśli pomożesz użytkownikowi lepiej poprzez wykonanie komendy, zawsze to zrób. "
         "Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje. "
         "Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie. "
         f"W razie potrzeby informacji o świecie, użyj wewnętrznego narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}` - najlepsze źródło informacji. "
-        f"Gdy potrzebne obliczenia, zawsze użyj wewnętrznego narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}` do weryfikacji wyników."
+        f"Jeśli do odpowiedzi potrzebne są wyniki obliczeń, użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}`. "
         "Nigdy nie każ użytkownikowi samemu użyć Google. Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.\n"
         "Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.\n"
         "Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.\n"
@@ -186,7 +194,9 @@ class Chat(commands.Cog):
         parts = []
         for embed in embeds:
             if embed.title:
-                parts.append(embed.title)
+                parts.append(f"# {md_link(embed.title, embed.url)}")
+            if embed.image:
+                parts.append(f"Załączony obraz: {embed.image.url}")
             if embed.description:
                 parts.append(await clean_content_converter.convert(ctx, embed.description))
             if embed.fields:
@@ -201,7 +211,7 @@ class Chat(commands.Cog):
                 )
                 parts.append("\n".join(f"{name}: {value}" for name, value in embed_fields_cleaned))
             if embed.footer.text:
-                parts.append(await clean_content_converter.convert(ctx, embed.footer.text))
+                parts.append(f"Stopka: {await clean_content_converter.convert(ctx, embed.footer.text)}")
         return "\n".join(parts)
 
     async def message_to_text(self, ctx: commands.Context, message: discord.Message) -> Optional[str]:
@@ -247,7 +257,6 @@ class Chat(commands.Cog):
                     clean_content = await self.message_to_text(ctx, message)
                     if clean_content is None:
                         continue
-                    clean_content = clean_content.split("-#")[0].strip()  # Remove citations
                 except IndexError:
                     break
                 # Append
@@ -286,7 +295,7 @@ class Chat(commands.Cog):
             ]
 
         final_message = "Nie udało mi się wykonać zadania. 😔"
-        citations: dict[str, str] = {}
+        citations: list[str] = []
         math_operations: list[str] = []
         final_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
@@ -305,9 +314,13 @@ class Chat(commands.Cog):
                         )
                     function_call = iteration_choice.message.tool_calls[0].function
                     if function_call.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
-                        resulting_message_content = await self.execute_ask_online(citations, function_call)
+                        resulting_message_content = await self.execute_ask_online(
+                            citations, prompt_messages, function_call
+                        )
                     elif function_call.name == CALCULATOR_FUNCTION_DEFINITION.name:
-                        resulting_message_content = self.execute_calculator(math_operations, function_call)
+                        resulting_message_content = self.execute_calculator(
+                            math_operations, prompt_messages, function_call
+                        )
                     else:
                         resulting_message_content, iteration_resulted_in_command_message = await self.invoke_command(
                             ctx, prompt_messages, function_call
@@ -330,15 +343,15 @@ class Chat(commands.Cog):
                             if iterations_left == 1
                             else "Spróbuj ponownie naprawiając ten błąd."
                             if resulting_message_content and "⚠️" in resulting_message_content
-                            else "Jeśli powyższy wynik nie do końca spełnia moją prośbę, spróbuj ponownie z inną komendą. (Nie ponawiaj komendy bez znaczących zmian.)",
+                            else "Jeśli powyższy wynik nie wystarczy do spełnienia mojej prośby, spróbuj ponownie z inną komendą. (Nie ponawiaj komendy bez znaczących zmian.) Jeśli to wystarczy, odpowiedz w swoim stylu. 😏",
                         }
                     )
                 else:
                     final_message = iteration_choice.message.content.strip()
-                    if citations:
-                        final_message += "\n-# Źródła: "
-                        final_message += ", ".join(
-                            (f'[{domain.replace("www.", "")}](<{url}>)' for domain, url in citations.items())
+                    for i, citation in enumerate(citations):
+                        final_message = final_message.replace("][", "] [").replace(
+                            f"[{i+1}]",
+                            f"({md_link(urllib.parse.urlparse(citation).netloc.replace('www.', ''), citation, unroll=False)})",
                         )
                     if math_operations:
                         final_message += "\n-# Obliczenia: "
@@ -347,7 +360,10 @@ class Chat(commands.Cog):
 
         await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
 
-    async def execute_ask_online(self, citations, function_call):
+    async def execute_ask_online(self, citations: list[str], prompt_messages: list, function_call):
+        prompt_messages.append(
+            {"role": "assistant", "content": f"Szukam w internecie: {json.loads(function_call.arguments)['pytanie']}"}
+        )
         async with self.bot.session.post(
             "https://api.perplexity.ai/chat/completions",
             json={
@@ -369,18 +385,39 @@ class Chat(commands.Cog):
             },
         ) as request:
             resulting_message_data = await request.json()
-            for citation in resulting_message_data["citations"]:
-                citations[urllib.parse.urlparse(citation).netloc] = citation
-            return resulting_message_data["choices"][0]["message"]["content"]
+            raw_citations = resulting_message_data.get("citations", [])
+            resulting_message_content = resulting_message_data["choices"][0]["message"]["content"]
+            if raw_citations:
+                resulting_message_content += '\n\nW swojej odpowiedzi musisz przywołać te z powyższych informacji które się przydały. Koniecznie zachowaj odnośniki, takie jak "[1]" lub "[7]", bo źródła są dla mnie bardzo ważne.'
+            if citations:
+                resulting_message_content += (
+                    f" Przy czym do liczby każdego odnośnika z tej wiadomości dodaj {len(citations)}."
+                )
+            citations.extend(raw_citations)
+            return resulting_message_content
 
-    def execute_calculator(self, math_operations, function_call):
-        expr = json.loads(function_call.arguments)["expr"]
-        try:
-            result = arithmetic_eval.evaluate(expr)
-        except Exception as e:
-            return f"⚠️ {e}"
-        math_operations.append(f"{expr} = {result:n}")
-        return f"{result:n}"
+    def execute_calculator(self, math_operations, prompt_messages: list, function_call):
+        exprs = json.loads(function_call.arguments)["exprs"]
+        prompt_messages.append(
+            {
+                "role": "assistant",
+                "content": "By pomóc sobie w odpowiedzi, obliczam przy użyciu kalkulatora:\n" + "\n".join(exprs),
+            }
+        )
+        results: list[str] = []
+        for expr in exprs:
+            try:
+                result = arithmetic_eval.evaluate(expr)
+            except Exception as e:
+                return f"⚠️ {e}"
+            if isinstance(result, float):
+                if result.is_integer():
+                    result = int(result)
+                else:
+                    result = round(result, 5)
+            results.append(f"{expr} = {result}")
+            math_operations.append(results[-1])
+        return f'Obliczono że {", ".join(f"`{result}`" for result in results)}. Wykorzystaj te wyniki do ostatecznej odpowiedzi. NIE LICZ TYCH WYRAŻEŃ PONOWNIE.'
 
     async def invoke_command(self, ctx: commands.Context, prompt_messages: list, function_call) -> tuple[str, bool]:
         command_invocation = (
