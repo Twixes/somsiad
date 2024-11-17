@@ -40,6 +40,9 @@ class HistoricalMessage:
     clean_content: str
 
 
+clean_content_converter = commands.clean_content()
+
+
 class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
     ITERATION_LIMIT = 3
@@ -128,20 +131,25 @@ class Chat(commands.Cog):
             for full_command_name, command in self._all_available_commands.items()
         ]
 
-    def embeds_to_text(self, embeds: List[discord.Embed]) -> str:
+    def embeds_to_text(self, ctx: commands.Context, embeds: List[discord.Embed]) -> str:
         parts = []
         for embed in embeds:
             if embed.title:
                 parts.append(embed.title)
             if embed.description:
-                parts.append(embed.description)
+                parts.append(clean_content_converter.convert(ctx, embed.description))
             if embed.fields:
-                parts.append("\n".join(f"{field.name}: {field.value}" for field in embed.fields))
+                parts.append(
+                    "\n".join(
+                        f"{clean_content_converter.convert(ctx, field.name)}: {clean_content_converter.convert(ctx, field.value)}"
+                        for field in embed.fields
+                    )
+                )
             if embed.footer.text:
-                parts.append(embed.footer.text)
+                parts.append(clean_content_converter.convert(ctx, embed.footer.text))
         return "\n".join(parts)
 
-    async def message_to_text(self, message: discord.Message) -> Optional[str]:
+    async def message_to_text(self, ctx: commands.Context, message: discord.Message) -> Optional[str]:
         parts = [message.clean_content]
         if message.clean_content.strip().startswith(self.COMMENT_MARKER):
             return None
@@ -153,7 +161,7 @@ class Chat(commands.Cog):
                 parts[0] = parts[0][len(prefix) :].lstrip()
                 break
         if message.embeds:
-            parts.append(self.embeds_to_text(message.embeds))
+            parts.append(self.embeds_to_text(ctx, message.embeds))
         if message.attachments:
             parts.extend(f"Załącznik {i+1}: {attachment.filename}" for i, attachment in enumerate(message.attachments))
         return "\n".join(parts)
@@ -265,7 +273,7 @@ class Chat(commands.Cog):
                         if message.author == ctx.me:
                             # Found a message which probably resulted from the tool's command invocation
                             reply_resulted_in_command_message = True
-                            resulting_message_content = await self.message_to_text(message)
+                            resulting_message_content = await self.message_to_text(command_ctx, message)
                             if resulting_message_content and "⚠️" in resulting_message_content:
                                 # There was some error, which hopefully we'll correct on next try
                                 await message.delete()
