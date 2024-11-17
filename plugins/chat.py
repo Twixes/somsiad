@@ -301,7 +301,7 @@ class Chat(commands.Cog):
                             if iterations_left == 1
                             else "Spróbuj ponownie naprawiając ten błąd."
                             if resulting_message_content and "⚠️" in resulting_message_content
-                            else "Jeśli w powyższym wyniku brakuje informacji w sprawie mojej prośby, spróbuj ponownie z inną komendą. Nie ponawiaj komendy bez znaczących zmian.",
+                            else "Jeśli powyższy wynik nie do końca spełnia moją prośbę, spróbuj ponownie z inną komendą. (Nie ponawiaj komendy bez znaczących zmian.)",
                         }
                     )
                 else:
