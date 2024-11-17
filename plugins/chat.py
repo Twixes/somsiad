@@ -154,6 +154,8 @@ class Chat(commands.Cog):
                 break
         if message.embeds:
             parts.append(self.embeds_to_text(message.embeds))
+        if message.attachments:
+            parts.extend(f"Załącznik {i+1}: {attachment.filename}" for i, attachment in enumerate(message.attachments))
         return "\n".join(parts)
 
     @cooldown(rate=15, per=3600 * 24, type=commands.BucketType.channel)
