@@ -267,7 +267,7 @@ class Chat(commands.Cog):
 
         final_message = "Nie udało mi się wykonać zadania. 😔"
         citations: dict[str, str] = {}
-        reply_resulted_in_command_message = False
+        final_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 iteration_result = await aclient.chat.completions.create(
@@ -279,12 +279,16 @@ class Chat(commands.Cog):
                 iteration_choice = iteration_result.choices[0]
                 if iteration_choice.finish_reason == "tool_calls":
                     if iteration_choice.message.content:
-                        self.bot.send(ctx, iteration_choice.message.content)
+                        self.bot.send(ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message)
                     function_call = iteration_choice.message.tool_calls[0].function
                     if function_call.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
                         resulting_message_content = await self.invoke_ask_online(citations, function_call)
                     else:
-                        resulting_message_content = await self.invoke_command(ctx, prompt_messages, function_call)
+                        resulting_message_content, iteration_resulted_in_command_message = await self.invoke_command(
+                            ctx, prompt_messages, function_call
+                        )
+                        if iteration_resulted_in_command_message:
+                            final_resulted_in_command_message = True
 
                     prompt_messages.append(
                         {
@@ -313,7 +317,7 @@ class Chat(commands.Cog):
                         )
                     break
 
-        await self.bot.send(ctx, final_message, reply=not reply_resulted_in_command_message)
+        await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
 
     async def invoke_ask_online(self, citations, function_call):
         async with self.bot.session.post(
@@ -341,7 +345,7 @@ class Chat(commands.Cog):
                 citations[urllib.parse.urlparse(citation).netloc] = citation
             return resulting_message_data["choices"][0]["message"]["content"]
 
-    async def invoke_command(self, ctx: commands.Context, prompt_messages: list, function_call):
+    async def invoke_command(self, ctx: commands.Context, prompt_messages: list, function_call) -> tuple[str, bool]:
         command_invocation = (
             f"{function_call.name.replace('_', ' ')} {' '.join(json.loads(function_call.arguments).values())}"
         )
@@ -361,7 +365,7 @@ class Chat(commands.Cog):
         command_ctx._is_ai_tool_call = True  # Enabled cooldown bypass
         invoker = command_view.get_word()
         if invoker not in self.bot.all_commands:
-            return (f"Komenda `{invoker}` nie istnieje.",)
+            return (f"Komenda `{invoker}` nie istnieje.",), False
         command_ctx.invoked_with = invoker
         command_ctx.command = self.bot.all_commands[invoker]
         await self.bot.invoke(command_ctx)
@@ -372,12 +376,13 @@ class Chat(commands.Cog):
                 if resulting_message_content and resulting_message_content[0] in ("⚠️", "🙁", "❔"):
                     # There was some error, which hopefully we'll correct on next try
                     await message.delete()
-                return resulting_message_content
+                    return resulting_message_content, False
+                return resulting_message_content, True
             elif message == ctx.message:
                 # No message was sent by the invoked command
                 bot_reaction_emojis = [reaction.emoji for reaction in ctx.message.reactions if reaction.me]
-                return f"Jej wynik w postaci emoji: {''.join(bot_reaction_emojis)}"
-        return None
+                return f"Jej wynik w postaci emoji: {''.join(bot_reaction_emojis)}", False
+        return None, False
 
     @hey.error
     async def hey_error(self, ctx, error):
