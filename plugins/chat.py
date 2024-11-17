@@ -243,7 +243,9 @@ class Chat(commands.Cog):
                     model="gpt-4o",
                     messages=prompt_messages,
                     user=str(ctx.author.id),
-                    tools=[{"function": f, "type": "function"} for f in self._all_available_commands_as_tools],
+                    tools=[{"function": f, "type": "function"} for f in self._all_available_commands_as_tools]
+                    if iterations_left
+                    else [],
                 )
                 iteration_choice = iteration_result.choices[0]
                 if iteration_choice.finish_reason == "tool_calls":
@@ -282,7 +284,7 @@ class Chat(commands.Cog):
                             # Found a message which probably resulted from the tool's command invocation
                             reply_resulted_in_command_message = True
                             resulting_message_content = await self.message_to_text(command_ctx, message)
-                            if resulting_message_content and resulting_message_content[0] in ("⚠️", "❔"):
+                            if resulting_message_content and resulting_message_content[0] in ("⚠️", "🙁", "❔"):
                                 # There was some error, which hopefully we'll correct on next try
                                 await message.delete()
                                 reply_resulted_in_command_message = False
@@ -303,11 +305,11 @@ class Chat(commands.Cog):
                     prompt_messages.append(
                         {
                             "role": "user",
-                            "content": "Nie możesz już wykonać kolejnej komendy!"
+                            "content": "Wykorzystano limit użycia komend."
                             if iterations_left == 1
-                            else f"Spróbuj ponownie naprawiając wskazany błąd. Masz do wykorzystania jeszcze {word_number_form(iterations_left, 'komendę','komendy', 'komend')}."
+                            else "Spróbuj ponownie naprawiając wskazany błąd."
                             if resulting_message_content and "⚠️" in resulting_message_content
-                            else f"Jeśli w powyższym wyniku brakuje informacji w sprawie mojej prośby, spróbuj ponownie z inną komendą. Masz do wykorzystania jeszcze {word_number_form(iterations_left, 'komendę','komendy', 'komend')}. Nie ponawiaj komendy bez znaczących zmian.",
+                            else "Jeśli w powyższym wyniku brakuje informacji w sprawie mojej prośby, spróbuj ponownie z inną komendą. Nie ponawiaj komendy bez znaczących zmian.",
                         }
                     )
                 else:
