@@ -18,7 +18,7 @@ from typing import List, Mapping, Optional, Sequence
 import discord
 from discord.ext import commands
 from discord.ext.commands.view import StringView
-from openai import AsyncOpenAI
+from openai import NOT_GIVEN, AsyncOpenAI
 from openai.types import FunctionDefinition
 import datetime as dt
 from configuration import configuration
@@ -26,7 +26,7 @@ from core import Help, cooldown
 from plugins.help_message import Help as HelpCog
 from somsiad import Somsiad
 import tiktoken
-from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time, word_number_form
+from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time
 from unidecode import unidecode
 
 
@@ -245,7 +245,7 @@ class Chat(commands.Cog):
                     user=str(ctx.author.id),
                     tools=[{"function": f, "type": "function"} for f in self._all_available_commands_as_tools]
                     if iterations_left
-                    else [],
+                    else NOT_GIVEN,
                 )
                 iteration_choice = iteration_result.choices[0]
                 if iteration_choice.finish_reason == "tool_calls":
