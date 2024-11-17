@@ -25,6 +25,7 @@ class DataProcessing(commands.Cog, SomsiadMixin):
         'przetwarzanie-danych',
         (),
         'Narzędzia dotyczące przetwarzania Twoich danych przez Somsiada.',
+            non_ai_usable=True
     )
     COMMANDS = (
         Help.Command(

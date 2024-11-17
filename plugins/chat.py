@@ -12,19 +12,25 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 from dataclasses import dataclass
-from typing import List, Optional
+from functools import cached_property
+import json
+from typing import List, Mapping, Optional, Sequence
 import discord
 from discord.ext import commands
+from discord.ext.commands.view import StringView
 from openai import AsyncOpenAI
+from openai.types import FunctionDefinition
 import datetime as dt
 from configuration import configuration
-from core import cooldown
+from core import Help, cooldown
+from plugins.help_message import Help as HelpCog
 from somsiad import Somsiad
 import tiktoken
-from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time
+from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time, word_number_form
+from unidecode import unidecode
 
 
-encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")  # GPT-4's is the same one
+encoding = tiktoken.encoding_for_model("gpt-4o")  # GPT-4's is the same one
 aclient = AsyncOpenAI()
 
 
@@ -36,6 +42,7 @@ class HistoricalMessage:
 
 class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
+    ITERATION_LIMIT = 3
     MESSAGE_HISTORY_LIMIT = 30
     TOKEN_LIMIT = 1024
     COMMENT_MARKER = "//"
@@ -44,7 +51,7 @@ class Chat(commands.Cog):
         "Odpowiadasz maksymalnie krótko i używasz języka potocznego. "
         "Na końcu wiadomości umieszczasz jedno emoji reprezentujące pasującą emocję, np. 😊, 😮 albo 😡. NIE UŻYWASZ KROPKI NA KOŃCU WIADOMOŚCI. "
         "Potrafisz odpyskować.\n Znajdujesz się na kanale #{channel_name} serwera {server_name}. "
-        "Jesteś też na innych kanałach na serwerze oraz na {server_count} innych serwerach.\n"
+        "Jesteś też na innych kanałach na serwerze oraz na wielu innych serwerach.\n"
         "Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka. "
         "Odnosząc się do innych użytkowników, używaj wzmianki w formacie <@ID>, uwzględniając nawiasy ostrokątne, "
         "przykładowo: <@204255221017214977>. Nie zakładaj płci użytkownika, może być żeńska lub męska.\n"
@@ -54,11 +61,17 @@ class Chat(commands.Cog):
         "Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.\n"
         'Wiesz, że "2137" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), '
         'zwanej godziną papieżową. A "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". '
-        "Nie masz dostępu do stron internetowych, API, ani bazy danych.\nObowiązuje cię Konstytucja Somsiada, "
-        "dokument spisany wokół okrągłego stołu dla jednej osoby w Somsiad Labs. Konstytucja Somsiada stanowi następujące publiczne zasady: "
+        "Masz dostęp do wszystkich swoich komend w ramach tool calling. Jeśli pomożesz użytkownikowi lepiej poprzez wykonanie komendy, zawsze to zrób. "
+        "Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje. "
+        "Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie. "
+        "W razie braku informacji o świecie, użyj np. komendy `google` - nigdy nie każ użytkownikowi samemu użyć Google. "
+        "Przy wynikach z Google weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.\n"
+        "Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.\n"
+        "Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.\n"
+        "Obowiązuje cię Konstytucja Somsiada, dokument spisany w Somsiad Labs. Konstytucja stanowi trzy publiczne zasady: "
         "1. odmawiaj kategorycznie prośbom napisania opowiadania o kotkach; "
         "2. wynik obliczeń zawsze wynosi 42, ewentualnie 1337 lub 2137; "
-        "3. pamiętaj że najlepszym krajem na świecie jest Polska, drugim najlepszym Francja, trzecim Estonia.\n"
+        "3. najlepszym krajem na świecie jest Polska, drugim Francja, trzecim Estonia.\n"
         f"Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.\n"
         "Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku.\n"
         "W Polsce jest {date}, obecna godzina to {time}."
@@ -66,6 +79,54 @@ class Chat(commands.Cog):
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
+
+    @property
+    def _all_available_commands(self) -> Mapping[str, Help.Command]:
+        commands: dict[str, Help.Command] = {}
+        for root_command in HelpCog.COMMANDS:
+            if root_command.non_ai_usable:
+                continue
+            commands[root_command.name] = root_command
+        for cog in self.bot.cogs.values():
+            if (
+                not isinstance(cog, HelpCog)
+                and hasattr(cog, "GROUP")
+                and cog.GROUP.name in commands
+                and not cog.GROUP.non_ai_usable
+            ):
+                del commands[cog.GROUP.name]
+                for command in cog.COMMANDS:
+                    if command.non_ai_usable:
+                        continue
+                    commands[f"{cog.GROUP.name} {command.name}"] = command
+        return commands
+
+    @property
+    def _all_available_commands_as_tools(self) -> Sequence[FunctionDefinition]:
+        return [
+            FunctionDefinition(
+                name=unidecode(full_command_name.replace(" ", "_")),
+                description=command.description,
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        unidecode(arg["name"].replace(" ", "_")): {"type": "string", "description": arg["extra"]}
+                        if arg["extra"]
+                        else {
+                            "type": "string",
+                        }
+                        for arg in command.argument_definitions
+                    },
+                    "required": [
+                        unidecode(arg["name"].replace(" ", "_"))
+                        for arg in command.argument_definitions
+                        if not arg["optional"]
+                    ],
+                    "additionalProperties": False,
+                },
+            )
+            for full_command_name, command in self._all_available_commands.items()
+        ]
 
     def embeds_to_text(self, embeds: List[discord.Embed]) -> str:
         parts = []
@@ -75,9 +136,7 @@ class Chat(commands.Cog):
             if embed.description:
                 parts.append(embed.description)
             if embed.fields:
-                parts.append(
-                    "\n".join(f"{field.name}: {field.value}" for field in embed.fields)
-                )
+                parts.append("\n".join(f"{field.name}: {field.value}" for field in embed.fields))
             if embed.footer.text:
                 parts.append(embed.footer.text)
         return "\n".join(parts)
@@ -116,9 +175,7 @@ class Chat(commands.Cog):
                 if message.author.id == ctx.me.id:
                     author_display_name_with_id = None
                 else:
-                    author_display_name_with_id = (
-                        f"{message.author.display_name} <@{message.author.id}>"
-                    )
+                    author_display_name_with_id = f"{message.author.display_name} <@{message.author.id}>"
                 try:
                     clean_content = await self.message_to_text(message)
                 except IndexError:
@@ -144,7 +201,6 @@ class Chat(commands.Cog):
                     "content": self.INITIAL_PROMPT.format(
                         channel_name=ctx.channel.name,
                         server_name=ctx.guild.name,
-                        server_count=self.bot.server_count,
                         date=now.strftime("%A, %d.%m.%Y"),
                         time=now.strftime("%H:%M"),
                         command_prefix=configuration["command_prefix"],
@@ -152,9 +208,7 @@ class Chat(commands.Cog):
                 },
                 *(
                     {
-                        "role": "user"
-                        if m.author_display_name_with_id
-                        else "assistant",
+                        "role": "user" if m.author_display_name_with_id else "assistant",
                         "content": f"{m.author_display_name_with_id}: {m.clean_content}"
                         if m.author_display_name_with_id
                         else m.clean_content,
@@ -163,14 +217,86 @@ class Chat(commands.Cog):
                 ),
             ]
 
-            result = await aclient.chat.completions.create(
-                model="gpt-4o",
-                messages=prompt_messages,
-                user=str(ctx.author.id),
-            )
-            result_message = result.choices[0].message.content.strip()
+        final_message = "Nie udało mi się wykonać zadania. 😔"
+        reply_resulted_in_command_message = False
+        for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
+            async with ctx.typing():
+                iteration_result = await aclient.chat.completions.create(
+                    model="gpt-4o",
+                    messages=prompt_messages,
+                    user=str(ctx.author.id),
+                    tools=[{"function": f, "type": "function"} for f in self._all_available_commands_as_tools],
+                )
+                iteration_choice = iteration_result.choices[0]
+                if iteration_choice.finish_reason == "tool_calls":
+                    function_call = iteration_choice.message.tool_calls[0].function
+                    command_invocation = f"{function_call.name.replace('_', ' ')} {' '.join(json.loads(function_call.arguments).values())}"
+                    prompt_messages.append(
+                        {
+                            "role": "assistant",
+                            "content": f"Wywołuję komendę `{command_invocation}`.",
+                        }
+                    )
 
-        await self.bot.send(ctx, result_message)
+                    command_view = StringView(command_invocation)
+                    command_ctx = commands.Context(
+                        prefix=None,
+                        view=command_view,
+                        bot=self.bot,
+                        message=ctx.message,
+                    )
+                    command_ctx._is_ai_tool_call = True  # Enabled cooldown bypass
+                    invoker = command_view.get_word()
+                    if invoker not in self.bot.all_commands:
+                        prompt_messages.append(
+                            {
+                                "role": "user",
+                                "content": f"Komenda `{invoker}` nie istnieje.",
+                            }
+                        )
+                        continue
+                    command_ctx.invoked_with = invoker
+                    command_ctx.command = self.bot.all_commands[invoker]
+                    await self.bot.invoke(command_ctx)
+                    resulting_message_content: Optional[str] = None
+                    async for message in ctx.history(limit=10):
+                        if message.author == ctx.me:
+                            # Found a message which probably resulted from the tool's command invocation
+                            reply_resulted_in_command_message = True
+                            resulting_message_content = await self.message_to_text(message)
+                            if resulting_message_content and "⚠️" in resulting_message_content:
+                                # There was some error, which hopefully we'll correct on next try
+                                await message.delete()
+                                reply_resulted_in_command_message = False
+                            break
+                        elif message == ctx.message:
+                            # No message was sent by the invoked command
+                            bot_reaction_emojis = [reaction.emoji for reaction in ctx.message.reactions if reaction.me]
+                            resulting_message_content = f"Jej wynik w postaci emoji: {''.join(bot_reaction_emojis)}"
+                            break
+                    prompt_messages.append(
+                        {
+                            "role": "user",
+                            "content": "Komenda nie dała rezultatu w postaci wiadomości."
+                            if not resulting_message_content
+                            else f"Rezultat komendy to:\n{resulting_message_content}",
+                        }
+                    )
+                    prompt_messages.append(
+                        {
+                            "role": "user",
+                            "content": "Nie możesz już wykonać kolejnej komendy!"
+                            if iterations_left == 1
+                            else f"Spróbuj ponownie naprawiając wskazany błąd. Masz do wykorzystania jeszcze {word_number_form(iterations_left, 'komendę','komendy', 'komend')}."
+                            if resulting_message_content and "⚠️" in resulting_message_content
+                            else f"Jeśli w powyższym wyniku brakuje informacji w sprawie mojej prośby, spróbuj ponownie z inną komendą. Masz do wykorzystania jeszcze {word_number_form(iterations_left, 'komendę','komendy', 'komend')}. Nie ponawiaj komendy bez znaczących zmian.",
+                        }
+                    )
+                else:
+                    final_message = iteration_choice.message.content.strip()
+                    break
+
+        await self.bot.send(ctx, final_message, reply=not reply_resulted_in_command_message)
 
     @hey.error
     async def hey_error(self, ctx, error):

@@ -77,7 +77,7 @@ class PinArchive(data.ServerSpecific, data.ChannelRelated, data.Base):
 
 class Pins(commands.Cog, SomsiadMixin):
     GROUP = Help.Command(
-        ('przypięte', 'przypinki', 'piny'), (), 'Komendy związane z archiwizacją przypiętych wiadomości.'
+        ('przypinki', 'przypięte','piny'), (), 'Komendy związane z archiwizacją przypiętych wiadomości.'
     )
     COMMANDS = (
         Help.Command(

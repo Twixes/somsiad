@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Somsiad.
 # If not, see <https://www.gnu.org/licenses/>.
 
+import discord
 from core import Invocation, is_user_opted_out_of_data_processing
 import datetime as dt
 from somsiad import Somsiad, SomsiadMixin
@@ -28,6 +29,7 @@ class Commands(commands.Cog, SomsiadMixin):
             if not ctx.command or is_user_opted_out_of_data_processing(session, ctx.author.id):
                 return
             invocation = Invocation(
+                id=discord.utils.time_snowflake(dt.datetime.now()),
                 message_id=ctx.message.id,
                 server_id=ctx.guild.id if ctx.guild is not None else None,
                 channel_id=ctx.channel.id,

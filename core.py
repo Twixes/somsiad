@@ -14,8 +14,8 @@
 import asyncio
 import datetime as dt
 import random
-from typing import List, Optional, Sequence, Union
-from cachetools import LRUCache, TTLCache, cached
+from typing import List, Optional, Sequence, TypedDict, Union
+from cachetools import TTLCache, cached
 from cachetools.keys import hashkey
 
 import discord
@@ -34,7 +34,8 @@ from sqlalchemy.orm import Session
 class Invocation(data.MemberRelated, data.ChannelRelated, data.Base):
     MAX_ERROR_LENGTH = 300
 
-    message_id = data.Column(data.BigInteger, primary_key=True)
+    id = data.Column(data.BigInteger, primary_key=True)
+    message_id = data.Column(data.BigInteger, nullable=False, index=True)
     prefix = data.Column(data.String(max(23, data.Server.COMMAND_PREFIX_MAX_LENGTH)), nullable=True)
     full_command = data.Column(data.String(100), nullable=False, index=True)
     root_command = data.Column(data.String(100), nullable=False, index=True)
@@ -58,7 +59,10 @@ def cooldown(
 ):
     def decorator(func):
         if isinstance(func, commands.Command):
-            func._buckets = commands.CooldownMapping(commands.Cooldown(rate, per), type)
+            func._buckets = commands.DynamicCooldownMapping(
+                lambda context: commands.Cooldown(rate, per) if not getattr(context, "_is_ai_tool_call", False) else None,
+                type
+            )
         else:
             raise ValueError("Decorator must be applied to command, not the function")
         return func
@@ -94,18 +98,24 @@ def has_permissions(**perms):
     return commands.check(predicate)
 
 
+class ArgumentDefinition(TypedDict):
+    name: str
+    optional: bool
+    extra: Optional[str]
+
 class Help:
     """A help message generator."""
 
     class Command:
         "A command model."
-        __slots__ = ('_aliases', '_arguments', '_description', '_emoji', '_examples')
+        __slots__ = ('_aliases', '_arguments', '_description', '_emoji', '_examples', '_non_ai_usable')
 
         _aliases: Sequence[str]
         _arguments: Sequence[str]
         _description: str
         _emoji: Optional[str]
         _examples: Optional[List[str]]
+        _non_ai_usable: bool
 
         def __init__(
             self,
@@ -114,12 +124,15 @@ class Help:
             description: str,
             emoji: Optional[str] = None,
             examples: Optional[List[str]] = None,
+            *,
+            non_ai_usable: bool = False,
         ):
             self._aliases = (aliases,) if isinstance(aliases, str) else aliases
             self._arguments = (arguments,) if isinstance(arguments, str) else arguments
             self._description = description
             self._emoji = emoji
             self._examples = examples
+            self._non_ai_usable = non_ai_usable
 
         def __str__(self) -> str:
             return ' '.join(filter(None, (self.name, self.aliases, self.arguments)))
@@ -137,6 +150,16 @@ class Help:
             return " ".join(f"<{argument}>" for argument in self._arguments) if self._arguments else None
 
         @property
+        def argument_definitions(self) -> Sequence[ArgumentDefinition]:
+            return [
+                {
+                    "name": argument.split(',')[0].lstrip('?'),
+                    "optional": argument.startswith('?'),
+                    "extra": argument.split(',')[1].lstrip() if ',' in argument else None,
+                } for argument in self._arguments
+            ]
+
+        @property
         def description(self) -> str:
             if self._examples:
                 examples_joined = ", ".join((f"`{example}`" for example in self._examples))
@@ -147,6 +170,10 @@ class Help:
         @property
         def emoji(self) -> Optional[str]:
             return self._emoji
+
+        @property
+        def non_ai_usable(self) -> bool:
+            return self._non_ai_usable
 
     __slots__ = ('group', 'embeds')
 
@@ -289,13 +316,14 @@ class Essentials(commands.Cog, SomsiadMixin):
 
     @cooldown()
     @commands.command(aliases=['nope', 'nie'])
-    async def no(self, ctx, member: discord.Member = None):
+    async def no(self, ctx: commands.Context, member: discord.Member = None):
         """Removes the last message sent by the bot in the channel on the requesting user's request."""
         member = member or ctx.author
         if member == ctx.author or ctx.channel.permissions_for(ctx.author).manage_messages:
             async for message in ctx.history(limit=10):
                 if message.author == ctx.me and member in message.mentions:
                     await message.delete()
+                    await ctx.message.add_reaction('✅')
                     break
 
     @commands.command(aliases=['diag', 'diagnostyka'])
@@ -354,9 +382,11 @@ class Prefix(commands.Cog, SomsiadMixin):
             (),
             'Ustawia na serwerze podany prefiks bądź podane prefiksy oddzielone " lub ". '
             'Wymaga uprawnień administratora.',
+            non_ai_usable=True
         ),
         Help.Command(
-            ('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks. Wymaga uprawnień administratora.'
+            ('przywróć', 'przywroc'), (), 'Przywraca na serwerze domyślny prefiks. Wymaga uprawnień administratora.',
+            non_ai_usable=True
         ),
     )
     HELP = Help(COMMANDS, '🔧', group=GROUP)

@@ -115,6 +115,7 @@ class Birthday(commands.Cog):
             '?podkomenda',
             'Komendy związane z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
             'Użyj bez <?podkomendy>, by dowiedzieć się więcej. Wymaga uprawnień administratora.',
+            non_ai_usable=True
         ),
     )
     HELP = Help(COMMANDS, '🎂', group=GROUP)
@@ -124,6 +125,7 @@ class Birthday(commands.Cog):
         (),
         'Komendy związane z powiadamianiem na serwerze o dzisiejszych urodzinach członków. '
         'Wymaga uprawnień administratora.',
+        non_ai_usable=True
     )
     NOTIFICATIONS_COMMANDS = (
         Help.Command('status', (), 'Informuje czy powiadomienia o urodzinach są włączone i na jaki kanał są wysyłane.'),

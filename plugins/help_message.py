@@ -531,17 +531,18 @@ class Help(commands.Cog):
         ),
         _Help.Command(
             ('przypomnij', 'przypomnienie', 'pomidor'),
-            ('liczba minut/data i godzina', 'treść'),
+            ('liczba minut/data i godzina, bez spacji', 'treść'),
             'Przypomina o <treści> po upływie podanego czasu.',
             '🍅',
-            ['przypomnij 21.08.2022T12:00 Wyłączyć piekarnik!'],
+            ['przypomnij 21.08.2022T12:00 Wyłączyć piekarnik!', 'przypomnij 12d3h5m Przeczytać książkę'],
         ),
         _Help.Command(
             ('spal', 'burn'),
-            ('liczba minut/data i godzina', '?treść – może to też być załącznik'),
+            ('liczba minut/data i godzina, bez spacji', '?treść (może to być załącznik)'),
             'Usuwa wiadomość po upływie podanego czasu.',
             '🔥',
             ['spal 2h Nudesy'],
+            non_ai_usable=True
         ),
         _Help.Command(
             ('kolory', 'kolor', 'kolorki', 'kolorek'),
@@ -556,10 +557,11 @@ class Help(commands.Cog):
             'Komendy związane z archiwizacją przypiętych wiadomości. '
             'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
             '📌',
+            non_ai_usable=True
         ),
         _Help.Command(
             ('głosowanie', 'glosowanie', 'ankieta'),
-            ('?liczba minut/data i godzina', 'sprawa'),
+            ('?liczba minut/data i godzina, bez spacji', 'sprawa'),
             'Gdy <sprawa> jest w formacie "A. Opcja pierwsza, B. Opcja druga, ...", rozpoczyna głosowanie nad najpopularniejszą z opcji.\n'
             'Gdy <sprawa> jest w formacie "1. Opcja pierwsza, 2. Opcja druga, ..., n. Opcja n-ta", rozpoczyna głosowanie nad uśrednioną wartość odpowiedzi w skali od 1 do n .\n'
             'Jeśli <sprawa> nie jest w żadnym z powyższych formatów, rozpoczyna głosowanie "za/przeciw".\n'
@@ -567,19 +569,24 @@ class Help(commands.Cog):
             '🗳',
         ),
         _Help.Command(
-            ('pomógł', 'pomogl'), '?użytkownik Discorda', 'Oznacza pomocną wiadomość za pomocą reakcji.', '😺'
+            ('pomógł', 'pomogl'), '?użytkownik Discorda', 'Oznacza pomocną wiadomość za pomocą reakcji.', '😺',
+            non_ai_usable=True
         ),
         _Help.Command(
-            ('niepomógł', 'niepomogl'), '?użytkownik Discorda', 'Oznacza niepomocną wiadomość za pomocą reakcji.', '😾'
+            ('niepomógł', 'niepomogl'), '?użytkownik Discorda', 'Oznacza niepomocną wiadomość za pomocą reakcji.', '😾',
+            non_ai_usable=True
         ),
         _Help.Command(
             ('hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', 'thinking', '🤔'),
             '?użytkownik Discorda',
             '🤔',
             '🤔',
+            non_ai_usable=True
         ),
-        _Help.Command(('^', 'to', 'this', 'up', 'upvote'), '?użytkownik Discorda', '⬆', '⬆'),
-        _Help.Command('f', '?użytkownik Discorda', 'F', '🇫'),
+        _Help.Command(('^', 'to', 'this', 'up', 'upvote'), '?użytkownik Discorda', '⬆', '⬆',
+            non_ai_usable=True),
+        _Help.Command('f', '?użytkownik Discorda', 'F', '🇫',
+            non_ai_usable=True ),
         _Help.Command(
             ('zareaguj', 'reaguj', 'x'),
             ('?użytkownik Discorda', 'reakcje'),
@@ -587,14 +594,17 @@ class Help(commands.Cog):
             '(jeśli podano <?użytkownika Discorda>, to ostatnią jego autorstwa na kanale).',
             '💬',
         ),
-        _Help.Command('oof', (), 'Oof!', '😤'),
+        _Help.Command('oof', (), 'Oof!', '😤',
+            non_ai_usable=True),
         _Help.Command(
             'oof ile',
             '?użytkownik Discorda',
             'Zlicza oofnięcia dla <?użytkownika Discorda> lub, jeśli nie podano <?użytkownika Discorda>, dla ciebie.',
             '😱',
+            non_ai_usable=True
         ),
-        _Help.Command('oof serwer', (), 'Zlicza oofnięcia na serwerze i generuje ranking ooferów.', '🤠'),
+        _Help.Command('oof serwer', (), 'Zlicza oofnięcia na serwerze i generuje ranking ooferów.', '🤠',
+            non_ai_usable=True),
         _Help.Command(
             ('obróć', 'obroc', 'niewytrzymie'),
             ('?użytkownik', '?stopni/razy'),
@@ -608,7 +618,7 @@ class Help(commands.Cog):
             '🍟',
         ),
         _Help.Command(
-            ('robot9000', 'r9k', 'było', 'bylo', 'byo'),
+            ('było', 'bylo', 'byo', 'robot9000', 'r9k'),
             '?użytkownik',
             'Sprawdza czy ostatnio załączony na kanale lub, jeśli podano <?użytkownika>, na kanale przez <?użytkownika> obrazek pojawił się wcześniej na serwerze.',
             '🤖',
@@ -619,12 +629,18 @@ class Help(commands.Cog):
             'Magluje <?tekst> lub, jeśli nie podano <?tekstu>, ostatnio wysłaną na kanale wiadomość w <intensywność> procentach.',
             '⌨️',
         ),
-        _Help.Command('tableflip', (), '(╯°□°）╯︵ ┻━┻', '🤬'),
-        _Help.Command('unflip', (), '┬─┬ ノ( ゜-゜ノ)', '😞'),
-        _Help.Command('shrug', (), r'¯\_(ツ)_/¯', '🤷'),
-        _Help.Command(('lenny', 'lennyface'), (), '( ͡° ͜ʖ ͡°)', '😏'),
-        _Help.Command(('lenno', 'lennoface'), (), '( ͡ʘ ͜ʖ ͡ʘ)', '😼'),
-        _Help.Command(('dej', 'gib'), '?rzecz', '༼ つ ◕_◕ ༽つ <?rzecz>', '🤲'),
+        _Help.Command('tableflip', (), '(╯°□°）╯︵ ┻━┻', '🤬',
+            non_ai_usable=True),
+        _Help.Command('unflip', (), '┬─┬ ノ( ゜-゜ノ)', '😞',
+            non_ai_usable=True),
+        _Help.Command('shrug', (), r'¯\_(ツ)_/¯', '🤷',
+            non_ai_usable=True),
+        _Help.Command(('lenny', 'lennyface'), (), '( ͡° ͜ʖ ͡°)', '😏',
+            non_ai_usable=True),
+        _Help.Command(('lenno', 'lennoface'), (), '( ͡ʘ ͜ʖ ͡ʘ)', '😼',
+            non_ai_usable=True),
+        _Help.Command(('dej', 'gib'), '?rzecz', '༼ つ ◕_◕ ༽つ <?rzecz>', '🤲',
+            non_ai_usable=True),
         _Help.Command(
             ('nie', 'nope', 'no'),
             (),
@@ -637,6 +653,7 @@ class Help(commands.Cog):
             'Ostrzega <użytkownika Discorda>. '
             'Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.',
             '❗️',
+            non_ai_usable=True
         ),
         _Help.Command(
             ('kick', 'wyrzuć', 'wyrzuc'),
@@ -644,12 +661,14 @@ class Help(commands.Cog):
             'Wyrzuca <użytkownika Discorda>. '
             'Działa tylko dla członków serwera mających uprawnienia do wyrzucania innych.',
             '👋',
+            non_ai_usable=True
         ),
         _Help.Command(
             ('ban', 'zbanuj'),
             ('użytkownik Discorda', 'powód'),
             'Banuje <użytkownika Discorda>. Działa tylko dla członków serwera mających uprawnienia do banowania innych.',
             '🔨',
+            non_ai_usable=True
         ),
         _Help.Command(
             ('przebacz', 'pardon'),
@@ -657,6 +676,7 @@ class Help(commands.Cog):
             'Usuwa wszystkie ostrzeżenia <użytkownika Discorda> na serwerze. '
             'Działa tylko dla członków serwera mających uprawnienia administratora.',
             '🕊',
+            non_ai_usable=True
         ),
         _Help.Command(
             'kartoteka',
@@ -673,6 +693,7 @@ class Help(commands.Cog):
             'z kanału na którym użyto komendy. Działa tylko dla członków serwera mających uprawnienia '
             'do zarządzania wiadomościami na kanale.',
             '🧹',
+            non_ai_usable=True
         ),
         _Help.Command(
             ('prefiks', 'prefix'),
@@ -680,14 +701,17 @@ class Help(commands.Cog):
             'Komendy związane z własnymi serwerowymi prefiksami komend. '
             'Użyj bez <?podkomendy>, by dowiedzieć się więcej.',
             '🔧',
+            non_ai_usable=True
         ),
         _Help.Command(
             'przetwarzanie-danych',
             (),
             'Narzędzia dotyczące przetwarzania Twoich danych przez Somsiada.',
+            non_ai_usable=True
         ),
         _Help.Command(('komendadnia', 'cotd'), (), 'Pokazuje dzisiejszą komendę dnia.', '👀'),
-        _Help.Command(('ping', 'pińg'), (), 'Pong!', '🏓'),
+        _Help.Command(('ping', 'pińg'), (), 'Pong!', '🏓',
+            non_ai_usable=True),
         _Help.Command(('wersja', 'v'), (), 'Pokazuje działającą wersja bota.', '🍆'),
         _Help.Command(('informacje', 'info'), (), 'Pokazuje działającą wersja bota plus dodatkowe informacje.', 'ℹ️'),
     )

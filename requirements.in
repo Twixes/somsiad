@@ -21,7 +21,8 @@ pycares==4.4.* # Without this, an older version is installed, which has compilat
 yarl==1.9.*
 
 redis==5.0.*
-openai==1.30.*
-tiktoken==0.5.*
+openai==1.54.*
+tiktoken==0.8.*
 aiopytesseract==0.10.0
 jurigged==0.5.*
+Unidecode==1.3.*
