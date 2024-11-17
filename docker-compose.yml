@@ -23,6 +23,7 @@ services:
       - LAST_FM_KEY
       - WOLFRAM_ALPHA_APP_ID
       - OPENAI_API_KEY
+      - PERPLEXITY_API_KEY
       - DISCO_MAX_FILE_SIZE_IN_MIB
       - SENTRY_DSN
       - SENTRY_AUTH_TOKEN

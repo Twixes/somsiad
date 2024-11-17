@@ -21,6 +21,8 @@ from discord.ext.commands.view import StringView
 from openai import NOT_GIVEN, AsyncOpenAI
 from openai.types import FunctionDefinition
 import datetime as dt
+import urllib.parse
+
 from configuration import configuration
 from core import Help, cooldown
 from plugins.help_message import Help as HelpCog
@@ -41,6 +43,23 @@ class HistoricalMessage:
 
 
 clean_content_converter = commands.clean_content()
+
+
+ASK_ONLINE_FUNCTION_DEFINITION = FunctionDefinition(
+    name="zapytaj_online",
+    description="Zadaje pytanie wyszukiwarce z dostępem do internetu.",
+    parameters={
+        "type": "object",
+        "properties": {
+            "pytanie": {
+                "type": "string",
+                "description": "Pytanie do sprawdzenia, w formie naturalnego zapytania.",
+            }
+        },
+        "required": ["pytanie"],
+        "additionalProperties": False,
+    },
+)
 
 
 class Chat(commands.Cog):
@@ -67,8 +86,8 @@ class Chat(commands.Cog):
         "Masz dostęp do wszystkich swoich komend w ramach tool calling. Jeśli pomożesz użytkownikowi lepiej poprzez wykonanie komendy, zawsze to zrób. "
         "Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje. "
         "Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie. "
-        "W razie braku informacji o świecie, użyj np. komendy `google` - nigdy nie każ użytkownikowi samemu użyć Google. "
-        "Przy wynikach z Google weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.\n"
+        f"W razie potrzeby informacji o świecie, użyj wewnętrznego narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}` - to najlepsze źródło informacji. "
+        "Nigdy nie każ użytkownikowi samemu użyć Google. Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.\n"
         "Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.\n"
         "Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.\n"
         "Obowiązuje cię Konstytucja Somsiada, dokument spisany w Somsiad Labs. Konstytucja stanowi trzy publiczne zasady: "
@@ -106,30 +125,41 @@ class Chat(commands.Cog):
 
     @property
     def _all_available_commands_as_tools(self) -> Sequence[FunctionDefinition]:
-        return [
-            FunctionDefinition(
-                name=unidecode(full_command_name.replace(" ", "_")),
-                description=command.description,
-                parameters={
-                    "type": "object",
-                    "properties": {
-                        unidecode(arg["name"].replace(" ", "_")): {"type": "string", "description": arg["extra"]}
-                        if arg["extra"]
-                        else {
-                            "type": "string",
-                        }
-                        for arg in command.argument_definitions
+        tools = [
+            {
+                "type": "function",
+                "function": FunctionDefinition(
+                    name=unidecode(full_command_name.replace(" ", "_")),
+                    description=command.description,
+                    parameters={
+                        "type": "object",
+                        "properties": {
+                            unidecode(arg["name"].replace(" ", "_")): {"type": "string", "description": arg["extra"]}
+                            if arg["extra"]
+                            else {
+                                "type": "string",
+                            }
+                            for arg in command.argument_definitions
+                        },
+                        "required": [
+                            unidecode(arg["name"].replace(" ", "_"))
+                            for arg in command.argument_definitions
+                            if not arg["optional"]
+                        ],
+                        "additionalProperties": False,
                     },
-                    "required": [
-                        unidecode(arg["name"].replace(" ", "_"))
-                        for arg in command.argument_definitions
-                        if not arg["optional"]
-                    ],
-                    "additionalProperties": False,
-                },
-            )
+                ),
+            }
             for full_command_name, command in self._all_available_commands.items()
         ]
+        if configuration["perplexity_api_key"]:
+            tools.append(
+                {
+                    "function": ASK_ONLINE_FUNCTION_DEFINITION,
+                    "type": "function",
+                }
+            )
+        return tools
 
     async def embeds_to_text(self, ctx: commands.Context, embeds: List[discord.Embed]) -> str:
         parts = []
@@ -236,6 +266,7 @@ class Chat(commands.Cog):
             ]
 
         final_message = "Nie udało mi się wykonać zadania. 😔"
+        citations: dict[str, str] = {}
         reply_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
@@ -243,57 +274,18 @@ class Chat(commands.Cog):
                     model="gpt-4o",
                     messages=prompt_messages,
                     user=str(ctx.author.id),
-                    tools=[{"function": f, "type": "function"} for f in self._all_available_commands_as_tools]
-                    if iterations_left
-                    else NOT_GIVEN,
+                    tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
                 )
                 iteration_choice = iteration_result.choices[0]
                 if iteration_choice.finish_reason == "tool_calls":
+                    if iteration_choice.message.content:
+                        self.bot.send(ctx, iteration_choice.message.content)
                     function_call = iteration_choice.message.tool_calls[0].function
-                    command_invocation = f"{function_call.name.replace('_', ' ')} {' '.join(json.loads(function_call.arguments).values())}"
-                    prompt_messages.append(
-                        {
-                            "role": "assistant",
-                            "content": f"Wywołuję komendę `{command_invocation}`.",
-                        }
-                    )
+                    if function_call.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
+                        resulting_message_content = await self.invoke_ask_online(citations, function_call)
+                    else:
+                        resulting_message_content = await self.invoke_command(ctx, prompt_messages, function_call)
 
-                    command_view = StringView(command_invocation)
-                    command_ctx = commands.Context(
-                        prefix=None,
-                        view=command_view,
-                        bot=self.bot,
-                        message=ctx.message,
-                    )
-                    command_ctx._is_ai_tool_call = True  # Enabled cooldown bypass
-                    invoker = command_view.get_word()
-                    if invoker not in self.bot.all_commands:
-                        prompt_messages.append(
-                            {
-                                "role": "user",
-                                "content": f"Komenda `{invoker}` nie istnieje.",
-                            }
-                        )
-                        continue
-                    command_ctx.invoked_with = invoker
-                    command_ctx.command = self.bot.all_commands[invoker]
-                    await self.bot.invoke(command_ctx)
-                    resulting_message_content: Optional[str] = None
-                    async for message in ctx.history(limit=10):
-                        if message.author == ctx.me:
-                            # Found a message which probably resulted from the tool's command invocation
-                            reply_resulted_in_command_message = True
-                            resulting_message_content = await self.message_to_text(command_ctx, message)
-                            if resulting_message_content and resulting_message_content[0] in ("⚠️", "🙁", "❔"):
-                                # There was some error, which hopefully we'll correct on next try
-                                await message.delete()
-                                reply_resulted_in_command_message = False
-                            break
-                        elif message == ctx.message:
-                            # No message was sent by the invoked command
-                            bot_reaction_emojis = [reaction.emoji for reaction in ctx.message.reactions if reaction.me]
-                            resulting_message_content = f"Jej wynik w postaci emoji: {''.join(bot_reaction_emojis)}"
-                            break
                     prompt_messages.append(
                         {
                             "role": "user",
@@ -305,18 +297,87 @@ class Chat(commands.Cog):
                     prompt_messages.append(
                         {
                             "role": "user",
-                            "content": "Wykorzystano limit użycia komend."
+                            "content": "Wystarczy już komend, odpowiedz jak możesz."
                             if iterations_left == 1
-                            else "Spróbuj ponownie naprawiając wskazany błąd."
+                            else "Spróbuj ponownie naprawiając ten błąd."
                             if resulting_message_content and "⚠️" in resulting_message_content
                             else "Jeśli w powyższym wyniku brakuje informacji w sprawie mojej prośby, spróbuj ponownie z inną komendą. Nie ponawiaj komendy bez znaczących zmian.",
                         }
                     )
                 else:
                     final_message = iteration_choice.message.content.strip()
+                    if citations:
+                        final_message += "\n-# Źródła: "
+                        final_message += ", ".join(
+                            (f'[{domain.replace("www.", "")}](<{url}>)' for domain, url in citations.items())
+                        )
                     break
 
         await self.bot.send(ctx, final_message, reply=not reply_resulted_in_command_message)
+
+    async def invoke_ask_online(self, citations, function_call):
+        async with self.bot.session.post(
+            "https://api.perplexity.ai/chat/completions",
+            json={
+                "model": "llama-3.1-sonar-small-128k-online",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "Bądź dokładny i zwięzły. Ogranicz się do kilku krótkich zdań.",
+                    },
+                    {
+                        "role": "user",
+                        "content": json.loads(function_call.arguments)["pytanie"],
+                    },
+                ],
+            },
+            headers={
+                "Authorization": f"Bearer {configuration['perplexity_api_key']}",
+                "Content-Type": "application/json",
+            },
+        ) as request:
+            resulting_message_data = await request.json()
+            for citation in resulting_message_data["citations"]:
+                citations[urllib.parse.urlparse(citation).netloc] = citation
+            return resulting_message_data["choices"][0]["message"]["content"]
+
+    async def invoke_command(self, ctx: commands.Context, prompt_messages: list, function_call):
+        command_invocation = (
+            f"{function_call.name.replace('_', ' ')} {' '.join(json.loads(function_call.arguments).values())}"
+        )
+        prompt_messages.append(
+            {
+                "role": "assistant",
+                "content": f"Wywołuję komendę `{command_invocation}`.",
+            }
+        )
+        command_view = StringView(command_invocation)
+        command_ctx = commands.Context(
+            prefix=None,
+            view=command_view,
+            bot=self.bot,
+            message=ctx.message,
+        )
+        command_ctx._is_ai_tool_call = True  # Enabled cooldown bypass
+        invoker = command_view.get_word()
+        if invoker not in self.bot.all_commands:
+            return (f"Komenda `{invoker}` nie istnieje.",)
+        command_ctx.invoked_with = invoker
+        command_ctx.command = self.bot.all_commands[invoker]
+        await self.bot.invoke(command_ctx)
+        async for message in ctx.history(limit=4):
+            if message.author == ctx.me:
+                # Found a message which probably resulted from the tool's command invocation
+                resulting_message_content = await self.message_to_text(command_ctx, message)
+                if resulting_message_content and resulting_message_content[0] in ("⚠️", "🙁", "❔"):
+                    # There was some error, which hopefully we'll correct on next try
+                    await message.delete()
+                return resulting_message_content
+            elif message == ctx.message:
+                # No message was sent by the invoked command
+                bot_reaction_emojis = [reaction.emoji for reaction in ctx.message.reactions if reaction.me]
+                return f"Jej wynik w postaci emoji: {''.join(bot_reaction_emojis)}"
+        return None
 
     @hey.error
     async def hey_error(self, ctx, error):
