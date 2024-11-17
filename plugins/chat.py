@@ -64,7 +64,7 @@ ASK_ONLINE_FUNCTION_DEFINITION = FunctionDefinition(
 
 class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
-    ITERATION_LIMIT = 3
+    ITERATION_LIMIT = 4
     MESSAGE_HISTORY_LIMIT = 30
     TOKEN_LIMIT = 1024
     COMMENT_MARKER = "//"
