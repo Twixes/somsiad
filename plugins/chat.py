@@ -112,7 +112,8 @@ class Chat(commands.Cog):
         "Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie. "
         f"W razie potrzeby informacji o świecie, użyj wewnętrznego narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}` - najlepsze źródło informacji. "
         f"Jeśli do odpowiedzi potrzebne są wyniki obliczeń, użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}`. "
-        "Nigdy nie każ użytkownikowi samemu użyć Google. Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.\n"
+        "Nigdy nie każ użytkownikowi samemu użyć Google. "
+        "Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.\n"
         "Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.\n"
         "Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.\n"
         "Obowiązuje cię Konstytucja Somsiada, dokument spisany w Somsiad Labs. "
@@ -309,43 +310,12 @@ class Chat(commands.Cog):
                 iteration_choice = iteration_result.choices[0]
                 if iteration_choice.finish_reason == "tool_calls":
                     if iteration_choice.message.content:
-                        self.bot.send(
-                            ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message
-                        )
-                    function_call = iteration_choice.message.tool_calls[0].function
-                    if function_call.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
-                        resulting_message_content = await self.execute_ask_online(
-                            citations, prompt_messages, function_call
-                        )
-                    elif function_call.name == CALCULATOR_FUNCTION_DEFINITION.name:
-                        resulting_message_content = self.execute_calculator(
-                            math_operations, prompt_messages, function_call
-                        )
-                    else:
-                        resulting_message_content, iteration_resulted_in_command_message = await self.invoke_command(
-                            ctx, prompt_messages, function_call
-                        )
-                        if iteration_resulted_in_command_message:
-                            final_resulted_in_command_message = True
-
-                    prompt_messages.append(
-                        {
-                            "role": "user",
-                            "content": "Komenda nie dała rezultatu w postaci wiadomości."
-                            if not resulting_message_content
-                            else f"Rezultat komendy to:\n{resulting_message_content}",
-                        }
+                        self.bot.send(ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message)
+                    iteration_resulted_in_command_message = await self.process_tool_calls(
+                        ctx, prompt_messages, citations, math_operations, iterations_left, iteration_choice.message.tool_calls
                     )
-                    prompt_messages.append(
-                        {
-                            "role": "user",
-                            "content": "Wystarczy już komend, odpowiedz jak możesz."
-                            if iterations_left == 1
-                            else "Spróbuj ponownie naprawiając ten błąd."
-                            if resulting_message_content and "⚠️" in resulting_message_content
-                            else "Jeśli powyższy wynik nie wystarczy do spełnienia mojej prośby, spróbuj ponownie z inną komendą. (Nie ponawiaj komendy bez znaczących zmian.) Jeśli to wystarczy, odpowiedz w swoim stylu. 😏",
-                        }
-                    )
+                    if iteration_resulted_in_command_message:
+                        final_resulted_in_command_message = True
                 else:
                     final_message = iteration_choice.message.content.strip()
                     for i, citation in enumerate(citations):
@@ -359,6 +329,43 @@ class Chat(commands.Cog):
                     break
 
         await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
+
+    async def process_tool_calls(
+        self, ctx, prompt_messages, citations, math_operations, iterations_left, tool_calls
+    ):
+        iteration_resulted_in_command_message = False
+        for call in tool_calls:
+            if call.function.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
+                resulting_message_content = await self.execute_ask_online(citations, prompt_messages, call.function)
+            elif call.function.name == CALCULATOR_FUNCTION_DEFINITION.name:
+                resulting_message_content = self.execute_calculator(math_operations, prompt_messages, call.function)
+            else:
+                resulting_message_content, tool_call_resulted_in_command_message = await self.invoke_command(
+                    ctx, prompt_messages, call.function
+                )
+                if tool_call_resulted_in_command_message:
+                    iteration_resulted_in_command_message = True
+
+            prompt_messages.append(
+                {
+                    "role": "user",
+                    "content": "Komenda nie dała rezultatu w postaci wiadomości."
+                    if not resulting_message_content
+                    else f"Rezultat komendy to:\n{resulting_message_content}",
+                }
+            )
+            prompt_messages.append(
+                {
+                    "role": "user",
+                    "content": "Wystarczy już komend, odpowiedz jak możesz."
+                    if iterations_left == 1
+                    else "Spróbuj ponownie naprawiając ten błąd."
+                    if resulting_message_content and "⚠️" in resulting_message_content
+                    else "Jeśli powyższy wynik nie wystarczy do spełnienia mojej prośby, spróbuj ponownie z inną komendą. (Nie ponawiaj komendy bez znaczących zmian.) Jeśli to wystarczy, odpowiedz w swoim stylu. 😏",
+                }
+            )
+
+        return iteration_resulted_in_command_message
 
     async def execute_ask_online(self, citations: list[str], prompt_messages: list, function_call):
         prompt_messages.append(
