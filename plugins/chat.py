@@ -150,16 +150,18 @@ class Chat(commands.Cog):
         return "\n".join(parts)
 
     async def message_to_text(self, ctx: commands.Context, message: discord.Message) -> Optional[str]:
-        parts = [message.clean_content]
         if message.clean_content.strip().startswith(self.COMMENT_MARKER):
             return None
         if self.RESET_PHRASE in message.clean_content.lower():
             raise IndexError  # Conversation reset point
-        prefixes = await self.bot.get_prefix(message)
-        for prefix in prefixes + [f"<@{message.guild.me.display_name}"]:
-            if parts[0].startswith(prefix):
-                parts[0] = parts[0][len(prefix) :].lstrip()
-                break
+        parts: list[str] = []
+        if message.clean_content:
+            parts.append(message.clean_content)
+            prefixes = await self.bot.get_prefix(message)
+            for prefix in prefixes + [f"<@{message.guild.me.display_name}"]:
+                if parts[0].startswith(prefix):
+                    parts[0] = parts[0][len(prefix) :].lstrip()
+                    break
         if message.embeds:
             parts.append(self.embeds_to_text(ctx, message.embeds))
         if message.attachments:
@@ -274,7 +276,7 @@ class Chat(commands.Cog):
                             # Found a message which probably resulted from the tool's command invocation
                             reply_resulted_in_command_message = True
                             resulting_message_content = await self.message_to_text(command_ctx, message)
-                            if resulting_message_content and "⚠️" in resulting_message_content:
+                            if resulting_message_content and resulting_message_content[0] in ("⚠️", "❔"):
                                 # There was some error, which hopefully we'll correct on next try
                                 await message.delete()
                                 reply_resulted_in_command_message = False
