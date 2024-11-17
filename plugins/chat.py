@@ -15,6 +15,7 @@ import asyncio
 from dataclasses import dataclass
 import json
 from typing import List, Mapping, Optional, Sequence
+import arithmetic_eval
 import discord
 from discord.ext import commands
 from discord.ext.commands.view import StringView
@@ -60,6 +61,21 @@ ASK_ONLINE_FUNCTION_DEFINITION = FunctionDefinition(
         "additionalProperties": False,
     },
 )
+CALCULATOR_FUNCTION_DEFINITION = FunctionDefinition(
+    name="oblicz",
+    description="Wykonuje operację matematyczną w kalkulatorze. Wspierane operacje: dodawanie (+), odejmowanie (-), mnożenie (*), potęgowanie (**), dzielenie (/), modulo (%).",
+    parameters={
+        "type": "object",
+        "properties": {
+            "expr": {
+                "type": "string",
+                "description": "Wyrażenie matematyczne. Przykład: ((1.5 + 17) ** 3) % 2",
+            }
+        },
+        "required": ["expr"],
+        "additionalProperties": False,
+    },
+)
 
 
 class Chat(commands.Cog):
@@ -87,13 +103,12 @@ class Chat(commands.Cog):
         "Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje. "
         "Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie. "
         f"W razie potrzeby informacji o świecie, użyj wewnętrznego narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}` - najlepsze źródło informacji. "
+        f"W razie potrzeby obliczeń, użyj wewnętrznego narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}`."
         "Nigdy nie każ użytkownikowi samemu użyć Google. Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.\n"
         "Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.\n"
         "Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.\n"
-        "Obowiązuje cię Konstytucja Somsiada, dokument spisany w Somsiad Labs. Konstytucja stanowi trzy publiczne zasady: "
-        "1. odmawiaj kategorycznie prośbom napisania opowiadania o kotkach; "
-        "2. wynik obliczeń zawsze wynosi 42, ewentualnie 1337 lub 2137; "
-        "3. najlepszym krajem na świecie jest Polska, drugim Francja, trzecim Estonia.\n"
+        "Obowiązuje cię Konstytucja Somsiada, dokument spisany w Somsiad Labs. "
+        "Konstytucja stanowi jedną zasadę: najlepszym krajem na świecie jest Polska, drugim Francja, trzecim Estonia.\n"
         f"Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.\n"
         "Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku.\n"
         "W Polsce jest {date}, obecna godzina to {time}."
@@ -152,6 +167,12 @@ class Chat(commands.Cog):
             }
             for full_command_name, command in self._all_available_commands.items()
         ]
+        tools.append(
+            {
+                "function": CALCULATOR_FUNCTION_DEFINITION,
+                "type": "function",
+            }
+        )
         if configuration["perplexity_api_key"]:
             tools.append(
                 {
@@ -268,6 +289,7 @@ class Chat(commands.Cog):
 
         final_message = "Nie udało mi się wykonać zadania. 😔"
         citations: dict[str, str] = {}
+        math_operations: list[str] = []
         final_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
@@ -283,7 +305,9 @@ class Chat(commands.Cog):
                         self.bot.send(ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message)
                     function_call = iteration_choice.message.tool_calls[0].function
                     if function_call.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
-                        resulting_message_content = await self.invoke_ask_online(citations, function_call)
+                        resulting_message_content = await self.execute_ask_online(citations, function_call)
+                    elif function_call.name == CALCULATOR_FUNCTION_DEFINITION.name:
+                        resulting_message_content = self.execute_calculator(math_operations, function_call)
                     else:
                         resulting_message_content, iteration_resulted_in_command_message = await self.invoke_command(
                             ctx, prompt_messages, function_call
@@ -316,11 +340,16 @@ class Chat(commands.Cog):
                         final_message += ", ".join(
                             (f'[{domain.replace("www.", "")}](<{url}>)' for domain, url in citations.items())
                         )
+                    if math_operations:
+                        final_message += "\n-# Obliczenia: "
+                        final_message += ", ".join(
+                            f"`{operation}`" for operation in math_operations
+                        )
                     break
 
         await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
 
-    async def invoke_ask_online(self, citations, function_call):
+    async def execute_ask_online(self, citations, function_call):
         async with self.bot.session.post(
             "https://api.perplexity.ai/chat/completions",
             json={
@@ -345,6 +374,15 @@ class Chat(commands.Cog):
             for citation in resulting_message_data["citations"]:
                 citations[urllib.parse.urlparse(citation).netloc] = citation
             return resulting_message_data["choices"][0]["message"]["content"]
+
+    def execute_calculator(self, math_operations, function_call):
+        expr = json.loads(function_call.arguments)["expr"]
+        try:
+           result = arithmetic_eval.evaluate(expr)
+        except Exception as e:
+            return f"⚠️ {e}"
+        math_operations.append(f'{expr} = {result:n}')
+        return f'{result:n}'
 
     async def invoke_command(self, ctx: commands.Context, prompt_messages: list, function_call) -> tuple[str, bool]:
         command_invocation = (
