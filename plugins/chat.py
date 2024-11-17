@@ -189,7 +189,7 @@ class Chat(commands.Cog):
                 else:
                     author_display_name_with_id = f"{message.author.display_name} <@{message.author.id}>"
                 try:
-                    clean_content = await self.message_to_text(message)
+                    clean_content = await self.message_to_text(ctx, message)
                 except IndexError:
                     break
                 if clean_content is None:
