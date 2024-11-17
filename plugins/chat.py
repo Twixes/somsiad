@@ -103,7 +103,7 @@ class Chat(commands.Cog):
         "Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje. "
         "Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie. "
         f"W razie potrzeby informacji o świecie, użyj wewnętrznego narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}` - najlepsze źródło informacji. "
-        f"W razie potrzeby obliczeń, użyj wewnętrznego narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}`."
+        f"Gdy potrzebne obliczenia, zawsze użyj wewnętrznego narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}` do weryfikacji wyników."
         "Nigdy nie każ użytkownikowi samemu użyć Google. Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.\n"
         "Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.\n"
         "Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.\n"
