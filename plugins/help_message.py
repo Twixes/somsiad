@@ -689,7 +689,8 @@ class Help(commands.Cog):
             ("?użytkownik Discorda", "?typy zdarzeń"),
             "Sprawdza kartotekę <?użytkownika Discorda> pod kątem <?typów zdarzeń>. "
             "Jeśli nie podano <?użytkownika Discorda>, przyjmuje ciebie. "
-            "Jeśli nie podano typu <?typów zdarzeń>, zwraca wszystkie zdarzenia.",
+            "Jeśli nie podano typu <?typów zdarzeń>, zwraca wszystkie zdarzenia. "
+            "Zdarzenia to dołączenia do serwera, opuszczenia, ostrzeżenia, bany.",
             "📂",
         ),
         _Help.Command(

@@ -1213,7 +1213,7 @@ class Activity(commands.Cog):
             )
 
     @cooldown()
-    @stat.command(aliases=['user', 'member', 'użytkownik', 'członek'])
+    @stat.command(aliases=['user', 'member', 'uzytkownik', 'użytkownik', 'członek'])
     @commands.guild_only()
     async def stat_member(self, ctx, member: Union[discord.Member, discord.User, int] = None, last_days: int = None):
         member = member or ctx.author
