@@ -450,11 +450,13 @@ class Chat(commands.Cog):
         command_ctx.invoked_with = invoker
         command_ctx.command = self.bot.all_commands[invoker]
         await self.bot.invoke(command_ctx)
-        async for message in ctx.history(limit=4):
+        async for message in ctx.history(limit=5):
+            if message.created_at < ctx.message.created_at:
+                break
             if message.author == ctx.me:
-                # Found a message which probably resulted from the tool's command invocation
+                # Found a message which _probably_ resulted from the tool's command invocation
                 resulting_message_content = await self.message_to_text(command_ctx, message)
-                if resulting_message_content and resulting_message_content[0] in ("⚠️", "🙁", "❔"):
+                if message.embeds and message.embeds[0].title[0] in ("⚠️", "🙁", "❔"):
                     # There was some error, which hopefully we'll correct on next try
                     await message.delete()
                     return resulting_message_content, False
