@@ -287,7 +287,7 @@ class Chat(commands.Cog):
                                 # The types below are what OpenAI supports
                                 if attachment.content_type in ("image/jpeg", "image/png", "image/gif", "image/webp")
                             ),
-                        ],
+                        ] if author_display_name_with_id else [],
                     )
                 )
                 if prompt_token_count_so_far > self.TOKEN_LIMIT:
