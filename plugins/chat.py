@@ -269,16 +269,16 @@ class Chat(commands.Cog):
                         clean_content=clean_content,
                         image_urls=[
                             *(
-                                embed.image.proxy_url
+                                embed.image.url
                                 for embed in message.embeds
                                 if embed.image
                                 and (
                                     # The types below are what OpenAI supports
-                                    embed.image.proxy_url.lower().endswith(".jpg")
-                                    or embed.image.proxy_url.lower().endswith(".jpeg")
-                                    or embed.image.proxy_url.lower().endswith(".png")
-                                    or embed.image.proxy_url.lower().endswith(".gif")
-                                    or embed.image.proxy_url.lower().endswith(".webp")
+                                    embed.image.url.lower().endswith(".jpg")
+                                    or embed.image.url.lower().endswith(".jpeg")
+                                    or embed.image.url.lower().endswith(".png")
+                                    or embed.image.url.lower().endswith(".gif")
+                                    or embed.image.url.lower().endswith(".webp")
                                 )
                             ),
                             *(
