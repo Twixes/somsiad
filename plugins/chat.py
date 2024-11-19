@@ -367,9 +367,7 @@ class Chat(commands.Cog):
 
         await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
 
-    async def process_tool_calls(
-        self, ctx, prompt_messages, citations, math_operations, iterations_left, tool_calls
-    ):
+    async def process_tool_calls(self, ctx, prompt_messages, citations, math_operations, iterations_left, tool_calls):
         iteration_resulted_in_command_message = False
         for call in tool_calls:
             if call.function.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
@@ -385,7 +383,7 @@ class Chat(commands.Cog):
 
             prompt_messages.append(
                 {
-                    "role": "user",
+                    "role": "system",
                     "content": "Komenda nie dała rezultatu w postaci wiadomości."
                     if not resulting_message_content
                     else f"Rezultat komendy to:\n{resulting_message_content}",
@@ -393,7 +391,7 @@ class Chat(commands.Cog):
             )
             prompt_messages.append(
                 {
-                    "role": "user",
+                    "role": "system",
                     "content": "Wystarczy już komend, odpowiedz jak możesz."
                     if iterations_left == 1
                     else "Spróbuj ponownie naprawiając ten błąd."
