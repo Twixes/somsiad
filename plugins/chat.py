@@ -41,6 +41,7 @@ aclient = AsyncOpenAI()
 class HistoricalMessage:
     author_display_name_with_id: Optional[str]
     clean_content: str
+    image_urls: list[str]
 
 
 clean_content_converter = commands.clean_content()
@@ -266,6 +267,27 @@ class Chat(commands.Cog):
                     HistoricalMessage(
                         author_display_name_with_id=author_display_name_with_id,
                         clean_content=clean_content,
+                        image_urls=[
+                            *(
+                                embed.image.proxy_url
+                                for embed in message.embeds
+                                if embed.image
+                                and (
+                                    # The types below are what OpenAI supports
+                                    embed.image.proxy_url.lower().endswith(".jpg")
+                                    or embed.image.proxy_url.lower().endswith(".jpeg")
+                                    or embed.image.proxy_url.lower().endswith(".png")
+                                    or embed.image.proxy_url.lower().endswith(".gif")
+                                    or embed.image.proxy_url.lower().endswith(".webp")
+                                )
+                            ),
+                            *(
+                                attachment.url
+                                for attachment in message.attachments
+                                # The types below are what OpenAI supports
+                                if attachment.content_type in ("image/jpeg", "image/png", "image/gif", "image/webp")
+                            ),
+                        ],
                     )
                 )
                 if prompt_token_count_so_far > self.TOKEN_LIMIT:
@@ -287,9 +309,17 @@ class Chat(commands.Cog):
                 *(
                     {
                         "role": "user" if m.author_display_name_with_id else "assistant",
-                        "content": f"{m.author_display_name_with_id}: {m.clean_content}"
-                        if m.author_display_name_with_id
-                        else m.clean_content,
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": {
+                                    "value": f"{m.author_display_name_with_id}: {m.clean_content}"
+                                    if m.author_display_name_with_id
+                                    else m.clean_content,
+                                },
+                            },
+                            *({"type": "image_url", "image_url": {"url": url}} for url in m.image_urls),
+                        ],
                     }
                     for m in history
                 ),
@@ -310,9 +340,16 @@ class Chat(commands.Cog):
                 iteration_choice = iteration_result.choices[0]
                 if iteration_choice.finish_reason == "tool_calls":
                     if iteration_choice.message.content:
-                        self.bot.send(ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message)
+                        self.bot.send(
+                            ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message
+                        )
                     iteration_resulted_in_command_message = await self.process_tool_calls(
-                        ctx, prompt_messages, citations, math_operations, iterations_left, iteration_choice.message.tool_calls
+                        ctx,
+                        prompt_messages,
+                        citations,
+                        math_operations,
+                        iterations_left,
+                        iteration_choice.message.tool_calls,
                     )
                     if iteration_resulted_in_command_message:
                         final_resulted_in_command_message = True
