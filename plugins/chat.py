@@ -312,11 +312,9 @@ class Chat(commands.Cog):
                         "content": [
                             {
                                 "type": "text",
-                                "text": {
-                                    "value": f"{m.author_display_name_with_id}: {m.clean_content}"
-                                    if m.author_display_name_with_id
-                                    else m.clean_content,
-                                },
+                                "text": f"{m.author_display_name_with_id}: {m.clean_content}"
+                                if m.author_display_name_with_id
+                                else m.clean_content,
                             },
                             *({"type": "image_url", "image_url": {"url": url}} for url in m.image_urls),
                         ],
