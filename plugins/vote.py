@@ -25,7 +25,7 @@ from core import cooldown
 from somsiad import Somsiad
 from utilities import human_datetime, interpret_str_as_datetime, md_link, utc_to_naive_local, word_number_form
 
-CONVICTED_MANIPULATOR_IDS = [564069255948009473] # Users convicted in absentia of manipulating the vote
+CONVICTED_MANIPULATOR_IDS = [] # Users convicted in absentia of manipulating the vote
 
 class Ballot(data.Base, data.ChannelRelated, data.UserRelated):
     urn_message_id = data.Column(data.BigInteger, primary_key=True)
