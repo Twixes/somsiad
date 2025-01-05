@@ -540,11 +540,11 @@ class Somsiad(commands.AutoShardedBot):
                 sentry_sdk.capture_exception(error)
 
     def _get_prefix(self, bot: commands.Bot, message: discord.Message) -> List[str]:
-        if message.guild.id not in AI_ALLOWED_SERVER_IDS:
-            prefixes = [f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ', f'{bot.user} ']
-        else:
-            prefixes = []
         if message.guild is not None:
+            if message.guild.id not in AI_ALLOWED_SERVER_IDS:
+                prefixes = [f'<@!{bot.user.id}> ', f'<@{bot.user.id}> ', f'{bot.user} ']
+            else:
+                prefixes = []
             for extra_prefix in self.prefixes.get(message.guild.id) or (configuration['command_prefix'],):
                 prefixes.append(extra_prefix + ' ')
                 prefixes.append(extra_prefix)

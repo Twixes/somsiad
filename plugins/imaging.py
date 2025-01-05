@@ -82,6 +82,8 @@ class Imaging(commands.Cog, SomsiadMixin):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if message.guild is None:
+            return # Ignore DMs
         try:
             with data.session(commit=True) as session:
                 if is_user_opted_out_of_data_processing(session, message.author.id):
