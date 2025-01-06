@@ -340,6 +340,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 iteration_result = await aclient.chat.completions.create(
+                    model="gpt-4o",
                     messages=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
