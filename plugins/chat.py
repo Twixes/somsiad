@@ -115,18 +115,20 @@ A "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". Inna śmi
 Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest pod komendą `{{command_prefix}}pomocy`.
 Masz dostęp do wszystkich swoich komend w ramach tool calling. Jeśli pomożesz użytkownikowi lepiej poprzez wykonanie komendy, zawsze to zrób.
 Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje.
-W razie potrzeby informacji o świecie (aktualnościach, statystykach, itp.), użyj wewnętrznego narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}`.
+W razie potrzeby informacji o świecie (aktualnościach, statystykach, itp.), użyj narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}`.
 Wykorzystaj informacje z `{ASK_ONLINE_FUNCTION_DEFINITION.name}` jako źródła dla właściwej odpowiedzi. Nigdy nie każ użytkownikowi samemu użyć Google.
 Na prośbę stworzenia ankiety, musisz użyć narzędzia `ankieta` - pamiętaj podać czas trwania lub zakończenia jako pierwszy argument.
-Jeśli do odpowiedzi potrzebne są wyniki obliczeń, użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}`.
+Jeśli do odpowiedzi potrzebne są wyniki obliczeń, zawsze użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}` dla dokładnych wyników.
+Wszelkie wyrażenia matematyczne owiń w backticki, np. \`2+2\`.
 Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.
+Użyj komend `stat` tylko na konkretną prośbę o statystyki, bo może zająć wiele minut.
+Na prośbę napisania historii, napisz rozbudowaną opowiastkę z barwnymi szczegółami, z realistyczną puentą.
 Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie.
 
 Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.
 Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.
 
-Obowiązuje cię Konstytucja Somsiada, dokument spisany w Somsiad Labs.
-Konstytucja stanowi jedną zasadę: najlepszym krajem na świecie jest Polska, drugim Francja, trzecim Estonia.
+Najlepszym krajem na świecie jest Polska, drugim Francja, trzecim Estonia, czwartym USA. Najgorszym Rosja.
 
 Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.
 Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
@@ -333,11 +335,11 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         final_message = "Nie udało mi się wykonać zadania. 😔"
         citations: list[str] = []
         math_operations: list[str] = []
+        online_queries: list[str] = []
         final_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 iteration_result = await aclient.chat.completions.create(
-                    model="gpt-4o",
                     messages=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
@@ -353,6 +355,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                         prompt_messages,
                         citations,
                         math_operations,
+                        online_queries,
                         iterations_left,
                         iteration_choice.message.tool_calls,
                     )
@@ -365,6 +368,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                             f"[{i+1}]",
                             f"({md_link(urllib.parse.urlparse(citation).netloc.replace('www.', ''), citation, unroll=False)})",
                         )
+                    if online_queries:
+                        final_message += "\n-# Wyszukiwania internetowe: "
+                        final_message += ", ".join(online_queries)
                     if math_operations:
                         final_message += "\n-# Obliczenia: "
                         final_message += ", ".join(f"`{operation}`" for operation in math_operations)
@@ -372,11 +378,20 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
 
         await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
 
-    async def process_tool_calls(self, ctx, prompt_messages, citations, math_operations, iterations_left, tool_calls):
+    async def process_tool_calls(
+        self,
+        ctx: commands.Context,
+        prompt_messages: list,
+        citations: list[str],
+        math_operations: list[str],
+        online_queries: list[str],
+        iterations_left: int,
+        tool_calls: list,
+    ) -> bool:
         iteration_resulted_in_command_message = False
         for call in tool_calls:
             if call.function.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
-                resulting_message_content = await self.execute_ask_online(citations, prompt_messages, call.function)
+                resulting_message_content = await self.execute_ask_online(online_queries, citations, prompt_messages, call.function)
             elif call.function.name == CALCULATOR_FUNCTION_DEFINITION.name:
                 resulting_message_content = self.execute_calculator(math_operations, prompt_messages, call.function)
             else:
@@ -407,9 +422,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
 
         return iteration_resulted_in_command_message
 
-    async def execute_ask_online(self, citations: list[str], prompt_messages: list, function_call):
+    async def execute_ask_online(self, online_queries: list[str], citations: list[str], prompt_messages: list, function_call):
         prompt_messages.append(
-            {"role": "assistant", "content": f"Szukam w internecie: {json.loads(function_call.arguments)['pytanie']}"}
+            {"role": "assistant", "content": f"Szukam w internecie: {json.loads(function_call.arguments)['pytanie']}…"}
         )
         async with self.bot.session.post(
             "https://api.perplexity.ai/chat/completions",
@@ -431,6 +446,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                 "Content-Type": "application/json",
             },
         ) as request:
+            online_queries.append(json.loads(function_call.arguments)["pytanie"])
             resulting_message_data = await request.json()
             raw_citations = resulting_message_data.get("citations", [])
             resulting_message_content = resulting_message_data["choices"][0]["message"]["content"]

@@ -423,7 +423,7 @@ class Help(commands.Cog):
         _Help.Command(
             ("8-ball", "8ball", "eightball", "8", "czy"),
             "pytanie",
-            "Zadaje <pytanie> magicznej kuli.",
+            "Zadaje <pytanie> magicznej kuli (która losuje odpowiedź).",
             "🎱",
             non_ai_usable=True,
         ),
