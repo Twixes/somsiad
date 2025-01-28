@@ -430,7 +430,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         async with self.bot.session.post(
             "https://api.perplexity.ai/chat/completions",
             json={
-                "model": "llama-3.1-sonar-large-128k-online",
+                "model": "sonar",
                 "messages": [
                     {
                         "role": "system",
