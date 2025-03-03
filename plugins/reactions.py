@@ -13,6 +13,8 @@
 
 import itertools
 import re
+
+import grapheme
 from somsiad import Somsiad, SomsiadMixin
 from typing import Optional, Tuple, Union
 
@@ -26,84 +28,83 @@ class React(commands.Cog, SomsiadMixin):
     """Handles reacting to messages."""
 
     DIACRITIC_CONVERSIONS = {
-        'ą': ('aw', 'a'),
-        'ć': ('ci', 'c'),
-        'ę': ('ew', 'e'),
-        'ń': ('ni', 'n'),
-        'ł': ('el', 'l'),
-        'ó': ('oo', 'o'),
-        'ś': ('si', 's'),
-        'ż': ('zg', 'z'),
-        'ź': ('zi', 'z'),
+        "ą": ("aw", "a"),
+        "ć": ("ci", "c"),
+        "ę": ("ew", "e"),
+        "ń": ("ni", "n"),
+        "ł": ("el", "l"),
+        "ó": ("oo", "o"),
+        "ś": ("si", "s"),
+        "ż": ("zg", "z"),
+        "ź": ("zi", "z"),
     }
     EMOJIS = [
         {
-            '0': '0️⃣',
-            '1': '1⃣',
-            '2': '2⃣',
-            '3': '3⃣',
-            '4': '4️⃣',
-            '5': '5️⃣',
-            '6': '6️⃣',
-            '7': '7️⃣',
-            '8': '8️⃣',
-            '9': '9️⃣',
-            'a': '🇦🅰',
-            'b': '🇧🅱',
-            'c': '🇨©️',
-            'd': '🇩',
-            'e': '🇪',
-            'f': '🇫',
-            'g': '🇬',
-            'h': '🇭',
-            'i': '🇮ℹ️',
-            'j': '🇯',
-            'k': '🇰',
-            'l': '🇱',
-            'm': '🇲Ⓜ️',
-            'n': '🇳🆕',
-            'o': '🇴🅾⭕️',
-            'p': '🇵🅿️',
-            'q': '🇶',
-            'r': '🇷®️',
-            's': '🇸',
-            't': '🇹',
-            'u': '🇺',
-            'v': '🇻',
-            'w': '🇼',
-            'x': '🇽❌',
-            'y': '🇾',
-            'z': '🇿💤',
-            '?': '❓',
-            '!': '❗',
-            '^': '⬆',
-            '>': '▶',
-            '<': '◀',
+            "1": "1️⃣",
+            "2": "2️⃣",
+            "3": "3️⃣",
+            "4": "4️⃣",
+            "5": "5️⃣",
+            "6": "6️⃣",
+            "7": "7️⃣",
+            "8": "8️⃣",
+            "9": "9️⃣",
+            "a": "🇦🅰",
+            "b": "🇧🅱",
+            "c": "🇨©️",
+            "d": "🇩",
+            "e": "🇪",
+            "f": "🇫",
+            "g": "🇬",
+            "h": "🇭",
+            "i": "🇮ℹ️",
+            "j": "🇯",
+            "k": "🇰",
+            "l": "🇱",
+            "m": "🇲Ⓜ️",
+            "n": "🇳🆕",
+            "o": "🇴🅾⭕️",
+            "p": "🇵🅿️",
+            "q": "🇶",
+            "r": "🇷®️",
+            "s": "🇸",
+            "t": "🇹",
+            "u": "🇺",
+            "v": "🇻",
+            "w": "🇼",
+            "x": "🇽❌",
+            "y": "🇾",
+            "z": "🇿💤",
+            "?": "❓",
+            "!": "❗",
+            "^": "⬆",
+            ">": "▶",
+            "<": "◀",
         },
         {
-            '!!': '‼️',
-            '!?': '⁉️',
-            'ng': '🆖',
-            'ok': '🆗',
-            'up': '🆙',
-            'wc': '🚾',
-            'ab': '🆎',
-            'cl': '🆑',
-            'vs': '🆚',
-            'id': '🆔',
-            '10': '🔟',
-            'tm': '™️',
+            "!!": "‼️",
+            "!?": "⁉️",
+            "ng": "🆖",
+            "ok": "🆗",
+            "up": "🆙",
+            "wc": "🚾",
+            "ab": "🆎",
+            "cl": "🆑",
+            "vs": "🆚",
+            "id": "🆔",
+            "10": "🔟",
+            "tm": "™️",
         },
-        {'sos': '🆘', '100': '💯', 'zzz': '💤', 'atm': '🏧', 'abc': '🔤', 'up!': '🆙', 'new': '🆕'},
-        {'abcd': '🔠🔡', 'cool': '🆒', 'free': '🆓', '1234': '🔢'},
+        {"sos": "🆘", "100": "💯", "zzz": "💤", "atm": "🏧", "abc": "🔤", "up!": "🆙", "new": "🆕"},
+        {"abcd": "🔠🔡", "cool": "🆒", "free": "🆓", "1234": "🔢"},
     ]
-    CUSTOM_EMOJI_REGEX = re.compile(r'<:\S+?:(\d+)>')
+    CUSTOM_EMOJI_REGEX = re.compile(r"<:\S+?:(\d+)>")
 
     def _convert_string(
         self, string: str, message: discord.Message, server: discord.Guild
     ) -> Tuple[Union[str, discord.Emoji]]:
         """Converts message content string to emojis."""
-        emojis = list(' '.join(filter(None, string.lower().split())))
+        emojis = list(" ".join(filter(None, string.lower().split())))
         used_emojis = {reaction.emoji for reaction in message.reactions if reaction.me}
         for match in reversed(tuple(self.CUSTOM_EMOJI_REGEX.finditer(string))):
             emoji = self.bot.get_emoji(int(match.groups()[0]))
@@ -118,7 +119,7 @@ class React(commands.Cog, SomsiadMixin):
                 break
             if character is None or not isinstance(character, str):
                 continue
-            if character == ' ':
+            if character == " ":
                 while True:
                     random_emoji = self.bot.get_random_emoji()
                     if random_emoji not in used_emojis:
@@ -140,7 +141,7 @@ class React(commands.Cog, SomsiadMixin):
                         diacritic_replacements[character] = self.DIACRITIC_CONVERSIONS[character][1]
                 emojis[i] = diacritic_replacements[character]
             was_emoji_found = False
-            for extra_length, group_emojis in reversed(tuple(enumerate(self.EMOJIS, 1))):
+            for extra_length, group_emojis in reversed(list(enumerate(self.EMOJIS, 1))):
                 group = emojis[i]
                 try:
                     for extra_i in range(1, extra_length):
@@ -148,7 +149,7 @@ class React(commands.Cog, SomsiadMixin):
                 except (IndexError, TypeError):
                     continue
                 else:
-                    for emoji in group_emojis.get(group, ''):
+                    for emoji in grapheme.graphemes(group_emojis.get(group, "")):
                         if emoji and emoji not in used_emojis:
                             emojis[i] = emoji
                             for extra_i in range(1, extra_length):
@@ -190,66 +191,66 @@ class React(commands.Cog, SomsiadMixin):
                 pass
 
     @cooldown()
-    @commands.command(aliases=['zareaguj', 'reaguj', 'x'])
+    @commands.command(aliases=["zareaguj", "reaguj", "x"])
     @commands.guild_only()
     async def react(
         self,
         ctx,
         member: Optional[discord.Member] = None,
         *,
-        characters: commands.clean_content(fix_channel_mentions=True) = ''
+        characters: commands.clean_content(fix_channel_mentions=True) = "",
     ):
         """Reacts with the provided characters."""
         await self._react(ctx, characters, member)
 
     @cooldown()
-    @commands.command(aliases=['pomógł', 'pomogl'])
+    @commands.command(aliases=["pomógł", "pomogl"])
     @commands.guild_only()
     async def helped(self, ctx, member: discord.Member = None):
         """Reacts with "POMÓGŁ"."""
-        await self._react(ctx, 'pomógł', member)
+        await self._react(ctx, "pomógł", member)
 
     @cooldown()
-    @commands.command(aliases=['niepomógł', 'niepomogl'])
+    @commands.command(aliases=["niepomógł", "niepomogl"])
     @commands.guild_only()
     async def didnothelp(self, ctx, member: discord.Member = None):
         """Reacts with "NIEPOMÓGŁ"."""
-        await self._react(ctx, 'niepomógł', member)
+        await self._react(ctx, "niepomógł", member)
 
     @cooldown()
-    @commands.command(aliases=['up', 'this', 'to', '^'])
+    @commands.command(aliases=["up", "this", "to", "^"])
     @commands.guild_only()
     async def upvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬆"."""
-        await self._react(ctx, '⬆', member, convert=False)
+        await self._react(ctx, "⬆", member, convert=False)
 
     @cooldown()
-    @commands.command(aliases=['down'])
+    @commands.command(aliases=["down"])
     @commands.guild_only()
     async def downvote(self, ctx, member: discord.Member = None):
         """Reacts with "⬇"."""
-        await self._react(ctx, '⬇', member, convert=False)
+        await self._react(ctx, "⬇", member, convert=False)
 
     @cooldown()
-    @commands.command(aliases=['hm', 'hmm', 'hmmm', 'hmmmm', 'hmmmmm', 'myśl', 'mysl', 'think', '🤔'])
+    @commands.command(aliases=["hm", "hmm", "hmmm", "hmmmm", "hmmmmm", "myśl", "mysl", "think", "🤔"])
     @commands.guild_only()
     async def thinking(self, ctx, member: discord.Member = None):
         """Reacts with "🤔"."""
-        await self._react(ctx, '🤔', member, convert=False)
+        await self._react(ctx, "🤔", member, convert=False)
 
     @cooldown()
     @commands.command()
     @commands.guild_only()
     async def f(self, ctx, member: discord.Member = None):
         """Reacts with "F"."""
-        await self._react(ctx, '🇫', member, convert=False)
+        await self._react(ctx, "🇫", member, convert=False)
 
     @cooldown()
-    @commands.command(aliases=['chlip', '😢'])
+    @commands.command(aliases=["chlip", "😢"])
     @commands.guild_only()
     async def sob(self, ctx, member: discord.Member = None):
         """Reacts with "😢"."""
-        await self._react(ctx, '😢', member, convert=False)
+        await self._react(ctx, "😢", member, convert=False)
 
 
 async def setup(bot: Somsiad):
