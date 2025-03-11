@@ -159,10 +159,10 @@ class Time(commands.Cog, SomsiadMixin):
                 # If after that day's papieżowa, show "Papieżowa + n minut", otherwise show "n minut do papieżowej"
                 if (now.hour, now.minute) > (21, 37):
                     diff = now.hour * 60 + now.minute - 21 * 60 - 37
-                    text = f"Papieżowa + {diff} minut"
+                    text = f"Papieżowa + {word_number_form(diff, 'minuta', 'minuty', 'minut')}"
                 else:
                     diff = 21 * 60 + 37 - now.hour * 60 - now.minute
-                    text = f"{diff} minut do papieżowej"
+                    text = f"{word_number_form(diff, 'minuta', 'minuty', 'minut')} do papieżowej"
                 embed = self.bot.generate_embed(self.MOMENTS_OF_INTEREST[(21, 37)][0], text)
             else:
                 emoji_hour = (now.hour - 1) % 12 + 1
