@@ -33,7 +33,7 @@ from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time, md_link
 from unidecode import unidecode
 
 
-encoding = tiktoken.encoding_for_model("gpt-4o")  # GPT-4's is the same one
+encoding = tiktoken.encoding_for_model("o3-mini")
 aclient = AsyncOpenAI()
 
 
@@ -340,7 +340,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 iteration_result = await aclient.chat.completions.create(
-                    model="gpt-4o",
+                    model="o4-mini",
                     messages=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
