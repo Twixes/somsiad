@@ -309,7 +309,7 @@ class Report:
     """A statistics report. Can generate server, channel, category or member statistics."""
 
     COOLDOWN = max(float(configuration['command_cooldown_per_user_in_seconds']), 15.0)
-    BACKGROUND_COLOR = '#2b2d31'
+    BACKGROUND_COLOR = '#393a41'
     FOREGROUND_COLOR = '#ffffff'
     ROLL = 7
     CACHE_INSERT_BATCH_SIZE = 1000
