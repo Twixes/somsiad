@@ -124,7 +124,11 @@ class Vote(commands.Cog):
         else:
             emojis = self._list_answers(letters=letters, numeric_scale_max=numeric_scale_max)
             reactions_with_users = await asyncio.gather(
-                *(self._resolve_reaction_with_user_count(reaction) for reaction in urn_message.reactions)
+                *(
+                    self._resolve_reaction_with_user_count(reaction)
+                    for reaction in urn_message.reactions
+                    if reaction.emoji in emojis
+                )
             )
             results = dict(reactions_with_users)
             winning_emojis = []
