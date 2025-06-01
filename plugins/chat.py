@@ -321,7 +321,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                                 if m.author_display_name_with_id
                                 else m.clean_content,
                             },
-                            *({"type": "image_url", "image_url": {"url": url}} for url in m.image_urls),
+                            *({"type": "input_image", "image_url": url} for url in m.image_urls),
                         ],
                     }
                     for m in history
