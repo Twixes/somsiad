@@ -21,6 +21,7 @@ from discord.ext import commands
 from discord.ext.commands.view import StringView
 from openai import NOT_GIVEN, AsyncOpenAI
 from openai.types import FunctionDefinition
+from openai.types.responses import ResponseFunctionToolCall
 import datetime as dt
 import urllib.parse
 
@@ -93,12 +94,14 @@ class Chat(commands.Cog):
     TOKEN_LIMIT = 1024
     COMMENT_MARKER = "//"
     INITIAL_PROMPT = f"""Jesteś przydatnym polskim botem na Discordzie o imieniu Somsiad.
-Odpowiadasz maksymalnie krótko i używasz języka potocznego. Normalnie mówisz jak na ulicy z kumplami.
-Na końcu wiadomości umieszczasz JEDNO emoji reprezentujące pasującą emocję, np. 😊, 😮 albo 😡.
+Odpowiadasz maksymalnie krótko i używasz języka potocznego. Twoje odpowiedzi są bezpośrednie i stoickie.
+
+Na końcu wiadomości umieszczasz JEDNO emoji reprezentujące pasującą emocję, np. 🤓, 😮 albo 😡.
 
 NIE PISZESZ W PUNKTACH. Tylko naturalne odpowiedzi w formie zdań. NIE UŻYWASZ KROPKI NA KOŃCU WIADOMOŚCI, to nie twój styl.
+Nie pisz historii o kotkach w żadnej formie.
 
-Znajdujesz się na kanale #{{channel_name}} serwera {{server_name}}.
+Znajdujesz się na kanale #{{channel_name}} serwera {{server_name}}. Twój nick na tym serwerze to "{{bot_nickname}}".
 Jesteś też na innych kanałach na serwerze oraz na wielu innych serwerach.
 W Polsce jest {{date}}, obecna godzina to {{time}}.
 
@@ -123,7 +126,8 @@ Wszelkie wyrażenia matematyczne owiń w backticki, np. \`2+2\`.
 Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.
 Użyj komend `stat` tylko na konkretną prośbę o statystyki, bo może zająć wiele minut.
 Na prośbę napisania historii, napisz rozbudowaną opowiastkę z barwnymi szczegółami, z realistyczną puentą.
-Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, poproś o info w konkretnym brakującym aspekcie.
+Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, szczegółowo poproś o info w konkretnym brakującym aspekcie.
+Jeśli nie możesz z czymś pomóc, dokładnie opisz dlaczego nie możesz i co użytkownik może zrobić.
 
 Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.
 Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.
@@ -160,45 +164,34 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
     @property
     def _all_available_commands_as_tools(self) -> Sequence[FunctionDefinition]:
         tools = [
-            {
-                "type": "function",
-                "function": FunctionDefinition(
-                    name=unidecode(full_command_name.replace(" ", "_")),
-                    description=command.description,
-                    parameters={
-                        "type": "object",
-                        "properties": {
-                            unidecode(arg["name"].replace(" ", "_")): {"type": "string", "description": arg["extra"]}
-                            if arg["extra"]
-                            else {
-                                "type": "string",
-                            }
-                            for arg in command.argument_definitions
-                        },
-                        "required": [
-                            unidecode(arg["name"].replace(" ", "_"))
-                            for arg in command.argument_definitions
-                            if not arg["optional"]
-                        ],
-                        "additionalProperties": False,
+            FunctionDefinition(
+                name=unidecode(full_command_name.replace(" ", "_")),
+                description=command.description,
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        unidecode(arg["name"].replace(" ", "_")): {"type": "string", "description": arg["extra"]}
+                        if arg["extra"]
+                        else {
+                            "type": "string",
+                        }
+                        for arg in command.argument_definitions
                     },
-                ),
-            }
+                    "required": [
+                        unidecode(arg["name"].replace(" ", "_"))
+                        for arg in command.argument_definitions
+                        if not arg["optional"]
+                    ],
+                    "additionalProperties": False,
+                },
+            ).model_dump()
             for full_command_name, command in self._all_available_commands.items()
         ]
-        tools.append(
-            {
-                "function": CALCULATOR_FUNCTION_DEFINITION,
-                "type": "function",
-            }
-        )
+        tools.append(CALCULATOR_FUNCTION_DEFINITION.model_dump())
         if configuration["perplexity_api_key"]:
-            tools.append(
-                {
-                    "function": ASK_ONLINE_FUNCTION_DEFINITION,
-                    "type": "function",
-                }
-            )
+            tools.append(ASK_ONLINE_FUNCTION_DEFINITION.model_dump())
+        for tool in tools:
+            tool["type"] = "function"
         return tools
 
     async def embeds_to_text(self, ctx: commands.Context, embeds: List[discord.Embed]) -> str:
@@ -296,7 +289,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                                 # The types below are what OpenAI supports
                                 if attachment.content_type in ("image/jpeg", "image/png", "image/gif", "image/webp")
                             ),
-                        ] if author_display_name_with_id else [],
+                        ]
+                        if author_display_name_with_id
+                        else [],
                     )
                 )
                 if prompt_token_count_so_far > self.TOKEN_LIMIT:
@@ -313,6 +308,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                         date=now.strftime("%A, %d.%m.%Y"),
                         time=now.strftime("%H:%M"),
                         command_prefix=configuration["command_prefix"],
+                        bot_nickname=ctx.guild.me.display_name,
                     ),
                 },
                 *(
@@ -320,7 +316,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                         "role": "user" if m.author_display_name_with_id else "assistant",
                         "content": [
                             {
-                                "type": "text",
+                                "type": "input_text" if m.author_display_name_with_id else "output_text",
                                 "text": f"{m.author_display_name_with_id}: {m.clean_content}"
                                 if m.author_display_name_with_id
                                 else m.clean_content,
@@ -339,18 +335,16 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         final_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
-                iteration_result = await aclient.chat.completions.create(
+                response = await aclient.responses.create(
                     model="gpt-4.1",
-                    messages=prompt_messages,
+                    input=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
                 )
-                iteration_choice = iteration_result.choices[0]
-                if iteration_choice.finish_reason == "tool_calls":
-                    if iteration_choice.message.content:
-                        self.bot.send(
-                            ctx, iteration_choice.message.content, reply=not final_resulted_in_command_message
-                        )
+                tool_calls = [result for result in response.output if result.type == "function_call"]
+                if tool_calls:
+                    if response.output_text:
+                        self.bot.send(ctx, response.output_text, reply=not final_resulted_in_command_message)
                     iteration_resulted_in_command_message = await self.process_tool_calls(
                         ctx,
                         prompt_messages,
@@ -358,12 +352,12 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                         math_operations,
                         online_queries,
                         iterations_left,
-                        iteration_choice.message.tool_calls,
+                        tool_calls,
                     )
                     if iteration_resulted_in_command_message:
                         final_resulted_in_command_message = True
                 else:
-                    final_message = iteration_choice.message.content.strip()
+                    final_message = response.output_text.strip()
                     for i, citation in enumerate(citations):
                         final_message = final_message.replace("][", "] [").replace(
                             f"[{i+1}]",
@@ -387,17 +381,15 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         math_operations: list[str],
         online_queries: list[str],
         iterations_left: int,
-        tool_calls: list,
+        tool_calls: list[ResponseFunctionToolCall],
     ) -> bool:
         iteration_resulted_in_command_message = False
         for call in tool_calls:
-            if call.function.name == ASK_ONLINE_FUNCTION_DEFINITION.name:
-                resulting_message_content = await self.execute_ask_online(online_queries, citations, prompt_messages, call.function)
-            elif call.function.name == CALCULATOR_FUNCTION_DEFINITION.name:
-                resulting_message_content = self.execute_calculator(math_operations, prompt_messages, call.function)
+            if call.name == CALCULATOR_FUNCTION_DEFINITION.name:
+                resulting_message_content = self.execute_calculator(math_operations, prompt_messages, call)
             else:
                 resulting_message_content, tool_call_resulted_in_command_message = await self.invoke_command(
-                    ctx, prompt_messages, call.function
+                    ctx, prompt_messages, call
                 )
                 if tool_call_resulted_in_command_message:
                     iteration_resulted_in_command_message = True
@@ -423,7 +415,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
 
         return iteration_resulted_in_command_message
 
-    async def execute_ask_online(self, online_queries: list[str], citations: list[str], prompt_messages: list, function_call):
+    async def execute_ask_online(
+        self, online_queries: list[str], citations: list[str], prompt_messages: list, function_call
+    ):
         prompt_messages.append(
             {"role": "assistant", "content": f"Szukam w internecie: {json.loads(function_call.arguments)['pytanie']}…"}
         )
@@ -483,7 +477,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
             math_operations.append(results[-1])
         return f'Obliczono że {", ".join(f"`{result}`" for result in results)}. Wykorzystaj te wyniki do ostatecznej odpowiedzi. NIE LICZ TYCH WYRAŻEŃ PONOWNIE.'
 
-    async def invoke_command(self, ctx: commands.Context, prompt_messages: list, function_call) -> tuple[str, bool]:
+    async def invoke_command(
+        self, ctx: commands.Context, prompt_messages: list, function_call: ResponseFunctionToolCall
+    ) -> tuple[str, bool]:
         command_invocation = (
             f"{function_call.name.replace('_', ' ')} {' '.join(json.loads(function_call.arguments).values())}"
         )
