@@ -336,7 +336,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 response = await aclient.responses.create(
-                    model="gpt-4.1",
+                    model="o4-mini",
                     input=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
