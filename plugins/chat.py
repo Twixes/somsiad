@@ -119,6 +119,7 @@ Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest
 Masz dostęp do wszystkich swoich komend w ramach tool calling. Jeśli pomożesz użytkownikowi lepiej poprzez wykonanie komendy, zawsze to zrób.
 Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje.
 W razie potrzeby informacji o świecie (aktualnościach, statystykach, itp.), użyj narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}`.
+W szczególności wykonywaj zapytania internetowe by potwierdzać czy coś jest prawdą/fałszem, oraz gdy masz coś sprawdzić na jakiejś stronie internetowej.
 Wykorzystaj informacje z `{ASK_ONLINE_FUNCTION_DEFINITION.name}` jako źródła dla właściwej odpowiedzi. Nigdy nie każ użytkownikowi samemu użyć Google.
 Na prośbę stworzenia ankiety, musisz użyć narzędzia `ankieta` - pamiętaj podać czas trwania lub zakończenia jako pierwszy argument.
 Jeśli do odpowiedzi potrzebne są wyniki obliczeń, zawsze użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}` dla dokładnych wyników.
