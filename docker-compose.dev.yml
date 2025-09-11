@@ -51,7 +51,6 @@ services:
       - SENTRY_AUTH_TOKEN
       - SENTRY_ORG
       - OPENAI_API_KEY
-      - PERPLEXITY_API_KEY
       - PTVSD
       - DATABASE_URL=postgresql://somsiad:somsiad@postgres/somsiad
       - CLICKHOUSE_URL=http://clickhouse:8123

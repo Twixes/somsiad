@@ -47,22 +47,6 @@ class HistoricalMessage:
 
 clean_content_converter = commands.clean_content()
 
-
-ASK_ONLINE_FUNCTION_DEFINITION = FunctionDefinition(
-    name="zapytaj_online",
-    description="Zadaje pytanie wyszukiwarce z dostępem do internetu.",
-    parameters={
-        "type": "object",
-        "properties": {
-            "pytanie": {
-                "type": "string",
-                "description": "Pytanie do sprawdzenia, w formie naturalnego zapytania.",
-            }
-        },
-        "required": ["pytanie"],
-        "additionalProperties": False,
-    },
-)
 CALCULATOR_FUNCTION_DEFINITION = FunctionDefinition(
     name="oblicz",
     description=(
@@ -96,7 +80,7 @@ class Chat(commands.Cog):
     INITIAL_PROMPT = f"""Jesteś przydatnym polskim botem na Discordzie o imieniu Somsiad.
 Odpowiadasz maksymalnie krótko i używasz języka potocznego. Twoje odpowiedzi są bezpośrednie i stoickie.
 
-Na końcu wiadomości umieszczasz JEDNO emoji reprezentujące pasującą emocję, np. 🤓, 😮 albo 😡.
+Na końcu wiadomości umieszczasz JEDNO emoji reprezentujące pasującą emocję.
 
 NIE PISZESZ W PUNKTACH. Tylko naturalne odpowiedzi w formie zdań. NIE UŻYWASZ KROPKI NA KOŃCU WIADOMOŚCI, to nie twój styl.
 Nie pisz historii o kotkach w żadnej formie.
@@ -118,22 +102,23 @@ A "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". Inna śmi
 Poza czatem udostępniasz jako bot różne komendy, których spis dostępny jest pod komendą `{{command_prefix}}pomocy`.
 Masz dostęp do wszystkich swoich komend w ramach tool calling. Jeśli pomożesz użytkownikowi lepiej poprzez wykonanie komendy, zawsze to zrób.
 Możesz wywoływać komendy wielokrotnie by wykonywać prośby i uzyskiwać informacje.
-W razie potrzeby informacji o świecie (aktualnościach, statystykach, itp.), użyj narzędzia `{ASK_ONLINE_FUNCTION_DEFINITION.name}`. Daje ono pełny dostęp do internetu.
+W razie potrzeby informacji o świecie (aktualnościach, statystykach, itp.), użyj narzędzia web_search.
 W szczególności wykonywaj zapytania internetowe by potwierdzać czy coś jest prawdą/fałszem, oraz gdy masz coś sprawdzić na jakiejś stronie internetowej.
-Wykorzystaj informacje z `{ASK_ONLINE_FUNCTION_DEFINITION.name}` jako źródła dla właściwej odpowiedzi. Nigdy nie każ użytkownikowi samemu użyć Google.
+Wykorzystaj informacje z web_search jako źródła dla właściwej odpowiedzi. Nigdy nie każ użytkownikowi samemu użyć Google.
 Na prośbę stworzenia ankiety, musisz użyć narzędzia `ankieta` - pamiętaj podać czas trwania lub zakończenia jako pierwszy argument.
 Jeśli do odpowiedzi potrzebne są wyniki obliczeń, zawsze użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}` dla dokładnych wyników.
 Wszelkie wyrażenia matematyczne owiń w backticki, np. \`2+2\`.
 Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.
 Użyj komend `stat` tylko na konkretną prośbę o statystyki, bo może zająć wiele minut.
-Na prośbę napisania historii, napisz rozbudowaną opowiastkę z barwnymi szczegółami, z realistyczną puentą.
+Na prośbę napisania historii, napisz rozbudowaną opowiastkę z barwnymi szczegółami, z BRUTALNIE realistyczną puentą.
+Informując o tym czy jakiś polityk żyje lub nie, nigdy nie używaj pozytywnych LUB negatywnych wyrażeń ani emoji (jak "niestety" lub "na szczęście") - stwierdzaj tylko fakty.
 Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, szczegółowo poproś o info w konkretnym brakującym aspekcie.
 Jeśli nie możesz z czymś pomóc, dokładnie opisz dlaczego nie możesz i co użytkownik może zrobić.
 
 Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.
 Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.
 
-Najlepszym krajem na świecie jest Polska, drugim Francja, trzecim Estonia, czwartym USA. Najgorszym Rosja.
+Najlepszym krajem na świecie Polska, drugim Francja, trzecim Estonia, czwartym Czechy. Rosji mówimy NIET.
 
 Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.
 Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
@@ -189,10 +174,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
             for full_command_name, command in self._all_available_commands.items()
         ]
         tools.append(CALCULATOR_FUNCTION_DEFINITION.model_dump())
-        if configuration["perplexity_api_key"]:
-            tools.append(ASK_ONLINE_FUNCTION_DEFINITION.model_dump())
         for tool in tools:
             tool["type"] = "function"
+        tools.append({"type": "web_search"})
         return tools
 
     async def embeds_to_text(self, ctx: commands.Context, embeds: List[discord.Embed]) -> str:
@@ -330,28 +314,32 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
             ]
 
         final_message = "Nie udało mi się wykonać zadania. 😔"
-        citations: list[str] = []
         math_operations: list[str] = []
         online_queries: list[str] = []
         final_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 response = await aclient.responses.create(
-                    model="o3",
+                    model="gpt-5",
                     input=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
+                    store=False,
+                    truncation="auto",
                 )
-                tool_calls = [result for result in response.output if result.type == "function_call"]
+                tool_calls = []
+                for item in response.output:
+                    if item.type == "function_call":
+                        tool_calls.append(item)
+                    elif item.type == "web_search_call" and "query" in item.action:
+                        online_queries.append(item.action["query"]) # Website visits don't have a `query`
                 if tool_calls:
                     if response.output_text:
                         self.bot.send(ctx, response.output_text, reply=not final_resulted_in_command_message)
                     iteration_resulted_in_command_message = await self.process_tool_calls(
                         ctx,
                         prompt_messages,
-                        citations,
                         math_operations,
-                        online_queries,
                         iterations_left,
                         tool_calls,
                     )
@@ -359,13 +347,8 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                         final_resulted_in_command_message = True
                 else:
                     final_message = response.output_text.strip()
-                    for i, citation in enumerate(citations):
-                        final_message = final_message.replace("][", "] [").replace(
-                            f"[{i+1}]",
-                            f"({md_link(urllib.parse.urlparse(citation).netloc.replace('www.', ''), citation, unroll=False)})",
-                        )
                     if online_queries:
-                        final_message += "\n-# Wyszukiwania internetowe: "
+                        final_message += "\n-# Wyszukiwania: "
                         final_message += ", ".join(online_queries)
                     if math_operations:
                         final_message += "\n-# Obliczenia: "
@@ -378,9 +361,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         self,
         ctx: commands.Context,
         prompt_messages: list,
-        citations: list[str],
         math_operations: list[str],
-        online_queries: list[str],
         iterations_left: int,
         tool_calls: list[ResponseFunctionToolCall],
     ) -> bool:
@@ -415,45 +396,6 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
             )
 
         return iteration_resulted_in_command_message
-
-    async def execute_ask_online(
-        self, online_queries: list[str], citations: list[str], prompt_messages: list, function_call
-    ):
-        prompt_messages.append(
-            {"role": "assistant", "content": f"Szukam w internecie: {json.loads(function_call.arguments)['pytanie']}…"}
-        )
-        async with self.bot.session.post(
-            "https://api.perplexity.ai/chat/completions",
-            json={
-                "model": "sonar",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "Bądź dokładny i zwięzły. Ogranicz się do kilku krótkich zdań.",
-                    },
-                    {
-                        "role": "user",
-                        "content": json.loads(function_call.arguments)["pytanie"],
-                    },
-                ],
-            },
-            headers={
-                "Authorization": f"Bearer {configuration['perplexity_api_key']}",
-                "Content-Type": "application/json",
-            },
-        ) as request:
-            online_queries.append(json.loads(function_call.arguments)["pytanie"])
-            resulting_message_data = await request.json()
-            raw_citations = resulting_message_data.get("citations", [])
-            resulting_message_content = resulting_message_data["choices"][0]["message"]["content"]
-            if raw_citations:
-                resulting_message_content += '\n\nW swojej odpowiedzi musisz przywołać te z powyższych informacji które się przydały. Koniecznie zachowaj odnośniki, takie jak "[1]" lub "[7]", bo źródła są dla mnie bardzo ważne.'
-            if citations:
-                resulting_message_content += (
-                    f" Przy czym do liczby każdego odnośnika z tej wiadomości dodaj {len(citations)}."
-                )
-            citations.extend(raw_citations)
-            return resulting_message_content
 
     def execute_calculator(self, math_operations, prompt_messages: list, function_call):
         exprs = json.loads(function_call.arguments)["exprs"]
