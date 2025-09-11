@@ -39,7 +39,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from aiochclient.records import Record
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from configuration import configuration
 from core import DataProcessingOptOut, Help, cooldown
@@ -1130,6 +1130,7 @@ class Activity(commands.Cog):
         ),
     )
     HELP = Help(COMMANDS, '📈', group=GROUP)
+    TRUNCATE_TIME = (6, 0)
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
@@ -1137,6 +1138,10 @@ class Activity(commands.Cog):
 
     async def cog_load(self):
         await self.metadata_cache.prepare()
+        self.truncate_cache_cycle.start()
+
+    async def cog_unload(self):
+        self.truncate_cache_cycle.cancel()
 
     @cooldown()
     @commands.group(
@@ -1240,6 +1245,10 @@ class Activity(commands.Cog):
     async def stat_role_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
             await self.bot.send(ctx, embed=self.bot.generate_embed('⚠️', 'Nie znaleziono na serwerze pasującej roli'))
+
+    @tasks.loop(hours=48)
+    async def truncate_cache_cycle(self):
+        await self.bot.ch_client.execute('TRUNCATE TABLE message_metadata_cache')
 
 
 async def setup(bot: Somsiad):
