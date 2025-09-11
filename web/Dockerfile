@@ -1,4 +1,4 @@
-FROM python:3.8.6
+FROM python:3.11
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL pl_PL.UTF-8
 ENV TZ Europe/Warsaw
