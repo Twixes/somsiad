@@ -425,6 +425,9 @@ def md_link(text: str, url: Optional[str], *, unroll=True) -> str:
         url = f'<{url}>' if url else ''
     return f'[{text}]({url})' if url else text
 
+def disembed_links(text: str) -> str:
+    """Replaces all instance of (LABEL)[URL] in text with (LABEL)[<URL>], to disable Discord's link preview."""
+    return re.sub(r'\[(.*?)\]\((.*?)\)', r'[\1](<\2>)', text)
 
 def rolling_average(data: Sequence[Number], roll: int, pad_mode: str = 'constant') -> np.ndarray:
     data_np = np.pad(data, roll // 2, pad_mode)

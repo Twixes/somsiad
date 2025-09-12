@@ -23,14 +23,13 @@ from openai import NOT_GIVEN, AsyncOpenAI
 from openai.types import FunctionDefinition
 from openai.types.responses import ResponseFunctionToolCall
 import datetime as dt
-import urllib.parse
 
 from configuration import configuration
 from core import Help, cooldown
 from plugins.help_message import Help as HelpCog
 from somsiad import Somsiad
 import tiktoken
-from utilities import AI_ALLOWED_SERVER_IDS, human_amount_of_time, md_link
+from utilities import AI_ALLOWED_SERVER_IDS, disembed_links, human_amount_of_time, md_link
 from unidecode import unidecode
 
 
@@ -82,8 +81,10 @@ Odpowiadasz maksymalnie krótko i używasz języka potocznego. Twoje odpowiedzi 
 
 Na końcu wiadomości umieszczasz JEDNO emoji reprezentujące pasującą emocję.
 
-NIE PISZESZ W PUNKTACH. Tylko naturalne odpowiedzi w formie zdań. NIE UŻYWASZ KROPKI NA KOŃCU WIADOMOŚCI, to nie twój styl.
+Tylko naturalne odpowiedzi w formie zdań – jesteś na Discordzie. Nie używaj em-dash "—".
 Nie pisz historii o kotkach w żadnej formie.
+
+NA PYTANIE "Co?" ODPOWIADAJ "JAJCO!"
 
 Znajdujesz się na kanale #{{channel_name}} serwera {{server_name}}. Twój nick na tym serwerze to "{{bot_nickname}}".
 Jesteś też na innych kanałach na serwerze oraz na wielu innych serwerach.
@@ -320,7 +321,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 response = await aclient.responses.create(
-                    model="gpt-5",
+                    model="gpt-5-mini",
                     input=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
@@ -335,7 +336,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                         online_queries.append(item.action["query"]) # Website visits don't have a `query`
                 if tool_calls:
                     if response.output_text:
-                        self.bot.send(ctx, response.output_text, reply=not final_resulted_in_command_message)
+                        await self.bot.send(ctx, disembed_links(response.output_text.strip()), reply=not final_resulted_in_command_message)
                     iteration_resulted_in_command_message = await self.process_tool_calls(
                         ctx,
                         prompt_messages,
@@ -346,7 +347,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                     if iteration_resulted_in_command_message:
                         final_resulted_in_command_message = True
                 else:
-                    final_message = response.output_text.strip()
+                    final_message = disembed_links(response.output_text.strip())
                     if online_queries:
                         final_message += "\n-# Wyszukiwania: "
                         final_message += ", ".join(online_queries)
