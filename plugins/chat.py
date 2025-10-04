@@ -210,6 +210,14 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         if self.RESET_PHRASE in message.clean_content.lower():
             raise IndexError  # Conversation reset point
         parts: list[str] = []
+        if reference := message.reference:
+            # This message is in response to another message
+            reference_message: discord.Message
+            if reference.cached_message:
+                reference_message = reference.cached_message
+            else:
+                reference_message = await self.bot.get_channel(reference.channel_id).fetch_message(reference.message_id)
+            parts.append(f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} o treści "{reference_message.clean_content.strip()}"_')
         if message.clean_content:
             parts.append(message.clean_content)
             prefixes = await self.bot.get_prefix(message)
