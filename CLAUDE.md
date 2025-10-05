@@ -57,12 +57,8 @@ pre-commit run --all-files
 
 ### Database and Dependencies
 ```bash
-# Update Python dependencies
-pip-compile requirements.in
-pip-compile requirements-dev.in
-
-# Install dependencies in virtual environment
-pip install -r requirements-dev.txt
+# Update and install Python dependencies
+uv sync
 ```
 
 ## Configuration

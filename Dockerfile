@@ -16,6 +16,7 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH /root/.cargo/bin:$PATH
 ENV LC_ALL pl_PL.UTF-8
 ENV TZ Europe/Warsaw
+ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
@@ -24,12 +25,13 @@ RUN curl -sL https://sentry.io/get-cli/ | bash && \
     sentry-cli update
 RUN sed -i -e "s/# $LC_ALL UTF-8/$LC_ALL UTF-8/" /etc/locale.gen && \
     locale-gen
+RUN pip install uv
 
 WORKDIR /code/
 
-COPY requirements.txt ./
-RUN SODIUM_INSTALL=system pip install --no-cache-dir -U -r requirements.txt
+COPY pyproject.toml uv.lock ./
 
+RUN SODIUM_INSTALL=system uv sync --no-dev --compile-bytecode --locked
 COPY . .
 
 CMD ["python", "run.py"]

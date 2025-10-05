@@ -7,4 +7,5 @@
 !/LICENSE
 !/README.md
 !/matplotlibrc
-!/requirements.txt
+!/pyproject.toml
+!/uv.lock

@@ -1,8 +1,0 @@
--c requirements.txt
-
-pip-tools==7.3.*
-pre-commit==3.6.*
-pyyaml==6.0.* # Without this, an older version is installed, which has compilation issues on Python 3.11
-mypy==1.8.*
-black==23.12.*
-ruff==0.1.*
