@@ -12,26 +12,27 @@
 # If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
-from dataclasses import dataclass
+import datetime as dt
 import json
+from dataclasses import dataclass
 from typing import List, Mapping, Optional, Sequence
+
 import arithmetic_eval
 import discord
+import tiktoken
 from discord.ext import commands
 from discord.ext.commands.view import StringView
-from openai import NOT_GIVEN, AsyncOpenAI
+from openai import NOT_GIVEN
 from openai.types import FunctionDefinition
 from openai.types.responses import ResponseFunctionToolCall
-import datetime as dt
-
-from configuration import configuration
-from core import Help, cooldown
-from plugins.help_message import Help as HelpCog
-from somsiad import Somsiad
-import tiktoken
-from utilities import AI_ALLOWED_SERVER_IDS, disembed_links, human_amount_of_time, md_link
+from posthog.ai.openai import AsyncOpenAI
 from unidecode import unidecode
 
+from configuration import configuration
+from core import Help
+from plugins.help_message import Help as HelpCog
+from somsiad import Somsiad
+from utilities import AI_ALLOWED_SERVER_IDS, disembed_links, human_amount_of_time, md_link
 
 encoding = tiktoken.encoding_for_model("gpt-4o")
 aclient = AsyncOpenAI()
@@ -39,6 +40,7 @@ aclient = AsyncOpenAI()
 
 @dataclass
 class HistoricalMessage:
+    timestamp: dt.datetime
     author_display_name_with_id: Optional[str]
     clean_content: str
     image_urls: list[str]
@@ -86,10 +88,6 @@ Nie pisz historii o kotkach w żadnej formie.
 
 NA PYTANIE "Co?" ODPOWIADAJ "JAJCO!"
 
-Znajdujesz się na kanale #{{channel_name}} serwera {{server_name}}. Twój nick na tym serwerze to "{{bot_nickname}}".
-Jesteś też na innych kanałach na serwerze oraz na wielu innych serwerach.
-W Polsce jest {{date}}, obecna godzina to {{time}}.
-
 Wiesz z którym użytkownikiem rozmawiasz, gdyż przed każdą wiadomością użytkownika jest jego wzmianka.
 Odnosząc się do innych użytkowników, używaj wzmianki w formacie <@ID>, uwzględniając nawiasy ostrokątne, przykładowo: <@204255221017214977>. Nie zakładaj płci użytkownika, może być żeńska lub męska.
 Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj "{RESET_PHRASE}" w odpowiedzi.
@@ -119,10 +117,19 @@ Jeśli nie możesz z czymś pomóc, dokładnie opisz dlaczego nie możesz i co u
 Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.
 Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.
 
+Niektóre wiadomości są bezpośrednimi odpowiedziami na inną w widocznej historii rozmowy, lub z dawniejszej niewidocznej historii.
+Takie wiadomości poprzedzone są "W odpowiedzi na ..." ze szczegółami.
+
 Najlepszym krajem na świecie Polska, drugim Francja, trzecim Estonia, czwartym Czechy. Rosji mówimy NIET.
 
 Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.
-Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
+Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku.
+
+Znajdujesz się na kanale #{{channel_name}} serwera {{server_name}}. Twój nick na tym serwerze to "{{bot_nickname}}".
+Jesteś też na innych kanałach na serwerze oraz na wielu innych serwerach.
+W Polsce jest {{date}}, obecna godzina to {{time}}.
+
+TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
 
     def __init__(self, bot: Somsiad):
         self.bot = bot
@@ -184,7 +191,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
         parts = []
         for embed in embeds:
             if embed.title:
-                parts.append(f"# {md_link(embed.title, embed.url)}")
+                parts.append(f"**{md_link(embed.title, embed.url)}**")
             if embed.image:
                 parts.append(f"Załączony obraz: {embed.image.url}")
             if embed.description:
@@ -217,7 +224,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                 reference_message = reference.cached_message
             else:
                 reference_message = await self.bot.get_channel(reference.channel_id).fetch_message(reference.message_id)
-            parts.append(f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} o treści "{reference_message.clean_content.strip()}"_')
+            parts.append(
+                f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} z {reference_message.created_at.strftime("%Y-%m-%d %H:%M:%S")} o treści "{reference_message.clean_content.strip()}"_'
+            )
         if message.clean_content:
             parts.append(message.clean_content)
             prefixes = await self.bot.get_prefix(message)
@@ -261,6 +270,7 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                 prompt_token_count_so_far += len(encoding.encode(clean_content))
                 history.append(
                     HistoricalMessage(
+                        timestamp=message.created_at,
                         author_display_name_with_id=author_display_name_with_id,
                         clean_content=clean_content,
                         image_urls=[
@@ -310,9 +320,9 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                         "role": "user" if m.author_display_name_with_id else "assistant",
                         "content": [
                             {
-                                "type": "input_text" if m.author_display_name_with_id else "output_text",
-                                "text": f"{m.author_display_name_with_id}: {m.clean_content}"
-                                if m.author_display_name_with_id
+                                "type": "input_text"  if m.author_display_name_with_id else "output_text",
+                                "text": f"{m.author_display_name_with_id} o {m.timestamp.strftime('%Y-%m-%d %H:%M:%S')}:\n{m.clean_content}"
+                                 if m.author_display_name_with_id
                                 else m.clean_content,
                             },
                             *({"type": "input_image", "image_url": url} for url in m.image_urls),
@@ -341,10 +351,14 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
                     if item.type == "function_call":
                         tool_calls.append(item)
                     elif item.type == "web_search_call" and "query" in item.action:
-                        online_queries.append(item.action["query"]) # Website visits don't have a `query`
+                        online_queries.append(item.action["query"])  # Website visits don't have a `query`
                 if tool_calls:
                     if response.output_text:
-                        await self.bot.send(ctx, disembed_links(response.output_text.strip()), reply=not final_resulted_in_command_message)
+                        await self.bot.send(
+                            ctx,
+                            disembed_links(response.output_text.strip()),
+                            reply=not final_resulted_in_command_message,
+                        )
                     iteration_resulted_in_command_message = await self.process_tool_calls(
                         ctx,
                         prompt_messages,
@@ -485,15 +499,27 @@ Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku."""
     async def on_message(self, message: discord.Message):
         ctx = await self.bot.get_context(message)
         if (
-            ctx.command is None
-            and ctx.guild is not None
-            and ctx.guild.id in AI_ALLOWED_SERVER_IDS
-            and not ctx.author.bot
-            and ctx.me.id in message.raw_mentions
-            and not ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER)
+            ctx.command is not None
+            or ctx.guild is None
+            or ctx.guild.id not in AI_ALLOWED_SERVER_IDS
+            or ctx.author.bot
+            or ctx.message.clean_content.strip().startswith(self.COMMENT_MARKER)
         ):
-            ctx.command = self.hey
-            await self.bot.invoke(ctx)
+            return
+        if ctx.me.id not in message.raw_mentions:
+            if not message.reference:
+                return
+            reference_message = (
+                message.reference.cached_message
+                if message.reference.cached_message
+                else await self.bot.get_channel(message.reference.channel_id).fetch_message(
+                    message.reference.message_id
+                )
+            )
+            if not reference_message or reference_message.author.id != ctx.me.id:
+                return
+        ctx.command = self.hey
+        await self.bot.invoke(ctx)
 
 
 async def setup(bot: Somsiad):
