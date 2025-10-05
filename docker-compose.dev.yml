@@ -57,6 +57,8 @@ services:
       - CLICKHOUSE_USER=somsiad
       - CLICKHOUSE_PASSWORD=somsiad
       - CLICKHOUSE_DATABASE
+      - POSTHOG_API_KEY
+      - POSTHOG_HOST
       - REDIS_URL=redis://redis:6379/
   web:
     build: web

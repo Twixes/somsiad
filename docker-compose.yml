@@ -32,6 +32,8 @@ services:
       - CLICKHOUSE_USER
       - CLICKHOUSE_PASSWORD
       - CLICKHOUSE_DATABASE
+      - POSTHOG_API_KEY
+      - POSTHOG_HOST
       - REDIS_URL=redis://redis:6379/
   web:
     build: web

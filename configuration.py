@@ -120,6 +120,8 @@ SETTINGS = (
     Setting(
         'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', default_value=16
     ),
+    Setting('posthog_api_key', description='Klucz API PostHog', optional=True),
+    Setting('posthog_host', description='Host PostHog', default_value='https://us.i.posthog.com'),
 )
 
 configuration = Configuration(SETTINGS)

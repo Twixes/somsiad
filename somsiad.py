@@ -38,6 +38,7 @@ from typing import (
 
 import aiohttp
 import discord
+import posthog
 import psutil
 import sentry_sdk
 import aiochclient
@@ -210,6 +211,13 @@ class Somsiad(commands.AutoShardedBot):
         self.youtube_client = None
         self.system_channel = None
         self.public_channel = None
+
+        # Initialize PostHog if configured
+        if configuration.get('posthog_api_key'):
+            posthog.api_key = configuration['posthog_api_key']
+            posthog.host = configuration['posthog_host']
+        else:
+            posthog.disabled = True
 
     async def on_ready(self):
         psutil.cpu_percent()

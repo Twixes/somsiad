@@ -14,6 +14,7 @@
 import discord
 from core import Invocation, is_user_opted_out_of_data_processing
 import datetime as dt
+import posthog
 from somsiad import Somsiad, SomsiadMixin
 
 from discord.ext import commands
@@ -41,6 +42,21 @@ class Commands(commands.Cog, SomsiadMixin):
             )
             session.add(invocation)
 
+            # Track command invocation in PostHog
+            posthog.capture(
+                distinct_id=str(ctx.author.id),
+                event='command_invoked',
+                properties={
+                    'command': ctx.command.qualified_name,
+                    'root_command': ctx.command.root_parent or ctx.command.qualified_name,
+                    'prefix': ctx.prefix,
+                    'server_id': ctx.guild.id if ctx.guild else None,
+                    'server_name': ctx.guild.name if ctx.guild else None,
+                    'channel_id': ctx.channel.id,
+                    'is_dm': ctx.guild is None,
+                }
+            )
+
     @commands.Cog.listener()
     async def on_command_completion(self, ctx: commands.Context):
         with data.session(commit=True) as session:
@@ -50,6 +66,19 @@ class Commands(commands.Cog, SomsiadMixin):
             if invocation is not None:
                 invocation.exited_at = dt.datetime.now()
 
+                # Track command completion in PostHog
+                duration_ms = (invocation.exited_at - invocation.created_at).total_seconds() * 1000
+                posthog.capture(
+                    distinct_id=str(ctx.author.id),
+                    event='command_completed',
+                    properties={
+                        'command': ctx.command.qualified_name,
+                        'root_command': ctx.command.root_parent or ctx.command.qualified_name,
+                        'duration_ms': duration_ms,
+                        'server_id': ctx.guild.id if ctx.guild else None,
+                    }
+                )
+
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
         with data.session(commit=True) as session:
@@ -58,8 +87,22 @@ class Commands(commands.Cog, SomsiadMixin):
             invocation = session.query(Invocation).get(ctx.message.id)
             if invocation is not None:
                 invocation.exited_at = dt.datetime.now()
-                invocation.error = text_snippet(
+                error_message = text_snippet(
                     str(error).replace('Command raised an exception: ', ''), Invocation.MAX_ERROR_LENGTH
+                )
+                invocation.error = error_message
+
+                # Track command error in PostHog
+                posthog.capture(
+                    distinct_id=str(ctx.author.id),
+                    event='command_error',
+                    properties={
+                        'command': ctx.command.qualified_name if ctx.command else 'unknown',
+                        'root_command': ctx.command.root_parent or ctx.command.qualified_name if ctx.command else 'unknown',
+                        'error_type': type(error).__name__,
+                        'error_message': error_message,
+                        'server_id': ctx.guild.id if ctx.guild else None,
+                    }
                 )
 
 
