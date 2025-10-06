@@ -29,7 +29,7 @@ from posthog.ai.openai import AsyncOpenAI
 from unidecode import unidecode
 
 from configuration import configuration
-from core import Help
+from core import Help, cooldown
 from plugins.help_message import Help as HelpCog
 from somsiad import Somsiad
 from utilities import AI_ALLOWED_SERVER_IDS, disembed_links, human_amount_of_time, md_link
