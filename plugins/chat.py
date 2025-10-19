@@ -220,13 +220,18 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         if reference := message.reference:
             # This message is in response to another message
             reference_message: discord.Message
-            if reference.cached_message:
-                reference_message = reference.cached_message
-            else:
-                reference_message = await self.bot.get_channel(reference.channel_id).fetch_message(reference.message_id)
-            parts.append(
-                f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} z {reference_message.created_at.strftime("%Y-%m-%d %H:%M:%S")} o treści "{reference_message.clean_content.strip()}"_'
-            )
+            try:
+                if reference.cached_message:
+                    reference_message = reference.cached_message
+                else:
+                    reference_message = await self.bot.get_channel(reference.channel_id).fetch_message(
+                        reference.message_id
+                    )
+                parts.append(
+                    f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} z {reference_message.created_at.strftime("%Y-%m-%d %H:%M:%S")} o treści "{reference_message.clean_content.strip()}"_'
+                )
+            except discord.HTTPException:
+                parts.append("_W odpowiedzi na niedostępną już wiadomość_")
         if message.clean_content:
             parts.append(message.clean_content)
             prefixes = await self.bot.get_prefix(message)
@@ -320,9 +325,9 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                         "role": "user" if m.author_display_name_with_id else "assistant",
                         "content": [
                             {
-                                "type": "input_text"  if m.author_display_name_with_id else "output_text",
+                                "type": "input_text" if m.author_display_name_with_id else "output_text",
                                 "text": f"{m.author_display_name_with_id} o {m.timestamp.strftime('%Y-%m-%d %H:%M:%S')}:\n{m.clean_content}"
-                                 if m.author_display_name_with_id
+                                if m.author_display_name_with_id
                                 else m.clean_content,
                             },
                             *({"type": "input_image", "image_url": url} for url in m.image_urls),
