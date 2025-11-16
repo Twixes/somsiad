@@ -116,7 +116,7 @@ SETTINGS = (
     Setting('goodreads_key', description='Klucz API Goodreads', optional=True),
     Setting('tmdb_key', description='Klucz API TMDb', optional=True),
     Setting('last_fm_key', description='Klucz API Last.fm', optional=True),
-    Setting('openai_api_key', description='Klucz API OpenAI', optional=True),
+    Setting('anthropic_api_key', description='Klucz API Anthropic', optional=True),
     Setting(
         'disco_max_file_size_in_mib', description='Maksymalny rozmiar pliku utworu disco', unit='MiB', default_value=16
     ),

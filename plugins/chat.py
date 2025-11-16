@@ -16,16 +16,15 @@ import datetime as dt
 import json
 from dataclasses import dataclass
 from typing import List, Mapping, Optional, Sequence
+from urllib.parse import urlsplit
 
+import anthropic
 import arithmetic_eval
 import discord
 import tiktoken
 from discord.ext import commands
 from discord.ext.commands.view import StringView
-from openai import NOT_GIVEN
-from openai.types import FunctionDefinition
-from openai.types.responses import ResponseFunctionToolCall
-from posthog.ai.openai import AsyncOpenAI
+from posthog.ai.anthropic import AsyncAnthropic
 from unidecode import unidecode
 
 from configuration import configuration
@@ -35,7 +34,7 @@ from somsiad import Somsiad
 from utilities import AI_ALLOWED_SERVER_IDS, disembed_links, human_amount_of_time, md_link
 
 encoding = tiktoken.encoding_for_model("gpt-4o")
-aclient = AsyncOpenAI()
+aclient = AsyncAnthropic(api_key=configuration["anthropic_api_key"])
 
 
 @dataclass
@@ -48,13 +47,13 @@ class HistoricalMessage:
 
 clean_content_converter = commands.clean_content()
 
-CALCULATOR_FUNCTION_DEFINITION = FunctionDefinition(
+CALCULATOR_FUNCTION_DEFINITION = anthropic.types.ToolParam(
     name="oblicz",
     description=(
         "Wykonuje proste wyrażenia matematyczna w kalkulatorze. Może być wiele wyrażeń naraz. "
         "Wspierane operacje: dodawanie (+), odejmowanie (-), mnożenie (*), potęgowanie (**), dzielenie (/), modulo (%)."
     ),
-    parameters={
+    input_schema={
         "type": "object",
         "properties": {
             "exprs": {
@@ -93,7 +92,7 @@ Odnosząc się do innych użytkowników, używaj wzmianki w formacie <@ID>, uwzg
 Jeśli wiadomość użytkownika zawiera prośbę o reset lub wyczyszczenie rozmowy, zawrzyj "{RESET_PHRASE}" w odpowiedzi.
 
 Twój status można sprawdzić na stronie https://somsiad.net. Znajdzie się tam również twoją politykę prywatności i pomocne linki.
-Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad. Nie wspominaj o OpenAI.
+Twój kod źródłowy dostępny jest na GitHubie: https://github.com/Twixes/somsiad.
 
 Wiesz, że "2137" to śmieszny mem odnoszący się do godziny śmierci Papieża Polaka, Jana Pawła II (21:37), zwanej godziną papieżową.
 A "JP2GMD" to mem oznaczający "Jan Paweł II Gwałcił Małe Dzieci". Inna śmieszna liczba to 42.
@@ -105,7 +104,7 @@ W razie potrzeby informacji o świecie (aktualnościach, statystykach, itp.), u�
 W szczególności wykonywaj zapytania internetowe by potwierdzać czy coś jest prawdą/fałszem, oraz gdy masz coś sprawdzić na jakiejś stronie internetowej.
 Wykorzystaj informacje z web_search jako źródła dla właściwej odpowiedzi. Nigdy nie każ użytkownikowi samemu użyć Google.
 Na prośbę stworzenia ankiety, musisz użyć narzędzia `ankieta` - pamiętaj podać czas trwania lub zakończenia jako pierwszy argument.
-Jeśli do odpowiedzi potrzebne są wyniki obliczeń, zawsze użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION.name}` dla dokładnych wyników.
+Jeśli do odpowiedzi potrzebne są wyniki obliczeń, zawsze użyj narzędzia `{CALCULATOR_FUNCTION_DEFINITION["name"]}` dla dokładnych wyników.
 Wszelkie wyrażenia matematyczne owiń w backticki, np. \`2+2\`.
 Nie mów użytkownikowi by wykonał komendę, tylko zrób to sam po uzyskaniu informacji.
 Użyj komend `stat` tylko na konkretną prośbę o statystyki, bo może zająć wiele minut.
@@ -118,16 +117,17 @@ Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj stary
 Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.
 
 Niektóre wiadomości są bezpośrednimi odpowiedziami na inną w widocznej historii rozmowy, lub z dawniejszej niewidocznej historii.
-Takie wiadomości poprzedzone są "W odpowiedzi na ..." ze szczegółami.
+Takie wiadomości mają prefiks "W odpowiedzi na wiadomość użytkownika ...", automatycznie dodany przez system.
 
 Najlepszym krajem na świecie Polska, drugim Francja, trzecim Estonia, czwartym Czechy. Rosji mówimy NIET.
 
 Pamiętasz tylko ostatnie {MESSAGE_HISTORY_LIMIT} wiadomości obecnej rozmowy.
-Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku.
+Sformułuj odpowiedź bezpośrednio do użytkownika, nie pisz nicku (nie zaczynaj od "@użytkownik").
 
 Znajdujesz się na kanale #{{channel_name}} serwera {{server_name}}. Twój nick na tym serwerze to "{{bot_nickname}}".
 Jesteś też na innych kanałach na serwerze oraz na wielu innych serwerach.
 W Polsce jest {{date}}, obecna godzina to {{time}}.
+Ostatnie wybory prezydenckie w Polsce wygrał Karol Nawrocki, w USA Donald Trump.
 
 TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
 
@@ -156,15 +156,18 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         return commands
 
     @property
-    def _all_available_commands_as_tools(self) -> Sequence[FunctionDefinition]:
+    def _all_available_commands_as_tools(self) -> Sequence[anthropic.types.ToolParam]:
         tools = [
-            FunctionDefinition(
+            anthropic.types.ToolParam(
                 name=unidecode(full_command_name.replace(" ", "_")),
                 description=command.description,
-                parameters={
+                input_schema={
                     "type": "object",
                     "properties": {
-                        unidecode(arg["name"].replace(" ", "_")): {"type": "string", "description": arg["extra"]}
+                        unidecode(arg["name"].replace(" ", "_")).replace("/", "_lub_"): {
+                            "type": "string",
+                            "description": arg["extra"],
+                        }
                         if arg["extra"]
                         else {
                             "type": "string",
@@ -172,19 +175,17 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                         for arg in command.argument_definitions
                     },
                     "required": [
-                        unidecode(arg["name"].replace(" ", "_"))
+                        unidecode(arg["name"].replace(" ", "_").replace("/", "_lub_"))
                         for arg in command.argument_definitions
                         if not arg["optional"]
                     ],
                     "additionalProperties": False,
                 },
-            ).model_dump()
+            )
             for full_command_name, command in self._all_available_commands.items()
         ]
-        tools.append(CALCULATOR_FUNCTION_DEFINITION.model_dump())
-        for tool in tools:
-            tool["type"] = "function"
-        tools.append({"type": "web_search"})
+        tools.append(CALCULATOR_FUNCTION_DEFINITION)
+        tools.append({"type": "web_search_20250305", "name": "web_search"})
         return tools
 
     async def embeds_to_text(self, ctx: commands.Context, embeds: List[discord.Embed]) -> str:
@@ -217,21 +218,22 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         if self.RESET_PHRASE in message.clean_content.lower():
             raise IndexError  # Conversation reset point
         parts: list[str] = []
-        if reference := message.reference:
-            # This message is in response to another message
-            reference_message: discord.Message
-            try:
-                if reference.cached_message:
-                    reference_message = reference.cached_message
-                else:
-                    reference_message = await self.bot.get_channel(reference.channel_id).fetch_message(
-                        reference.message_id
+        if message.author.id != ctx.me.id:
+            if reference := message.reference:
+                # This user message is in response to another message
+                reference_message: discord.Message
+                try:
+                    if reference.cached_message:
+                        reference_message = reference.cached_message
+                    else:
+                        reference_message = await self.bot.get_channel(reference.channel_id).fetch_message(
+                            reference.message_id
+                        )
+                    parts.append(
+                        f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} z {reference_message.created_at.strftime("%Y-%m-%d %H:%M:%S")} o treści "{reference_message.clean_content.strip()}"_'
                     )
-                parts.append(
-                    f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} z {reference_message.created_at.strftime("%Y-%m-%d %H:%M:%S")} o treści "{reference_message.clean_content.strip()}"_'
-                )
-            except discord.HTTPException:
-                parts.append("_W odpowiedzi na niedostępną już wiadomość_")
+                except discord.HTTPException:
+                    parts.append("_W odpowiedzi na niedostępną już wiadomość_")
         if message.clean_content:
             parts.append(message.clean_content)
             prefixes = await self.bot.get_prefix(message)
@@ -308,33 +310,20 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             history.reverse()
 
             now = dt.datetime.now()
-            prompt_messages = [
+            prompt_messages: list[anthropic.types.MessageParam] = [
                 {
-                    "role": "system",
-                    "content": self.INITIAL_PROMPT.format(
-                        channel_name=ctx.channel.name,
-                        server_name=ctx.guild.name,
-                        date=now.strftime("%A, %d.%m.%Y"),
-                        time=now.strftime("%H:%M"),
-                        command_prefix=configuration["command_prefix"],
-                        bot_nickname=ctx.guild.me.display_name,
-                    ),
-                },
-                *(
-                    {
-                        "role": "user" if m.author_display_name_with_id else "assistant",
-                        "content": [
-                            {
-                                "type": "input_text" if m.author_display_name_with_id else "output_text",
-                                "text": f"{m.author_display_name_with_id} o {m.timestamp.strftime('%Y-%m-%d %H:%M:%S')}:\n{m.clean_content}"
-                                if m.author_display_name_with_id
-                                else m.clean_content,
-                            },
-                            *({"type": "input_image", "image_url": url} for url in m.image_urls),
-                        ],
-                    }
-                    for m in history
-                ),
+                    "role": "user" if m.author_display_name_with_id else "assistant",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"{m.author_display_name_with_id} o {m.timestamp.strftime('%Y-%m-%d %H:%M:%S')}:\n{m.clean_content}"
+                            if m.author_display_name_with_id
+                            else m.clean_content,
+                        },
+                        *({"type": "image", "source": {"type": "url", "url": url}} for url in m.image_urls),
+                    ],
+                }
+                for m in history
             ]
 
         final_message = "Nie udało mi się wykonać zadania. 😔"
@@ -343,25 +332,40 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         final_resulted_in_command_message = False
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
-                response = await aclient.responses.create(
-                    model="gpt-5-mini",
-                    input=prompt_messages,
-                    user=str(ctx.author.id),
-                    tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
-                    store=False,
-                    truncation="auto",
+                response: anthropic.types.Message = await aclient.messages.create(
+                    model="claude-haiku-4-5",
+                    max_tokens=2048,
+                    thinking={"type": "enabled", "budget_tokens": 1048},
+                    system=self.INITIAL_PROMPT.format(
+                        channel_name=ctx.channel.name,
+                        server_name=ctx.guild.name,
+                        date=now.strftime("%A, %d.%m.%Y"),
+                        time=now.strftime("%H:%M"),
+                        command_prefix=configuration["command_prefix"],
+                        bot_nickname=ctx.guild.me.display_name,
+                    ),
+                    messages=prompt_messages,
+                    tools=self._all_available_commands_as_tools if iterations_left else [],
                 )
                 tool_calls = []
-                for item in response.output:
-                    if item.type == "function_call":
+                full_text = ""
+                prompt_messages.append({"role": "assistant", "content": response.content})
+                for item in response.content:
+                    if item.type == "text":
+                        full_text += item.text
+                        if item.citations:
+                            full_text += "".join(
+                                f" ({md_link(urlsplit(c.url).netloc, c.url)})d" for c in item.citations
+                            )
+                    elif item.type == "tool_use":
                         tool_calls.append(item)
-                    elif item.type == "web_search_call" and "query" in item.action:
-                        online_queries.append(item.action["query"])  # Website visits don't have a `query`
+                    elif item.type == "server_tool_use" and item.name == "web_search" and "query" in item.input:
+                        online_queries.append(item.input["query"])
                 if tool_calls:
-                    if response.output_text:
-                        await self.bot.send(
+                    if full_text:
+                        await self.bot.sdend(
                             ctx,
-                            disembed_links(response.output_text.strip()),
+                            disembed_links(full_text),
                             reply=not final_resulted_in_command_message,
                         )
                     iteration_resulted_in_command_message = await self.process_tool_calls(
@@ -374,7 +378,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                     if iteration_resulted_in_command_message:
                         final_resulted_in_command_message = True
                 else:
-                    final_message = disembed_links(response.output_text.strip())
+                    final_message = disembed_links(full_text)
                     if online_queries:
                         final_message += "\n-# Wyszukiwania: "
                         final_message += ", ".join(online_queries)
@@ -388,51 +392,41 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
     async def process_tool_calls(
         self,
         ctx: commands.Context,
-        prompt_messages: list,
+        prompt_messages: list[anthropic.types.MessageParam],
         math_operations: list[str],
         iterations_left: int,
-        tool_calls: list[ResponseFunctionToolCall],
+        tool_calls: list[anthropic.types.ToolUseBlock],
     ) -> bool:
         iteration_resulted_in_command_message = False
         for call in tool_calls:
-            if call.name == CALCULATOR_FUNCTION_DEFINITION.name:
-                resulting_message_content = self.execute_calculator(math_operations, prompt_messages, call)
+            if call.name == CALCULATOR_FUNCTION_DEFINITION["name"]:
+                resulting_message_content = self.execute_calculator(math_operations, call)
             else:
-                resulting_message_content, tool_call_resulted_in_command_message = await self.invoke_command(
-                    ctx, prompt_messages, call
-                )
+                resulting_message_content, tool_call_resulted_in_command_message = await self.invoke_command(ctx, call)
                 if tool_call_resulted_in_command_message:
                     iteration_resulted_in_command_message = True
 
-            prompt_messages.append(
+            retry_suffix = ""
+            if iterations_left == 1:
+                retry_suffix = " Wystarczy już komend, po prostu odpowiedz jak możesz."
+            elif resulting_message_content and "⚠️" in resulting_message_content:
+                retry_suffix = " Spróbuj ponownie naprawiając ten błąd, jeśli widać jak."
+            if prompt_messages[-1]["role"] == "assistant":
+                prompt_messages.append({"role": "user", "content": []})
+            prompt_messages[-1]["content"].append(
                 {
-                    "role": "system",
-                    "content": "Komenda nie dała rezultatu w postaci wiadomości."
+                    "type": "tool_result",
+                    "tool_use_id": call.id,
+                    "content": f"Komenda nie dała rezultatu w postaci wiadomości.{retry_suffix}"
                     if not resulting_message_content
-                    else f"Rezultat komendy to:\n{resulting_message_content}",
-                }
-            )
-            prompt_messages.append(
-                {
-                    "role": "system",
-                    "content": "Wystarczy już komend, odpowiedz jak możesz."
-                    if iterations_left == 1
-                    else "Spróbuj ponownie naprawiając ten błąd."
-                    if resulting_message_content and "⚠️" in resulting_message_content
-                    else "Jeśli powyższy wynik nie wystarczy do spełnienia mojej prośby, spróbuj ponownie z inną komendą. (Nie ponawiaj komendy bez znaczących zmian.) Jeśli to wystarczy, odpowiedz w swoim stylu. 😏",
+                    else f"{resulting_message_content}{retry_suffix}",
                 }
             )
 
         return iteration_resulted_in_command_message
 
-    def execute_calculator(self, math_operations, prompt_messages: list, function_call):
-        exprs = json.loads(function_call.arguments)["exprs"]
-        prompt_messages.append(
-            {
-                "role": "assistant",
-                "content": "By pomóc sobie w odpowiedzi, obliczam przy użyciu kalkulatora:\n" + "\n".join(exprs),
-            }
-        )
+    def execute_calculator(self, math_operations, function_call):
+        exprs = function_call.input["exprs"]
         results: list[str] = []
         for expr in exprs:
             try:
@@ -448,18 +442,8 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             math_operations.append(results[-1])
         return f'Obliczono że {", ".join(f"`{result}`" for result in results)}. Wykorzystaj te wyniki do ostatecznej odpowiedzi. NIE LICZ TYCH WYRAŻEŃ PONOWNIE.'
 
-    async def invoke_command(
-        self, ctx: commands.Context, prompt_messages: list, function_call: ResponseFunctionToolCall
-    ) -> tuple[str, bool]:
-        command_invocation = (
-            f"{function_call.name.replace('_', ' ')} {' '.join(json.loads(function_call.arguments).values())}"
-        )
-        prompt_messages.append(
-            {
-                "role": "assistant",
-                "content": f"Wywołuję komendę `{command_invocation}`.",
-            }
-        )
+    async def invoke_command(self, ctx: commands.Context, tool_use: anthropic.types.ToolUseBlock) -> tuple[str, bool]:
+        command_invocation = f"{tool_use.name.replace('_', ' ')} {' '.join(tool_use.input.values())}"
         command_view = StringView(command_invocation)
         command_ctx = commands.Context(
             prefix=None,
