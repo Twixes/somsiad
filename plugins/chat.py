@@ -355,7 +355,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                         full_text += item.text
                         if item.citations:
                             full_text += "".join(
-                                f" ({md_link(urlsplit(c.url).netloc, c.url)})d" for c in item.citations
+                                f" ({md_link(urlsplit(c.url).netloc, c.url)})" for c in item.citations
                             )
                     elif item.type == "tool_use":
                         tool_calls.append(item)
