@@ -336,27 +336,30 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                     model="claude-sonnet-4-5",
                     max_tokens=2048,
                     thinking={"type": "enabled", "budget_tokens": 1048},
-                    system=self.INITIAL_PROMPT.format(
-                        channel_name=ctx.channel.name,
-                        server_name=ctx.guild.name,
-                        date=now.strftime("%A, %d.%m.%Y"),
-                        time=now.strftime("%H:%M"),
-                        command_prefix=configuration["command_prefix"],
-                        bot_nickname=ctx.guild.me.display_name,
-                    ),
+                    system=[
+                        {
+                            "type": "text",
+                            "text": self.INITIAL_PROMPT.format(
+                                channel_name=ctx.channel.name,
+                                server_name=ctx.guild.name,
+                                date=now.strftime("%A, %d.%m.%Y"),
+                                time=now.strftime("%H:%M"),
+                                command_prefix=configuration["command_prefix"],
+                                bot_nickname=ctx.guild.me.display_name,
+                            ),
+                            "cache_control": {"type": "ephemeral", "ttl": "1h"},
+                        }
+                    ],
                     messages=prompt_messages,
                     tools=self._all_available_commands_as_tools if iterations_left else [],
                 )
-                tool_calls = []
+                tool_calls: list[anthropic.types.ToolUseBlock] = []
                 full_text = ""
                 prompt_messages.append({"role": "assistant", "content": response.content})
                 for item in response.content:
                     if item.type == "text":
                         full_text += item.text
                         if item.citations:
-                            full_text += "".join(
-                                f" ({md_link(urlsplit(c.url).netloc, c.url)})" for c in item.citations
-                            )
                     elif item.type == "tool_use":
                         tool_calls.append(item)
                     elif item.type == "server_tool_use" and item.name == "web_search" and "query" in item.input:
