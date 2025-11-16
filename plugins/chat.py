@@ -333,7 +333,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 response: anthropic.types.Message = await aclient.messages.create(
-                    model="claude-haiku-4-5",
+                    model="claude-sonnet-4-5",
                     max_tokens=2048,
                     thinking={"type": "enabled", "budget_tokens": 1048},
                     system=self.INITIAL_PROMPT.format(
