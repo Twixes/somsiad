@@ -65,7 +65,7 @@ uv sync
 
 The bot requires numerous API keys and tokens configured via environment variables:
 - `DISCORD_TOKEN` - Discord bot token
-- `ANTHROPIC_API_KEY` - For AI chat functionality
+- `OPENAI_API_KEY` - For AI chat functionality
 - `GOOGLE_KEY` + `GOOGLE_CUSTOM_SEARCH_ENGINE_ID` - For search features
 - Database URLs for PostgreSQL, ClickHouse, and Redis
 - Various third-party API keys (Spotify, Last.fm, TMDb, etc.)
