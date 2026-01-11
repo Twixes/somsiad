@@ -339,7 +339,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 response = await aclient.responses.create(
-                    model="gpt-5-mini",
+                    model="gpt-5.2",
                     input=prompt_messages,
                     user=str(ctx.author.id),
                     tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
