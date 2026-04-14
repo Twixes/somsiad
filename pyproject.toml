@@ -4,7 +4,7 @@ version = "2.7.0"
 requires-python = "==3.11.*" # Same as in Dockerfile
 dependencies = [
     "Pillow==9.5.0",
-    "discord.py[voice]==2.3.2",
+    "discord.py[voice]==2.7.1",
     "psycopg2==2.9.3",
     "SQLAlchemy==1.4.51",
     "psutil==5.9.0",
