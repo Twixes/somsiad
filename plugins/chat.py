@@ -49,6 +49,8 @@ class HistoricalMessage:
 
 clean_content_converter = commands.clean_content()
 
+TEXT_ATTACHMENT_MAX_SIZE = 8000
+
 CALCULATOR_FUNCTION_DEFINITION = FunctionDefinition(
     name="oblicz",
     description=(
@@ -150,6 +152,18 @@ DISCORD_TOOL_DEFINITIONS: dict[str, FunctionDefinition] = {
             "additionalProperties": False,
         },
     ),
+    "read_attachment": FunctionDefinition(
+        name="read_attachment",
+        description="Czyta zawartość załącznika z wiadomości na Discordzie (plik tekstowy, kod, JSON, obraz itp.) na podstawie jego URL.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "URL załącznika z Discorda (z cdn.discordapp.com)"},
+            },
+            "required": ["url"],
+            "additionalProperties": False,
+        },
+    ),
     "get_user_info": FunctionDefinition(
         name="get_user_info",
         description="Sprawdza informacje o użytkowniku na tym serwerze Discord: role, status, datę dołączenia, aktywność.",
@@ -213,6 +227,7 @@ Jeśli nie możesz z czymś pomóc, dokładnie opisz dlaczego nie możesz i co u
 Masz bezpośredni dostęp do tego serwera Discord. Możesz czytać historię innych kanałów, szukać wiadomości, wysyłać wiadomości na inne kanały, przeglądać listę kanałów i członków, oraz sprawdzać informacje o użytkownikach i kanałach.
 Korzystaj z narzędzi serwerowych gdy pytanie dotyczy serwera, kanałów, użytkowników, czy dyskusji na innych kanałach.
 Możesz łączyć wiele narzędzi — np. przeczytać historię kanału i na jej podstawie wysłać podsumowanie na inny kanał.
+Wiadomości zawierają metadane załączników (nazwa, typ, rozmiar, URL). Aby zobaczyć zawartość załącznika (tekst, kod, obraz), użyj narzędzia read_attachment z jego URL.
 
 Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.
 Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.
@@ -313,14 +328,16 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                 parts.append(f"Stopka: {await clean_content_converter.convert(ctx, embed.footer.text)}")
         return "\n".join(parts)
 
-    async def message_to_text(self, ctx: commands.Context, message: discord.Message) -> Optional[str]:
-        if message.clean_content.strip().startswith(self.COMMENT_MARKER):
-            return None
-        if self.RESET_PHRASE in message.clean_content.lower():
-            raise IndexError  # Conversation reset point
+    async def message_to_text(
+        self, ctx: commands.Context, message: discord.Message, *, for_tool: bool = False
+    ) -> Optional[str]:
+        if not for_tool:
+            if message.clean_content.strip().startswith(self.COMMENT_MARKER):
+                return None
+            if self.RESET_PHRASE in message.clean_content.lower():
+                raise IndexError  # Conversation reset point
         parts: list[str] = []
         if reference := message.reference:
-            # This message is in response to another message
             reference_message: discord.Message
             if reference.cached_message:
                 reference_message = reference.cached_message
@@ -331,17 +348,17 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             )
         if message.clean_content:
             parts.append(message.clean_content)
-            prefixes = await self.bot.get_prefix(message)
-            for prefix in prefixes + [f"<@{message.guild.me.display_name}"]:
-                if parts[0].startswith(prefix):
-                    parts[0] = parts[0][len(prefix) :].lstrip()
-                    break
+            if not for_tool:
+                prefixes = await self.bot.get_prefix(message)
+                for prefix in prefixes + [f"<@{message.guild.me.display_name}"]:
+                    if parts[0].startswith(prefix):
+                        parts[0] = parts[0][len(prefix) :].lstrip()
+                        break
         if message.embeds:
             parts.append(await self.embeds_to_text(ctx, message.embeds))
-        if message.attachments:
-            parts.extend(
-                f"Załącznik {i + 1}: {attachment.filename}" for i, attachment in enumerate(message.attachments)
-            )
+        for attachment in message.attachments:
+            ct = attachment.content_type or "unknown"
+            parts.append(f"Załącznik: {attachment.filename} ({ct}, {attachment.size} B) — URL: {attachment.url}")
         return "\n".join(parts)
 
     @cooldown(rate=15, per=3600 * 24, type=commands.BucketType.channel)
@@ -514,7 +531,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                         "content": f"Używam narzędzia {call.name}.",
                     }
                 )
-                resulting_message_content = await self._execute_discord_tool(ctx, call.name, args)
+                resulting_message_content = await self._execute_discord_tool(ctx, prompt_messages, call.name, args)
             else:
                 resulting_message_content, tool_call_resulted_in_command_message = await self.invoke_command(
                     ctx, prompt_messages, call
@@ -651,26 +668,31 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
 
     @staticmethod
     def _discord_tool_human_description(tool_name: str, args: dict) -> str:
+        esc = discord.utils.escape_markdown
         if tool_name == "send_message_in_another_channel":
-            return f"_Wysyłam wiadomość na kanał #{args['channel_name']}…_"
+            return f"_Wysyła wiadomość na kanał #{esc(args['channel_name'])}…_"
         elif tool_name == "read_history_of_another_channel":
-            return f"_Czytam historię kanału #{args['channel_name']}…_"
+            return f"_Czyta historię kanału #{esc(args['channel_name'])}…_"
         elif tool_name == "search_messages":
-            channel_part = f" na kanale #{args['channel_name']}" if args.get("channel_name") else ""
-            query = args["query"]
-            return f'_Szukam wiadomości "{query}"{channel_part}…_'
+            channel_part = f" na kanale #{esc(args['channel_name'])}" if args.get("channel_name") else ""
+            return f'_Szuka wiadomości "{esc(args["query"])}"{channel_part}…_'
         elif tool_name == "list_channels":
-            return "_Sprawdzam listę kanałów…_"
+            return "_Sprawdza listę kanałów…_"
         elif tool_name == "list_members":
-            role_part = f" z rolą {args['role_name']}" if args.get("role_name") else ""
-            return f"_Sprawdzam listę członków{role_part}…_"
+            role_part = f" z rolą {esc(args['role_name'])}" if args.get("role_name") else ""
+            return f"_Sprawdza listę członków{role_part}…_"
         elif tool_name == "get_channel_topic":
-            return f"_Sprawdzam opis kanału #{args['channel_name']}…_"
+            return f"_Sprawdza opis kanału #{esc(args['channel_name'])}…_"
+        elif tool_name == "read_attachment":
+            filename = esc(args["url"].split("/")[-1]) if "/" in args.get("url", "") else ""
+            return f"_Czyta załącznik {filename}…_"
         elif tool_name == "get_user_info":
-            return f"_Sprawdzam informacje o użytkowniku {args['user_id']}…_"
-        return f"_{tool_name}…_"
+            return f"_Sprawdza informacje o użytkowniku {esc(args['user_id'])}…_"
+        return f"_{esc(tool_name)}…_"
 
-    async def _execute_discord_tool(self, ctx: commands.Context, tool_name: str, args: dict) -> str:
+    async def _execute_discord_tool(
+        self, ctx: commands.Context, prompt_messages: list, tool_name: str, args: dict
+    ) -> str:
         handler = {
             "send_message_in_another_channel": self._tool_send_message,
             "read_history_of_another_channel": self._tool_read_history,
@@ -678,18 +700,19 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             "list_channels": self._tool_list_channels,
             "list_members": self._tool_list_members,
             "get_channel_topic": self._tool_get_channel_topic,
+            "read_attachment": self._tool_read_attachment,
             "get_user_info": self._tool_get_user_info,
         }.get(tool_name)
         if not handler:
             return f"⚠️ Nieznane narzędzie: {tool_name}"
         try:
-            return await handler(ctx, args)
+            return await handler(ctx, prompt_messages, args)
         except ValueError as e:
             return str(e)
         except Exception as e:
             return f"⚠️ Błąd: {e}"
 
-    async def _tool_send_message(self, ctx: commands.Context, args: dict) -> str:
+    async def _tool_send_message(self, ctx: commands.Context, _prompt_messages: list, args: dict) -> str:
         channel = self._require_channel(
             ctx,
             args["channel_name"],
@@ -700,7 +723,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         await channel.send(message_text, allowed_mentions=discord.AllowedMentions.none())
         return f"Wysłano wiadomość na kanał #{channel.name}"
 
-    async def _tool_read_history(self, ctx: commands.Context, args: dict) -> str:
+    async def _tool_read_history(self, ctx: commands.Context, _prompt_messages: list, args: dict) -> str:
         channel = self._require_channel(
             ctx,
             args["channel_name"],
@@ -713,15 +736,14 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             limit = 20
         messages = []
         async for msg in channel.history(limit=limit):
-            timestamp = msg.created_at.strftime("%Y-%m-%d %H:%M")
-            author = msg.author.display_name
-            content = msg.clean_content[:300] if msg.clean_content else "(brak treści)"
-            attachments = f" [+{len(msg.attachments)} załączników]" if msg.attachments else ""
-            messages.append(f"[{timestamp}] {author}: {content}{attachments}")
+            text = await self.message_to_text(ctx, msg, for_tool=True)
+            if text:
+                timestamp = msg.created_at.strftime("%Y-%m-%d %H:%M")
+                messages.append(f"[{timestamp}] {msg.author.display_name}: {text}")
         messages.reverse()
         return "\n".join(messages) if messages else f"Brak wiadomości na kanale #{channel.name}"
 
-    async def _tool_search_messages(self, ctx: commands.Context, args: dict) -> str:
+    async def _tool_search_messages(self, ctx: commands.Context, _prompt_messages: list, args: dict) -> str:
         query = args["query"].lower()
         channel_name = args.get("channel_name")
         if channel_name:
@@ -735,10 +757,10 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             search_channel = ctx.channel
         results = []
         async for msg in search_channel.history(limit=200):
-            if query in msg.clean_content.lower():
+            text = await self.message_to_text(ctx, msg, for_tool=True) or ""
+            if query in text.lower():
                 timestamp = msg.created_at.strftime("%Y-%m-%d %H:%M")
-                content = msg.clean_content[:300]
-                results.append(f"[{timestamp} #{search_channel.name}] {msg.author.display_name}: {content}")
+                results.append(f"[{timestamp} #{search_channel.name}] {msg.author.display_name}: {text}")
                 if len(results) >= 15:
                     break
         results.reverse()
@@ -746,7 +768,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             return 'Nie znaleziono wiadomości zawierających "%s"' % args["query"]
         return "\n".join(results)
 
-    async def _tool_list_channels(self, ctx: commands.Context, args: dict) -> str:
+    async def _tool_list_channels(self, ctx: commands.Context, _prompt_messages: list, args: dict) -> str:
         lines = []
         for channel in ctx.guild.text_channels:
             if not channel.permissions_for(ctx.author).view_channel:
@@ -756,7 +778,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             lines.append(f"#{channel.name}{category}{topic}")
         return "\n".join(lines) if lines else "Brak kanałów tekstowych"
 
-    async def _tool_list_members(self, ctx: commands.Context, args: dict) -> str:
+    async def _tool_list_members(self, ctx: commands.Context, _prompt_messages: list, args: dict) -> str:
         role_name = args.get("role_name")
         if role_name:
             role = discord.utils.get(ctx.guild.roles, name=role_name)
@@ -775,13 +797,30 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         header = f"Liczba członków: {len(members)}{count_note}"
         return header + "\n" + "\n".join(lines)
 
-    async def _tool_get_channel_topic(self, ctx: commands.Context, args: dict) -> str:
+    async def _tool_get_channel_topic(self, ctx: commands.Context, _prompt_messages: list, args: dict) -> str:
         channel = self._require_channel(ctx, args["channel_name"])
         topic = channel.topic or "(brak opisu)"
         category = channel.category.name if channel.category else "(brak kategorii)"
         return f"Kanał: #{channel.name}\nKategoria: {category}\nOpis: {topic}"
 
-    async def _tool_get_user_info(self, ctx: commands.Context, args: dict) -> str:
+    async def _tool_read_attachment(self, ctx: commands.Context, prompt_messages: list, args: dict) -> str:
+        url = args["url"]
+        if "cdn.discordapp.com" not in url and "media.discordapp.net" not in url:
+            return "⚠️ URL musi być z cdn.discordapp.com lub media.discordapp.net"
+        async with self.bot.session.get(url) as resp:
+            if resp.status != 200:
+                return f"⚠️ Nie udało się pobrać załącznika (HTTP {resp.status})"
+            content_type = resp.content_type or ""
+            if content_type.startswith("image/"):
+                prompt_messages.append({"role": "user", "content": [{"type": "input_image", "image_url": url}]})
+                return "Obraz załadowany do kontekstu — opisz go lub odpowiedz na pytanie dotyczące obrazu"
+            data = await resp.read()
+            if len(data) > TEXT_ATTACHMENT_MAX_SIZE:
+                text = data[:TEXT_ATTACHMENT_MAX_SIZE].decode("utf-8", errors="replace")
+                return f"Zawartość pliku (obcięto do {TEXT_ATTACHMENT_MAX_SIZE} B):\n{text}"
+            return f"Zawartość pliku:\n{data.decode('utf-8', errors='replace')}"
+
+    async def _tool_get_user_info(self, ctx: commands.Context, _prompt_messages: list, args: dict) -> str:
         member = self._resolve_member(ctx.guild, args["user_id"])
         if not member:
             return f"⚠️ Nie znaleziono użytkownika {args['user_id']}"
