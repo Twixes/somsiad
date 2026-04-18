@@ -14,6 +14,7 @@
 import asyncio
 import datetime as dt
 import json
+import re
 from dataclasses import dataclass
 from typing import List, Mapping, Optional, Sequence
 
@@ -71,10 +72,105 @@ CALCULATOR_FUNCTION_DEFINITION = FunctionDefinition(
     },
 )
 
+DISCORD_TOOL_DEFINITIONS: dict[str, FunctionDefinition] = {
+    "send_message_in_another_channel": FunctionDefinition(
+        name="send_message_in_another_channel",
+        description="Wysyła wiadomość na inny kanał tekstowy na tym serwerze Discord.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "channel_name": {"type": "string", "description": "Nazwa kanału (bez #)"},
+                "message": {"type": "string", "description": "Treść wiadomości do wysłania"},
+            },
+            "required": ["channel_name", "message"],
+            "additionalProperties": False,
+        },
+    ),
+    "read_history_of_another_channel": FunctionDefinition(
+        name="read_history_of_another_channel",
+        description="Czyta ostatnie wiadomości z innego kanału na tym serwerze Discord.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "channel_name": {"type": "string", "description": "Nazwa kanału (bez #)"},
+                "limit": {
+                    "type": "integer",
+                    "description": "Maksymalna liczba wiadomości do odczytania (domyślnie 20, max 50)",
+                },
+            },
+            "required": ["channel_name"],
+            "additionalProperties": False,
+        },
+    ),
+    "search_messages": FunctionDefinition(
+        name="search_messages",
+        description="Szuka wiadomości zawierających podaną frazę na kanale na tym serwerze Discord.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Fraza do wyszukania w treści wiadomości"},
+                "channel_name": {
+                    "type": "string",
+                    "description": "Nazwa kanału do przeszukania (bez #). Domyślnie bieżący kanał.",
+                },
+            },
+            "required": ["query"],
+            "additionalProperties": False,
+        },
+    ),
+    "list_channels": FunctionDefinition(
+        name="list_channels",
+        description="Wyświetla listę wszystkich kanałów tekstowych na tym serwerze Discord z ich kategoriami i opisami.",
+        parameters={
+            "type": "object",
+            "properties": {},
+            "additionalProperties": False,
+        },
+    ),
+    "list_members": FunctionDefinition(
+        name="list_members",
+        description="Wyświetla listę członków serwera Discord, opcjonalnie filtrując po roli.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "role_name": {"type": "string", "description": "Nazwa roli do filtrowania (opcjonalnie)"},
+            },
+            "additionalProperties": False,
+        },
+    ),
+    "get_channel_topic": FunctionDefinition(
+        name="get_channel_topic",
+        description="Sprawdza opis (topic) i kategorię kanału tekstowego na tym serwerze Discord.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "channel_name": {"type": "string", "description": "Nazwa kanału (bez #)"},
+            },
+            "required": ["channel_name"],
+            "additionalProperties": False,
+        },
+    ),
+    "get_user_info": FunctionDefinition(
+        name="get_user_info",
+        description="Sprawdza informacje o użytkowniku na tym serwerze Discord: role, status, datę dołączenia, aktywność.",
+        parameters={
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string",
+                    "description": "Wzmianka użytkownika (np. <@123456>) lub jego numeryczne ID",
+                },
+            },
+            "required": ["user_id"],
+            "additionalProperties": False,
+        },
+    ),
+}
+
 
 class Chat(commands.Cog):
     RESET_PHRASE = "zaczynamy od nowa"
-    ITERATION_LIMIT = 4
+    ITERATION_LIMIT = 8
     MESSAGE_HISTORY_LIMIT = 30
     TOKEN_LIMIT = 1024
     COMMENT_MARKER = "//"
@@ -113,6 +209,10 @@ Na prośbę napisania historii, napisz rozbudowaną opowiastkę z barwnymi szcze
 Informując o tym czy jakiś polityk żyje lub nie, nigdy nie używaj pozytywnych LUB negatywnych wyrażeń ani emoji (jak "niestety" lub "na szczęście") - stwierdzaj tylko fakty.
 Jeśli prośba użytkownika nie jest 100% jasna lub przydałoby się uściślenie, szczegółowo poproś o info w konkretnym brakującym aspekcie.
 Jeśli nie możesz z czymś pomóc, dokładnie opisz dlaczego nie możesz i co użytkownik może zrobić.
+
+Masz bezpośredni dostęp do tego serwera Discord. Możesz czytać historię innych kanałów, szukać wiadomości, wysyłać wiadomości na inne kanały, przeglądać listę kanałów i członków, oraz sprawdzać informacje o użytkownikach i kanałach.
+Korzystaj z narzędzi serwerowych gdy pytanie dotyczy serwera, kanałów, użytkowników, czy dyskusji na innych kanałach.
+Możesz łączyć wiele narzędzi — np. przeczytać historię kanału i na jej podstawie wysłać podsumowanie na inny kanał.
 
 Przy wynikach komend weryfikuj ich zgodność z obecną datą. Nie podawaj starych informacji jako aktualne.
 Rezultatem komendy zazwyczaj jest wiadomość, ale może być też reakcja, np. 📫 oznacza wysłaną wiadomość prywatną.
@@ -182,6 +282,8 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             for full_command_name, command in self._all_available_commands.items()
         ]
         tools.append(CALCULATOR_FUNCTION_DEFINITION.model_dump())
+        for tool_def in DISCORD_TOOL_DEFINITIONS.values():
+            tools.append(tool_def.model_dump())
         for tool in tools:
             tool["type"] = "function"
         tools.append({"type": "web_search"})
@@ -237,7 +339,9 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         if message.embeds:
             parts.append(await self.embeds_to_text(ctx, message.embeds))
         if message.attachments:
-            parts.extend(f"Załącznik {i+1}: {attachment.filename}" for i, attachment in enumerate(message.attachments))
+            parts.extend(
+                f"Załącznik {i + 1}: {attachment.filename}" for i, attachment in enumerate(message.attachments)
+            )
         return "\n".join(parts)
 
     @cooldown(rate=15, per=3600 * 24, type=commands.BucketType.channel)
@@ -266,7 +370,6 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                         continue
                 except IndexError:
                     break
-                # Append
                 prompt_token_count_so_far += len(encoding.encode(clean_content))
                 history.append(
                     HistoricalMessage(
@@ -320,9 +423,9 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                         "role": "user" if m.author_display_name_with_id else "assistant",
                         "content": [
                             {
-                                "type": "input_text"  if m.author_display_name_with_id else "output_text",
+                                "type": "input_text" if m.author_display_name_with_id else "output_text",
                                 "text": f"{m.author_display_name_with_id} o {m.timestamp.strftime('%Y-%m-%d %H:%M:%S')}:\n{m.clean_content}"
-                                 if m.author_display_name_with_id
+                                if m.author_display_name_with_id
                                 else m.clean_content,
                             },
                             *({"type": "input_image", "image_url": url} for url in m.image_urls),
@@ -332,17 +435,18 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                 ),
             ]
 
-        final_message = "Nie udało mi się wykonać zadania. 😔"
+        output_parts: list[str] = []
         math_operations: list[str] = []
         online_queries: list[str] = []
-        final_resulted_in_command_message = False
+        resulted_in_command_message = False
+        all_tools = self._all_available_commands_as_tools
         for iterations_left in range(self.ITERATION_LIMIT - 1, -1, -1):
             async with ctx.typing():
                 response = await aclient.responses.create(
                     model="gpt-5.4",
                     input=prompt_messages,
                     user=str(ctx.author.id),
-                    tools=self._all_available_commands_as_tools if iterations_left else NOT_GIVEN,
+                    tools=all_tools if iterations_left else NOT_GIVEN,
                     store=False,
                     truncation="auto",
                 )
@@ -352,38 +456,42 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                         tool_calls.append(item)
                     elif item.type == "web_search_call" and "query" in item.action:
                         online_queries.append(item.action["query"])  # Website visits don't have a `query`
-                if tool_calls:
-                    if response.output_text:
-                        await self.bot.send(
-                            ctx,
-                            disembed_links(response.output_text.strip()),
-                            reply=not final_resulted_in_command_message,
-                        )
-                    iteration_resulted_in_command_message = await self.process_tool_calls(
-                        ctx,
-                        prompt_messages,
-                        math_operations,
-                        iterations_left,
-                        tool_calls,
-                    )
-                    if iteration_resulted_in_command_message:
-                        final_resulted_in_command_message = True
-                else:
-                    final_message = disembed_links(response.output_text.strip())
-                    if online_queries:
-                        final_message += "\n-# Wyszukiwania: "
-                        final_message += ", ".join(online_queries)
-                    if math_operations:
-                        final_message += "\n-# Obliczenia: "
-                        final_message += ", ".join(f"`{operation}`" for operation in math_operations)
+                if not tool_calls:
+                    # LLM decided it's done
+                    final_text = disembed_links(response.output_text.strip())
+                    output_parts.append(final_text)
                     break
 
-        await self.bot.send(ctx, final_message, reply=not final_resulted_in_command_message)
+                # There are tool calls - collect any intermediate text
+                if response.output_text:
+                    output_parts.append(disembed_links(response.output_text.strip()))
+
+                iteration_had_command_message = await self.process_tool_calls(
+                    ctx,
+                    prompt_messages,
+                    output_parts,
+                    math_operations,
+                    iterations_left,
+                    tool_calls,
+                )
+                if iteration_had_command_message:
+                    resulted_in_command_message = True
+
+        final_message = "\n".join(output_parts) if output_parts else "Nie udało mi się wykonać zadania. 😔"
+        if online_queries:
+            final_message += "\n-# Wyszukiwania: "
+            final_message += ", ".join(online_queries)
+        if math_operations:
+            final_message += "\n-# Obliczenia: "
+            final_message += ", ".join(f"`{operation}`" for operation in math_operations)
+
+        await self.bot.send(ctx, final_message, reply=not resulted_in_command_message)
 
     async def process_tool_calls(
         self,
         ctx: commands.Context,
         prompt_messages: list,
+        output_parts: list[str],
         math_operations: list[str],
         iterations_left: int,
         tool_calls: list[ResponseFunctionToolCall],
@@ -392,6 +500,21 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         for call in tool_calls:
             if call.name == CALCULATOR_FUNCTION_DEFINITION.name:
                 resulting_message_content = self.execute_calculator(math_operations, prompt_messages, call)
+            elif call.name in DISCORD_TOOL_DEFINITIONS:
+                try:
+                    args = json.loads(call.arguments)
+                except json.JSONDecodeError:
+                    resulting_message_content = "⚠️ Nieprawidłowe argumenty narzędzia"
+                    prompt_messages.append({"role": "system", "content": resulting_message_content})
+                    continue
+                output_parts.append(self._discord_tool_human_description(call.name, args))
+                prompt_messages.append(
+                    {
+                        "role": "assistant",
+                        "content": f"Używam narzędzia {call.name}.",
+                    }
+                )
+                resulting_message_content = await self._execute_discord_tool(ctx, call.name, args)
             else:
                 resulting_message_content, tool_call_resulted_in_command_message = await self.invoke_command(
                     ctx, prompt_messages, call
@@ -402,19 +525,19 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
             prompt_messages.append(
                 {
                     "role": "system",
-                    "content": "Komenda nie dała rezultatu w postaci wiadomości."
+                    "content": "Narzędzie nie dało rezultatu."
                     if not resulting_message_content
-                    else f"Rezultat komendy to:\n{resulting_message_content}",
+                    else f"Rezultat narzędzia:\n{resulting_message_content}",
                 }
             )
             prompt_messages.append(
                 {
                     "role": "system",
-                    "content": "Wystarczy już komend, odpowiedz jak możesz."
+                    "content": "Wystarczy już narzędzi, odpowiedz jak możesz."
                     if iterations_left == 1
                     else "Spróbuj ponownie naprawiając ten błąd."
-                    if resulting_message_content and "⚠️" in resulting_message_content
-                    else "Jeśli powyższy wynik nie wystarczy do spełnienia mojej prośby, spróbuj ponownie z inną komendą. (Nie ponawiaj komendy bez znaczących zmian.) Jeśli to wystarczy, odpowiedz w swoim stylu. 😏",
+                    if resulting_message_content and "⚠️" in str(resulting_message_content)
+                    else "Kontynuuj. Jeśli powyższy wynik wystarczy do odpowiedzi, odpowiedz w swoim stylu. Jeśli nie, użyj kolejnych narzędzi. 😏",
                 }
             )
 
@@ -441,7 +564,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                     result = round(result, 5)
             results.append(f"{expr} = {result}")
             math_operations.append(results[-1])
-        return f'Obliczono że {", ".join(f"`{result}`" for result in results)}. Wykorzystaj te wyniki do ostatecznej odpowiedzi. NIE LICZ TYCH WYRAŻEŃ PONOWNIE.'
+        return f"Obliczono że {', '.join(f'`{result}`' for result in results)}. Wykorzystaj te wyniki do ostatecznej odpowiedzi. NIE LICZ TYCH WYRAŻEŃ PONOWNIE."
 
     async def invoke_command(
         self, ctx: commands.Context, prompt_messages: list, function_call: ResponseFunctionToolCall
@@ -465,7 +588,7 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
         command_ctx._is_ai_tool_call = True  # Enabled cooldown bypass
         invoker = command_view.get_word()
         if invoker not in self.bot.all_commands:
-            return (f"Komenda `{invoker}` nie istnieje.",), False
+            return f"Komenda `{invoker}` nie istnieje.", False
         command_ctx.invoked_with = invoker
         command_ctx.command = self.bot.all_commands[invoker]
         await self.bot.invoke(command_ctx)
@@ -485,6 +608,196 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                 bot_reaction_emojis = [reaction.emoji for reaction in ctx.message.reactions if reaction.me]
                 return f"Jej wynik w postaci emoji: {''.join(bot_reaction_emojis)}", False
         return None, False
+
+    # Discord tool helpers
+
+    def _resolve_channel(self, guild: discord.Guild, channel_ref: str) -> Optional[discord.TextChannel]:
+        match = re.match(r"<#(\d+)>", channel_ref)
+        if match:
+            ch = guild.get_channel(int(match.group(1)))
+            return ch if isinstance(ch, discord.TextChannel) else None
+        return discord.utils.get(guild.text_channels, name=channel_ref.strip("#").strip())
+
+    def _require_channel(
+        self,
+        ctx: commands.Context,
+        channel_name: str,
+        *,
+        user_perms: Sequence[str] = ("view_channel",),
+        bot_perms: Sequence[str] = (),
+    ) -> discord.TextChannel:
+        """Resolve a channel by name and check permissions. Raises ValueError with a user-facing message on failure."""
+        channel = self._resolve_channel(ctx.guild, channel_name)
+        if not channel:
+            raise ValueError(f"⚠️ Nie znaleziono kanału o nazwie #{channel_name}")
+        user_p = channel.permissions_for(ctx.author)
+        for perm in user_perms:
+            if not getattr(user_p, perm, False):
+                raise ValueError(f"⚠️ Nie masz uprawnień do kanału #{channel.name}")
+        bot_p = channel.permissions_for(ctx.guild.me)
+        for perm in bot_perms:
+            if not getattr(bot_p, perm, False):
+                raise ValueError(f"⚠️ Nie mam uprawnień do kanału #{channel.name}")
+        return channel
+
+    def _resolve_member(self, guild: discord.Guild, user_ref: str) -> Optional[discord.Member]:
+        match = re.match(r"<@!?(\d+)>", user_ref)
+        if match:
+            return guild.get_member(int(match.group(1)))
+        try:
+            return guild.get_member(int(user_ref.strip()))
+        except ValueError:
+            return discord.utils.get(guild.members, display_name=user_ref.strip())
+
+    @staticmethod
+    def _discord_tool_human_description(tool_name: str, args: dict) -> str:
+        if tool_name == "send_message_in_another_channel":
+            return f"_Wysyłam wiadomość na kanał #{args['channel_name']}…_"
+        elif tool_name == "read_history_of_another_channel":
+            return f"_Czytam historię kanału #{args['channel_name']}…_"
+        elif tool_name == "search_messages":
+            channel_part = f" na kanale #{args['channel_name']}" if args.get("channel_name") else ""
+            query = args["query"]
+            return f'_Szukam wiadomości "{query}"{channel_part}…_'
+        elif tool_name == "list_channels":
+            return "_Sprawdzam listę kanałów…_"
+        elif tool_name == "list_members":
+            role_part = f" z rolą {args['role_name']}" if args.get("role_name") else ""
+            return f"_Sprawdzam listę członków{role_part}…_"
+        elif tool_name == "get_channel_topic":
+            return f"_Sprawdzam opis kanału #{args['channel_name']}…_"
+        elif tool_name == "get_user_info":
+            return f"_Sprawdzam informacje o użytkowniku {args['user_id']}…_"
+        return f"_{tool_name}…_"
+
+    async def _execute_discord_tool(self, ctx: commands.Context, tool_name: str, args: dict) -> str:
+        handler = {
+            "send_message_in_another_channel": self._tool_send_message,
+            "read_history_of_another_channel": self._tool_read_history,
+            "search_messages": self._tool_search_messages,
+            "list_channels": self._tool_list_channels,
+            "list_members": self._tool_list_members,
+            "get_channel_topic": self._tool_get_channel_topic,
+            "get_user_info": self._tool_get_user_info,
+        }.get(tool_name)
+        if not handler:
+            return f"⚠️ Nieznane narzędzie: {tool_name}"
+        try:
+            return await handler(ctx, args)
+        except ValueError as e:
+            return str(e)
+        except Exception as e:
+            return f"⚠️ Błąd: {e}"
+
+    async def _tool_send_message(self, ctx: commands.Context, args: dict) -> str:
+        channel = self._require_channel(
+            ctx,
+            args["channel_name"],
+            user_perms=("view_channel", "send_messages"),
+            bot_perms=("send_messages",),
+        )
+        message_text = args["message"][:2000]
+        await channel.send(message_text, allowed_mentions=discord.AllowedMentions.none())
+        return f"Wysłano wiadomość na kanał #{channel.name}"
+
+    async def _tool_read_history(self, ctx: commands.Context, args: dict) -> str:
+        channel = self._require_channel(
+            ctx,
+            args["channel_name"],
+            user_perms=("view_channel", "read_message_history"),
+            bot_perms=("read_message_history",),
+        )
+        try:
+            limit = min(int(args.get("limit", 20)), 50)
+        except (ValueError, TypeError):
+            limit = 20
+        messages = []
+        async for msg in channel.history(limit=limit):
+            timestamp = msg.created_at.strftime("%Y-%m-%d %H:%M")
+            author = msg.author.display_name
+            content = msg.clean_content[:300] if msg.clean_content else "(brak treści)"
+            attachments = f" [+{len(msg.attachments)} załączników]" if msg.attachments else ""
+            messages.append(f"[{timestamp}] {author}: {content}{attachments}")
+        messages.reverse()
+        return "\n".join(messages) if messages else f"Brak wiadomości na kanale #{channel.name}"
+
+    async def _tool_search_messages(self, ctx: commands.Context, args: dict) -> str:
+        query = args["query"].lower()
+        channel_name = args.get("channel_name")
+        if channel_name:
+            search_channel = self._require_channel(
+                ctx,
+                channel_name,
+                user_perms=("view_channel", "read_message_history"),
+                bot_perms=("read_message_history",),
+            )
+        else:
+            search_channel = ctx.channel
+        results = []
+        async for msg in search_channel.history(limit=200):
+            if query in msg.clean_content.lower():
+                timestamp = msg.created_at.strftime("%Y-%m-%d %H:%M")
+                content = msg.clean_content[:300]
+                results.append(f"[{timestamp} #{search_channel.name}] {msg.author.display_name}: {content}")
+                if len(results) >= 15:
+                    break
+        results.reverse()
+        if not results:
+            return 'Nie znaleziono wiadomości zawierających "%s"' % args["query"]
+        return "\n".join(results)
+
+    async def _tool_list_channels(self, ctx: commands.Context, args: dict) -> str:
+        lines = []
+        for channel in ctx.guild.text_channels:
+            if not channel.permissions_for(ctx.author).view_channel:
+                continue
+            category = f" [{channel.category.name}]" if channel.category else ""
+            topic = f" — {channel.topic[:100]}" if channel.topic else ""
+            lines.append(f"#{channel.name}{category}{topic}")
+        return "\n".join(lines) if lines else "Brak kanałów tekstowych"
+
+    async def _tool_list_members(self, ctx: commands.Context, args: dict) -> str:
+        role_name = args.get("role_name")
+        if role_name:
+            role = discord.utils.get(ctx.guild.roles, name=role_name)
+            if not role:
+                return '⚠️ Nie znaleziono roli o nazwie "%s"' % role_name
+            members = role.members
+        else:
+            members = ctx.guild.members
+        lines = []
+        for member in members[:50]:
+            status = str(member.status)
+            top_role = member.top_role.name if member.top_role != ctx.guild.default_role else ""
+            role_info = f" ({top_role})" if top_role else ""
+            lines.append(f"{member.display_name} <@{member.id}> — {status}{role_info}")
+        count_note = f" (pokazuję pierwszych 50 z {len(members)})" if len(members) > 50 else ""
+        header = f"Liczba członków: {len(members)}{count_note}"
+        return header + "\n" + "\n".join(lines)
+
+    async def _tool_get_channel_topic(self, ctx: commands.Context, args: dict) -> str:
+        channel = self._require_channel(ctx, args["channel_name"])
+        topic = channel.topic or "(brak opisu)"
+        category = channel.category.name if channel.category else "(brak kategorii)"
+        return f"Kanał: #{channel.name}\nKategoria: {category}\nOpis: {topic}"
+
+    async def _tool_get_user_info(self, ctx: commands.Context, args: dict) -> str:
+        member = self._resolve_member(ctx.guild, args["user_id"])
+        if not member:
+            return f"⚠️ Nie znaleziono użytkownika {args['user_id']}"
+        roles = ", ".join(r.name for r in member.roles[1:]) if len(member.roles) > 1 else "brak"
+        joined = member.joined_at.strftime("%Y-%m-%d %H:%M") if member.joined_at else "nieznana"
+        created = member.created_at.strftime("%Y-%m-%d %H:%M")
+        status = str(member.status)
+        activity = str(member.activity) if member.activity else "brak"
+        return (
+            f"Użytkownik: {member.display_name} ({member.name}) <@{member.id}>\n"
+            f"Status: {status}\n"
+            f"Aktywność: {activity}\n"
+            f"Dołączenie na serwer: {joined}\n"
+            f"Konto utworzone: {created}\n"
+            f"Role: {roles}"
+        )
 
     @hey.error
     async def hey_error(self, ctx, error):
