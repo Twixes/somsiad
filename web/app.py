@@ -21,9 +21,11 @@ from flask import (
     Flask,
     abort,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
+    send_from_directory,
     session as flask_session,
     url_for,
 )
@@ -137,6 +139,49 @@ MONTHS_PL = [
 
 BIRTHDAY_EDGE_YEAR = 1900
 DISCORD_REQUEST_TIMEOUT = 10
+DISCORD_BOT_TOKEN = os.environ.get('DISCORD_TOKEN', '')
+
+
+@functools.lru_cache(maxsize=512)
+def _resolve_guild_name(guild_id: int) -> str:
+    """Fetch guild name from Discord API using the bot token. Falls back to the ID string."""
+    if not DISCORD_BOT_TOKEN:
+        return str(guild_id)
+    try:
+        resp = http_requests.get(
+            f'{DISCORD_API_BASE}/guilds/{guild_id}',
+            headers={'Authorization': f'Bot {DISCORD_BOT_TOKEN}'},
+            timeout=DISCORD_REQUEST_TIMEOUT,
+        )
+        if resp.status_code == 200:
+            return resp.json().get('name', str(guild_id))
+    except Exception:
+        pass
+    return str(guild_id)
+
+EVENT_TYPE_LABELS = {
+    'warned': 'Ostrzeżenie',
+    'kicked': 'Wyrzucenie',
+    'banned': 'Ban',
+    'unbanned': 'Unban',
+    'pardoned': 'Przebaczenie',
+    'joined': 'Dołączenie',
+    'left': 'Opuszczenie',
+}
+
+EVENT_TYPE_ICONS = {
+    'warned': '⚠️',
+    'kicked': '👢',
+    'banned': '🔨',
+    'unbanned': '🔓',
+    'pardoned': '🕊️',
+    'joined': '📥',
+    'left': '📤',
+}
+
+
+def format_event_type(type_str):
+    return EVENT_TYPE_LABELS.get(type_str, type_str)
 
 # Tables with user_id that must be wiped on data-processing opt-out.
 # Keep in sync with data.USER_RELATED_MODELS in the bot codebase.
@@ -157,6 +202,7 @@ calendar.setfirstweekday(calendar.MONDAY)
 redis_connection = redis.Redis.from_url(os.environ['REDIS_URL'])
 
 application = Flask(__name__)
+application.url_map.strict_slashes = False
 
 _secret_key = os.environ.get('SECRET_KEY')
 if not _secret_key:
@@ -199,16 +245,6 @@ def get_db():
         conn.close()
 
 
-def login_required(f):
-    @functools.wraps(f)
-    def decorated(*args, **kwargs):
-        if 'user' not in flask_session:
-            return redirect(url_for('panel_login'))
-        return f(*args, **kwargs)
-
-    return decorated
-
-
 def generate_csrf_token():
     if '_csrf_token' not in flask_session:
         flask_session['_csrf_token'] = secrets.token_hex(32)
@@ -218,9 +254,19 @@ def generate_csrf_token():
 application.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 
-def validate_csrf():
+def api_login_required(f):
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user' not in flask_session:
+            return jsonify({'error': 'unauthorized'}), 401
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def validate_api_csrf():
     token = flask_session.get('_csrf_token')
-    if not token or token != request.form.get('_csrf_token'):
+    if not token or token != request.headers.get('X-CSRF-Token'):
         abort(403)
     flask_session.pop('_csrf_token', None)
 
@@ -231,12 +277,6 @@ def format_birthday(birthday):
     if birthday.year == BIRTHDAY_EDGE_YEAR:
         return birthday.strftime('%-d %B')
     return birthday.strftime('%-d %B %Y')
-
-
-def format_datetime(value):
-    if value is None:
-        return '—'
-    return value.strftime('%-d %B %Y, %H:%M')
 
 
 # ── Landing pages (existing) ────────────────────────────
@@ -306,9 +346,7 @@ def terms_of_service():
 
 @application.route('/panel/login')
 def panel_login():
-    if 'user' in flask_session:
-        return redirect(url_for('panel_dashboard'))
-    return render_template('panel_login.html')
+    return redirect('/panel/')
 
 
 @application.route('/panel/auth')
@@ -394,80 +432,145 @@ def panel_callback():
     }
     flask_session.permanent = True
 
-    return redirect(url_for('panel_dashboard'))
+    return redirect('/panel/')
 
 
-@application.route('/panel/logout', methods=['POST'])
-def panel_logout():
-    validate_csrf()
-    flask_session.pop('user', None)
-    return redirect(url_for('index'))
+# ── Panel SPA ────────────────────────────────────────────
+
+PANEL_DIST_DIR = os.path.join(os.path.dirname(__file__), 'panel', 'dist')
 
 
-# ── Panel: Dashboard ────────────────────────────────────
+@application.route('/panel/assets/<path:filename>')
+def panel_assets(filename):
+    return send_from_directory(os.path.join(PANEL_DIST_DIR, 'assets'), filename)
 
 
 @application.route('/panel/')
-@login_required
-def panel_dashboard():
+@application.route('/panel/<path:path>')
+def panel_spa(path=''):
+    return send_from_directory(PANEL_DIST_DIR, 'index.html')
+
+
+# ── Panel API ────────────────────────────────────────────
+
+
+def _ballot_type(letters, numeric_scale_max):
+    if letters:
+        return f"Wieloliterowe ({', '.join(letters.upper())})"
+    if numeric_scale_max is not None:
+        return f"Skala 1\u2013{numeric_scale_max}"
+    return "Za / Przeciw"
+
+
+@application.route('/panel/api/me')
+def api_me():
+    if 'user' not in flask_session:
+        return jsonify({'error': 'unauthorized'}), 401
+    return jsonify({'user': flask_session['user'], 'csrf_token': generate_csrf_token()})
+
+
+@application.route('/panel/api/dashboard')
+@api_login_required
+def api_dashboard():
     user = flask_session['user']
     user_id = user['id']
 
     birthday = None
     pending_reminders = 0
-    opted_out = False
+    total_commands = 0
+    total_ai_messages = 0
+    total_oofs = 0
+    active_polls = 0
+    pending_burns = 0
+    moderation_events = 0
+    commands_by_week = []
 
     try:
         with get_db() as conn:
             cur = conn.cursor()
 
-            cur.execute("SELECT birthday FROM born_persons WHERE user_id = %s", (user_id,))
-            row = cur.fetchone()
-            birthday = row['birthday'] if row else None
-
+            # Fetch all scalar stats in a single round-trip using CTEs
             cur.execute(
-                "SELECT COUNT(*) AS count FROM reminders WHERE user_id = %s AND has_been_executed = false",
+                """
+                WITH
+                    b AS (SELECT birthday FROM born_persons WHERE user_id = %(uid)s),
+                    r AS (SELECT COUNT(*) AS c FROM reminders WHERE user_id = %(uid)s AND has_been_executed = false),
+                    cmd AS (SELECT COUNT(*) AS c FROM invocations WHERE user_id = %(uid)s AND full_command != 'hey'),
+                    ai AS (SELECT COUNT(*) AS c FROM invocations WHERE user_id = %(uid)s AND full_command = 'hey'),
+                    o AS (SELECT COALESCE(SUM(oofs), 0) AS c FROM oofers WHERE user_id = %(uid)s),
+                    p AS (SELECT COUNT(*) AS c FROM ballots WHERE user_id = %(uid)s AND has_been_concluded = false),
+                    bu AS (SELECT COUNT(*) AS c FROM burnings WHERE user_id = %(uid)s AND has_been_executed = false),
+                    m AS (SELECT COUNT(*) AS c FROM events WHERE user_id = %(uid)s)
+                SELECT
+                    (SELECT birthday FROM b) AS birthday,
+                    (SELECT c FROM r) AS pending_reminders,
+                    (SELECT c FROM cmd) AS total_commands,
+                    (SELECT c FROM ai) AS total_ai_messages,
+                    (SELECT c FROM o) AS total_oofs,
+                    (SELECT c FROM p) AS active_polls,
+                    (SELECT c FROM bu) AS pending_burns,
+                    (SELECT c FROM m) AS moderation_events
+                """,
+                {'uid': user_id},
+            )
+            stats = cur.fetchone()
+            birthday = stats['birthday']
+            pending_reminders = stats['pending_reminders']
+            total_commands = stats['total_commands']
+            total_ai_messages = stats['total_ai_messages']
+            total_oofs = stats['total_oofs']
+            active_polls = stats['active_polls']
+            pending_burns = stats['pending_burns']
+            moderation_events = stats['moderation_events']
+
+            # Commands and AI messages per week for the last 12 weeks
+            cur.execute(
+                """
+                SELECT date_trunc('week', created_at)::date AS week,
+                       COUNT(*) FILTER (WHERE full_command != 'hey') AS commands,
+                       COUNT(*) FILTER (WHERE full_command = 'hey') AS ai_messages
+                FROM invocations
+                WHERE user_id = %s AND created_at >= now() - interval '12 weeks'
+                GROUP BY week ORDER BY week
+                """,
                 (user_id,),
             )
-            pending_reminders = cur.fetchone()['count']
-
-            cur.execute("SELECT user_id FROM data_processing_opt_outs WHERE user_id = %s", (user_id,))
-            opted_out = cur.fetchone() is not None
+            week_data = {row['week']: (row['commands'], row['ai_messages']) for row in cur.fetchall()}
+            today = dt.date.today()
+            # Monday of the current week
+            current_monday = today - dt.timedelta(days=today.weekday())
+            for i in range(11, -1, -1):
+                week_start = current_monday - dt.timedelta(weeks=i)
+                cmds, ai = week_data.get(week_start, (0, 0))
+                commands_by_week.append({
+                    'week': week_start.isoformat(),
+                    'commands': cmds,
+                    'ai_messages': ai,
+                })
     except Exception:
         logger.exception('Failed to load dashboard data for user %s', user_id)
-        flash('Nie udało się załadować niektórych danych.', 'error')
 
-    # Bot status from Redis
-    heartbeat_raw = redis_connection.get('somsiad/heartbeat')
-    bot_online = heartbeat_raw is not None
-    version_raw = redis_connection.get('somsiad/version')
-    bot_version = version_raw.decode('utf-8') if version_raw else None
-
-    return render_template(
-        'panel_dashboard.html',
-        user=user,
-        active_page='dashboard',
-        birthday=birthday,
-        birthday_display=format_birthday(birthday),
-        pending_reminders=pending_reminders,
-        opted_out=opted_out,
-        bot_online=bot_online,
-        bot_version=bot_version,
-        status_emoji=random.choice(EMOJIS),
-    )
+    return jsonify({
+        'birthday_display': format_birthday(birthday),
+        'pending_reminders': pending_reminders,
+        'total_commands': total_commands,
+        'total_ai_messages': total_ai_messages,
+        'total_oofs': total_oofs,
+        'active_polls': active_polls,
+        'pending_burns': pending_burns,
+        'moderation_events': moderation_events,
+        'commands_by_week': commands_by_week,
+    })
 
 
-# ── Panel: Birthday ─────────────────────────────────────
-
-
-@application.route('/panel/urodziny')
-@login_required
-def panel_birthday():
+@application.route('/panel/api/birthday')
+@api_login_required
+def api_birthday():
     user = flask_session['user']
     user_id = user['id']
 
     birthday = None
-    public_server_count = None
+    public_servers = []
 
     try:
         with get_db() as conn:
@@ -479,76 +582,86 @@ def panel_birthday():
 
             if birthday:
                 cur.execute(
-                    "SELECT COUNT(*) AS count FROM birthday_publicness_links WHERE born_person_user_id = %s",
+                    """
+                    SELECT bpl.server_id FROM birthday_publicness_links bpl
+                    JOIN servers s ON s.id = bpl.server_id
+                    WHERE bpl.born_person_user_id = %s
+                    ORDER BY bpl.server_id
+                    """,
                     (user_id,),
                 )
-                public_server_count = cur.fetchone()['count']
+                public_servers = [
+                    {'server_id': row['server_id'], 'server_name': _resolve_guild_name(row['server_id'])}
+                    for row in cur.fetchall()
+                ]
     except Exception:
         logger.exception('Failed to load birthday data for user %s', user_id)
-        flash('Nie udało się załadować danych urodzinowych.', 'error')
 
-    return render_template(
-        'panel_birthday.html',
-        user=user,
-        active_page='birthday',
-        birthday=birthday,
-        months=MONTHS_PL,
-        current_year=dt.date.today().year,
-        public_server_count=public_server_count,
-    )
+    birthday_json = None
+    if birthday:
+        birthday_json = {
+            'day': birthday.day,
+            'month': birthday.month,
+            'year': birthday.year if birthday.year != BIRTHDAY_EDGE_YEAR else None,
+        }
+
+    return jsonify({
+        'birthday': birthday_json,
+        'months': MONTHS_PL,
+        'current_year': dt.date.today().year,
+        'public_server_count': len(public_servers) if birthday else None,
+        'public_servers': public_servers,
+    })
 
 
-@application.route('/panel/urodziny/zapisz', methods=['POST'])
-@login_required
-def panel_birthday_update():
-    validate_csrf()
+@application.route('/panel/api/birthday', methods=['POST'])
+@api_login_required
+def api_birthday_update():
+    validate_api_csrf()
     user = flask_session['user']
     user_id = user['id']
 
+    data = request.get_json(silent=True) or {}
+
     try:
-        day = int(request.form.get('day', 1))
-        month = int(request.form.get('month', 1))
-        year_str = request.form.get('year', '').strip()
+        day = int(data.get('day', 1))
+        month = int(data.get('month', 1))
+        year_str = str(data.get('year', '')).strip()
         year = int(year_str) if year_str else BIRTHDAY_EDGE_YEAR
 
         if year != BIRTHDAY_EDGE_YEAR and (year <= BIRTHDAY_EDGE_YEAR or year > dt.date.today().year):
-            flash('Podaj poprawny rok urodzenia.', 'error')
-            return redirect(url_for('panel_birthday'))
+            return jsonify({'error': 'Podaj poprawny rok urodzenia.'})
 
         birthday = dt.date(year, month, day)
 
         if year != BIRTHDAY_EDGE_YEAR and birthday > dt.date.today():
-            flash('Data urodzin nie może być w przyszłości.', 'error')
-            return redirect(url_for('panel_birthday'))
+            return jsonify({'error': 'Data urodzin nie może być w przyszłości.'})
 
     except (ValueError, TypeError):
-        flash('Nieprawidłowa data.', 'error')
-        return redirect(url_for('panel_birthday'))
+        return jsonify({'error': 'Nieprawidłowa data.'})
 
     try:
         with get_db() as conn:
             cur = conn.cursor()
-
             cur.execute(
-                "INSERT INTO born_persons (user_id, birthday) VALUES (%s, %s) "
-                "ON CONFLICT (user_id) DO UPDATE SET birthday = EXCLUDED.birthday",
+                """
+                INSERT INTO born_persons (user_id, birthday) VALUES (%s, %s)
+                ON CONFLICT (user_id) DO UPDATE SET birthday = EXCLUDED.birthday
+                """,
                 (user_id, birthday),
             )
-
             conn.commit()
     except Exception:
         logger.exception('Failed to update birthday for user %s', user_id)
-        flash('Wystąpił błąd podczas zapisywania.', 'error')
-        return redirect(url_for('panel_birthday'))
+        return jsonify({'error': 'Wystąpił błąd podczas zapisywania.'})
 
-    flash('Zaktualizowano datę urodzin.', 'success')
-    return redirect(url_for('panel_birthday'))
+    return jsonify({'ok': True, 'message': 'Zaktualizowano datę urodzin.'})
 
 
-@application.route('/panel/urodziny/usun', methods=['POST'])
-@login_required
-def panel_birthday_delete():
-    validate_csrf()
+@application.route('/panel/api/birthday', methods=['DELETE'])
+@api_login_required
+def api_birthday_delete():
+    validate_api_csrf()
     user = flask_session['user']
     user_id = user['id']
 
@@ -559,19 +672,49 @@ def panel_birthday_delete():
             conn.commit()
     except Exception:
         logger.exception('Failed to delete birthday for user %s', user_id)
-        flash('Wystąpił błąd.', 'error')
-        return redirect(url_for('panel_birthday'))
+        return jsonify({'error': 'Wystąpił błąd.'})
 
-    flash('Usunięto datę urodzin.', 'success')
-    return redirect(url_for('panel_birthday'))
+    return jsonify({'ok': True, 'message': 'Usunięto datę urodzin.'})
 
 
-# ── Panel: Reminders ─────────────────────────────────────
+@application.route('/panel/api/birthday/hide', methods=['POST'])
+@api_login_required
+def api_birthday_hide():
+    validate_api_csrf()
+    user = flask_session['user']
+    user_id = user['id']
+
+    data = request.get_json(silent=True) or {}
+    server_id = data.get('server_id')
+    if not server_id:
+        return jsonify({'error': 'Nie podano serwera.'})
+
+    try:
+        server_id = int(server_id)
+    except (ValueError, TypeError):
+        return jsonify({'error': 'Nieprawidłowy identyfikator serwera.'})
+
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                DELETE FROM birthday_publicness_links
+                WHERE born_person_user_id = %s AND server_id = %s
+                """,
+                (user_id, server_id),
+            )
+            conn.commit()
+    except Exception:
+        logger.exception('Failed to hide birthday on server %s for user %s', server_id, user_id)
+        return jsonify({'error': 'Wystąpił błąd.'})
+
+    return jsonify({'ok': True, 'message': 'Utajniono datę urodzin na serwerze.'})
 
 
-@application.route('/panel/przypomnienia')
-@login_required
-def panel_reminders():
+@application.route('/panel/api/reminders')
+@api_login_required
+def api_reminders():
     user = flask_session['user']
     user_id = user['id']
 
@@ -583,114 +726,319 @@ def panel_reminders():
             cur = conn.cursor()
 
             cur.execute(
-                "SELECT content, execute_at, requested_at FROM reminders "
-                "WHERE user_id = %s AND has_been_executed = false "
-                "ORDER BY execute_at ASC",
+                """
+                SELECT confirmation_message_id, content, execute_at, requested_at FROM reminders
+                WHERE user_id = %s AND has_been_executed = false
+                ORDER BY execute_at ASC
+                """,
                 (user_id,),
             )
             for row in cur.fetchall():
-                pending.append(
-                    {
-                        'content': row['content'],
-                        'execute_at': format_datetime(row['execute_at']),
-                        'requested_at': format_datetime(row['requested_at']),
-                    }
-                )
+                pending.append({
+                    'id': row['confirmation_message_id'],
+                    'content': row['content'],
+                    'execute_at': row['execute_at'].isoformat() if row['execute_at'] else None,
+                    'requested_at': row['requested_at'].isoformat() if row['requested_at'] else None,
+                })
 
             cur.execute(
-                "SELECT content, execute_at FROM reminders "
-                "WHERE user_id = %s AND has_been_executed = true "
-                "ORDER BY execute_at DESC LIMIT 15",
+                """
+                SELECT content, execute_at FROM reminders
+                WHERE user_id = %s AND has_been_executed = true
+                ORDER BY execute_at DESC LIMIT 15
+                """,
                 (user_id,),
             )
             for row in cur.fetchall():
-                past.append(
-                    {
-                        'content': row['content'],
-                        'execute_at': format_datetime(row['execute_at']),
-                    }
-                )
+                past.append({
+                    'content': row['content'],
+                    'execute_at': row['execute_at'].isoformat() if row['execute_at'] else None,
+                })
     except Exception:
         logger.exception('Failed to load reminders for user %s', user_id)
-        flash('Nie udało się załadować przypomnień.', 'error')
 
-    return render_template(
-        'panel_reminders.html',
-        user=user,
-        active_page='reminders',
-        pending_reminders=pending,
-        past_reminders=past,
-    )
+    return jsonify({'pending': pending, 'past': past})
 
 
-# ── Panel: Privacy ───────────────────────────────────────
-
-
-@application.route('/panel/prywatnosc')
-@login_required
-def panel_privacy():
+@application.route('/panel/api/reminders/<int:reminder_id>', methods=['DELETE'])
+@api_login_required
+def api_reminder_delete(reminder_id):
+    validate_api_csrf()
     user = flask_session['user']
     user_id = user['id']
-
-    opted_out = False
 
     try:
         with get_db() as conn:
             cur = conn.cursor()
-            cur.execute("SELECT user_id FROM data_processing_opt_outs WHERE user_id = %s", (user_id,))
-            opted_out = cur.fetchone() is not None
+            cur.execute(
+                """
+                DELETE FROM reminders
+                WHERE confirmation_message_id = %s AND user_id = %s AND has_been_executed = false
+                """,
+                (reminder_id, user_id),
+            )
+            deleted = cur.rowcount
+            conn.commit()
     except Exception:
-        logger.exception('Failed to load privacy status for user %s', user_id)
-        flash('Nie udało się załadować statusu prywatności.', 'error')
+        logger.exception('Failed to delete reminder %s for user %s', reminder_id, user_id)
+        return jsonify({'error': 'Wystąpił błąd podczas usuwania przypomnienia.'})
 
-    return render_template(
-        'panel_privacy.html',
-        user=user,
-        active_page='privacy',
-        opted_out=opted_out,
-    )
+    if deleted:
+        return jsonify({'ok': True, 'message': 'Anulowano przypomnienie.'})
+    else:
+        return jsonify({'error': 'Nie znaleziono przypomnienia do anulowania.'})
 
 
-@application.route('/panel/prywatnosc/zapisz', methods=['POST'])
-@login_required
-def panel_privacy_update():
-    validate_csrf()
+@application.route('/panel/api/commands')
+@api_login_required
+def api_commands():
     user = flask_session['user']
     user_id = user['id']
-    action = request.form.get('action')
 
-    if action not in ('opt_out', 'opt_in'):
-        flash('Nieprawidłowa akcja.', 'error')
-        return redirect(url_for('panel_privacy'))
+    total_count = 0
+    unique_count = 0
+    top_commands = []
+    recent = []
 
     try:
         with get_db() as conn:
             cur = conn.cursor()
 
-            if action == 'opt_out':
-                # Delete user data from all related tables.
-                # This list mirrors data.USER_RELATED_MODELS in the bot.
-                cur.execute("DELETE FROM birthday_publicness_links WHERE born_person_user_id = %s", (user_id,))
-                for table in USER_DATA_TABLES:
-                    cur.execute(
-                        psycopg2.sql.SQL("DELETE FROM {} WHERE user_id = %s").format(
-                            psycopg2.sql.Identifier(table)
-                        ),
-                        (user_id,),
-                    )
-                cur.execute(
-                    "INSERT INTO data_processing_opt_outs (user_id) VALUES (%s) ON CONFLICT DO NOTHING",
-                    (user_id,),
+            # Fetch both counts in a single round-trip
+            cur.execute(
+                """
+                SELECT COUNT(*) AS total, COUNT(DISTINCT full_command) AS unique
+                FROM invocations WHERE user_id = %s AND full_command != 'hey'
+                """,
+                (user_id,),
+            )
+            counts = cur.fetchone()
+            total_count = counts['total']
+            unique_count = counts['unique']
+
+            cur.execute(
+                """
+                SELECT full_command, COUNT(*) AS count FROM invocations
+                WHERE user_id = %s AND full_command != 'hey'
+                GROUP BY full_command ORDER BY count DESC LIMIT 10
+                """,
+                (user_id,),
+            )
+            top_commands = [
+                {'full_command': row['full_command'], 'count': row['count']}
+                for row in cur.fetchall()
+            ]
+
+            cur.execute(
+                """
+                SELECT full_command, created_at FROM invocations
+                WHERE user_id = %s AND full_command != 'hey'
+                ORDER BY created_at DESC LIMIT 15
+                """,
+                (user_id,),
+            )
+            recent = [
+                {
+                    'full_command': row['full_command'],
+                    'created_at': row['created_at'].isoformat() if row['created_at'] else None,
+                }
+                for row in cur.fetchall()
+            ]
+    except Exception:
+        logger.exception('Failed to load command stats for user %s', user_id)
+
+    most_used = top_commands[0]['full_command'] if top_commands else None
+
+    return jsonify({
+        'total_count': total_count,
+        'unique_count': unique_count,
+        'most_used': most_used,
+        'top_commands': top_commands,
+        'recent': recent,
+    })
+
+
+@application.route('/panel/api/moderation')
+@api_login_required
+def api_moderation():
+    user = flask_session['user']
+    user_id = user['id']
+
+    events = []
+    type_counts = []
+
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+
+            # Fetch recent events and type counts in a single round-trip
+            cur.execute(
+                """
+                WITH recent AS (
+                    SELECT type, details, occurred_at
+                    FROM events WHERE user_id = %s
+                    ORDER BY occurred_at DESC LIMIT 50
+                ), counts AS (
+                    SELECT type, COUNT(*) AS count
+                    FROM events WHERE user_id = %s
+                    GROUP BY type ORDER BY count DESC
                 )
-                conn.commit()
-                flash('Wypisano z przetwarzania danych. Twoje dane zostały usunięte.', 'success')
-
-            elif action == 'opt_in':
-                cur.execute("DELETE FROM data_processing_opt_outs WHERE user_id = %s", (user_id,))
-                conn.commit()
-                flash('Przywrócono przetwarzanie danych.', 'success')
+                SELECT 'event' AS _kind, type, details, occurred_at, NULL::bigint AS count FROM recent
+                UNION ALL
+                SELECT 'count' AS _kind, type, NULL, NULL, count FROM counts
+                """,
+                (user_id, user_id),
+            )
+            for row in cur.fetchall():
+                if row['_kind'] == 'event':
+                    events.append({
+                        'type': row['type'],
+                        'type_label': format_event_type(row['type']),
+                        'type_icon': EVENT_TYPE_ICONS.get(row['type'], ''),
+                        'details': row['details'],
+                        'occurred_at': row['occurred_at'].isoformat() if row['occurred_at'] else None,
+                    })
+                else:
+                    type_counts.append({
+                        'type': row['type'],
+                        'label': format_event_type(row['type']),
+                        'icon': EVENT_TYPE_ICONS.get(row['type'], ''),
+                        'count': row['count'],
+                    })
     except Exception:
-        logger.exception('Failed to update privacy setting for user %s', user_id)
-        flash('Wystąpił błąd.', 'error')
+        logger.exception('Failed to load moderation data for user %s', user_id)
 
-    return redirect(url_for('panel_privacy'))
+    return jsonify({'events': events, 'type_counts': type_counts})
+
+
+@application.route('/panel/api/polls')
+@api_login_required
+def api_polls():
+    user = flask_session['user']
+    user_id = user['id']
+
+    active = []
+    past = []
+
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded FROM (
+                    (SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded
+                     FROM ballots WHERE user_id = %s AND has_been_concluded = false ORDER BY commenced_at ASC)
+                    UNION ALL
+                    (SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded
+                     FROM ballots WHERE user_id = %s AND has_been_concluded = true ORDER BY conclude_at DESC LIMIT 15)
+                ) sub
+                """,
+                (user_id, user_id),
+            )
+            for row in cur.fetchall():
+                entry = {
+                    'matter': row['matter'],
+                    'type': _ballot_type(row['letters'], row['numeric_scale_max']),
+                    'commenced_at': row['commenced_at'].isoformat() if row['commenced_at'] else None,
+                    'conclude_at': row['conclude_at'].isoformat() if row['conclude_at'] else None,
+                }
+                if row['has_been_concluded']:
+                    past.append(entry)
+                else:
+                    active.append(entry)
+    except Exception:
+        logger.exception('Failed to load polls for user %s', user_id)
+
+    return jsonify({'active': active, 'past': past})
+
+
+@application.route('/panel/api/burns')
+@api_login_required
+def api_burns():
+    user = flask_session['user']
+    user_id = user['id']
+
+    pending = []
+    past = []
+
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT requested_at, execute_at, has_been_executed FROM (
+                    (SELECT requested_at, execute_at, has_been_executed
+                     FROM burnings WHERE user_id = %s AND has_been_executed = false ORDER BY execute_at ASC)
+                    UNION ALL
+                    (SELECT requested_at, execute_at, has_been_executed
+                     FROM burnings WHERE user_id = %s AND has_been_executed = true ORDER BY execute_at DESC LIMIT 15)
+                ) sub
+                """,
+                (user_id, user_id),
+            )
+            for row in cur.fetchall():
+                entry = {
+                    'requested_at': row['requested_at'].isoformat() if row['requested_at'] else None,
+                    'execute_at': row['execute_at'].isoformat() if row['execute_at'] else None,
+                }
+                if row['has_been_executed']:
+                    past.append(entry)
+                else:
+                    pending.append(entry)
+    except Exception:
+        logger.exception('Failed to load burns for user %s', user_id)
+
+    return jsonify({'pending': pending, 'past': past})
+
+
+@application.route('/panel/api/oof')
+@api_login_required
+def api_oof():
+    user = flask_session['user']
+    user_id = user['id']
+
+    total_oofs = 0
+    server_count = 0
+    per_server = []
+
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                SELECT COALESCE(SUM(oofs), 0) AS total, COUNT(*) AS server_count
+                FROM oofers WHERE user_id = %s
+                """,
+                (user_id,),
+            )
+            row = cur.fetchone()
+            total_oofs = row['total']
+            server_count = row['server_count']
+
+            cur.execute(
+                "SELECT server_id, oofs FROM oofers WHERE user_id = %s ORDER BY oofs DESC",
+                (user_id,),
+            )
+            per_server = [
+                {'server_name': _resolve_guild_name(row['server_id']), 'oofs': row['oofs']}
+                for row in cur.fetchall()
+            ]
+    except Exception:
+        logger.exception('Failed to load oof data for user %s', user_id)
+
+    return jsonify({
+        'total_oofs': total_oofs,
+        'server_count': server_count,
+        'per_server': per_server,
+    })
+
+
+@application.route('/panel/api/logout', methods=['POST'])
+@api_login_required
+def api_logout():
+    validate_api_csrf()
+    flask_session.pop('user', None)
+    return jsonify({'ok': True})

@@ -1,8 +1,14 @@
+FROM node:22-alpine AS panel-build
+WORKDIR /app
+COPY panel/package.json ./
+RUN npm install
+COPY panel/ .
+RUN npm run build
+
 FROM python:3.11
 ENV PYTHONUNBUFFERED 1
 ENV LC_ALL pl_PL.UTF-8
 ENV TZ Europe/Warsaw
-ENV FLASK_RUN_HOST=0.0.0.0
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -22,6 +28,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -U -r requirements.txt
 
 COPY . .
+COPY --from=panel-build /app/dist panel/dist/
 
 EXPOSE 5000
 

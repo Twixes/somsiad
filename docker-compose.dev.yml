@@ -1,4 +1,6 @@
 version: "3.8"
+volumes:
+  web_panel_node_modules:
 services:
   postgres:
     environment:
@@ -10,7 +12,7 @@ services:
       context: .
       dockerfile: postgres.Dockerfile
     ports:
-      - "5432:5432"
+      - "5437:5432"
   clickhouse:
     build:
       context: .
@@ -77,13 +79,38 @@ services:
       - SECRET_KEY
     labels:
       - traefik.enable=true
-      - traefik.http.routers.web.rule=Host(`localhost`)
+      - traefik.http.services.web-app.loadbalancer.server.port=5000
+      - traefik.http.routers.web-dev-flask-panel.rule=Host(`localhost`) && (PathPrefix(`/panel/api`) || Path(`/panel/callback`) || Path(`/panel/auth`) || Path(`/panel/login`))
+      - traefik.http.routers.web-dev-flask-panel.priority=100
+      - traefik.http.routers.web-dev-flask-panel.service=web-app
+      - traefik.http.routers.web-dev-flask-panel.entrypoints=web
+      - traefik.http.routers.web-dev-main.rule=Host(`localhost`)
+      - traefik.http.routers.web-dev-main.priority=1
+      - traefik.http.routers.web-dev-main.service=web-app
+      - traefik.http.routers.web-dev-main.entrypoints=web
     volumes:
       - ./web/:/code/
+  web-panel:
+    image: node:22-alpine
+    working_dir: /app
+    command: ["sh", "-c", "npm install && npm run dev"]
+    volumes:
+      - ./web/panel:/app
+      - web_panel_node_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.web-panel-vite.loadbalancer.server.port=5173
+      - traefik.http.routers.web-dev-vite.rule=Host(`localhost`) && PathPrefix(`/panel`)
+      - traefik.http.routers.web-dev-vite.priority=50
+      - traefik.http.routers.web-dev-vite.service=web-panel-vite
+      - traefik.http.routers.web-dev-vite.entrypoints=web
   router:
     image: "traefik:v2.4"
     depends_on:
       - web
+      - web-panel
     command:
       - --entrypoints.web.address=:80
       - --providers.docker=true

@@ -338,14 +338,25 @@ TWÓJ STYL: PISZ JAK DO ZIOMALI NA BLOKOWISKU, NO I BEZ "." NA KOŃCU"""
                 raise IndexError  # Conversation reset point
         parts: list[str] = []
         if reference := message.reference:
-            reference_message: discord.Message
+            reference_message: Optional[discord.Message] = None
             if reference.cached_message:
                 reference_message = reference.cached_message
             else:
-                reference_message = await self.bot.get_channel(reference.channel_id).fetch_message(reference.message_id)
-            parts.append(
-                f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} z {reference_message.created_at.strftime("%Y-%m-%d %H:%M:%S")} o treści "{reference_message.clean_content.strip()}"_'
-            )
+                channel = self.bot.get_channel(reference.channel_id)
+                if channel is None:
+                    try:
+                        channel = await self.bot.fetch_channel(reference.channel_id)
+                    except discord.HTTPException:
+                        channel = None
+                if channel is not None and reference.message_id is not None:
+                    try:
+                        reference_message = await channel.fetch_message(reference.message_id)
+                    except (AttributeError, discord.NotFound):
+                        pass
+            if reference_message is not None:
+                parts.append(
+                    f'_W odpowiedzi na wiadomość użytkownika {reference_message.author.display_name} z {reference_message.created_at.strftime("%Y-%m-%d %H:%M:%S")} o treści "{reference_message.clean_content.strip()}"_'
+                )
         if message.clean_content:
             parts.append(message.clean_content)
             if not for_tool:

@@ -1,0 +1,4 @@
+panel/node_modules
+panel/dist
+__pycache__
+*.pyc
