@@ -230,6 +230,7 @@ a:hover { color: var(--blurple-dark); }
 
 .card__value {
   font: 600 1.2rem "Zilla Slab", serif;
+  font-variant-numeric: lining-nums;
   line-height: 1.3;
 }
 
@@ -402,6 +403,7 @@ a:hover { color: var(--blurple-dark); }
 .data-table .mono {
   font-family: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono", "Roboto Mono", "Oxygen Mono",
     "Ubuntu Monospace", "Source Code Pro", "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+  font-variant-numeric: lining-nums;
   font-size: 0.8rem;
   color: var(--text-secondary);
 }
@@ -479,6 +481,7 @@ a:hover { color: var(--blurple-dark); }
 .chart__count {
   font-size: 0.65rem;
   font-weight: 700;
+  font-variant-numeric: lining-nums;
   color: var(--text-muted);
   margin-bottom: 4px;
   min-height: 1em;
