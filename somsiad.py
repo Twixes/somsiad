@@ -216,6 +216,7 @@ class Somsiad(commands.AutoShardedBot):
         if configuration.get('posthog_api_key'):
             posthog.api_key = configuration['posthog_api_key']
             posthog.host = configuration['posthog_host']
+            posthog.enable_exception_autocapture = True
         else:
             posthog.disabled = True
 
@@ -546,6 +547,23 @@ class Somsiad(commands.AutoShardedBot):
                     if ctx.guild is not None:
                         scope.set_context('server', {'id': ctx.guild.id, 'name': str(ctx.guild)})
                 sentry_sdk.capture_exception(error)
+        posthog.capture_exception(
+            error,
+            distinct_id=str(ctx.author.id) if ctx is not None else 'system',
+            properties={
+                'event_method': event_method,
+                **(
+                    {
+                        'command': ctx.command.qualified_name,
+                        'root_command': str(ctx.command.root_parent or ctx.command.qualified_name),
+                        'server_id': ctx.guild.id if ctx.guild else None,
+                        'channel_id': ctx.channel.id,
+                    }
+                    if ctx is not None
+                    else {}
+                ),
+            },
+        )
 
     def _get_prefix(self, bot: commands.Bot, message: discord.Message) -> List[str]:
         if message.guild is not None:

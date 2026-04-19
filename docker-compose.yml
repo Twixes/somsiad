@@ -36,7 +36,11 @@ services:
       - POSTHOG_HOST
       - REDIS_URL=redis://redis:6379/
   web:
-    build: web
+    build:
+      context: web
+      args:
+        - POSTHOG_API_KEY
+        - POSTHOG_HOST
     depends_on:
       - redis
     environment:

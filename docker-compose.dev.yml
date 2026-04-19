@@ -99,6 +99,9 @@ services:
       - web_panel_node_modules:/app/node_modules
     ports:
       - "5173:5173"
+    environment:
+      - POSTHOG_API_KEY
+      - POSTHOG_HOST
     labels:
       - traefik.enable=true
       - traefik.http.services.web-panel-vite.loadbalancer.server.port=5173

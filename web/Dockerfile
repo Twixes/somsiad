@@ -3,6 +3,10 @@ WORKDIR /app
 COPY panel/package.json ./
 RUN npm install
 COPY panel/ .
+ARG POSTHOG_API_KEY
+ARG POSTHOG_HOST
+ENV POSTHOG_API_KEY=$POSTHOG_API_KEY
+ENV POSTHOG_HOST=$POSTHOG_HOST
 RUN npm run build
 
 FROM python:3.11

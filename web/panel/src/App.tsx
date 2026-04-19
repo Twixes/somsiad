@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom'
+import { usePostHog } from 'posthog-js/react'
 import { getMe, logout, type User } from './api'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
@@ -28,13 +29,21 @@ export function App() {
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const posthog = usePostHog()
 
   useEffect(() => {
     getMe().then((u) => {
       setUser(u)
+      if (u) {
+        posthog.identify(String(u.id))
+      }
       setLoading(false)
     })
-  }, [])
+  }, [posthog])
+
+  useEffect(() => {
+    posthog.capture('$pageview')
+  }, [location.pathname, posthog])
 
   useEffect(() => {
     setSidebarOpen(false)
@@ -45,6 +54,7 @@ export function App() {
 
   const handleLogout = async () => {
     await logout()
+    posthog.reset()
     setUser(null)
   }
 

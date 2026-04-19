@@ -6,6 +6,7 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
+    "posthog-js": "^1.369.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.30.0"
