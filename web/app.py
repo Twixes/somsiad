@@ -314,6 +314,7 @@ def index():
         user_count_display=user_count_display,
         version=version,
         emoji=emoji,
+        logged_in='user' in flask_session,
     )
 
 
@@ -797,24 +798,38 @@ def api_commands():
 
     total_count = 0
     unique_count = 0
+    total_ai_messages = 0
     top_commands = []
     recent = []
+    recent_ai = []
 
     try:
         with get_db() as conn:
             cur = conn.cursor()
 
-            # Fetch both counts in a single round-trip
+            # Fetch command and AI counts in a single round-trip
             cur.execute(
                 """
-                SELECT COUNT(*) AS total, COUNT(DISTINCT full_command) AS unique
-                FROM invocations WHERE user_id = %s AND full_command != 'hey'
+                WITH
+                    cmd AS (
+                        SELECT COUNT(*) AS total, COUNT(DISTINCT full_command) AS uniq
+                        FROM invocations WHERE user_id = %s AND full_command != 'hey'
+                    ),
+                    ai AS (
+                        SELECT COUNT(*) AS total
+                        FROM invocations WHERE user_id = %s AND full_command = 'hey'
+                    )
+                SELECT
+                    (SELECT total FROM cmd) AS total_count,
+                    (SELECT uniq FROM cmd) AS unique_count,
+                    (SELECT total FROM ai) AS total_ai_messages
                 """,
-                (user_id,),
+                (user_id, user_id),
             )
             counts = cur.fetchone()
-            total_count = counts['total']
-            unique_count = counts['unique']
+            total_count = counts['total_count']
+            unique_count = counts['unique_count']
+            total_ai_messages = counts['total_ai_messages']
 
             cur.execute(
                 """
@@ -844,6 +859,20 @@ def api_commands():
                 }
                 for row in cur.fetchall()
             ]
+
+            if total_ai_messages:
+                cur.execute(
+                    """
+                    SELECT created_at FROM invocations
+                    WHERE user_id = %s AND full_command = 'hey'
+                    ORDER BY created_at DESC LIMIT 15
+                    """,
+                    (user_id,),
+                )
+                recent_ai = [
+                    {'created_at': row['created_at'].isoformat() if row['created_at'] else None}
+                    for row in cur.fetchall()
+                ]
     except Exception:
         logger.exception('Failed to load command stats for user %s', user_id)
 
@@ -852,9 +881,11 @@ def api_commands():
     return jsonify({
         'total_count': total_count,
         'unique_count': unique_count,
+        'total_ai_messages': total_ai_messages,
         'most_used': most_used,
         'top_commands': top_commands,
         'recent': recent,
+        'recent_ai': recent_ai,
     })
 
 
