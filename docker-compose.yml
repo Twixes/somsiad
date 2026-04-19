@@ -41,6 +41,12 @@ services:
       - redis
     environment:
       - REDIS_URL=redis://redis:6379/
+      - DATABASE_URL
+      - DISCORD_TOKEN
+      - DISCORD_CLIENT_SECRET
+      - DISCORD_REDIRECT_URI
+      - SECRET_KEY
+      - SESSION_COOKIE_SECURE=true
     labels:
       - traefik.enable=true
       - traefik.http.routers.web.rule=Host(`somsiad.net`)

@@ -1,0 +1,76 @@
+{% extends "_panel_base.html" %}
+
+{% block title %}Urodziny{% endblock %}
+{% block page_title %}Urodziny{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h2 class="section__title">Twoja data urodzin</h2>
+  <p class="section__desc">
+    Ustaw swoją datę urodzin, aby inni mogli ci składać życzenia na serwerach Discorda.
+    Upublicznianie daty na poszczególnych serwerach odbywa się za pomocą komendy
+    <code>urodziny upublicznij</code>.
+  </p>
+
+  <div class="card card--wide">
+    <form method="post" action="{{ url_for('panel_birthday_update') }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="day">Dzień</label>
+          <select class="form-select" name="day" id="day">
+            {% for d in range(1, 32) %}
+            <option value="{{ d }}" {{ 'selected' if birthday and birthday.day == d }}>{{ d }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="month">Miesiąc</label>
+          <select class="form-select" name="month" id="month">
+            {% for m, name in months %}
+            <option value="{{ m }}" {{ 'selected' if birthday and birthday.month == m }}>{{ name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="year">Rok <span style="color: var(--text-muted); text-transform: none; letter-spacing: 0;">(opcjonalnie)</span></label>
+          <input class="form-input" type="number" name="year" id="year"
+                 min="1901" max="{{ current_year }}"
+                 placeholder="—"
+                 value="{{ birthday.year if birthday and birthday.year != 1900 else '' }}">
+        </div>
+        <button type="submit" class="btn btn--primary">Zapisz</button>
+      </div>
+    </form>
+  </div>
+
+  {% if birthday %}
+  <div style="margin-top: 12px;">
+    <form method="post" action="{{ url_for('panel_birthday_delete') }}" style="display: inline;">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn--danger">Usuń datę urodzin</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if public_server_count is not none %}
+  <div class="card card--wide" style="margin-top: 24px;">
+    <span class="card__icon">📖</span>
+    <div class="card__label">Widoczność</div>
+    <div class="card__value" style="font-size: 1rem;">
+      {% if public_server_count == 0 %}
+        Twoja data urodzin nie jest publiczna na żadnym serwerze.
+      {% elif public_server_count == 1 %}
+        Twoja data urodzin jest publiczna na 1 serwerze.
+      {% else %}
+        Twoja data urodzin jest publiczna na {{ public_server_count }} serwerach.
+      {% endif %}
+    </div>
+    <div class="card__sub">
+      Zarządzaj widocznością na poszczególnych serwerach za pomocą komend
+      <code>urodziny upublicznij</code> i <code>urodziny utajnij</code>.
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

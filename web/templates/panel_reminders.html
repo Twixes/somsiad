@@ -1,0 +1,65 @@
+{% extends "_panel_base.html" %}
+
+{% block title %}Przypomnienia{% endblock %}
+{% block page_title %}Przypomnienia{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h2 class="section__title">Oczekujące przypomnienia</h2>
+  <p class="section__desc">
+    Przypomnienia ustawione komendą <code>przypomnij</code>, które jeszcze nie zostały zrealizowane.
+  </p>
+
+  {% if pending_reminders %}
+  <div class="card card--wide">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Treść</th>
+          <th>Kiedy</th>
+          <th>Ustawiono</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in pending_reminders %}
+        <tr>
+          <td>{{ r.content }}</td>
+          <td class="mono">{{ r.execute_at }}</td>
+          <td class="mono">{{ r.requested_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card card--wide">
+    <div class="empty">
+      <span class="empty__icon">🍅</span>
+      <div class="empty__text">Brak oczekujących przypomnień. Ustaw nowe komendą <code>przypomnij</code> na Discordzie.</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if past_reminders %}
+  <h2 class="section__title" style="margin-top: 36px;">Ostatnio zrealizowane</h2>
+  <div class="card card--wide">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Treść</th>
+          <th>Zrealizowano</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in past_reminders %}
+        <tr>
+          <td>{{ r.content }}</td>
+          <td class="mono">{{ r.execute_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

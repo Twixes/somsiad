@@ -64,10 +64,17 @@ services:
     build: web
     depends_on:
       - redis
+      - postgres
     links:
       - redis:redis
+      - postgres:postgres
     environment:
       - REDIS_URL=redis://redis:6379/
+      - DATABASE_URL=postgresql://somsiad:somsiad@postgres/somsiad
+      - DISCORD_TOKEN
+      - DISCORD_CLIENT_SECRET
+      - DISCORD_REDIRECT_URI=http://localhost/panel/callback
+      - SECRET_KEY
     labels:
       - traefik.enable=true
       - traefik.http.routers.web.rule=Host(`localhost`)

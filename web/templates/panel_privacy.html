@@ -1,0 +1,57 @@
+{% extends "_panel_base.html" %}
+
+{% block title %}Prywatność{% endblock %}
+{% block page_title %}Prywatność{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h2 class="section__title">Przetwarzanie danych</h2>
+  <p class="section__desc">
+    Somsiad przetwarza pewne dane (np. daty urodzin, statystyki aktywności), aby zapewnić
+    działanie swoich funkcji. Możesz się z tego wypisać w dowolnym momencie.
+  </p>
+
+  <div class="card card--wide">
+    <span class="card__icon">{{ '🚫' if opted_out else '✅' }}</span>
+    <div class="card__label">Aktualny status</div>
+    <div class="card__value" style="margin-bottom: 16px;">
+      {% if opted_out %}
+        <span class="badge badge--danger"><span class="badge__dot"></span>Wypisany z przetwarzania danych</span>
+      {% else %}
+        <span class="badge badge--success"><span class="badge__dot"></span>Przetwarzanie danych aktywne</span>
+      {% endif %}
+    </div>
+
+    {% if opted_out %}
+    <p class="section__desc" style="margin-bottom: 16px;">
+      Jesteś wypisany z przetwarzania danych. Niektóre funkcje Somsiada mogą nie działać
+      (np. urodziny, statystyki aktywności). Możesz przywrócić przetwarzanie w dowolnym momencie.
+    </p>
+    <form method="post" action="{{ url_for('panel_privacy_update') }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="opt_in">
+      <button type="submit" class="btn btn--primary">Przywróć przetwarzanie danych</button>
+    </form>
+    {% else %}
+    <p class="section__desc" style="margin-bottom: 16px;">
+      Twoje dane są przetwarzane w celu zapewnienia pełnej funkcjonalności bota.
+      Jeśli chcesz się wypisać, wszystkie Twoje dane zostaną usunięte. Tej operacji nie można cofnąć
+      (choć możesz ponownie wyrazić zgodę i zacząć od nowa).
+    </p>
+    <form method="post" action="{{ url_for('panel_privacy_update') }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="opt_out">
+      <button type="submit" class="btn btn--danger">Wypisz się z przetwarzania danych</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section" style="margin-top: 36px;">
+  <h2 class="section__title">Więcej informacji</h2>
+  <p class="section__desc">
+    Zapoznaj się z naszą <a href="/polityka-prywatnosci">polityką prywatności</a>
+    i <a href="/warunki-swiadczenia-uslugi">warunkami świadczenia usługi</a>.
+  </p>
+</div>
+{% endblock %}
