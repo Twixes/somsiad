@@ -16,22 +16,22 @@ export function Login() {
       </div>
       <div className="login-features">
         <div className="login-feature">
-          <span className="login-feature__icon">📊</span>
+          <span className="login-feature__icon">📈</span>
           <div className="login-feature__title">Twoja aktywność w liczbach</div>
           <div className="login-feature__desc">Wykresy, trendy i rankingi – zobacz jak korzystasz z Somsiada w czasie</div>
         </div>
         <div className="login-feature">
-          <span className="login-feature__icon">🎛</span>
+          <span className="login-feature__icon">🍅</span>
           <div className="login-feature__title">Wszystko pod kontrolą</div>
           <div className="login-feature__desc">Przypomnienia, głosowania, spalenia – zarządzaj z jednego miejsca</div>
         </div>
         <div className="login-feature">
-          <span className="login-feature__icon">🔒</span>
-          <div className="login-feature__title">Prywatność w twoich rękach</div>
-          <div className="login-feature__desc">Decyduj co jest widoczne i na których serwerach – twoje dane, twoje zasady</div>
+          <span className="login-feature__icon">⚙️</span>
+          <div className="login-feature__title">Twoje ustawienia</div>
+          <div className="login-feature__desc">Urodziny, widoczność na serwerach i inne preferencje – dostosuj Somsiada do siebie</div>
         </div>
         <div className="login-feature">
-          <span className="login-feature__icon">🗂</span>
+          <span className="login-feature__icon">🔍</span>
           <div className="login-feature__title">Pełna historia</div>
           <div className="login-feature__desc">Komendy, rozmowy z AI, zdarzenia moderacyjne – nic nie ginie</div>
         </div>

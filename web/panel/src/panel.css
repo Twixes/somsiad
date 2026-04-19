@@ -641,9 +641,15 @@ a:hover { color: var(--blurple-dark); }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 3rem;
-  max-width: 480px;
+  margin-top: 2rem;
+  max-width: 900px;
   width: 90vw;
+}
+
+@media (min-width: 768px) {
+  .login-features {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .login-feature {
