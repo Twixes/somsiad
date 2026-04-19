@@ -33,9 +33,11 @@ export interface RemindersData {
 export interface CommandsData {
   total_count: number
   unique_count: number
+  total_ai_messages: number
   most_used: string | null
   top_commands: { full_command: string; count: number }[]
   recent: { full_command: string; created_at: string }[]
+  recent_ai: { created_at: string }[]
 }
 
 export interface ModerationData {

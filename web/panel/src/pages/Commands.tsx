@@ -10,6 +10,8 @@ export function Commands() {
 
   if (!data) return null
 
+  const hasAi = (data.total_ai_messages ?? 0) > 0
+
   return (
     <>
       <div className="section">
@@ -22,7 +24,7 @@ export function Commands() {
       <div className="cards">
         <div className="card">
           <span className="card__icon">📊</span>
-          <div className="card__label">Wszystkie wywołania</div>
+          <div className="card__label">Wywołania komend</div>
           <div className="card__value">{data.total_count}</div>
         </div>
         <div className="card">
@@ -35,6 +37,13 @@ export function Commands() {
           <div className="card__label">Najczęściej używana</div>
           <div className="card__value">{data.most_used || '—'}</div>
         </div>
+        {hasAi && (
+          <div className="card">
+            <span className="card__icon">🤖</span>
+            <div className="card__label">Wiadomości AI</div>
+            <div className="card__value">{data.total_ai_messages}</div>
+          </div>
+        )}
       </div>
 
       <div className="section">
@@ -84,6 +93,28 @@ export function Commands() {
                 {data.recent.map((r, i) => (
                   <tr key={i}>
                     <td><code>{r.full_command}</code></td>
+                    <td className="mono">{new Date(r.created_at).toLocaleString('pl-PL')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {hasAi && data.recent_ai.length > 0 && (
+        <div className="section" style={{ marginTop: 36 }}>
+          <h2 className="section__title">Ostatnie wiadomości AI</h2>
+          <div className="card card--wide">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recent_ai.map((r, i) => (
+                  <tr key={i}>
                     <td className="mono">{new Date(r.created_at).toLocaleString('pl-PL')}</td>
                   </tr>
                 ))}
