@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getBurns, type BurnsData } from '../api'
+import { DiscordLocation } from '../DiscordLocation'
 
 export function Burns() {
   const [data, setData] = useState<BurnsData | null>(null)
@@ -25,6 +26,7 @@ export function Burns() {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th>Gdzie</th>
                   <th>Zlecono</th>
                   <th>Zaplanowano na</th>
                 </tr>
@@ -32,6 +34,7 @@ export function Burns() {
               <tbody>
                 {data.pending.map((b, i) => (
                   <tr key={i}>
+                    <td><DiscordLocation {...b} /></td>
                     <td className="mono">{new Date(b.requested_at).toLocaleString('pl-PL')}</td>
                     <td className="mono">{new Date(b.execute_at).toLocaleString('pl-PL')}</td>
                   </tr>
@@ -56,6 +59,7 @@ export function Burns() {
             <table className="data-table">
               <thead>
                 <tr>
+                  <th>Gdzie</th>
                   <th>Zlecono</th>
                   <th>Wykonano</th>
                 </tr>
@@ -63,6 +67,7 @@ export function Burns() {
               <tbody>
                 {data.past.map((b, i) => (
                   <tr key={i}>
+                    <td><DiscordLocation {...b} /></td>
                     <td className="mono">{new Date(b.requested_at).toLocaleString('pl-PL')}</td>
                     <td className="mono">{new Date(b.execute_at).toLocaleString('pl-PL')}</td>
                   </tr>

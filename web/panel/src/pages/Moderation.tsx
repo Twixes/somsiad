@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getModeration, type ModerationData } from '../api'
+import { DiscordLocation } from '../DiscordLocation'
 
 export function Moderation() {
   const [data, setData] = useState<ModerationData | null>(null)
@@ -38,6 +39,7 @@ export function Moderation() {
               <thead>
                 <tr>
                   <th>Typ</th>
+                  <th>Gdzie</th>
                   <th>Szczegóły</th>
                   <th>Data</th>
                 </tr>
@@ -46,6 +48,7 @@ export function Moderation() {
                 {data.events.map((e, i) => (
                   <tr key={i}>
                     <td>{e.type_icon} {e.type_label}</td>
+                    <td><DiscordLocation {...e} /></td>
                     <td>{e.details || '—'}</td>
                     <td className="mono">{new Date(e.occurred_at).toLocaleString('pl-PL')}</td>
                   </tr>

@@ -145,8 +145,6 @@ DISCORD_BOT_TOKEN = os.environ.get('DISCORD_TOKEN', '')
 @functools.lru_cache(maxsize=512)
 def _resolve_guild_name(guild_id: int) -> str:
     """Fetch guild name from Discord API using the bot token. Falls back to the ID string."""
-    if not DISCORD_BOT_TOKEN:
-        return str(guild_id)
     try:
         resp = http_requests.get(
             f'{DISCORD_API_BASE}/guilds/{guild_id}',
@@ -158,6 +156,40 @@ def _resolve_guild_name(guild_id: int) -> str:
     except Exception:
         pass
     return str(guild_id)
+
+
+@functools.lru_cache(maxsize=512)
+def _resolve_channel_info(channel_id: int) -> tuple:
+    """Fetch channel name and guild ID from Discord API. Returns (name, guild_id_or_None)."""
+    try:
+        resp = http_requests.get(
+            f'{DISCORD_API_BASE}/channels/{channel_id}',
+            headers={'Authorization': f'Bot {DISCORD_BOT_TOKEN}'},
+            timeout=DISCORD_REQUEST_TIMEOUT,
+        )
+        if resp.status_code == 200:
+            ch = resp.json()
+            guild_id = ch.get('guild_id')
+            return ch.get('name', str(channel_id)), int(guild_id) if guild_id else None
+    except Exception:
+        pass
+    return str(channel_id), None
+
+
+def _make_location(server_id, channel_id):
+    """Build a location dict with server/channel names resolved via Discord API."""
+    loc = {}
+    if channel_id:
+        channel_name, inferred_guild_id = _resolve_channel_info(int(channel_id))
+        loc['channel_id'] = str(channel_id)
+        loc['channel_name'] = channel_name
+        if not server_id and inferred_guild_id:
+            server_id = inferred_guild_id
+    if server_id:
+        loc['server_id'] = str(server_id)
+        loc['server_name'] = _resolve_guild_name(int(server_id))
+    return loc
+
 
 EVENT_TYPE_LABELS = {
     'warned': 'Ostrzeżenie',
@@ -727,7 +759,7 @@ def api_reminders():
 
             cur.execute(
                 """
-                SELECT confirmation_message_id, content, execute_at, requested_at FROM reminders
+                SELECT confirmation_message_id, content, execute_at, requested_at, channel_id FROM reminders
                 WHERE user_id = %s AND has_been_executed = false
                 ORDER BY execute_at ASC
                 """,
@@ -739,11 +771,12 @@ def api_reminders():
                     'content': row['content'],
                     'execute_at': row['execute_at'].isoformat() if row['execute_at'] else None,
                     'requested_at': row['requested_at'].isoformat() if row['requested_at'] else None,
+                    **_make_location(None, row['channel_id']),
                 })
 
             cur.execute(
                 """
-                SELECT content, execute_at FROM reminders
+                SELECT content, execute_at, channel_id FROM reminders
                 WHERE user_id = %s AND has_been_executed = true
                 ORDER BY execute_at DESC LIMIT 15
                 """,
@@ -753,6 +786,7 @@ def api_reminders():
                 past.append({
                     'content': row['content'],
                     'execute_at': row['execute_at'].isoformat() if row['execute_at'] else None,
+                    **_make_location(None, row['channel_id']),
                 })
     except Exception:
         logger.exception('Failed to load reminders for user %s', user_id)
@@ -832,20 +866,24 @@ def api_commands():
 
             cur.execute(
                 """
-                SELECT full_command, COUNT(*) AS count FROM invocations
+                SELECT full_command, server_id, COUNT(*) AS count FROM invocations
                 WHERE user_id = %s AND full_command != 'hey'
-                GROUP BY full_command ORDER BY count DESC LIMIT 10
+                GROUP BY full_command, server_id ORDER BY count DESC LIMIT 20
                 """,
                 (user_id,),
             )
             top_commands = [
-                {'full_command': row['full_command'], 'count': row['count']}
+                {
+                    'full_command': row['full_command'],
+                    'count': row['count'],
+                    **_make_location(row['server_id'], None),
+                }
                 for row in cur.fetchall()
             ]
 
             cur.execute(
                 """
-                SELECT full_command, created_at FROM invocations
+                SELECT full_command, server_id, channel_id, created_at FROM invocations
                 WHERE user_id = %s AND full_command != 'hey'
                 ORDER BY created_at DESC LIMIT 15
                 """,
@@ -855,6 +893,7 @@ def api_commands():
                 {
                     'full_command': row['full_command'],
                     'created_at': row['created_at'].isoformat() if row['created_at'] else None,
+                    **_make_location(row['server_id'], row['channel_id']),
                 }
                 for row in cur.fetchall()
             ]
@@ -862,14 +901,17 @@ def api_commands():
             if total_ai_messages:
                 cur.execute(
                     """
-                    SELECT created_at FROM invocations
+                    SELECT server_id, channel_id, created_at FROM invocations
                     WHERE user_id = %s AND full_command = 'hey'
                     ORDER BY created_at DESC LIMIT 15
                     """,
                     (user_id,),
                 )
                 recent_ai = [
-                    {'created_at': row['created_at'].isoformat() if row['created_at'] else None}
+                    {
+                        'created_at': row['created_at'].isoformat() if row['created_at'] else None,
+                        **_make_location(row['server_id'], row['channel_id']),
+                    }
                     for row in cur.fetchall()
                 ]
     except Exception:
@@ -886,6 +928,48 @@ def api_commands():
         'recent': recent,
         'recent_ai': recent_ai,
     })
+
+
+@application.route('/panel/api/commands/chart')
+@api_login_required
+def api_commands_chart():
+    user = flask_session['user']
+    user_id = user['id']
+
+    weeks_count = request.args.get('weeks', 12, type=int)
+    weeks_count = max(1, min(weeks_count, 520))  # Cap at ~10 years
+
+    commands_by_week = []
+
+    try:
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT date_trunc('week', created_at)::date AS week,
+                       COUNT(*) FILTER (WHERE full_command != 'hey') AS commands,
+                       COUNT(*) FILTER (WHERE full_command = 'hey') AS ai_messages
+                FROM invocations
+                WHERE user_id = %s AND created_at >= now() - make_interval(weeks => %s)
+                GROUP BY week ORDER BY week
+                """,
+                (user_id, weeks_count),
+            )
+            week_data = {row['week']: (row['commands'], row['ai_messages']) for row in cur.fetchall()}
+            today = dt.date.today()
+            current_monday = today - dt.timedelta(days=today.weekday())
+            for i in range(weeks_count - 1, -1, -1):
+                week_start = current_monday - dt.timedelta(weeks=i)
+                cmds, ai = week_data.get(week_start, (0, 0))
+                commands_by_week.append({
+                    'week': week_start.isoformat(),
+                    'commands': cmds,
+                    'ai_messages': ai,
+                })
+    except Exception:
+        logger.exception('Failed to load commands chart for user %s', user_id)
+
+    return jsonify({'commands_by_week': commands_by_week})
 
 
 @application.route('/panel/api/moderation')
@@ -905,7 +989,7 @@ def api_moderation():
             cur.execute(
                 """
                 WITH recent AS (
-                    SELECT type, details, occurred_at
+                    SELECT type, details, occurred_at, server_id, channel_id
                     FROM events WHERE user_id = %s
                     ORDER BY occurred_at DESC LIMIT 50
                 ), counts AS (
@@ -913,9 +997,9 @@ def api_moderation():
                     FROM events WHERE user_id = %s
                     GROUP BY type ORDER BY count DESC
                 )
-                SELECT 'event' AS _kind, type, details, occurred_at, NULL::bigint AS count FROM recent
+                SELECT 'event' AS _kind, type, details, occurred_at, server_id, channel_id, NULL::bigint AS count FROM recent
                 UNION ALL
-                SELECT 'count' AS _kind, type, NULL, NULL, count FROM counts
+                SELECT 'count' AS _kind, type, NULL, NULL, NULL::bigint, NULL::bigint, count FROM counts
                 """,
                 (user_id, user_id),
             )
@@ -927,6 +1011,7 @@ def api_moderation():
                         'type_icon': EVENT_TYPE_ICONS.get(row['type'], ''),
                         'details': row['details'],
                         'occurred_at': row['occurred_at'].isoformat() if row['occurred_at'] else None,
+                        **_make_location(row['server_id'], row['channel_id']),
                     })
                 else:
                     type_counts.append({
@@ -956,11 +1041,11 @@ def api_polls():
 
             cur.execute(
                 """
-                SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded FROM (
-                    (SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded
+                SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded, channel_id FROM (
+                    (SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded, channel_id
                      FROM ballots WHERE user_id = %s AND has_been_concluded = false ORDER BY commenced_at ASC)
                     UNION ALL
-                    (SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded
+                    (SELECT matter, letters, commenced_at, conclude_at, numeric_scale_max, has_been_concluded, channel_id
                      FROM ballots WHERE user_id = %s AND has_been_concluded = true ORDER BY conclude_at DESC LIMIT 15)
                 ) sub
                 """,
@@ -972,6 +1057,7 @@ def api_polls():
                     'type': _ballot_type(row['letters'], row['numeric_scale_max']),
                     'commenced_at': row['commenced_at'].isoformat() if row['commenced_at'] else None,
                     'conclude_at': row['conclude_at'].isoformat() if row['conclude_at'] else None,
+                    **_make_location(None, row['channel_id']),
                 }
                 if row['has_been_concluded']:
                     past.append(entry)
@@ -998,11 +1084,11 @@ def api_burns():
 
             cur.execute(
                 """
-                SELECT requested_at, execute_at, has_been_executed FROM (
-                    (SELECT requested_at, execute_at, has_been_executed
+                SELECT requested_at, execute_at, has_been_executed, channel_id FROM (
+                    (SELECT requested_at, execute_at, has_been_executed, channel_id
                      FROM burnings WHERE user_id = %s AND has_been_executed = false ORDER BY execute_at ASC)
                     UNION ALL
-                    (SELECT requested_at, execute_at, has_been_executed
+                    (SELECT requested_at, execute_at, has_been_executed, channel_id
                      FROM burnings WHERE user_id = %s AND has_been_executed = true ORDER BY execute_at DESC LIMIT 15)
                 ) sub
                 """,
@@ -1012,6 +1098,7 @@ def api_burns():
                 entry = {
                     'requested_at': row['requested_at'].isoformat() if row['requested_at'] else None,
                     'execute_at': row['execute_at'].isoformat() if row['execute_at'] else None,
+                    **_make_location(None, row['channel_id']),
                 }
                 if row['has_been_executed']:
                     past.append(entry)
@@ -1053,7 +1140,11 @@ def api_oof():
                 (user_id,),
             )
             per_server = [
-                {'server_name': _resolve_guild_name(row['server_id']), 'oofs': row['oofs']}
+                {
+                    'server_id': str(row['server_id']),
+                    'server_name': _resolve_guild_name(row['server_id']),
+                    'oofs': row['oofs'],
+                }
                 for row in cur.fetchall()
             ]
     except Exception:

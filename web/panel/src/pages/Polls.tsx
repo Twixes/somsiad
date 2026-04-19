@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getPolls, type PollsData } from '../api'
+import { DiscordLocation } from '../DiscordLocation'
 
 export function Polls() {
   const [data, setData] = useState<PollsData | null>(null)
@@ -26,6 +27,7 @@ export function Polls() {
               <thead>
                 <tr>
                   <th>Sprawa</th>
+                  <th>Gdzie</th>
                   <th>Typ</th>
                   <th>Rozpoczęto</th>
                   <th>Zakończenie</th>
@@ -35,6 +37,7 @@ export function Polls() {
                 {data.active.map((p, i) => (
                   <tr key={i}>
                     <td>{p.matter}</td>
+                    <td><DiscordLocation {...p} /></td>
                     <td>{p.type}</td>
                     <td className="mono">{new Date(p.commenced_at).toLocaleString('pl-PL')}</td>
                     <td className="mono">{new Date(p.conclude_at).toLocaleString('pl-PL')}</td>
@@ -61,6 +64,7 @@ export function Polls() {
               <thead>
                 <tr>
                   <th>Sprawa</th>
+                  <th>Gdzie</th>
                   <th>Typ</th>
                   <th>Rozpoczęto</th>
                   <th>Zakończono</th>
@@ -70,6 +74,7 @@ export function Polls() {
                 {data.past.map((p, i) => (
                   <tr key={i}>
                     <td>{p.matter}</td>
+                    <td><DiscordLocation {...p} /></td>
                     <td>{p.type}</td>
                     <td className="mono">{new Date(p.commenced_at).toLocaleString('pl-PL')}</td>
                     <td className="mono">{new Date(p.conclude_at).toLocaleString('pl-PL')}</td>

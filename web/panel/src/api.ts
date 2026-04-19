@@ -25,9 +25,16 @@ export interface BirthdayData {
   public_servers: { server_id: number; server_name: string }[]
 }
 
+export interface LocationInfo {
+  server_id?: string
+  server_name?: string
+  channel_id?: string
+  channel_name?: string
+}
+
 export interface RemindersData {
-  pending: { id: number; content: string; execute_at: string; requested_at: string }[]
-  past: { content: string; execute_at: string }[]
+  pending: (LocationInfo & { id: number; content: string; execute_at: string; requested_at: string })[]
+  past: (LocationInfo & { content: string; execute_at: string })[]
 }
 
 export interface CommandsData {
@@ -35,30 +42,30 @@ export interface CommandsData {
   unique_count: number
   total_ai_messages: number
   most_used: string | null
-  top_commands: { full_command: string; count: number }[]
-  recent: { full_command: string; created_at: string }[]
-  recent_ai: { created_at: string }[]
+  top_commands: (LocationInfo & { full_command: string; count: number })[]
+  recent: (LocationInfo & { full_command: string; created_at: string })[]
+  recent_ai: (LocationInfo & { created_at: string })[]
 }
 
 export interface ModerationData {
-  events: { type: string; type_label: string; type_icon: string; details: string | null; occurred_at: string }[]
+  events: (LocationInfo & { type: string; type_label: string; type_icon: string; details: string | null; occurred_at: string })[]
   type_counts: { type: string; label: string; icon: string; count: number }[]
 }
 
 export interface PollsData {
-  active: { matter: string; type: string; commenced_at: string; conclude_at: string }[]
-  past: { matter: string; type: string; commenced_at: string; conclude_at: string }[]
+  active: (LocationInfo & { matter: string; type: string; commenced_at: string; conclude_at: string })[]
+  past: (LocationInfo & { matter: string; type: string; commenced_at: string; conclude_at: string })[]
 }
 
 export interface BurnsData {
-  pending: { requested_at: string; execute_at: string }[]
-  past: { requested_at: string; execute_at: string }[]
+  pending: (LocationInfo & { requested_at: string; execute_at: string })[]
+  past: (LocationInfo & { requested_at: string; execute_at: string })[]
 }
 
 export interface OofData {
   total_oofs: number
   server_count: number
-  per_server: { server_name: string; oofs: number }[]
+  per_server: { server_id: string; server_name: string; oofs: number }[]
 }
 
 let csrfToken: string | null = null
@@ -141,8 +148,17 @@ export async function deleteReminder(
   return res.json()
 }
 
+export interface CommandsChartData {
+  commands_by_week: { week: string; commands: number; ai_messages: number }[]
+}
+
 export async function getCommands(): Promise<CommandsData> {
   const res = await apiFetch('/commands')
+  return res.json()
+}
+
+export async function getCommandsChart(weeks: number): Promise<CommandsChartData> {
+  const res = await apiFetch(`/commands/chart?weeks=${weeks}`)
   return res.json()
 }
 

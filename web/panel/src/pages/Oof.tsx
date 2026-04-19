@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getOof, type OofData } from '../api'
+import { DiscordLocation } from '../DiscordLocation'
 
 export function Oof() {
   const [data, setData] = useState<OofData | null>(null)
@@ -47,7 +48,7 @@ export function Oof() {
               <tbody>
                 {data.per_server.map((s, i) => (
                   <tr key={i}>
-                    <td>{s.server_name}</td>
+                    <td><DiscordLocation server_id={s.server_id} server_name={s.server_name} /></td>
                     <td className="mono">{s.oofs}</td>
                   </tr>
                 ))}

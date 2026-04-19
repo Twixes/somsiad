@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getReminders, deleteReminder, type RemindersData } from '../api'
+import { DiscordLocation } from '../DiscordLocation'
 
 export function Reminders() {
   const [data, setData] = useState<RemindersData | null>(null)
@@ -33,6 +34,7 @@ export function Reminders() {
             <thead>
               <tr>
                 <th>Treść</th>
+                <th>Gdzie</th>
                 <th>Kiedy</th>
                 <th>Ustawiono</th>
                 <th></th>
@@ -42,6 +44,7 @@ export function Reminders() {
               {data.pending.map((r) => (
                 <tr key={r.id}>
                   <td>{r.content}</td>
+                  <td><DiscordLocation {...r} /></td>
                   <td className="mono">{new Date(r.execute_at).toLocaleString('pl-PL')}</td>
                   <td className="mono">{new Date(r.requested_at).toLocaleString('pl-PL')}</td>
                   <td>
@@ -77,6 +80,7 @@ export function Reminders() {
               <thead>
                 <tr>
                   <th>Treść</th>
+                  <th>Gdzie</th>
                   <th>Zrealizowano</th>
                 </tr>
               </thead>
@@ -84,6 +88,7 @@ export function Reminders() {
                 {data.past.map((r, i) => (
                   <tr key={i}>
                     <td>{r.content}</td>
+                    <td><DiscordLocation {...r} /></td>
                     <td className="mono">{new Date(r.execute_at).toLocaleString('pl-PL')}</td>
                   </tr>
                 ))}

@@ -11,7 +11,7 @@ export function Login() {
               fill="currentColor"
             />
           </svg>
-          Otwórz panel
+          Zaloguj się przez Discorda
         </a>
       </div>
       <div className="login-features">

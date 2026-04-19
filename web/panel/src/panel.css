@@ -408,6 +408,27 @@ a:hover { color: var(--blurple-dark); }
   color: var(--text-secondary);
 }
 
+/* ─── Location (Discord links) ──────────────────────── */
+
+.location {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.location a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.location a:hover {
+  text-decoration: underline;
+}
+.location--dm {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.location__channel {
+  color: var(--text-secondary);
+}
+
 /* ─── Status badges ──────────────────────────────────── */
 
 .badge {
@@ -466,6 +487,8 @@ a:hover { color: var(--blurple-dark); }
   gap: 6px;
   height: 120px;
   padding-top: 8px;
+  padding-bottom: 22px;
+  position: relative;
 }
 
 .chart__col {
@@ -476,6 +499,7 @@ a:hover { color: var(--blurple-dark); }
   height: 100%;
   justify-content: flex-end;
   min-width: 0;
+  position: relative;
 }
 
 .chart__count {
@@ -485,6 +509,9 @@ a:hover { color: var(--blurple-dark); }
   color: var(--text-muted);
   margin-bottom: 4px;
   min-height: 1em;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .chart__bar-stack {
@@ -542,20 +569,72 @@ a:hover { color: var(--blurple-dark); }
 .chart__legend-swatch--ai { background: #3ba55d; }
 
 .chart__label {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 0.6rem;
   font-weight: 600;
   color: var(--text-muted);
-  margin-top: 6px;
   white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Dense chart variant for wide ranges */
+
+.chart--dense { gap: 2px; }
+.chart--dense .chart__bar { border-radius: 1px; }
+.chart--dense .chart__bar--commands:only-child { border-radius: 1px; }
+.chart--dense .chart__bar--ai { border-radius: 1px 1px 0 0; }
+.chart--dense .chart__bar--commands { border-radius: 0 0 1px 1px; }
+
+/* ─── Chart header with range picker ────────────────── */
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.range-picker {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+}
+
+.range-picker__btn {
+  background: var(--bg);
+  border: none;
+  border-right: 1px solid var(--border);
+  padding: 5px 12px;
+  font-family: "Open Sans", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.range-picker__btn:last-child { border-right: none; }
+.range-picker__btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+.range-picker__btn--active {
+  background: var(--blurple-faint);
+  color: var(--blurple-dark);
 }
 
 @media (max-width: 480px) {
   .chart { height: 80px; gap: 3px; }
+  .chart--dense { gap: 1px; }
   .chart__label { font-size: 0.5rem; }
   .chart__count { font-size: 0.55rem; }
+  .range-picker__btn { padding: 5px 8px; font-size: 0.6rem; }
 }
 
 /* ─── Flash messages ─────────────────────────────────── */
