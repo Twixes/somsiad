@@ -314,7 +314,6 @@ def index():
         user_count_display=user_count_display,
         version=version,
         emoji=emoji,
-        logged_in='user' in flask_session,
     )
 
 

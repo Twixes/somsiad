@@ -637,6 +637,41 @@ a:hover { color: var(--blurple-dark); }
   flex-shrink: 0;
 }
 
+.login-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 3rem;
+  max-width: 480px;
+  width: 90vw;
+}
+
+.login-feature {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.login-feature__icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.login-feature__title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.login-feature__desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
 .login-footer {
   margin-top: 1.5rem;
   font-size: 0.8rem;
